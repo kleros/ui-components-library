@@ -1,13 +1,13 @@
 import React from "react";
-import styled from "styled-components";
-import { ThemeProvider } from "styled-components";
+import styled, { ThemeProvider } from "styled-components";
 import { GlobalStyle } from "./styles/global-style";
-import { lightTheme, darkTheme } from "./styles/themes";
+import { lightTheme } from "./styles/themes";
+// import { darkTheme } from "./styles/themes";
 import Button from "./lib/button";
+import Box from "./lib/box";
 import Card from "./lib/card";
 import Telegram from "./assets/svgs/telegram.svg";
 import Accordion from "./lib/accordion";
-
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -20,36 +20,31 @@ const StyledDiv = styled.div`
   align-items: center;
   flex-wrap: wrap;
   padding: 36px 36px;
-  background: ${props => props.theme.background};
-`
+  background: ${(props) => props.theme.background};
+`;
 
 const App = () => (
   <React.StrictMode>
     <ThemeProvider theme={lightTheme}>
       <GlobalStyle />
       <StyledDiv>
-        <Button primary
-          onClick={() => {console.log("hey")}}
-          content={{text: "hello"}}
+        <Button primary content={{ text: "hello" }} />
+        <Button
+          primary
+          small
+          content={{ text: "Get help", icon: <Telegram /> }}
         />
-        <Button primary small
-          onClick={() => {console.log("hey")}}
-          content={{text: "Get help", icon: <Telegram />}}
-        />
-        <Button primary disabled
-          onClick={() => {console.log("hey")}}
-          content={{text: "hello"}}
-        />
-        <Button secondary
-          onClick={() => {console.log("hey")}}
-          content={{text: "hello"}}
-        />
-        <Button tertiary small
-          onClick={() => {console.log("hey")}}
-          content={{text: "hello"}}
-        />
+        <Button primary disabled content={{ text: "hello" }} />
+        <Button secondary content={{ text: "hello" }} />
+        <Button tertiary small content={{ text: "hello" }} />
         <Card hover round />
-        <Accordion items={[{title: "How it works?", body: "hello"}, {title: "How it works?", body: "hello"}]}/>
+        <Box />
+        <Accordion
+          items={[
+            { title: "How it works?", body: "hello" },
+            { title: "How it works?", body: "hello" },
+          ]}
+        />
       </StyledDiv>
     </ThemeProvider>
   </React.StrictMode>

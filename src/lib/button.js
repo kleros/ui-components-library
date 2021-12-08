@@ -1,6 +1,6 @@
 import React from "react";
-import styled from "styled-components";
 import PropTypes from "prop-types";
+import styled from "styled-components";
 
 const PrimaryButton = styled.button`
   width: fit-content;
@@ -71,8 +71,8 @@ Button.propTypes = {
   small: PropTypes.bool,
   content: PropTypes.shape({
     icon: PropTypes.node,
-    text: PropTypes.string,
-  }),
+    text: PropTypes.string.isRequired,
+  }).isRequired,
 };
 
 export default Button;
