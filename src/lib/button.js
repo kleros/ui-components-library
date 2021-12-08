@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-
+import PropTypes from "prop-types";
 
 const PrimaryButton = styled.button`
   width: fit-content;
@@ -9,38 +9,30 @@ const PrimaryButton = styled.button`
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  padding: ${props => {
-    if (props.small)
-      return props.secondary ? "5px 23px" : "6px 24px";
-    return props.secondary ? "10.5px 31px": "11.5px 32px"
+  padding: ${(props) => {
+    if (props.small) return props.secondary ? "5px 23px" : "6px 24px";
+    else return props.secondary ? "10.5px 31px" : "11.5px 32px";
   }};
-  background: ${props => {
-    if (props.primary){
-      return props.disabled ? props.theme.lightGrey : props.theme.primaryBlue
-    } else {
-      return (
-        props.secondary ? props.theme.background : props.theme.primaryPurple
-      )
-    }
+  background: ${(props) => {
+    if (props.secondary) return props.theme.background;
+    else if (props.tertiary) return props.theme.primaryPurple;
+    else
+      return props.disabled ? props.theme.lightGrey : props.theme.primaryBlue;
   }};
-  border: ${props => props.secondary ? ("1px solid " + props.theme.primaryBlue) : "none"};
+  border: ${(props) =>
+    props.secondary ? "1px solid " + props.theme.primaryBlue : "none"};
   border-radius: 3px;
 
   transition: background 0.5s;
 
   :hover {
-    background: ${props => {
-      if (props.primary){
+    background: ${(props) => {
+      if (props.secondary) return props.theme.lightPurple;
+      else if (props.tertiary) return props.theme.secondaryPurple;
+      else
         return props.disabled
           ? props.theme.lightGrey
-          : props.theme.secondaryBlue
-      } else {
-        return (
-          props.secondary
-            ? props.theme.lightPurple
-            : props.theme.secondaryPurple
-        )
-      }
+          : props.theme.secondaryBlue;
     }};
   }
 
@@ -48,11 +40,12 @@ const PrimaryButton = styled.button`
     font-weight: 600;
     text-align: center;
 
-    color: ${props => (
+    color: ${(props) =>
       props.secondary
         ? props.theme.primaryBlue
-        : props.disabled ? props.theme.stroke : "white"
-    )};
+        : props.disabled
+        ? props.theme.stroke
+        : "white"};
   }
 
   svg {
@@ -60,17 +53,26 @@ const PrimaryButton = styled.button`
     width: 16px;
     margin-right: 8px;
   }
-`
+`;
 
 const Button = (props) => {
   return (
     <PrimaryButton {...props}>
       {props.content.icon}
-      <p>
-        {props.content.text}
-      </p>
+      <p> {props.content.text} </p>
     </PrimaryButton>
   );
-}
+};
+
+Button.propTypes = {
+  primary: PropTypes.bool,
+  secondary: PropTypes.bool,
+  tertiary: PropTypes.bool,
+  small: PropTypes.bool,
+  content: PropTypes.shape({
+    icon: PropTypes.node,
+    text: PropTypes.string,
+  }),
+};
 
 export default Button;
