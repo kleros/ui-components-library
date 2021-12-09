@@ -14,8 +14,8 @@ const PrimaryButton = styled.button`
     else return props.secondary ? "10.5px 31px" : "11.5px 32px";
   }};
   background: ${(props) => {
-    if (props.secondary) return props.theme.background;
-    else if (props.tertiary) return props.theme.primaryPurple;
+    if (props.secondary) return props.theme.lightBackground;
+    else if (props.tertiary) return props.theme.secondaryPurple;
     else
       return props.disabled ? props.theme.lightGrey : props.theme.primaryBlue;
   }};
@@ -27,8 +27,8 @@ const PrimaryButton = styled.button`
 
   :hover {
     background: ${(props) => {
-      if (props.secondary) return props.theme.lightPurple;
-      else if (props.tertiary) return props.theme.secondaryPurple;
+      if (props.secondary) return props.theme.mediumBlue;
+      else if (props.tertiary) return props.theme.primaryPurple;
       else
         return props.disabled
           ? props.theme.lightGrey

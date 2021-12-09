@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import styled from "styled-components";
 
 const Card = styled.div`
-  background: ${(props) => props.theme.background};
+  background: ${(props) => props.theme.lightBackground};
   border: 1px solid ${(props) => props.theme.stroke};
   box-sizing: border-box;
   box-shadow: 0px 2px 3px ${(props) => props.theme.stroke}80;
