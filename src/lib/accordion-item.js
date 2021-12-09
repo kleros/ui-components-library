@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import Plus from "../assets/svgs/plus.svg";
-import Minus from "../assets/svgs/minus.svg";
+import Plus from "../assets/svgs/accordion/plus.svg";
+import Minus from "../assets/svgs/accordion/minus.svg";
 
 const StyledDiv = styled.div`
   margin: 8px;

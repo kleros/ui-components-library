@@ -12,9 +12,9 @@ export const lightTheme = {
   stroke: "#e5e5e5",
   lightGrey: "#FAFAFA",
 
-  background: "#FFFFFF",
-  lightBackground: "#FAFBFC",
-}
+  background: "#FAFBFC",
+  lightBackground: "#FFFFFF",
+};
 
 export const darkTheme = {
   primaryPurple: "#7E1BD4",
@@ -30,6 +30,6 @@ export const darkTheme = {
   stroke: "#42498F",
   lightGrey: "#2D1865",
 
-  background: "#220050",
-  lightBackground: "1B003F",
-}
+  background: "#1B003F",
+  lightBackground: "#220050",
+};
