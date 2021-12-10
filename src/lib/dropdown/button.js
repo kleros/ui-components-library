@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import styled from "styled-components";
 import Arrow from "../../assets/svgs/dropdown/arrow.svg";
 
-const Container = styled("div")`
+const Container = styled.div`
   width: 240px;
   background: ${(props) => props.theme.lightBackground};
   border: 1px solid ${(props) => props.theme.stroke};
