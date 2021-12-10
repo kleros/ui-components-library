@@ -22,7 +22,7 @@ const DropDownList = styled.div`
   padding: 16px 0px;
 `;
 
-const DropdownSelect = ({ items, defaultValue, callback }) => {
+const DropdownSelect = ({ items, defaultValue, defaultNode, callback }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState(defaultValue);
   const currentItem = items.find(({ value }) => value === selected);
@@ -31,13 +31,17 @@ const DropdownSelect = ({ items, defaultValue, callback }) => {
       <DropdownButton
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        current={
-          <SelectItem
-            title
-            text={currentItem.text}
-            dot={currentItem.dot}
-            icon={currentItem.icon}
-          />
+        node={
+          currentItem ? (
+            <SelectItem
+              title
+              text={currentItem.text}
+              dot={currentItem.dot}
+              icon={currentItem.icon}
+            />
+          ) : (
+            defaultNode
+          )
         }
       />
       <DropDownListContainer isOpen={isOpen} length={items.length * 45 + 34}>
@@ -70,7 +74,8 @@ DropdownSelect.propTypes = {
       value: PropTypes.any.isRequired,
     })
   ).isRequired,
-  defaultValue: PropTypes.any.isRequired,
+  defaultValue: PropTypes.any,
+  defaultNode: PropTypes.node,
   callback: PropTypes.func.isRequired,
 };
 

@@ -23,17 +23,17 @@ const StyledArrow = styled(Arrow)`
   transition: transform ease 0.5s;
 `;
 
-const DropdownButton = ({ current, isOpen, setIsOpen }) => {
+const DropdownButton = ({ node, isOpen, setIsOpen }) => {
   return (
     <Container onClick={() => setIsOpen(!isOpen)}>
-      {current}
+      {node}
       <StyledArrow isOpen={isOpen} />
     </Container>
   );
 };
 
 DropdownButton.propTypes = {
-  current: PropTypes.node.isRequired,
+  node: PropTypes.node.isRequired,
   isOpen: PropTypes.bool.isRequired,
   setIsOpen: PropTypes.func.isRequired,
 };
