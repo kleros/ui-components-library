@@ -1,5 +1,4 @@
-import { createGlobalStyle } from 'styled-components';
-
+import { createGlobalStyle } from "styled-components";
 
 export const GlobalStyle = createGlobalStyle`
   body {
@@ -12,7 +11,7 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: 600;
     line-height: 33px;
     margin: 0;
-    color: ${props => props.theme.primaryText}
+    color: ${(props) => props.theme.primaryText}
   }
 
   h2 {
@@ -20,7 +19,7 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: 600;
     line-height: 22px;
     margin: 0;
-    color: ${props => props.theme.primaryText}
+    color: ${(props) => props.theme.primaryText}
   }
 
   p {
@@ -28,7 +27,7 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: 400;
     line-height: 22px;
     margin: 0;
-    color: ${props => props.theme.primaryText}
+    color: ${(props) => props.theme.primaryText}
   }
 
   hr {
@@ -87,4 +86,4 @@ export const GlobalStyle = createGlobalStyle`
   [type="submit"] {
     -webkit-appearance: button;
   }
-`
+`;

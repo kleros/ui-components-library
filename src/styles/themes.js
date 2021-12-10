@@ -12,8 +12,21 @@ export const lightTheme = {
   stroke: "#e5e5e5",
   lightGrey: "#FAFAFA",
 
-  background: "#FAFBFC",
-  lightBackground: "#FFFFFF",
+  whiteBackground: "#FFFFFF",
+  lightBackground: "#FAFBFC",
+
+  defaultShadow: "#00000002",
+  hoveredShadow: "#00000002",
+
+  success: "#00C42B",
+  successLight: "#F0FBF2",
+  warning: "#FF9900",
+  warningLight: "#FFF9F0",
+  error: "#F60C36",
+  errorLight: "#FEFF0F3",
+  tint: "#D14EFF",
+  tintMedium: "#401D6C",
+  tintPurple: "#F4F0FA",
 };
 
 export const darkTheme = {
@@ -30,6 +43,19 @@ export const darkTheme = {
   stroke: "#42498F",
   lightGrey: "#2D1865",
 
-  background: "#1B003F",
-  lightBackground: "#220050",
+  whiteBackground: "#220050",
+  lightBackground: "#1B003F",
+
+  defaultShadow: "#00000000",
+  hoveredShadow: "#42498f80",
+
+  success: "#65DC7F",
+  successLight: "#32355B",
+  warning: "#FFC46B",
+  warningLight: "#451F54",
+  error: "#FF5A78",
+  errorLight: "#360652",
+  tint: "#DDB6FF",
+  tintMedium: "#401D6C",
+  tintPurple: "#2F0960",
 };

@@ -1,13 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import styled, { ThemeProvider } from "styled-components";
 import { GlobalStyle } from "./styles/global-style";
-import { lightTheme } from "./styles/themes";
-// import { darkTheme } from "./styles/themes";
+import { lightTheme, darkTheme } from "./styles/themes";
 import Button from "./lib/button";
-import Box from "./lib/box";
-import Card from "./lib/card";
+import Box from "./lib/container/box";
+import Card from "./lib/container/card";
 import Telegram from "./assets/svgs/telegram.svg";
 import Accordion from "./lib/accordion";
+import DropdownSelect from "./lib/dropdown/select";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -20,34 +20,56 @@ const StyledDiv = styled.div`
   align-items: center;
   flex-wrap: wrap;
   padding: 36px 36px;
-  background: ${(props) => props.theme.background};
+  background: ${(props) => props.theme.lightBackground};
+  transition: background ease 0.5s;
 `;
 
-const App = () => (
-  <React.StrictMode>
-    <ThemeProvider theme={lightTheme}>
-      <GlobalStyle />
-      <StyledDiv>
-        <Button primary content={{ text: "hello" }} />
-        <Button
-          primary
-          small
-          content={{ text: "Get help", icon: <Telegram /> }}
-        />
-        <Button primary disabled content={{ text: "hello" }} />
-        <Button secondary content={{ text: "hello" }} />
-        <Button tertiary small content={{ text: "hello" }} />
-        <Card hover round />
-        <Box />
-        <Accordion
-          items={[
-            { title: "How it works?", body: "hello" },
-            { title: "How it works?", body: "hello" },
-          ]}
-        />
-      </StyledDiv>
-    </ThemeProvider>
-  </React.StrictMode>
-);
+const App = () => {
+  const [theme, setTheme] = useState(lightTheme);
+  return (
+    <React.StrictMode>
+      <ThemeProvider theme={theme}>
+        <GlobalStyle />
+        <StyledDiv>
+          <Button
+            primary
+            onClick={() =>
+              theme === lightTheme ? setTheme(darkTheme) : setTheme(lightTheme)
+            }
+          >
+            Change Theme
+          </Button>
+          <Button primary small>
+            <Telegram />
+            Get help
+          </Button>
+          <Button primary disabled>
+            Hello
+          </Button>
+          <Button secondary>Hello</Button>
+          <Button tertiary small>
+            Hello
+          </Button>
+          <Card hover round />
+          <Box />
+          <Accordion
+            items={[
+              { title: "How it works?", body: "hello" },
+              { title: "How it works?", body: "hello" },
+            ]}
+          />
+          <DropdownSelect
+            items={[
+              { text: "hello 1", dot: "red", value: 1 },
+              { text: "hello 2", dot: "blue", value: 0 },
+            ]}
+            defaultValue={0}
+            callback={() => {}}
+          />
+        </StyledDiv>
+      </ThemeProvider>
+    </React.StrictMode>
+  );
+};
 
 export default App;
