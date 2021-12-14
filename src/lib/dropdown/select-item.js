@@ -14,7 +14,7 @@ const ListItem = styled.div`
   align-items: center;
 
   ${(props) => {
-    if (!props.title)
+    if (!props.current)
       return `
         :hover {
           background: ${props.theme.mediumBlue};
@@ -41,8 +41,8 @@ const StyledDot = styled(Dot)`
   margin-right: 8px;
 `;
 
-const SelectItem = ({ text, icon, dot, selected, title, onClick }) => (
-  <ListItem selected={selected} title={title} onClick={onClick}>
+const SelectItem = ({ text, icon, dot, selected, current, onClick }) => (
+  <ListItem selected={selected} current={current} onClick={onClick}>
     {icon}
     {dot && <StyledDot color={dot} />}
     <p>{text}</p>
@@ -54,7 +54,7 @@ SelectItem.propTypes = {
   icon: PropTypes.node,
   dot: PropTypes.string,
   selected: PropTypes.bool,
-  title: PropTypes.bool,
+  current: PropTypes.bool,
   onClick: PropTypes.func,
 };
 
