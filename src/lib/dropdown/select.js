@@ -1,16 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import DropdownButton from "./button";
 import SelectItem from "./select-item";
 
 const DropDownContainer = styled("div")``;
+
 const DropDownListContainer = styled("div")`
   position: absolute;
   z-index: 100;
   width: 240px;
   overflow: hidden;
-  height: ${(props) => (props.isOpen ? props.length.toString() + "px" : "0px")};
+  height: ${(props) => (props.isOpen ? props.totalHeight.toString() : "0")}px;
 
   transition: height ease 0.5s;
 `;
@@ -25,6 +26,7 @@ const DropDownList = styled.div`
 const DropdownSelect = ({ items, defaultValue, defaultNode, callback }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState(defaultValue);
+  const heightRef = useRef(0);
   const currentItem = items.find(({ value }) => value === selected);
   return (
     <DropDownContainer tabIndex={0} onBlur={() => setIsOpen(false)}>
@@ -44,8 +46,13 @@ const DropdownSelect = ({ items, defaultValue, defaultNode, callback }) => {
           )
         }
       />
-      <DropDownListContainer isOpen={isOpen} length={items.length * 45 + 34}>
-        <DropDownList>
+      <DropDownListContainer
+        isOpen={isOpen}
+        totalHeight={heightRef.current + 2}
+      >
+        <DropDownList
+          ref={(ref) => (heightRef.current = ref?.clientHeight || 0)}
+        >
           {items.map(({ text, icon, dot, value }, i) => (
             <SelectItem
               key={i}

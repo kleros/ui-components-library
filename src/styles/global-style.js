@@ -27,7 +27,8 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: 400;
     line-height: 22px;
     margin: 0;
-    color: ${(props) => props.theme.primaryText}
+    color: ${(props) => props.theme.primaryText};
+    white-space: pre;
   }
 
   hr {

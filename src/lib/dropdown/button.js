@@ -15,7 +15,9 @@ const Container = styled.div`
   padding-right: 16px;
 `;
 
-const StyledArrow = styled(Arrow)`
+const StyledArrow = styled(({ ignoredIsOpen, ...props }) => (
+  <Arrow {...props} />
+))`
   width: 16px;
   height: 16px;
   fill: ${(props) => props.theme.stroke};
@@ -23,11 +25,11 @@ const StyledArrow = styled(Arrow)`
   transition: transform ease 0.5s;
 `;
 
-const DropdownButton = ({ node, isOpen, setIsOpen }) => {
+const DropdownButton = ({ node, isOpen, setIsOpen, ...props }) => {
   return (
-    <Container onClick={() => setIsOpen(!isOpen)}>
+    <Container onClick={() => setIsOpen(!isOpen)} {...props}>
       {node}
-      <StyledArrow isOpen={isOpen} />
+      <StyledArrow ignoredIsOpen={isOpen} {...props} />
     </Container>
   );
 };

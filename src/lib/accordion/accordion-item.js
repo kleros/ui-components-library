@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import Plus from "../../assets/svgs/accordion/plus.svg";
@@ -30,20 +30,20 @@ const StyledDiv = styled.div`
 `;
 
 const Collapsible = styled.div`
-  height: ${(props) => (props.expanded ? "auto" : "0")};
-  padding: ${(props) => (props.expanded ? "32px" : "0px")} 32px;
+  height: ${(props) => (props.expanded ? props.totalHeight.toString() : "0")}px;
   overflow: hidden;
+`;
 
-  p {
-    font-size: 14px;
-    font-weight: 400;
-    color: ${(props) => props.theme.primaryText};
-  }
+const Body = styled.div`
+  padding: 32px;
 
-  transition: height ease 0.25s, padding ease 0.25s;
+  font-size: 14px;
+  font-weight: 400;
+  color: ${(props) => props.theme.primaryText};
 `;
 
 const AccordionItem = (props) => {
+  const heightRef = useRef();
   return (
     <StyledDiv>
       <button
@@ -56,7 +56,11 @@ const AccordionItem = (props) => {
         <p> {props.title} </p>
         {props.expanded ? <Minus /> : <Plus />}
       </button>
-      <Collapsible expanded={props.expanded}> {props.body} </Collapsible>
+      <Collapsible expanded={props.expanded} totalHeight={heightRef.current}>
+        <Body ref={(ref) => (heightRef.current = ref?.clientHeight || 0)}>
+          {props.body}
+        </Body>
+      </Collapsible>
     </StyledDiv>
   );
 };

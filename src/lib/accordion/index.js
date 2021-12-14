@@ -19,7 +19,7 @@ const Accordion = (props) => {
           index={index}
           title={item.title}
           icon={item.icon}
-          body={<p>{item.body}</p>}
+          body={item.body}
           setExpanded={setExpanded}
           expanded={expanded === index}
         />
