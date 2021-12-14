@@ -27,6 +27,8 @@ export const lightTheme = {
   tint: "#D14EFF",
   tintMedium: "#401D6C",
   tintPurple: "#F4F0FA",
+
+  transitionSpeed: "0.25s",
 };
 
 export const darkTheme = {
@@ -58,4 +60,6 @@ export const darkTheme = {
   tint: "#DDB6FF",
   tintMedium: "#401D6C",
   tintPurple: "#2F0960",
+
+  transitionSpeed: "0.25s",
 };

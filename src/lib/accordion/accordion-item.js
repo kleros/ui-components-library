@@ -32,6 +32,7 @@ const StyledDiv = styled.div`
 const Collapsible = styled.div`
   height: ${(props) => (props.expanded ? props.totalHeight.toString() : "0")}px;
   overflow: hidden;
+  transition: height ease ${(props) => props.theme.transitionSpeed};
 `;
 
 const Body = styled.div`

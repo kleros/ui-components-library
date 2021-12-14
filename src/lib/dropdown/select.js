@@ -12,13 +12,14 @@ const DropDownListContainer = styled("div")`
   width: 240px;
   overflow: hidden;
   height: ${(props) => (props.isOpen ? props.totalHeight.toString() : "0")}px;
+  box-shadow: 0px 2px 3px ${(props) => props.theme.defaultShadow};
 
-  transition: height ease 0.5s;
+  transition: height ease ${(props) => props.theme.transitionSpeed};
 `;
+
 const DropDownList = styled.div`
   background-color: ${(props) => props.theme.lightBackground};
   border-radius: 3px;
-  box-shadow: 0px 2px 3px ${(props) => props.theme.stroke}80;
   border: 1px solid ${(props) => props.theme.stroke};
   padding: 16px 0px;
 `;
@@ -36,7 +37,7 @@ const DropdownSelect = ({ items, defaultValue, defaultNode, callback }) => {
         node={
           currentItem ? (
             <SelectItem
-              title
+              current
               text={currentItem.text}
               dot={currentItem.dot}
               icon={currentItem.icon}

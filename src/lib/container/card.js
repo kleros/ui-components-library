@@ -10,7 +10,7 @@ const Card = styled.div`
   width: 328px;
   height: 200px;
 
-  transition: box-shadow 0.5s;
+  transition: box-shadow ease ${(props) => props.theme.transitionSpeed};
 
   ${(props) => {
     if (props.hover)

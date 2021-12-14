@@ -21,7 +21,7 @@ const StyledDiv = styled.div`
   flex-wrap: wrap;
   padding: 36px 36px;
   background: ${(props) => props.theme.lightBackground};
-  transition: background ease 0.5s;
+  transition: background ease ${(props) => props.theme.transitionSpeed};
 `;
 
 const App = () => {
@@ -54,7 +54,10 @@ const App = () => {
           <Box />
           <Accordion
             items={[
-              { title: "How it works?", body: "hello" },
+              {
+                title: "How it works?",
+                body: <p>{"hello\nhello\n\n\n\n\nhello"}</p>,
+              },
               { title: "How it works?", body: "hello" },
             ]}
           />

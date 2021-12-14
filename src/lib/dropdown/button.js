@@ -21,8 +21,8 @@ const StyledArrow = styled(({ ignoredIsOpen, ...props }) => (
   width: 16px;
   height: 16px;
   fill: ${(props) => props.theme.stroke};
-  ${(props) => (props.isOpen ? "transform: rotate(180deg)" : "")};
-  transition: transform ease 0.5s;
+  ${(props) => (props.ignoredIsOpen ? "transform: rotate(180deg)" : "")};
+  transition: transform ease ${(props) => props.theme.transitionSpeed};
 `;
 
 const DropdownButton = ({ node, isOpen, setIsOpen, ...props }) => {

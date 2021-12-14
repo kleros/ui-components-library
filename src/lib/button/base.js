@@ -14,7 +14,7 @@ const BaseButton = styled.button`
   border-radius: 3px;
   border: none;
 
-  transition: background 0.5s;
+  transition: background ease ${(props) => props.theme.transitionSpeed};
 
   font-weight: 600;
   text-align: center;
