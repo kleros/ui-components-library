@@ -9,7 +9,8 @@ const ListItem = styled.div`
   border-left: 3px solid
     ${(props) =>
       props.selected ? props.theme.primaryBlue : props.theme.lightBackground};
-  padding: 11.5px 13px 11.5px 16px;
+  padding: ${(props) =>
+    props.current ? "10.5px 16px 10.5px 13px" : "11.5px 16px 11.5px 13px"};
   display: flex;
   align-items: center;
 
