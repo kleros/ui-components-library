@@ -9,6 +9,7 @@ import Telegram from "./assets/svgs/telegram.svg";
 import Accordion from "./lib/accordion";
 import DropdownSelect from "./lib/dropdown/select";
 import Field from "./lib/form/field";
+import Textarea from "./lib/form/textarea";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -71,6 +72,11 @@ const App = () => {
             callback={() => {}}
           />
           <Field placeholder={"eg. Escrow"} success />
+          <Textarea
+            placeholder={"eg. longer text"}
+            message={"Error msg"}
+            error
+          />
         </StyledDiv>
       </ThemeProvider>
     </React.StrictMode>
