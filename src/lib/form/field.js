@@ -1,14 +1,15 @@
 import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import SuccessCircle from "../assets/svgs/form-field/success.svg";
-import WarningCircle from "../assets/svgs/form-field/warning.svg";
-import ErrorCircle from "../assets/svgs/form-field/error.svg";
+import SuccessCircle from "../../assets/svgs/form-field/success.svg";
+import WarningCircle from "../../assets/svgs/form-field/warning.svg";
+import ErrorCircle from "../../assets/svgs/form-field/error.svg";
 
 const Wrapper = styled.div`
   height: 45px;
   width: 278px;
   position: relative;
+  color: red;
 
   svg {
     height: 16px;
@@ -60,21 +61,38 @@ const StyledInput = styled.input`
   }
 `;
 
-const FormField = (props) => {
+const StyledMessage = styled.p`
+  line-height: 1em;
+  margin-top: 5px;
+  margin-left: 16px;
+  font-size: 14px;
+  color: ${(props) => {
+    if (props.warning) return props.theme.warning;
+    else if (props.error) return props.theme.error;
+    else if (props.success) return props.theme.success;
+    else return props.theme.stroke;
+  }};
+`;
+
+const Field = (props) => {
   return (
     <Wrapper>
-      <StyledInput placeholder={"test"} {...props} />
+      <StyledInput {...props} />
       {props.success && <StyledSuccessCircle />}
       {props.warning && <StyledWarningCircle />}
       {props.error && <StyledErrorCircle />}
+      {props.message && (
+        <StyledMessage {...props}>{props.message}</StyledMessage>
+      )}
     </Wrapper>
   );
 };
 
-FormField.propTypes = {
+Field.propTypes = {
   success: PropTypes.bool,
   warning: PropTypes.bool,
   error: PropTypes.bool,
+  message: PropTypes.string,
 };
 
-export default FormField;
+export default Field;

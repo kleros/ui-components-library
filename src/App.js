@@ -8,7 +8,7 @@ import Card from "./lib/container/card";
 import Telegram from "./assets/svgs/telegram.svg";
 import Accordion from "./lib/accordion";
 import DropdownSelect from "./lib/dropdown/select";
-import FormField from "./lib/form-field";
+import Field from "./lib/form/field";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -70,7 +70,7 @@ const App = () => {
             defaultValue={0}
             callback={() => {}}
           />
-          <FormField success />
+          <Field placeholder={"eg. Escrow"} success />
         </StyledDiv>
       </ThemeProvider>
     </React.StrictMode>
