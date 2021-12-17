@@ -74,9 +74,9 @@ const App = () => {
             message={"Error msg"}
             error
           />
-          <DisplaySmall text="250 DAI" label="Amount" icon={() => <Dai />} />
-          <DisplayLarge text="$244.08" label="ETH Price" icon={() => <Dai />} />
-          <DisplayIcon text="247" label="Disputes" icon={() => <Balance />} />
+          <DisplaySmall text="250 DAI" label="Amount" icon={<Dai />} />
+          <DisplayLarge text="$244.08" label="ETH Price" icon={<Dai />} />
+          <DisplayIcon text="247" label="Disputes" icon={<Balance />} />
         </StyledDiv>
       </ThemeProvider>
     </React.StrictMode>

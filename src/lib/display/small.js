@@ -36,7 +36,7 @@ const DisplaySmall = ({ text, icon, label }) => {
     <Wrapper>
       {label}
       <StyledCard>
-        {icon && icon()}
+        {icon}
         {text}
       </StyledCard>
     </Wrapper>
@@ -45,7 +45,7 @@ const DisplaySmall = ({ text, icon, label }) => {
 
 DisplaySmall.propTypes = {
   text: PropTypes.string.isRequired,
-  icon: PropTypes.func,
+  icon: PropTypes.node,
   label: PropTypes.string,
 };
 

@@ -35,7 +35,7 @@ const Label = styled.p`
 const DisplayLarge = ({ text, icon, label }) => {
   return (
     <StyledCard>
-      {icon && icon()}
+      {icon}
       {text}
       <Label> {label} </Label>
     </StyledCard>
@@ -44,7 +44,7 @@ const DisplayLarge = ({ text, icon, label }) => {
 
 DisplayLarge.propTypes = {
   text: PropTypes.string.isRequired,
-  icon: PropTypes.func,
+  icon: PropTypes.node,
   label: PropTypes.string,
 };
 

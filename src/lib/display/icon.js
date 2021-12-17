@@ -45,7 +45,7 @@ const IconCard = styled(Card)`
 const DisplayIcon = ({ text, icon, label }) => {
   return (
     <StyledCard>
-      <IconCard> {icon()} </IconCard>
+      <IconCard> {icon} </IconCard>
       <Text>
         {text}
         <Label> {label} </Label>
@@ -56,7 +56,7 @@ const DisplayIcon = ({ text, icon, label }) => {
 
 DisplayIcon.propTypes = {
   text: PropTypes.string.isRequired,
-  icon: PropTypes.func.isRequired,
+  icon: PropTypes.node.isRequired,
   label: PropTypes.string,
 };
 
