@@ -15,6 +15,7 @@ import Dai from "./assets/svgs/dai.svg";
 import DisplayLarge from "./lib/display/large";
 import DisplayIcon from "./lib/display/icon";
 import Balance from "./assets/svgs/balance.svg";
+import CompactPagination from "./lib/pagination/compact";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -33,6 +34,7 @@ const StyledDiv = styled.div`
 
 const App = () => {
   const [theme, setTheme] = useState(lightTheme);
+  const [currentPage, setCurrentPage] = useState(1);
   return (
     <React.StrictMode>
       <ThemeProvider theme={theme}>
@@ -77,6 +79,11 @@ const App = () => {
           <DisplaySmall text="250 DAI" label="Amount" icon={<Dai />} />
           <DisplayLarge text="$244.08" label="ETH Price" icon={<Dai />} />
           <DisplayIcon text="247" label="Disputes" icon={<Balance />} />
+          <CompactPagination
+            label={<p style={{ fontSize: "14px" }}>Page {currentPage}</p>}
+            callback={setCurrentPage}
+            numPages={6}
+          />
         </StyledDiv>
       </ThemeProvider>
     </React.StrictMode>
