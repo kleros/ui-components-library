@@ -4,19 +4,23 @@ import PrimaryButton from "./primary";
 import SecondaryButton from "./secondary";
 import TertiaryButton from "./tertiary";
 
-const Button = (props) => {
-  if (props.secondary)
-    return <SecondaryButton {...props}>{props.children}</SecondaryButton>;
-  else if (props.tertiary)
-    return <TertiaryButton {...props}>{props.children}</TertiaryButton>;
-  else return <PrimaryButton {...props}>{props.children}</PrimaryButton>;
+const Button = ({ text, icon, ...props }) => {
+  let ButtonType;
+  if (props.secondary) ButtonType = SecondaryButton;
+  else if (props.tertiary) ButtonType = TertiaryButton;
+  else ButtonType = PrimaryButton;
+
+  return (
+    <ButtonType {...props}>
+      {icon}
+      {text}
+    </ButtonType>
+  );
 };
 
 Button.propTypes = {
-  children: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.arrayOf(PropTypes.node),
-  ]).isRequired,
+  text: PropTypes.string,
+  icon: PropTypes.node,
   primary: PropTypes.bool,
   secondary: PropTypes.bool,
   tertiary: PropTypes.bool,

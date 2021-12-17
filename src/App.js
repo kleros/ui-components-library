@@ -40,23 +40,15 @@ const App = () => {
         <StyledDiv>
           <Button
             primary
+            text={"Change Theme"}
             onClick={() =>
               theme === lightTheme ? setTheme(darkTheme) : setTheme(lightTheme)
             }
-          >
-            Change Theme
-          </Button>
-          <Button primary small>
-            <Telegram />
-            Get help
-          </Button>
-          <Button primary disabled>
-            Hello
-          </Button>
-          <Button secondary>Hello</Button>
-          <Button tertiary small>
-            Hello
-          </Button>
+          />
+          <Button primary small text={"Get help"} icon={<Telegram />} />
+          <Button primary disabled text={"Hello"} />
+          <Button secondary text={"Hello"} />
+          <Button tertiary small text={"Hello"} />
           <Card hover round />
           <Box />
           <Accordion
