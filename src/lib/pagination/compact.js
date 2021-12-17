@@ -20,10 +20,13 @@ const ArrowButton = styled.button`
   svg {
     height: 24px;
     width: 24px;
-    fill: ${(props) => props.theme.primaryBlue};
+    fill: ${(props) =>
+      props.disabled ? props.theme.stroke : props.theme.primaryBlue};
     transition: fill ease ${(props) => props.theme.transitionSpeed};
+  }
 
-    :hover {
+  :hover:enabled {
+    svg {
       fill: ${(props) => props.theme.secondaryBlue};
     }
   }
@@ -46,13 +49,18 @@ const CompactPagination = ({ callback, numPages, label }) => {
     <PaginationLogic
       callback={callback}
       numPages={numPages}
-      render={(decrementPage, incrementPage) => (
+      render={({
+        decrementPage,
+        incrementPage,
+        disableDecrement,
+        disableIncrement,
+      }) => (
         <Wrapper>
           {label}
-          <LeftArrow onClick={decrementPage}>
+          <LeftArrow disabled={disableDecrement} onClick={decrementPage}>
             <Arrow />
           </LeftArrow>
-          <RightArrow onClick={incrementPage}>
+          <RightArrow disabled={disableIncrement} onClick={incrementPage}>
             <Arrow />
           </RightArrow>
         </Wrapper>
