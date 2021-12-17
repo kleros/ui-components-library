@@ -86,5 +86,9 @@ export const GlobalStyle = createGlobalStyle`
   [type="reset"],
   [type="submit"] {
     -webkit-appearance: button;
+
+    :hover {
+      cursor: pointer;
+    }
   }
 `;
