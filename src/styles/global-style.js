@@ -87,7 +87,7 @@ export const GlobalStyle = createGlobalStyle`
   [type="submit"] {
     -webkit-appearance: button;
 
-    :hover {
+    :hover:enabled {
       cursor: pointer;
     }
   }
