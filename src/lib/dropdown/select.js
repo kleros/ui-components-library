@@ -1,12 +1,13 @@
 import React, { useState, useRef } from "react";
 import PropTypes from "prop-types";
+import useFocusOutside from "../../hooks/use-focus-outside";
 import styled from "styled-components";
 import DropdownButton from "./button";
 import SelectItem from "./select-item";
 
-const DropDownContainer = styled("div")``;
+const DropDownContainer = styled.div``;
 
-const DropDownListContainer = styled("div")`
+const DropDownListContainer = styled.div`
   position: absolute;
   z-index: 100;
   width: 240px;
@@ -18,7 +19,7 @@ const DropDownListContainer = styled("div")`
 `;
 
 const DropDownList = styled.div`
-  background-color: ${(props) => props.theme.lightBackground};
+  background-color: ${(props) => props.theme.whiteBackground};
   border-radius: 3px;
   border: 1px solid ${(props) => props.theme.stroke};
   padding: 16px 0px;
@@ -27,10 +28,12 @@ const DropDownList = styled.div`
 const DropdownSelect = ({ items, defaultValue, defaultNode, callback }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState(defaultValue);
+  const containerRef = useRef(null);
+  useFocusOutside(containerRef, () => setIsOpen(false));
   const heightRef = useRef(0);
   const currentItem = items.find(({ value }) => value === selected);
   return (
-    <DropDownContainer tabIndex={0} onBlur={() => setIsOpen(false)}>
+    <DropDownContainer ref={containerRef}>
       <DropdownButton
         isOpen={isOpen}
         setIsOpen={setIsOpen}

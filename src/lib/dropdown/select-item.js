@@ -5,10 +5,10 @@ import Dot from "../dot";
 
 const ListItem = styled.div`
   background: ${(props) =>
-    props.selected ? props.theme.mediumBlue : props.theme.lightBackground};
+    props.selected ? props.theme.mediumBlue : props.theme.whiteBackground};
   border-left: 3px solid
     ${(props) =>
-      props.selected ? props.theme.primaryBlue : props.theme.lightBackground};
+      props.selected ? props.theme.primaryBlue : props.theme.whiteBackground};
   padding: ${(props) =>
     props.current ? "10.5px 16px 10.5px 13px" : "11.5px 16px 11.5px 13px"};
   display: flex;

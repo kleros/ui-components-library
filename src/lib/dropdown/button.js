@@ -3,16 +3,16 @@ import PropTypes from "prop-types";
 import styled from "styled-components";
 import Arrow from "../../assets/svgs/dropdown/arrow.svg";
 
-const Container = styled.div`
+const Container = styled.button`
   width: 240px;
-  background: ${(props) => props.theme.lightBackground};
+  background: ${(props) => props.theme.whiteBackground};
   border: 1px solid ${(props) => props.theme.stroke};
   box-sizing: border-box;
   border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-right: 16px;
+  padding: 0px 16px 0px 0px;
 `;
 
 const StyledArrow = styled(({ ignoredIsOpen, ...props }) => (
