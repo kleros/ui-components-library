@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import PaginationLogic from "./logic";
+import usePagination from "../../hooks/pagination/use-pagination";
 import Arrow from "../../assets/svgs/pagination/left-arrow.svg";
 
 const Wrapper = styled.div`
@@ -44,34 +44,27 @@ const RightArrow = styled(ArrowButton)`
   }
 `;
 
-const CompactPagination = ({ callback, numPages, label }) => {
+const CompactPagination = ({ currentPage, numPages, callback, label }) => {
+  const [{ incrementPage, decrementPage, minPageReached, maxPageReached }] =
+    usePagination(currentPage, numPages, callback);
+
   return (
-    <PaginationLogic
-      callback={callback}
-      numPages={numPages}
-      render={({
-        decrementPage,
-        incrementPage,
-        disableDecrement,
-        disableIncrement,
-      }) => (
-        <Wrapper>
-          {label}
-          <LeftArrow disabled={disableDecrement} onClick={decrementPage}>
-            <Arrow />
-          </LeftArrow>
-          <RightArrow disabled={disableIncrement} onClick={incrementPage}>
-            <Arrow />
-          </RightArrow>
-        </Wrapper>
-      )}
-    />
+    <Wrapper>
+      {label}
+      <LeftArrow disabled={minPageReached} onClick={decrementPage}>
+        <Arrow />
+      </LeftArrow>
+      <RightArrow disabled={maxPageReached} onClick={incrementPage}>
+        <Arrow />
+      </RightArrow>
+    </Wrapper>
   );
 };
 
 CompactPagination.propTypes = {
-  callback: PropTypes.func,
-  numPages: PropTypes.number,
+  currentPage: PropTypes.number.isRequired,
+  numPages: PropTypes.number.isRequired,
+  callback: PropTypes.func.isRequired,
   label: PropTypes.node,
 };
 
