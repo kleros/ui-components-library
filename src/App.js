@@ -16,6 +16,8 @@ import DisplayLarge from "./lib/display/large";
 import DisplayIcon from "./lib/display/icon";
 import Balance from "./assets/svgs/balance.svg";
 import CompactPagination from "./lib/pagination/compact";
+import StandardPagination from "./lib/pagination/standard";
+import FileUploader from "./lib/form/file-uploader";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -80,10 +82,18 @@ const App = () => {
           <DisplayLarge text="$244.08" label="ETH Price" icon={<Dai />} />
           <DisplayIcon text="247" label="Disputes" icon={<Balance />} />
           <CompactPagination
+            currentPage={currentPage}
             label={<p style={{ fontSize: "14px" }}>Page {currentPage}</p>}
             callback={setCurrentPage}
             numPages={6}
           />
+          <StandardPagination
+            currentPage={currentPage}
+            label={<p style={{ fontSize: "14px" }}>Page {currentPage}</p>}
+            callback={setCurrentPage}
+            numPages={6}
+          />
+          <FileUploader callback={() => {}} info msg="Some msg" />
         </StyledDiv>
       </ThemeProvider>
     </React.StrictMode>
