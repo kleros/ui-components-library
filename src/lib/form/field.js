@@ -1,9 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import SuccessCircle from "../../assets/svgs/form-field/success.svg";
-import WarningCircle from "../../assets/svgs/form-field/warning.svg";
-import ErrorCircle from "../../assets/svgs/form-field/error.svg";
+import SuccessCircle from "../../assets/svgs/form/success.svg";
+import WarningCircle from "../../assets/svgs/form/warning.svg";
+import ErrorCircle from "../../assets/svgs/form/error.svg";
 
 const Wrapper = styled.div`
   height: 45px;
@@ -70,7 +70,7 @@ const StyledMessage = styled.p`
     if (props.warning) return props.theme.warning;
     else if (props.error) return props.theme.error;
     else if (props.success) return props.theme.success;
-    else return props.theme.stroke;
+    else return props.theme.secondaryText;
   }};
 `;
 
