@@ -43,7 +43,6 @@ const StyledInput = styled.input`
       else if (props.success) return props.theme.success;
       else return props.theme.stroke;
     }};
-  box-sizing: border-box;
   border-radius: 3px;
   padding: 0px 40px 0px 16px;
 

@@ -18,7 +18,6 @@ const StyledTextarea = styled.textarea`
       else if (props.success) return props.theme.success;
       else return props.theme.stroke;
     }};
-  box-sizing: border-box;
   border-radius: 3px;
   resize: none;
   padding: 16px;

@@ -16,7 +16,6 @@ const DropZone = styled.button`
   width: 100%;
   background: ${(props) => props.theme.mediumBlue};
   border: 1px dashed ${(props) => props.theme.primaryBlue};
-  box-sizing: border-box;
   border-radius: 3px;
 
   display: flex;

@@ -6,6 +6,14 @@ export const GlobalStyle = createGlobalStyle`
     margin: 0px;
   }
 
+  html {
+    box-sizing: border-box;
+  }
+
+  *, *:before, *:after {
+    box-sizing: inherit;
+  }
+
   h1 {
     font-size: 24px;
     font-weight: 600;

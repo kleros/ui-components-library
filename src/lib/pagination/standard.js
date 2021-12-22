@@ -16,7 +16,6 @@ const PageButton = styled.button`
   margin: 4px;
   background: ${(props) =>
     props.selected ? props.theme.lightBlue : props.theme.whiteBackground};
-  box-sizing: border-box;
   border: 1px solid
     ${(props) =>
       props.selected ? props.theme.primaryBlue : props.theme.stroke};
