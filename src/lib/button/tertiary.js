@@ -3,7 +3,10 @@ import BaseButton from "./base";
 
 const TertiaryButton = styled(BaseButton)`
   background: ${(props) => props.theme.secondaryPurple};
-  color: white;
+
+  p {
+    color: white;
+  }
 
   :hover {
     background: ${(props) => props.theme.primaryPurple};

@@ -13,7 +13,7 @@ const Button = ({ text, icon, ...props }) => {
   return (
     <ButtonType {...props}>
       {icon}
-      {text}
+      <p>{text}</p>
     </ButtonType>
   );
 };

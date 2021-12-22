@@ -16,8 +16,10 @@ const BaseButton = styled.button`
 
   transition: background ease ${(props) => props.theme.transitionSpeed};
 
-  font-weight: 600;
-  text-align: center;
+  p {
+    font-weight: 600;
+    text-align: center;
+  }
 
   svg {
     height: 16px;

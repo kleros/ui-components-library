@@ -5,7 +5,9 @@ const PrimaryButton = styled(BaseButton)`
   background: ${(props) =>
     props.disabled ? props.theme.lightGrey : props.theme.primaryBlue};
 
-  color: ${(props) => (props.disabled ? props.theme.stroke : "white")};
+  p {
+    color: ${(props) => (props.disabled ? props.theme.stroke : "white")};
+  }
 
   :hover {
     background: ${(props) =>
