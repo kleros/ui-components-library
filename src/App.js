@@ -19,6 +19,7 @@ import CompactPagination from "./lib/pagination/compact";
 import StandardPagination from "./lib/pagination/standard";
 import FileUploader from "./lib/form/file-uploader";
 import Breadcrumb from "./lib/breadcrumb";
+import Slider from "./lib/form/slider";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -103,6 +104,7 @@ const App = () => {
             ]}
             callback={() => {}}
           />
+          <Slider label={"2 weeks"} />
         </StyledDiv>
       </ThemeProvider>
     </React.StrictMode>
