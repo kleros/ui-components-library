@@ -18,6 +18,7 @@ import Balance from "./assets/svgs/balance.svg";
 import CompactPagination from "./lib/pagination/compact";
 import StandardPagination from "./lib/pagination/standard";
 import FileUploader from "./lib/form/file-uploader";
+import Breadcrumb from "./lib/breadcrumb";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -94,6 +95,14 @@ const App = () => {
             numPages={6}
           />
           <FileUploader callback={() => {}} info msg="Some msg" />
+          <Breadcrumb
+            items={[
+              { text: "General Court", value: 0 },
+              { text: "Blockchain", value: 1 },
+              { text: "Non-Technical", value: 2 },
+            ]}
+            callback={() => {}}
+          />
         </StyledDiv>
       </ThemeProvider>
     </React.StrictMode>
