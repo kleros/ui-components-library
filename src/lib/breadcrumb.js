@@ -20,6 +20,8 @@ const Element = styled.button`
 const Content = styled.p`
   font-size: 14px;
   color: ${(props) => props.theme.secondaryText};
+
+  transition: color ease ${(props) => props.theme.transitionSpeed};
 `;
 
 const Separator = styled(Content)`
