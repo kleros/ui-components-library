@@ -36,14 +36,14 @@ const Breadcrumb = ({ callback, items }) => (
   <Wrapper>
     {items.map(({ text, value }, i) =>
       i === items.length - 1 ? (
-        <ActiveElement>{text}</ActiveElement>
+        <ActiveElement key={i}>{text}</ActiveElement>
       ) : (
-        <>
+        <React.Fragment key={i}>
           <Element onClick={() => callback(value)}>
             <Content>{text}</Content>
           </Element>
           <Separator>{"/"}</Separator>
-        </>
+        </React.Fragment>
       )
     )}
   </Wrapper>
