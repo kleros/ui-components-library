@@ -7,6 +7,7 @@ import "rc-slider/assets/index.css";
 
 const Wrapper = styled.div`
   width: 500px;
+  margin-top: 30px;
 `;
 
 const StyledSlider = styled(RCSlider)`
@@ -16,11 +17,32 @@ const StyledSlider = styled(RCSlider)`
   }
 `;
 
-const Slider = (props) => (
+const Labels = styled.div`
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  p {
+    font-size: 14px;
+    color: ${(props) => props.theme.primaryText};
+  }
+`;
+
+const Slider = ({
+  label,
+  min,
+  max,
+  leftLabel,
+  rightLabel,
+  callback,
+  ...props
+}) => (
   <Wrapper>
     <StyledSlider
       handle={({ ref: ignored, ...handleProps }) => (
-        <Handle label={props.label} {...handleProps} />
+        <Handle label={label} {...handleProps} />
       )}
       railStyle={{
         height: "8px",
@@ -36,13 +58,27 @@ const Slider = (props) => (
           cursor: "pointer",
         },
       ]}
+      onChange={callback}
+      min={min}
+      max={max}
+      {...props}
     />
+    <Labels>
+      {leftLabel && <p>{leftLabel}</p>}
+      {rightLabel && <p>{rightLabel}</p>}
+    </Labels>
   </Wrapper>
 );
 
 Slider.propTypes = {
   theme: PropTypes.shape().isRequired,
   label: PropTypes.string,
+  leftLabel: PropTypes.string.isRequired,
+  rightLabel: PropTypes.string.isRequired,
+  min: PropTypes.number,
+  max: PropTypes.number,
+  callback: PropTypes.func.isRequired,
+  ...StyledSlider.propTypes,
 };
 
 export default withTheme(Slider);

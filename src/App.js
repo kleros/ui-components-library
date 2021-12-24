@@ -104,7 +104,14 @@ const App = () => {
             ]}
             callback={() => {}}
           />
-          <Slider label={"2 weeks"} />
+          <Slider
+            callback={() => {}}
+            min={10}
+            max={100}
+            leftLabel="1 day"
+            rightLabel="1 month"
+            label={"2 weeks"}
+          />
         </StyledDiv>
       </ThemeProvider>
     </React.StrictMode>
