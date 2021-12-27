@@ -2,10 +2,10 @@ import React, { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import UploadIcon from "../../assets/svgs/form/upload-icon.svg";
-import SuccessIcon from "../../assets/svgs/form/success.svg";
-import ErrorIcon from "../../assets/svgs/form/error.svg";
-import WarningIcon from "../../assets/svgs/form/warning.svg";
-import InfoIcon from "../../assets/svgs/form/info.svg";
+import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
+import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
+import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
+import InfoIcon from "../../assets/svgs/status-icons/info.svg";
 
 const Wrapper = styled.div`
   width: 200px;

@@ -1,9 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import SuccessCircle from "../../assets/svgs/form/success.svg";
-import WarningCircle from "../../assets/svgs/form/warning.svg";
-import ErrorCircle from "../../assets/svgs/form/error.svg";
+import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
+import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
+import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 
 const Wrapper = styled.div`
   height: 45px;
@@ -20,15 +20,15 @@ const Wrapper = styled.div`
   }
 `;
 
-const StyledSuccessCircle = styled(SuccessCircle)`
+const StyledSuccessIcon = styled(SuccessIcon)`
   fill: ${(props) => props.theme.success};
 `;
 
-const StyledWarningCircle = styled(WarningCircle)`
+const StyledWarningIcon = styled(WarningIcon)`
   fill: ${(props) => props.theme.warning};
 `;
 
-const StyledErrorCircle = styled(ErrorCircle)`
+const StyledErrorIcon = styled(ErrorIcon)`
   fill: ${(props) => props.theme.error};
 `;
 
@@ -77,9 +77,9 @@ const Field = (props) => {
   return (
     <Wrapper>
       <StyledInput {...props} />
-      {props.success && <StyledSuccessCircle />}
-      {props.warning && <StyledWarningCircle />}
-      {props.error && <StyledErrorCircle />}
+      {props.success && <StyledSuccessIcon />}
+      {props.warning && <StyledWarningIcon />}
+      {props.error && <StyledErrorIcon />}
       {props.message && (
         <StyledMessage {...props}>{props.message}</StyledMessage>
       )}
