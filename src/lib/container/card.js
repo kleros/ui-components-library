@@ -23,6 +23,7 @@ const Card = styled.div`
 
 Card.propTypes = {
   round: PropTypes.bool,
+  hover: PropTypes.bool,
 };
 
 export default Card;

@@ -20,6 +20,7 @@ import StandardPagination from "./lib/pagination/standard";
 import FileUploader from "./lib/form/file-uploader";
 import Breadcrumb from "./lib/breadcrumb";
 import Slider from "./lib/form/slider";
+import Alert from "./lib/container/alert";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -112,6 +113,7 @@ const App = () => {
             rightLabel="1 month"
             label={"2 weeks"}
           />
+          <Alert warning title={"this is a warning"} msg={"error"} />
         </StyledDiv>
       </ThemeProvider>
     </React.StrictMode>
