@@ -12,7 +12,7 @@ const Wrapper = styled.div`
 const Accordion = (props) => {
   const [expanded, setExpanded] = useState(-1);
   return (
-    <Wrapper>
+    <Wrapper {...props}>
       {props.items.map((item, index) => (
         <AccordionItem
           key={index}
