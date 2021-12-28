@@ -19,20 +19,23 @@ const StyledTab = styled.button`
   align-items: center;
   justify-content: center;
 
-  color: ${(props) => props.theme.primaryText};
+  color: ${(props) =>
+    props.disabled ? props.theme.stroke : props.theme.primaryText};
 
-  :hover {
-    border-bottom: 3px solid
-      ${(props) =>
-        props.selected ? props.theme.primaryBlue : props.theme.secondaryBlue};
-  }
+  ${(props) =>
+    !props.disabled && !props.selected
+      ? `:hover {
+            border-bottom: 3px solid ${props.theme.secondaryBlue};
+          }`
+      : ""}
 `;
 
 const Tabs = (props) => {
   return (
-    <Wrapper>
-      {props.items.map(({ icon, text, value }) => (
+    <Wrapper {...props}>
+      {props.items.map(({ icon, text, value, disabled }) => (
         <StyledTab
+          disabled={disabled}
           selected={value === props.currentValue}
           key={value}
           onClick={() => props.callback(value)}
@@ -52,6 +55,7 @@ Tabs.propTypes = {
       icon: PropTypes.node,
       text: PropTypes.string.isRequired,
       value: PropTypes.any.isRequired,
+      disabled: PropTypes.bool,
     })
   ).isRequired,
   callback: PropTypes.func.isRequired,
