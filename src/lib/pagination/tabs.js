@@ -19,8 +19,11 @@ const StyledTab = styled.button`
   align-items: center;
   justify-content: center;
 
-  color: ${(props) =>
-    props.disabled ? props.theme.stroke : props.theme.primaryText};
+  color: ${(props) => {
+    if (props.selected) return props.theme.primaryBlue;
+    else if (props.disabled) return props.theme.stroke;
+    else return props.theme.primaryText;
+  }};
 
   ${(props) =>
     !props.disabled && !props.selected
@@ -28,6 +31,18 @@ const StyledTab = styled.button`
             border-bottom: 3px solid ${props.theme.secondaryBlue};
           }`
       : ""}
+
+  svg {
+    height: 16px;
+    width: 16px;
+    margin-right: 16px;
+
+    fill: ${(props) => {
+      if (props.selected) return props.theme.primaryBlue;
+      else if (props.disabled) return props.theme.stroke;
+      else return props.theme.primaryText;
+    }};
+  }
 `;
 
 const Tabs = (props) => {

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import CompactPagination from "../lib/pagination/compact";
 import StandardPagination from "../lib/pagination/standard";
 import Tabs from "../lib/pagination/tabs";
+import Telegram from "../assets/svgs/telegram.svg";
 
 const Pagination = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -22,7 +23,7 @@ const Pagination = () => {
       <Tabs
         items={[
           { text: "hello", value: 0 },
-          { text: "hello1", value: 1 },
+          { text: "Telegram", value: 1, icon: <Telegram /> },
           { text: "hello1", value: 2, disabled: true },
         ]}
         callback={() => {}}
