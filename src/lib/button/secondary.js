@@ -9,6 +9,10 @@ const SecondaryButton = styled(BaseButton)`
     color: ${(props) => props.theme.primaryBlue};
   }
 
+  svg {
+    fill: ${(props) => props.theme.primaryBlue};
+  }
+
   :hover {
     background: ${(props) => props.theme.mediumBlue};
   }

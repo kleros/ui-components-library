@@ -5,7 +5,11 @@ const TertiaryButton = styled(BaseButton)`
   background: ${(props) => props.theme.secondaryPurple};
 
   p {
-    color: white;
+    color: ${(props) => props.theme.whiteBackground};
+  }
+
+  svg {
+    fill: ${(props) => props.theme.whiteBackground};
   }
 
   :hover {

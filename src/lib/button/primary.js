@@ -6,7 +6,13 @@ const PrimaryButton = styled(BaseButton)`
     props.disabled ? props.theme.lightGrey : props.theme.primaryBlue};
 
   p {
-    color: ${(props) => (props.disabled ? props.theme.stroke : "white")};
+    color: ${(props) =>
+      props.disabled ? props.theme.stroke : props.theme.whiteBackground};
+  }
+
+  svg {
+    fill: ${(props) =>
+      props.disabled ? props.theme.stroke : props.theme.whiteBackground};
   }
 
   :hover {
