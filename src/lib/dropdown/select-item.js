@@ -25,6 +25,10 @@ const ListItem = styled.div`
             };}`;
   }}
 
+  :hover {
+    cursor: pointer;
+  }
+
   p {
     font-size: 16px;
     user-select: none;
@@ -42,8 +46,12 @@ const StyledDot = styled(Dot)`
   margin-right: 8px;
 `;
 
-const SelectItem = ({ text, icon, dot, selected, current, onClick }) => (
-  <ListItem selected={selected} current={current} onClick={onClick}>
+const SelectItem = ({ text, icon, dot, onClick, ...props }) => (
+  <ListItem
+    onClick={onClick}
+    onKeyPress={(e) => (e.key === "Enter" ? onClick() : undefined)}
+    {...props}
+  >
     {icon}
     {dot && <StyledDot color={dot} />}
     <p>{text}</p>

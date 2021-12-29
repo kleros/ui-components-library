@@ -59,6 +59,7 @@ const DropdownSelect = ({ items, defaultValue, defaultNode, callback }) => {
         >
           {items.map(({ text, icon, dot, value }, i) => (
             <SelectItem
+              tabIndex={0}
               key={i}
               text={text}
               dot={dot}
