@@ -36,7 +36,8 @@ export const GlobalStyle = createGlobalStyle`
     line-height: 22px;
     margin: 0;
     color: ${(props) => props.theme.primaryText};
-    white-space: pre;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
   }
 
   hr {

@@ -48,8 +48,6 @@ const Message = styled.div`
     position: relative;
     top: -1px;
     text-align: justify;
-    overflow-wrap: break-word;
-    white-space: pre-wrap;
     font-size: 14px;
     line-height: 19px;
     color: ${(props) => {
