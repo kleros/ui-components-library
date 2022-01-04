@@ -13,6 +13,7 @@ import Breadcrumbs from "./examples/breadcrumbs";
 import Dropdowns from "./examples/dropdowns";
 import Form from "./examples/form";
 import Displays from "./examples/displays";
+import Messages from "./examples/messages";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -69,6 +70,7 @@ const App = () => {
               { text: "Dropdowns", value: "dropdowns" },
               { text: "Form", value: "form" },
               { text: "Displays", value: "displays" },
+              { text: "Messages", value: "messages" },
             ]}
             callback={setExample}
             currentValue={example}
@@ -82,6 +84,7 @@ const App = () => {
             {example === "dropdowns" && <Dropdowns />}
             {example === "form" && <Form />}
             {example === "displays" && <Displays />}
+            {example === "messages" && <Messages />}
           </StyledCard>
           <StyledButton
             primary

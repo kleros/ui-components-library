@@ -7,7 +7,8 @@ import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 import InfoIcon from "../../assets/svgs/status-icons/info.svg";
 
 const Wrapper = styled.div`
-  width: 328px;
+  min-width: 328px;
+  width: fit-content;
   height: fit-content;
   background: ${(props) => props.theme.whiteBackground};
   border: 1px solid
