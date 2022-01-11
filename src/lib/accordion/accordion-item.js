@@ -47,10 +47,7 @@ const AccordionItem = (props) => {
   return (
     <StyledDiv>
       <button
-        onClick={() => {
-          if (props.expanded) props.setExpanded(-1);
-          else props.setExpanded(props.index);
-        }}
+        onClick={() => props.setExpanded(props.expanded ? -1 : props.index)}
       >
         {props.icon}
         <p> {props.title} </p>
