@@ -13,10 +13,6 @@ const StyledCard = styled(Card)`
   align-items: start;
   justify-content: center;
 
-  color: ${(props) => props.theme.primaryText};
-  font-size: 24px;
-  font-weight: 600;
-
   svg {
     position: absolute;
     top: 16px;
@@ -26,21 +22,13 @@ const StyledCard = styled(Card)`
   }
 `;
 
-const Label = styled.p`
-  font-size: 14px;
-  font-weight: 400;
-  color: ${(props) => props.theme.secondaryText};
-`;
-
-const DisplayLarge = ({ text, icon, label }) => {
-  return (
-    <StyledCard>
-      {icon}
-      {text}
-      <Label> {label} </Label>
-    </StyledCard>
-  );
-};
+const DisplayLarge = ({ text, icon, label, ...props }) => (
+  <StyledCard {...props}>
+    {icon}
+    <h1>{text}</h1>
+    <small>{label}</small>
+  </StyledCard>
+);
 
 DisplayLarge.propTypes = {
   text: PropTypes.string.isRequired,

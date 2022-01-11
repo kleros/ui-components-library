@@ -44,12 +44,10 @@ const Message = styled.div`
   display: flex;
   align-items: flex-start;
 
-  p {
+  small {
     position: relative;
     top: -1px;
     text-align: justify;
-    font-size: 14px;
-    line-height: 19px;
     color: ${(props) => {
       if (props.success) return props.theme.success;
       else if (props.warning) return props.theme.warning;
@@ -128,7 +126,7 @@ const FileUploader = ({
         {warning && <WarningIcon />}
         {error && <ErrorIcon />}
         {info && <InfoIcon />}
-        <p>{msg}</p>
+        <small>{msg}</small>
       </Message>
     </Wrapper>
   );

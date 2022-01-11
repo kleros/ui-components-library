@@ -37,10 +37,9 @@ const Collapsible = styled.div`
 
 const Body = styled.div`
   padding: 32px;
-
-  font-size: 14px;
-  font-weight: 400;
-  color: ${(props) => props.theme.primaryText};
+  small {
+    color: ${(props) => props.theme.primaryText};
+  }
 `;
 
 const AccordionItem = (props) => {
@@ -59,7 +58,7 @@ const AccordionItem = (props) => {
       </button>
       <Collapsible expanded={props.expanded} totalHeight={heightRef.current}>
         <Body ref={(ref) => (heightRef.current = ref?.clientHeight || 0)}>
-          {props.body}
+          <small>{props.body}</small>
         </Body>
       </Collapsible>
     </StyledDiv>

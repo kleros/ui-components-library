@@ -45,8 +45,8 @@ const Text = styled.div`
       if (props.info) return props.theme.primaryBlue;
     }};
   }
-  p {
-    font-size: 14px;
+  small {
+    color: ${(props) => props.theme.primaryText};
   }
 `;
 
@@ -60,7 +60,7 @@ const Alert = (props) => {
       {info && <InfoIcon />}
       <Text success={success} warning={warning} error={error} info={info}>
         <h2>{title}</h2>
-        <p>{msg}</p>
+        <small>{msg}</small>
       </Text>
     </Wrapper>
   );

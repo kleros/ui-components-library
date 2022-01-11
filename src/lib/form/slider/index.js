@@ -24,8 +24,7 @@ const Labels = styled.div`
   align-items: center;
   justify-content: space-between;
 
-  p {
-    font-size: 14px;
+  small {
     color: ${(props) => props.theme.primaryText};
   }
 `;
@@ -64,8 +63,8 @@ const Slider = ({
       {...props}
     />
     <Labels>
-      {leftLabel && <p>{leftLabel}</p>}
-      {rightLabel && <p>{rightLabel}</p>}
+      {leftLabel && <small>{leftLabel}</small>}
+      {rightLabel && <small>{rightLabel}</small>}
     </Labels>
   </Wrapper>
 );

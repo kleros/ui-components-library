@@ -60,11 +60,10 @@ const StyledInput = styled.input`
   }
 `;
 
-const StyledMessage = styled.p`
+const StyledMessage = styled.small`
   line-height: 1em;
   margin-top: 5px;
   margin-left: 16px;
-  font-size: 14px;
   color: ${(props) => {
     if (props.warning) return props.theme.warning;
     else if (props.error) return props.theme.error;

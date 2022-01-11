@@ -40,6 +40,16 @@ export const GlobalStyle = createGlobalStyle`
     white-space: pre-wrap;
   }
 
+  small {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 19px;
+    margin: 0;
+    color: ${(props) => props.theme.secondaryText};
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
   hr {
     opacity: 1;
   }

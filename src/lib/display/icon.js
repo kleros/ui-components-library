@@ -17,16 +17,6 @@ const Text = styled.div`
   flex-direction: column;
   align-items: start;
   justify-content: center;
-
-  color: ${(props) => props.theme.primaryText};
-  font-size: 24px;
-  font-weight: 600;
-`;
-
-const Label = styled.div`
-  font-size: 14px;
-  font-weight: 400;
-  color: ${(props) => props.theme.secondaryText};
 `;
 
 const IconCard = styled(Card)`
@@ -42,13 +32,13 @@ const IconCard = styled(Card)`
   }
 `;
 
-const DisplayIcon = ({ text, icon, label }) => {
+const DisplayIcon = ({ text, icon, label, ...props }) => {
   return (
-    <StyledCard>
-      <IconCard> {icon} </IconCard>
+    <StyledCard {...props}>
+      <IconCard>{icon}</IconCard>
       <Text>
-        {text}
-        <Label> {label} </Label>
+        <h1>{text}</h1>
+        <small>{label}</small>
       </Text>
     </StyledCard>
   );
