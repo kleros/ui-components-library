@@ -11,16 +11,13 @@ const Element = styled.button`
   padding: 0;
 
   :hover {
-    p {
+    small {
       color: ${(props) => props.theme.primaryText};
     }
   }
 `;
 
-const Content = styled.p`
-  font-size: 14px;
-  color: ${(props) => props.theme.secondaryText};
-
+const Content = styled.small`
   transition: color ease ${(props) => props.theme.transitionSpeed};
 `;
 
