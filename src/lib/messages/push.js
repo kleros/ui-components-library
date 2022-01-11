@@ -33,8 +33,7 @@ const Text = styled.div`
   h2 {
     color: inherit;
   }
-  p {
-    font-size: 14px;
+  small {
     color: inherit;
   }
 `;
@@ -67,7 +66,7 @@ const Push = (props) => {
       {sync && <SyncIcon />}
       <Text>
         <h2>{title}</h2>
-        {!small && <p>{msg}</p>}
+        {!small && <small>{msg}</small>}
       </Text>
       {!small && (
         <CloseButton onClick={() => callback()}>

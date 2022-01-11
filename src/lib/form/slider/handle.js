@@ -13,13 +13,12 @@ const Wrapper = styled.div`
   top: 8px;
 `;
 
-const Label = styled.p`
+const Label = styled.small`
   position: relative;
   left: ${(props) => props.offset}%;
   transform: translateX(-50%);
   bottom: 44px;
 
-  font-size: 14px;
   color: ${(props) => props.theme.primaryBlue};
 `;
 

@@ -8,8 +8,9 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
 
-  font-size: 14px;
-  color: ${(props) => props.theme.primaryText};
+  small {
+    color: ${(props) => props.theme.primaryText};
+  }
 `;
 
 const StyledCard = styled(Card)`
@@ -20,10 +21,6 @@ const StyledCard = styled(Card)`
   align-items: center;
   padding: 0px 16px;
 
-  color: ${(props) => props.theme.primaryText};
-  font-size: 16px;
-  font-weight: 600;
-
   svg {
     max-height: 16px;
     max-width: 16px;
@@ -31,13 +28,13 @@ const StyledCard = styled(Card)`
   }
 `;
 
-const DisplaySmall = ({ text, icon, label }) => {
+const DisplaySmall = ({ text, icon, label, ...props }) => {
   return (
-    <Wrapper>
-      {label}
+    <Wrapper {...props}>
+      <small>{label}</small>
       <StyledCard>
         {icon}
-        {text}
+        <h2>{text}</h2>
       </StyledCard>
     </Wrapper>
   );
