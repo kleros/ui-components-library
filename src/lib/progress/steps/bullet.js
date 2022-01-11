@@ -12,10 +12,13 @@ const Wrapper = styled.div`
 
 const TextContainer = styled.div`
   margin-left: 16px;
+  margin-top: 2px;
 
   h2 {
     font-size: 14px;
     line-height: 19px;
+    color: ${(props) =>
+      props.active ? props.theme.primaryText : props.theme.secondaryText};
   }
 
   small {
@@ -35,7 +38,7 @@ const Bullet = (props) => {
   return (
     <Wrapper {...wrapperProps}>
       <BulletCircle {...{ index, active, completed, line }} />
-      <TextContainer>
+      <TextContainer {...{ active }}>
         <h2>{title}</h2>
         {subitems && (
           <SubitemsContainer>

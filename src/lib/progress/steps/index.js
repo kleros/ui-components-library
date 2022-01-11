@@ -1,28 +1,12 @@
 import React from "react";
 import PropTypes from "prop-types";
-import styled from "styled-components";
-import Bullet from "./bullet";
+import Vertical from "./vertical";
+import Horizontal from "./horizontal";
 
-const Wrapper = styled.div`
-  height: 100px;
-  display: flex;
-  flex-direction: column;
-`;
-
-const Steps = ({ items, currentItemIndex, ...props }) => (
-  <Wrapper {...props}>
-    {items.map(({ title, subitems }, i) => (
-      <Bullet
-        {...{ title, subitems }}
-        completed={i < currentItemIndex}
-        active={i === currentItemIndex}
-        line={!(i + 1 === items.length)}
-        index={i + 1}
-        key={i}
-      />
-    ))}
-  </Wrapper>
-);
+const Steps = ({ horizontal, ...props }) => {
+  if (horizontal) return <Horizontal {...props} />;
+  else return <Vertical {...props} />;
+};
 
 Steps.propTypes = {
   items: PropTypes.arrayOf(
@@ -32,6 +16,7 @@ Steps.propTypes = {
     })
   ).isRequired,
   currentItemIndex: PropTypes.number.isRequired,
+  horizontal: PropTypes.bool,
 };
 
 export default Steps;
