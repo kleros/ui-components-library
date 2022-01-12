@@ -14,6 +14,7 @@ import Dropdowns from "./examples/dropdowns";
 import Form from "./examples/form";
 import Displays from "./examples/displays";
 import Messages from "./examples/messages";
+import Progress from "./examples/progress";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -71,6 +72,7 @@ const App = () => {
               { text: "Form", value: "form" },
               { text: "Displays", value: "displays" },
               { text: "Messages", value: "messages" },
+              { text: "Progress", value: "progress" },
             ]}
             callback={setExample}
             currentValue={example}
@@ -85,6 +87,7 @@ const App = () => {
             {example === "form" && <Form />}
             {example === "displays" && <Displays />}
             {example === "messages" && <Messages />}
+            {example === "progress" && <Progress />}
           </StyledCard>
           <StyledButton
             primary
