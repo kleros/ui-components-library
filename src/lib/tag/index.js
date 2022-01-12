@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
 
-const BaseTag = styled.div`
+const BaseTag = styled.button`
   height: 32px;
   background: ${(props) => props.theme.mediumBlue};
   border: ${(props) =>
@@ -18,8 +18,8 @@ const BaseTag = styled.div`
   }
 `;
 
-const Tag = ({ text, active }) => (
-  <BaseTag active={active}>
+const Tag = ({ text, active, ...props }) => (
+  <BaseTag active={active} {...props}>
     <p>{text}</p>
   </BaseTag>
 );
