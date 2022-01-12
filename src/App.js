@@ -37,7 +37,7 @@ const StyledCard = styled(Card)`
   height: 500px;
   width: 1000px;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
   align-content: space-evenly;
   flex-wrap: wrap;
