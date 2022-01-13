@@ -13,17 +13,17 @@ interface ButtonProps extends BaseButtonProps {
 
 const Button: React.FC<ButtonProps> = ({
   text,
-  variation,
+  variant,
   icon,
   onClick,
   ...props
 }) => {
   let ButtonType = PrimaryButton;
-  if (variation === "secondary") ButtonType = SecondaryButton;
-  if (variation === "tertiary") ButtonType = TertiaryButton;
+  if (variant === "secondary") ButtonType = SecondaryButton;
+  if (variant === "tertiary") ButtonType = TertiaryButton;
 
   return (
-    <ButtonType variation={variation} onClick={onClick} {...props}>
+    <ButtonType {...{ variant, onClick, ...props }}>
       {icon}
       <p>{text}</p>
     </ButtonType>

@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export interface BaseButtonProps {
-  variation?: "primary" | "secondary" | "tertiary";
+  variant?: "primary" | "secondary" | "tertiary";
   small?: boolean;
 }
 
@@ -14,8 +14,8 @@ const BaseButton = styled.button<BaseButtonProps>`
   align-items: center;
   padding: ${(props) => {
     if (props.small)
-      return props.variation === "secondary" ? "5px 23px" : "6px 24px";
-    return props.variation === "secondary" ? "10.5px 31px" : "11.5px 32px";
+      return props.variant === "secondary" ? "5px 23px" : "6px 24px";
+    return props.variant === "secondary" ? "10.5px 31px" : "11.5px 32px";
   }};
   border-radius: 3px;
   border: none;

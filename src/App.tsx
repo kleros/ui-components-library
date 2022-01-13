@@ -94,7 +94,7 @@ const App = () => {
             {example === "progress" && <Progress />}
           </StyledCard>
           <StyledButton
-            variation="primary"
+            variant="primary"
             text={"Change theme"}
             onClick={() =>
               theme === lightTheme ? setTheme(darkTheme) : setTheme(lightTheme)
