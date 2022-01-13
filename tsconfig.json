@@ -20,7 +20,8 @@
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "removeComments": true
+    "removeComments": true,
+    "isolatedModules": true
   },
   "exclude": [
     "node_modules",
@@ -29,6 +30,8 @@
     "acceptance-tests",
     "webpack",
     "jest",
-    "src/setupTests.ts"
+    "src/setupTests.ts",
+    "dist",
+    "commitlint.config.js"
   ]
 }

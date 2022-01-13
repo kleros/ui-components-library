@@ -4,6 +4,7 @@
     "browser": true,
     "node": true
   },
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2020,
     "sourceType": "module",
@@ -12,7 +13,9 @@
     }
   },
   "extends": [
+    "prettier",
     "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
@@ -40,6 +43,8 @@
         "extensions": [
           ".js",
           ".jsx",
+          ".ts",
+          ".tsx",
           ".svg",
           ".png",
           ".jpeg"
@@ -67,6 +72,7 @@
         ]
       }
     ],
+    "@typescript-eslint/no-explicit-any": ["off"],
     "security/detect-object-injection": "off",
     "security/detect-non-literal-fs-filename": "off",
     "import/extensions": [
@@ -74,7 +80,9 @@
       "ignorePackages",
       {
         "js": "never",
-        "jsx": "never"
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
       }
     ]
   }
