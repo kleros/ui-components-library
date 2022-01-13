@@ -4,6 +4,7 @@
     "browser": true,
     "node": true
   },
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2020,
     "sourceType": "module",
@@ -13,12 +14,14 @@
   },
   "extends": [
     "eslint:recommended",
-    "plugin:prettier/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
     "plugin:import/recommended",
     "plugin:import/react",
-    "plugin:security/recommended"
+    "plugin:security/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+    "prettier"
   ],
   "globals": {
     "Atomics": "readonly",
@@ -30,6 +33,7 @@
     "security",
     "import"
   ],
+  "ignorePatterns": ["src/assets"],
   "settings": {
     "react": {
       "version": "^16.12.0"
@@ -40,6 +44,8 @@
         "extensions": [
           ".js",
           ".jsx",
+          ".ts",
+          ".tsx",
           ".svg",
           ".png",
           ".jpeg"
@@ -49,7 +55,15 @@
   },
   "rules": {
     "max-len": ["warn", {"code": 80}],
+    "react/prop-types": 0,
     "no-unused-vars": [
+      "error",
+      {
+        "varsIgnorePattern": "(^_+[0-9]*$)|([iI]gnored$)|(^ignored)",
+        "argsIgnorePattern": "(^_+[0-9]*$)|([iI]gnored$)|(^ignored)"
+      }
+    ],
+    "@typescript-eslint/no-unused-vars": [
       "error",
       {
         "varsIgnorePattern": "(^_+[0-9]*$)|([iI]gnored$)|(^ignored)",
@@ -67,6 +81,7 @@
         ]
       }
     ],
+    "@typescript-eslint/no-explicit-any": ["off"],
     "security/detect-object-injection": "off",
     "security/detect-non-literal-fs-filename": "off",
     "import/extensions": [
@@ -74,7 +89,9 @@
       "ignorePackages",
       {
         "js": "never",
-        "jsx": "never"
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
       }
     ]
   }
