@@ -1,8 +1,9 @@
 const usePagination = (
   currentPage: number,
   numPages: number,
+  //eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function,
-  numNeighbors: number = 2
+  numNeighbors = 2
 ) => {
   const incrementPage = () => {
     const newPage = Math.min(numPages, currentPage + 1);

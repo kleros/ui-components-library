@@ -16,7 +16,6 @@ const Pagination = () => {
       />
       <StandardPagination
         currentPage={currentPage}
-        //! label={<p style={{ fontSize: "14px" }}>Page {currentPage}</p>}
         callback={setCurrentPage}
         numPages={6}
       />
@@ -26,7 +25,9 @@ const Pagination = () => {
           { text: "Telegram", value: 1, icon: <Telegram /> },
           { text: "hello1", value: 2, disabled: true },
         ]}
-        callback={() => {}}
+        callback={() => {
+          // function called when a tab is clicked
+        }}
         currentValue={0}
       />
     </>

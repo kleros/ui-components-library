@@ -4,14 +4,23 @@ import Push from "../lib/messages/push";
 
 const Messages = () => (
   <>
-    <Alert variant='warning' title={"this is a warning"} msg={"error"} />
+    <Alert variant="warning" title={"this is a warning"} msg={"error"} />
     <Push
-      variant='error'
+      variant="error"
       title={"Transaction failed"}
       msg={"Transaction failed"}
-      callback={() => {}}
+      callback={() => {
+        // function to be called when the close button is clicked
+      }}
     />
-    <Push variant='sync' small title={"Syncing Data"} callback={() => {}} />
+    <Push
+      variant="sync"
+      small
+      title={"Syncing Data"}
+      callback={() => {
+        // function to be called when the close button is clicked
+      }}
+    />
   </>
 );
 

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 //! type
+//eslint-disable-next-line @typescript-eslint/ban-types
 function useFocusOutside(ref: any, callback: Function) {
   useEffect(() => {
     function handleEvent(event: any) {

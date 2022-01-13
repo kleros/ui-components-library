@@ -8,7 +8,9 @@ const Dropdowns = () => (
       { text: "hello 2", dot: "blue", value: 0 },
     ]}
     defaultValue={0}
-    callback={() => {}}
+    callback={() => {
+      // function called when an item is clicked with it's value as argument
+    }}
   />
 );
 
