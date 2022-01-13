@@ -1,7 +1,6 @@
 {
   "name": "frontend-library",
   "version": "0.0.1",
-  "main": "index.js",
   "source": "src/index.html",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "repository": "git@github.com:alcercu/frontend-library.git",
@@ -19,6 +18,9 @@
     "@commitlint/cli": "^15.0.0",
     "@commitlint/config-conventional": "^15.0.0",
     "@parcel/transformer-svg-react": "^2.0.1",
+    "@types/react": "^17.0.38",
+    "@types/react-dom": "^17.0.11",
+    "@types/styled-components": "^5.1.20",
     "eslint": "^7",
     "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-parcel": "^1.10.6",
@@ -31,10 +33,10 @@
     "lint-staged": "^12.1.2",
     "parcel": "^2.0.1",
     "prettier": "^2.5.1",
-    "rc-slider": "^9.7.5"
+    "rc-slider": "^9.7.5",
+    "typescript": "^4.5.4"
   },
   "dependencies": {
-    "prop-types": "^15.7.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "styled-components": "^5.3.3"

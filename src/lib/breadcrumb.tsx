@@ -1,0 +1,53 @@
+import React from "react";
+import styled from "styled-components";
+
+const Wrapper = styled.div`
+  display: flex;
+`;
+
+const Element = styled.button`
+  background: none;
+  padding: 0;
+
+  :hover {
+    small {
+      color: ${({ theme }) => theme.primaryText};
+    }
+  }
+`;
+
+const Content = styled.small`
+  transition: color ease ${({ theme }) => theme.transitionSpeed};
+`;
+
+const Separator = styled(Content)`
+  margin: 0px 8px;
+`;
+
+const ActiveElement = styled(Content)`
+  color: ${({ theme }) => theme.primaryText};
+`;
+
+interface BreadcrumbProps {
+  callback: Function;
+  items: { text: string; value: any }[];
+}
+
+const Breadcrumb: React.FC<BreadcrumbProps> = ({ callback, items }) => (
+  <Wrapper>
+    {items.map(({ text, value }, i) =>
+      i === items.length - 1 ? (
+        <ActiveElement key={i}>{text}</ActiveElement>
+      ) : (
+        <React.Fragment key={i}>
+          <Element onClick={() => callback(value)}>
+            <Content>{text}</Content>
+          </Element>
+          <Separator>{"/"}</Separator>
+        </React.Fragment>
+      )
+    )}
+  </Wrapper>
+);
+
+export default Breadcrumb;
