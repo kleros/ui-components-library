@@ -20,7 +20,7 @@ const Wrapper = styled.div<VariantProp>`
   min-width: 328px;
   width: fit-content;
   height: fit-content;
-  background: ${({ theme }) => theme.whiteBackground};s
+  background: ${({ theme }) => theme.whiteBackground};
   border: 1px solid ${variantColor};
   border-radius: 3px;
   padding: 16px 24px;
