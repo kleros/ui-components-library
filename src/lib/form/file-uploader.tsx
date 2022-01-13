@@ -5,7 +5,9 @@ import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import InfoIcon from "../../assets/svgs/status-icons/info.svg";
-import { variantColor, VariantProp } from "./field";
+import { variantColor } from "./field";
+
+type VariantProp = { variant?: "success" | "warning" | "error" | "info" };
 
 const Wrapper = styled.div`
   width: 200px;
@@ -119,7 +121,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         {variant === "success" && <SuccessIcon />}
         {variant === "warning" && <WarningIcon />}
         {variant === "error" && <ErrorIcon />}
-        {info && <InfoIcon />}
+        {variant === "info" && <InfoIcon />}
         <small>{msg}</small>
       </Message>
     </Wrapper>

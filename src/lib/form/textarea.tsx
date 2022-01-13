@@ -1,5 +1,5 @@
-import React from "react";
-import styled, { ThemedStyledFunction } from "styled-components";
+import React, { TextareaHTMLAttributes, forwardRef } from "react";
+import styled from "styled-components";
 import { baseInputStyle, StyledMessage, VariantProp } from "./field";
 
 const Wrapper = styled.div`
@@ -16,17 +16,17 @@ const StyledTextarea = styled.textarea`
 
 interface TextareaProps
   extends VariantProp,
-    ThemedStyledFunction<"textarea", any, {}, never> {
+    TextareaHTMLAttributes<HTMLTextAreaElement> {
   message?: string;
 }
 
-const Textarea: React.FC<TextareaProps> = ({ message, variant, ...props }) => {
-  return (
+const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ message, variant, ...props }) => (
     <Wrapper>
       <StyledTextarea {...props} />
       {message && <StyledMessage variant={variant}>{message}</StyledMessage>}
     </Wrapper>
-  );
-};
+  )
+);
 
 export default Textarea;

@@ -5,6 +5,7 @@ import SecondaryButton from "./secondary";
 import TertiaryButton from "./tertiary";
 
 interface ButtonProps extends BaseButtonProps {
+  disabled?: boolean;
   text: string;
   icon?: ReactNode;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;

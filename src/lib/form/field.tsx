@@ -1,10 +1,12 @@
-import React from "react";
-import styled, { css, ThemedStyledFunction } from "styled-components";
+import React, { forwardRef, InputHTMLAttributes } from "react";
+import styled, { css } from "styled-components";
 import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 
-export type VariantProp = { variant?: "success" | "warning" | "error" };
+export type VariantProp = {
+  variant?: "success" | "warning" | "error" | string;
+};
 
 export const variantColor = css<VariantProp>`
   ${({ variant, theme }) => {
@@ -77,18 +79,20 @@ export const StyledMessage = styled.small<VariantProp>`
 
 interface FieldProps
   extends VariantProp,
-    ThemedStyledFunction<"input", any, {}, never> {
+    InputHTMLAttributes<HTMLInputElement> {
   message?: string;
 }
 
-const Field: React.FC<FieldProps> = ({ variant, message, ...props }) => (
-  <Wrapper>
-    <StyledInput {...props} />
-    {variant === "success" && <StyledSuccessIcon />}
-    {variant === "warning" && <StyledWarningIcon />}
-    {variant === "error" && <StyledErrorIcon />}
-    {message && <StyledMessage>{message}</StyledMessage>}
-  </Wrapper>
+const Field = forwardRef<HTMLInputElement, FieldProps>(
+  ({ variant, message, ...props }) => (
+    <Wrapper>
+      <StyledInput {...props} />
+      {variant === "success" && <StyledSuccessIcon />}
+      {variant === "warning" && <StyledWarningIcon />}
+      {variant === "error" && <StyledErrorIcon />}
+      {message && <StyledMessage>{message}</StyledMessage>}
+    </Wrapper>
+  )
 );
 
 export default Field;
