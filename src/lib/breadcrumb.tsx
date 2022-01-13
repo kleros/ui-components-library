@@ -29,6 +29,7 @@ const ActiveElement = styled(Content)`
 `;
 
 interface BreadcrumbProps {
+  // eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function;
   items: { text: string; value: any }[];
 }

@@ -62,6 +62,7 @@ const CloseButton = styled.button`
 interface PushProps extends SmallProp, VariantProp {
   title: string;
   msg?: string;
+  //eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function;
 }
 

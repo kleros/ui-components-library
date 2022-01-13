@@ -46,6 +46,7 @@ const RightArrow = styled(ArrowButton)`
 interface CompactPaginationProps {
   currentPage: number;
   numPages: number;
+  //eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function;
   label?: ReactNode;
 }

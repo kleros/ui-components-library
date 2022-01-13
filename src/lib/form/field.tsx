@@ -95,4 +95,6 @@ const Field = forwardRef<HTMLInputElement, FieldProps>(
   )
 );
 
+Field.displayName = "Field";
+
 export default Field;

@@ -54,6 +54,7 @@ interface TabsItem {
 interface TabsProps {
   currentValue: any;
   items: TabsItem[];
+  //eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function;
 }
 

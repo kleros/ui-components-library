@@ -62,6 +62,7 @@ const Message = styled.div`
 `;
 
 interface FileUploaderProps extends VariantProp {
+  //eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function;
   msg?: string;
   info?: boolean;
@@ -71,7 +72,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   callback,
   msg,
   variant,
-  info,
   ...props
 }) => {
   const fileInputRef = useRef<any>(); //! type
@@ -110,9 +110,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({
       </DropZone>
       <FileInput
         ref={fileInputRef}
-        type='file'
+        type="file"
         onChange={(event) => {
+          //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           setFileSelected(event.target.files![0]);
+          //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           callback(event.target.files![0]);
         }}
         {...props}

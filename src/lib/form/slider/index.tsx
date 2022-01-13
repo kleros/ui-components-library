@@ -35,6 +35,7 @@ interface SliderProps {
   rightLabel: string;
   min?: number;
   max?: number;
+  //eslint-disable-next-line no-unused-vars
   callback: (value: number) => void;
 }
 
@@ -73,5 +74,7 @@ const Slider = forwardRef<InstanceType<typeof RCSlider>, SliderProps>(
     </Wrapper>
   )
 );
+
+Slider.displayName = "Slider";
 
 export default withTheme(Slider);

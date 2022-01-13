@@ -39,6 +39,7 @@ interface DropdownSelectProps {
   items: DropdownSelectItem[];
   defaultValue?: any;
   defaultNode?: ReactNode;
+  // eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function;
 }
 
