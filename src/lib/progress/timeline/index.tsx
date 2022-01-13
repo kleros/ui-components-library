@@ -1,26 +1,22 @@
 import React from "react";
 import styled from "styled-components";
-import Bullet from "./bullet";
-
-interface TimelineItem {
-  title: string;
-  party: string;
-  subtitle: string;
-  accepted?: boolean;
-  active?: boolean;
-  refused?: boolean;
-  leftSided?: boolean;
-}
+import Bullet, { SideProp, VariantProp } from "./bullet";
 
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
 `;
 
-const StyledBullet = styled(Bullet)<TimelineItem>`
+interface TimelineItem extends SideProp, VariantProp {
+  title: string;
+  party: string;
+  subtitle: string;
+}
+
+const StyledBullet = styled(Bullet)`
   position: relative;
   transform: translateX(
-    ${({ leftSided }) => (leftSided ? "calc(-50% + 8px)" : "calc(50% - 8px)")}
+    ${({ rightSided }) => (rightSided ? "calc(50% - 8px)" : "calc(-50% + 8px)")}
   );
 `;
 

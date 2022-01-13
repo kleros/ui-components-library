@@ -37,14 +37,14 @@ const Progress = () => (
           title: "Pay 200 DAI",
           party: "alice.eth",
           subtitle: "08 Jan 2019 03:00 UTC",
-          leftSided: true,
-          active: true,
+          rightSided: true,
+          variant: "accepted",
         },
         {
           title: "Pay 250 DAI",
           party: "bob.eth",
           subtitle: "08 Jan 2019 02:00 UTC",
-          refused: true,
+          variant: "refused",
         },
       ]}
     />
