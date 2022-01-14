@@ -20,7 +20,6 @@
     "plugin:import/react",
     "plugin:security/recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended",
     "prettier"
   ],
   "globals": {
