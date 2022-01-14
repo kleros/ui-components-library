@@ -40,7 +40,8 @@ const StyledCard = styled(Card)`
   display: flex;
   justify-content: space-around;
   align-items: center;
-  align-content: space-evenly;
+  gap: 24px;
+  overflow: auto;
   flex-wrap: wrap;
   padding: 36px 36px;
   background: ${(props) => props.theme.lightBackground};

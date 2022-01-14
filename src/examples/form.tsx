@@ -3,11 +3,23 @@ import FileUploader from "../lib/form/file-uploader";
 import Field from "../lib/form/field";
 import Textarea from "../lib/form/textarea";
 import Slider from "../lib/form/slider";
+import Datepicker from "../lib/form/datepicker";
 
 const Form = () => {
-  const [date, setDate] = useState(1);
+  const [value, setValue] = useState(1);
   return (
     <>
+      <Datepicker
+        time
+        onSelect={() => {
+          // Called when select is clicked with date as args
+        }}
+      />
+      <Datepicker
+        onSelect={() => {
+          // Called when select is clicked with date as args
+        }}
+      />
       <Field placeholder={"eg. Escrow"} variant="success" />
       <Textarea
         placeholder={"eg. longer text"}
@@ -22,12 +34,12 @@ const Form = () => {
         msg="Some msg"
       />
       <Slider
-        callback={setDate}
+        callback={setValue}
         min={1}
         max={30}
         leftLabel="1 day"
         rightLabel="1 month"
-        label={`${date} days`}
+        label={`${value} days`}
       />
     </>
   );
