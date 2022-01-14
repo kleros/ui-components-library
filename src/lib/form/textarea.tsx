@@ -1,4 +1,4 @@
-import React, { TextareaHTMLAttributes, forwardRef } from "react";
+import React, { TextareaHTMLAttributes } from "react";
 import styled from "styled-components";
 import { baseInputStyle, StyledMessage, VariantProp } from "./field";
 
@@ -14,19 +14,14 @@ const StyledTextarea = styled.textarea`
   ${baseInputStyle}
 `;
 
-interface TextareaProps
-  extends VariantProp,
-    TextareaHTMLAttributes<HTMLTextAreaElement> {
-  message?: string;
-}
+type TextareaProps = VariantProp &
+  TextareaHTMLAttributes<HTMLTextAreaElement> & { message?: string };
 
-const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ message, variant, ...props }) => (
-    <Wrapper>
-      <StyledTextarea {...props} />
-      {message && <StyledMessage variant={variant}>{message}</StyledMessage>}
-    </Wrapper>
-  )
+const Textarea: React.FC<TextareaProps> = ({ message, variant, ...props }) => (
+  <Wrapper>
+    <StyledTextarea {...props} />
+    {message && <StyledMessage variant={variant}>{message}</StyledMessage>}
+  </Wrapper>
 );
 
 Textarea.displayName = "Textarea";
