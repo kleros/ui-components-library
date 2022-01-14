@@ -1,7 +1,10 @@
 import React from "react";
-import styled, { keyframes } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 
-type ProgressProp = { progress: number };
+interface ProgressBaseProps {
+  progress: number;
+  animated?: boolean;
+}
 
 const progressAnimation = (circ: number) => keyframes`
   0% {
@@ -18,21 +21,29 @@ const CircleBackground = styled.path`
   stroke: ${({ theme }) => theme.stroke};
 `;
 
-const Circle = styled.path<ProgressProp & { circ: number }>`
+const Circle = styled.path<ProgressBaseProps & { circ: number }>`
   stroke: ${(props) =>
     props.progress < 100 ? props.theme.primaryBlue : props.theme.success};
-  animation: ${({ circ }) => progressAnimation(circ)} 1s ease-out forwards;
+  ${({ animated, circ }) =>
+    animated &&
+    css`
+      animation: ${progressAnimation(circ)} 1s ease-out forwards;
+    `}
 `;
 
 const Percentage = styled.text`
   fill: ${({ theme }) => theme.primaryText};
 `;
 
-interface CircularProps extends ProgressProp {
+interface CircularProps extends ProgressBaseProps {
   small?: boolean;
 }
 
-const Circular: React.FC<CircularProps> = ({ progress, small }) => {
+const Circular: React.FC<CircularProps> = ({
+  progress,
+  small,
+  animated = true,
+}) => {
   const width = small ? 80 : 120;
   const sw = width / 20; // stroke-width
   const rad = (width - sw) / 2 + 1;
@@ -45,9 +56,9 @@ const Circular: React.FC<CircularProps> = ({ progress, small }) => {
 
   return (
     <CircularChart
-      fill='none'
+      fill="none"
       strokeWidth={sw}
-      strokeLinecap='round'
+      strokeLinecap="round"
       width={width + sw}
       height={width + sw}
     >
@@ -58,15 +69,16 @@ const Circular: React.FC<CircularProps> = ({ progress, small }) => {
           progress={progress}
           d={circlePath}
           circ={circ}
+          animated={animated}
         />
       )}
       <Percentage
         fontSize={small ? 16 : 24}
         fontWeight={600}
-        textAnchor='middle'
-        dominantBaseline='middle'
-        x='50%'
-        y='50%'
+        textAnchor="middle"
+        dominantBaseline="middle"
+        x="50%"
+        y="50%"
       >
         {progress}%
       </Percentage>

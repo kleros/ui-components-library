@@ -1,8 +1,11 @@
 import React from "react";
-import styled, { keyframes } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 
-type OffProp = { off?: boolean };
-type WidthProp = { width: number };
+interface LineBaseProps {
+  off?: boolean;
+  animated?: boolean;
+  width: number;
+}
 
 const progressAnimation = (width: number) => keyframes`
   0% {
@@ -27,17 +30,27 @@ const LineBackground = styled.path`
   stroke: ${({ theme }) => theme.stroke};
 `;
 
-const Line = styled.path<OffProp & WidthProp>`
+const Line = styled.path<LineBaseProps>`
   stroke: ${(props) => (props.off ? props.theme.offGrey : props.theme.success)};
-  animation: ${({ width }) => progressAnimation(width)} 1s ease-out forwards;
+  ${({ animated, width }) =>
+    animated &&
+    css`
+      animation: ${progressAnimation(width)} 1s ease-out forwards;
+    `}
 `;
 
-interface LinearProps extends OffProp, WidthProp {
+interface LinearProps extends LineBaseProps {
   text?: string;
   progress: number;
 }
 
-const Linear: React.FC<LinearProps> = ({ text, progress, width, off }) => {
+const Linear: React.FC<LinearProps> = ({
+  text,
+  progress,
+  width,
+  off,
+  animated = true,
+}) => {
   const sw = 8;
   const linePath = `M ${sw / 2} ${sw / 2} h ${width - sw}`;
 
@@ -47,13 +60,14 @@ const Linear: React.FC<LinearProps> = ({ text, progress, width, off }) => {
       <LinearChart
         width={width}
         height={sw}
-        fill='none'
+        fill="none"
         strokeWidth={sw}
-        strokeLinecap='round'
+        strokeLinecap="round"
       >
         <LineBackground d={linePath} />
         {progress && (
           <Line
+            animated={animated}
             width={width}
             strokeDasharray={`${(progress * width) / 100} ${width}`}
             off={off}
