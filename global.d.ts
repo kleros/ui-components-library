@@ -21,7 +21,6 @@ declare module "styled-components" {
     secondaryText: string;
     stroke: string;
     lightGrey: string;
-    offGrey: string;
 
     whiteBackground: string;
     lightBackground: string;

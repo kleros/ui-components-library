@@ -13,6 +13,7 @@ const Progress = () => (
       text="Deposit required = xETH of 0.01ETH"
       width={500}
       progress={60}
+      timerText={"00d 03h 00m "}
     />
     <Linear
       text="100/100 (no anime)"
@@ -20,7 +21,7 @@ const Progress = () => (
       progress={100}
       animated={false}
     />
-    <Linear off width={800} progress={20} />
+    <Linear width={800} progress={0} timerText={"hello world"} />
   </>
 );
 

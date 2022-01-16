@@ -13,7 +13,6 @@ export const lightTheme: DefaultTheme = {
   secondaryText: "#999999",
   stroke: "#e5e5e5",
   lightGrey: "#FAFAFA",
-  offGrey: "#ccc",
 
   whiteBackground: "#FFFFFF",
   lightBackground: "#FAFBFC",
@@ -47,7 +46,6 @@ export const darkTheme: DefaultTheme = {
   secondaryText: "#BECCE5",
   stroke: "#42498F",
   lightGrey: "#2D1865",
-  offGrey: "#ccc", //TODO
 
   whiteBackground: "#220050",
   lightBackground: "#1B003F",

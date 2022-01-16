@@ -1,8 +1,8 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import styled, { css, keyframes } from "styled-components";
+import HourglassIcon from "../../../assets/svgs/hourglass.svg";
 
 interface LineBaseProps {
-  off?: boolean;
   animated?: boolean;
   width: number;
 }
@@ -21,7 +21,14 @@ const Wrapper = styled.div`
   color: ${({ theme }) => theme.stroke};
 `;
 
-const LinearChart = styled.svg`
+const BarTimerWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+`;
+
+const LinearChart = styled.svg<LineBaseProps>`
+  stroke: ${({ width }) => width};
   display: block;
   margin: 10px auto;
 `;
@@ -31,7 +38,7 @@ const LineBackground = styled.path`
 `;
 
 const Line = styled.path<LineBaseProps>`
-  stroke: ${(props) => (props.off ? props.theme.offGrey : props.theme.success)};
+  stroke: ${({ theme }) => theme.success};
   ${({ animated, width }) =>
     animated &&
     css`
@@ -39,16 +46,29 @@ const Line = styled.path<LineBaseProps>`
     `}
 `;
 
+const TimerMessage = styled.div`
+  line-height: 1em;
+  margin-top: 5px;
+  color: ${({ theme }) => theme.error};
+  font-weight: 600;
+  fill: ${({ theme }) => theme.error};
+
+  svg {
+    margin-right: 9.75px;
+  }
+`;
+
 interface LinearProps extends LineBaseProps {
   text?: string;
   progress: number;
+  timerText?: ReactNode;
 }
 
 const Linear: React.FC<LinearProps> = ({
   text,
   progress,
   width,
-  off,
+  timerText,
   animated = true,
 }) => {
   const sw = 8;
@@ -57,24 +77,31 @@ const Linear: React.FC<LinearProps> = ({
   return (
     <Wrapper>
       {text && <p>{text}</p>}
-      <LinearChart
-        width={width}
-        height={sw}
-        fill="none"
-        strokeWidth={sw}
-        strokeLinecap="round"
-      >
-        <LineBackground d={linePath} />
-        {progress && (
-          <Line
-            animated={animated}
-            width={width}
-            strokeDasharray={`${(progress * width) / 100} ${width}`}
-            off={off}
-            d={linePath}
-          />
+      <BarTimerWrapper>
+        <LinearChart
+          width={width}
+          height={sw}
+          fill="none"
+          strokeWidth={sw}
+          strokeLinecap="round"
+        >
+          <LineBackground d={linePath} />
+          {progress && (
+            <Line
+              animated={animated}
+              width={width}
+              strokeDasharray={`${(progress * width) / 100} ${width}`}
+              d={linePath}
+            />
+          )}
+        </LinearChart>
+        {timerText && (
+          <TimerMessage>
+            <HourglassIcon />
+            {timerText}
+          </TimerMessage>
         )}
-      </LinearChart>
+      </BarTimerWrapper>
     </Wrapper>
   );
 };
