@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import usePagination from "../../hooks/pagination/use-pagination";
-import Arrow from "../../assets/svgs/pagination/light-left-arrow.svg";
+import Arrow from "../../assets/svgs/arrows/light-left.svg";
 
 const Wrapper = styled.div`
   display: flex;
