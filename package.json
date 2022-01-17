@@ -12,7 +12,7 @@
     "start": "parcel",
     "build": "parcel build",
     "prepare": "husky install",
-    "lint": "eslint '**/*.{ts,tsx}'",
+    "check-style": "eslint 'src/**/*.{ts,tsx}'",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
