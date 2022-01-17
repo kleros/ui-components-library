@@ -19,7 +19,7 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: 600;
     line-height: 33px;
     margin: 0;
-    color: ${(props) => props.theme.primaryText}
+    color: ${({ theme }) => theme.primaryText}
   }
 
   h2 {
@@ -27,7 +27,7 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: 600;
     line-height: 22px;
     margin: 0;
-    color: ${(props) => props.theme.primaryText}
+    color: ${({ theme }) => theme.primaryText}
   }
 
   p {
@@ -35,7 +35,7 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: 400;
     line-height: 22px;
     margin: 0;
-    color: ${(props) => props.theme.primaryText};
+    color: ${({ theme }) => theme.primaryText};
     overflow-wrap: break-word;
     white-space: pre-wrap;
   }
@@ -45,7 +45,7 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: 400;
     line-height: 19px;
     margin: 0;
-    color: ${(props) => props.theme.secondaryText};
+    color: ${({ theme }) => theme.secondaryText};
     overflow-wrap: break-word;
     white-space: pre-wrap;
   }

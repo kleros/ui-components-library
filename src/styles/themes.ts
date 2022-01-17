@@ -1,4 +1,6 @@
-export const lightTheme = {
+import { DefaultTheme } from "styled-components";
+
+export const lightTheme: DefaultTheme = {
   primaryPurple: "#4D00B4",
   secondaryPurple: "#9013FE",
   mediumPurple: "#F8F1FF",
@@ -31,7 +33,7 @@ export const lightTheme = {
   transitionSpeed: "0.25s",
 };
 
-export const darkTheme = {
+export const darkTheme: DefaultTheme = {
   primaryPurple: "#7E1BD4",
   secondaryPurple: "#B45FFF",
   mediumPurple: "#390F6C",
