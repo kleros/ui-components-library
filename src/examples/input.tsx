@@ -3,6 +3,7 @@ import Radio from "../lib/form/radio";
 import Checkbox from "../lib/form/checkbox";
 import Switch from "../lib/form/switch";
 import styled from "styled-components";
+import DropdownSelect from "../lib/dropdown/select";
 
 const VerticalWrapper = styled.div`
   display: flex;
@@ -19,6 +20,16 @@ const Input: React.FC = () => {
 
   return (
     <>
+      <DropdownSelect
+        items={[
+          { text: "hello 1", dot: "red", value: 1 },
+          { text: "hello 2", dot: "blue", value: 0 },
+        ]}
+        defaultValue={0}
+        callback={() => {
+          // function called when an item is clicked with it's value as argument
+        }}
+      />
       <VerticalWrapper>
         <Checkbox
           label="Checkbox"
@@ -38,40 +49,42 @@ const Input: React.FC = () => {
         />
       </VerticalWrapper>
       <VerticalWrapper>
-        <Radio
-          label="Bitcoin"
-          value="bitcoin"
-          checked={radioValue === "bitcoin"}
-          onChange={changeRadioValue}
-        />
-        <Radio
-          label="Ethereum"
-          value="ethereum"
-          checked={radioValue === "ethereum"}
-          onChange={changeRadioValue}
-        />
-        <Radio
-          label="Pinakion"
-          value="pinakion"
-          checked={radioValue === "pinakion"}
-          onChange={changeRadioValue}
-        />
-      </VerticalWrapper>
-      <VerticalWrapper>
-        <Radio
-          label="Bitcoin"
-          small
-          value="bitcoin"
-          checked={radioValue === "bitcoin"}
-          onChange={changeRadioValue}
-        />
-        <Radio
-          small
-          label="Ethereum"
-          value="ethereum"
-          checked={radioValue === "ethereum"}
-          onChange={changeRadioValue}
-        />
+        <VerticalWrapper>
+          <Radio
+            label="Bitcoin"
+            value="bitcoin"
+            checked={radioValue === "bitcoin"}
+            onChange={changeRadioValue}
+          />
+          <Radio
+            label="Ethereum"
+            value="ethereum"
+            checked={radioValue === "ethereum"}
+            onChange={changeRadioValue}
+          />
+          <Radio
+            label="Pinakion"
+            value="pinakion"
+            checked={radioValue === "pinakion"}
+            onChange={changeRadioValue}
+          />
+        </VerticalWrapper>
+        <VerticalWrapper>
+          <Radio
+            label="Bitcoin"
+            small
+            value="bitcoin"
+            checked={radioValue === "bitcoin"}
+            onChange={changeRadioValue}
+          />
+          <Radio
+            small
+            label="Ethereum"
+            value="ethereum"
+            checked={radioValue === "ethereum"}
+            onChange={changeRadioValue}
+          />
+        </VerticalWrapper>
       </VerticalWrapper>
       <Switch checked={checked} onChange={() => setChecked((old) => !old)} />
       <Switch

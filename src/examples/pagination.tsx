@@ -3,6 +3,7 @@ import CompactPagination from "../lib/pagination/compact";
 import StandardPagination from "../lib/pagination/standard";
 import Tabs from "../lib/pagination/tabs";
 import Telegram from "../assets/svgs/telegram.svg";
+import Breadcrumb from "../lib/breadcrumb";
 
 const Pagination = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -29,6 +30,16 @@ const Pagination = () => {
           // function called when a tab is clicked
         }}
         currentValue={0}
+      />
+      <Breadcrumb
+        items={[
+          { text: "General Court", value: 0 },
+          { text: "Blockchain", value: 1 },
+          { text: "Non-Technical", value: 2 },
+        ]}
+        callback={() => {
+          // executed when an item is clicked passing it's value as argument
+        }}
       />
     </>
   );
