@@ -4,16 +4,27 @@ import CheckmarkIcon from "../../assets/svgs/form/checkmark.svg";
 
 interface CheckboxBaseProps {
   checked?: boolean;
+  small?: boolean;
 }
 
-const Wrapper = styled.label`
+const Wrapper = styled.label<CheckboxBaseProps>`
   display: block;
   position: relative;
-  padding-left: 35px;
-  margin-bottom: 12px;
   cursor: pointer;
-  font-size: 22px;
   user-select: none;
+  color: ${({ theme }) => theme.primaryText};
+  ${({ small }) =>
+    small
+      ? css`
+          font-size: 16px;
+          padding-left: 28px;
+          margin-bottom: 10px;
+        `
+      : css`
+          font-size: 22px;
+          padding-left: 35px;
+          margin-bottom: 12px;
+        `}
 `;
 
 const HiddenInput = styled.input.attrs({ type: "checkbox" })`
@@ -61,7 +72,6 @@ interface CheckboxProps
   extends CheckboxBaseProps,
     Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   label: string;
-  small?: boolean;
 }
 
 const Checkbox: React.FC<CheckboxProps> = ({
@@ -70,7 +80,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
   label,
   ...props
 }) => (
-  <Wrapper>
+  <Wrapper small={small}>
     {label}
     <HiddenInput checked={checked} {...props} />
     <StyledCheckmark $small={small} checked={checked} />
