@@ -4,12 +4,16 @@ import Dai from "../assets/svgs/dai.svg";
 import DisplayLarge from "../lib/display/large";
 import DisplayIcon from "../lib/display/icon";
 import Balance from "../assets/svgs/balance.svg";
+import Tag from "../lib/tag";
 
 const Displays = () => (
   <>
     <DisplaySmall text="250 DAI" label="Amount" icon={<Dai />} />
     <DisplayLarge text="$244.08" label="ETH Price" icon={<Dai />} />
     <DisplayIcon text="247" label="Disputes" icon={<Balance />} />
+    <Tag text={"First tag"} />
+    <Tag active text={"Active tag"} />
+    <Tag text={"Tag with lots and lots of text, ok maybe not that much"} />
   </>
 );
 
