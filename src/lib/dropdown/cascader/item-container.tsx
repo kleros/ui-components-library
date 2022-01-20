@@ -4,12 +4,13 @@ import BaseItem from "../base-item";
 import LightArrow from "../../../assets/svgs/arrows/light-left.svg";
 
 const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
+  flex: 1;
   width: 238px;
-  height: 350px;
+  height: auto;
   background: ${({ theme }) => theme.whiteBackground};
   padding: 16px 0px;
+  display: grid;
+  grid-template-rows: repeat(auto-fill, minmax(0, 45px));
 `;
 
 export const StyledBaseItem = styled(BaseItem)`
