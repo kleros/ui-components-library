@@ -9,75 +9,75 @@ interface TooltipBaseProps {
 const StyledTooltip = styled.span<TooltipBaseProps>`
   ${({ place, theme, small }) => css`
     visibility: hidden;
-    background: ${theme.primaryBlue};
-    color: ${theme.whiteBackground};
-    border-radius: 3px;
-    padding: 15px 16px;
     position: absolute;
     z-index: 1;
-    font-weight: 600;
-    font-size: 14px;
-    text-align: ${small ? "center" : "left"};
-    ${small
-      ? css`
-          height: 45px;
-          white-space: nowrap;
-        `
-      : css`
-          max-height: 84px;
-          width: 214px;
-        `}
+    width: max-content;
+    max-width: 240px;
+    background: ${theme.primaryBlue};
+    border-radius: 3px;
+    padding: 13px 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    small {
+      font-weight: 600;
+      text-align: ${small ? "center" : "left"};
+      color: ${theme.whiteBackground};
+    }
 
     ::after {
       content: "";
       position: absolute;
-      border-width: 5px;
+      border-width: 8px;
       border-style: solid;
     }
 
     ${place === "top" &&
     css`
-      bottom: calc(100% + 12px);
+      bottom: calc(100% + 16px);
       left: 50%;
-      margin-left: ${small ? "-60px" : "-107px"};
+      transform: translateX(-50%);
       ::after {
         top: 100%;
         left: 50%;
-        margin-left: -5px;
+        transform: translateX(-50%);
         border-color: ${theme.primaryBlue} transparent transparent transparent;
       }
     `}
     ${place === "right" &&
     css`
-      top: ${small ? "-15px" : "-27px"};
-      left: calc(100% + 12px);
+      top: 50%;
+      left: calc(100% + 16px);
+      transform: translateY(-50%);
       ::after {
         top: 50%;
         right: 100%;
-        margin-top: -5px;
+        transform: translateY(-50%);
         border-color: transparent ${theme.primaryBlue} transparent transparent;
       }
     `}
     ${place === "bottom" &&
     css`
-      top: calc(100% + 12px);
+      top: calc(100% + 16px);
       left: 50%;
-      margin-left: ${small ? "-60px" : "-107px"};
+      transform: translateX(-50%);
       ::after {
         left: 50%;
         bottom: 100%;
-        margin-left: -5px;
+        transform: translateX(-50%);
         border-color: transparent transparent ${theme.primaryBlue} transparent;
       }
     `}
-      ${place === "left" &&
+    ${place === "left" &&
     css`
-      top: ${small ? "-15px" : "-27px"};
-      right: calc(100% + 12px);
+      top: 50%;
+      right: calc(100% + 16px);
+      transform: translateY(-50%);
       ::after {
         top: 50%;
         left: 100%;
-        margin-top: -5px;
+        transform: translateY(-50%);
         border-color: transparent transparent transparent ${theme.primaryBlue};
       }
     `}
@@ -106,7 +106,7 @@ const Tooltip: React.FC<TooltipProps> = ({
   <Wrapper>
     {children}
     <StyledTooltip small={small} place={place}>
-      {text}
+      <small>{text}</small>
     </StyledTooltip>
   </Wrapper>
 );
