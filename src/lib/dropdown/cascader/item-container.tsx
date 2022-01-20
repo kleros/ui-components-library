@@ -6,13 +6,13 @@ import LightArrow from "../../../assets/svgs/arrows/light-left.svg";
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  width: 235px;
+  width: 238px;
   height: 350px;
   background: ${({ theme }) => theme.whiteBackground};
   padding: 16px 0px;
 `;
 
-const StyledBaseItem = styled(BaseItem)`
+export const StyledBaseItem = styled(BaseItem)`
   position: relative;
 
   svg {

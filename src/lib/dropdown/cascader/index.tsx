@@ -1,6 +1,8 @@
-import React, { useState } from "react";
-import styled from "styled-components";
-import ItemContainer, { IItem } from "./item-container";
+import React, { useState, useRef } from "react";
+import styled, { css } from "styled-components";
+import useFocusOutside from "../../../hooks/use-focus-outside";
+import ItemContainer, { IItem, StyledBaseItem } from "./item-container";
+import DropdownButton from "../button";
 import Selector from "./selector";
 
 interface ILayer {
@@ -8,46 +10,82 @@ interface ILayer {
   selected?: IItem["value"];
 }
 
-const Wrapper = styled.div<{ path: ILayer[] }>`
-  background: ${({ theme }) => theme.stroke};
-  padding: 1px;
-  border-radius: 3px;
-  display: grid;
-  grid-template-columns: repeat(${({ path }) => path.length}, 235px);
-  grid-template-rows: 350px 64px;
-  gap: 1px;
+const DropdownContainer = styled.div<{ path: ILayer[]; isOpen: boolean }>`
+  ${({ theme, path, isOpen }) => css`
+    position: absolute;
+    z-index: 100;
+    overflow: hidden;
+    height: ${isOpen ? "auto" : "0px"};
+    box-shadow: 0px 2px 3px ${theme.defaultShadow};
+    transition: height ease ${theme.transitionSpeed};
+    background: ${theme.stroke};
+    padding: ${isOpen ? "1px" : "0"};
+    border-radius: 3px;
+    display: grid;
+    grid-template-columns: repeat(${path.length}, 238px);
+    grid-template-rows: 350px 64px;
+    gap: 1px;
+  `}
 `;
 
 interface ICascader {
   items: IItem[];
   onSelect: (value: IItem["value"]) => void;
+  placeholder: string;
 }
 
-const Cascader: React.FC<ICascader> = ({ items, onSelect }) => {
+const Cascader: React.FC<ICascader> = ({
+  items,
+  onSelect,
+  placeholder,
+  ...props
+}) => {
   const [path, setPath] = useState<ILayer[]>([{ items }]);
+  const [current, setCurrent] = useState<IItem>();
   const [selected, setSelected] = useState<IItem>();
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const containerRef = useRef(null);
+  useFocusOutside(containerRef, () => setIsOpen(false));
   return (
-    <Wrapper {...{ path }}>
-      {path.map((layer, depth) => (
-        <ItemContainer
-          layer={layer}
-          onChange={(item: IItem) => {
-            let newPath;
-            if (depth < path.length) newPath = path.slice(0, depth + 1);
-            else newPath = path;
-            newPath[depth].selected = item.value;
-            if (item.children) newPath.push({ items: item.children });
-            setPath(newPath);
-            setSelected(item);
-          }}
-          key={depth}
-        />
-      ))}
-      <Selector
-        onSelect={() => (selected ? onSelect(selected.value) : "")}
-        currentSelection={selected?.label}
+    <div ref={containerRef} {...props}>
+      <DropdownButton
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        node={
+          selected ? (
+            <StyledBaseItem current text={selected.label} />
+          ) : (
+            <StyledBaseItem current text={placeholder} />
+          )
+        }
       />
-    </Wrapper>
+      <DropdownContainer {...{ path, isOpen }}>
+        {path.map((layer, depth) => (
+          <ItemContainer
+            layer={layer}
+            onChange={(item: IItem) => {
+              let newPath;
+              if (depth < path.length) newPath = path.slice(0, depth + 1);
+              else newPath = path;
+              newPath[depth].selected = item.value;
+              if (item.children) newPath.push({ items: item.children });
+              setPath(newPath);
+              setCurrent(item);
+            }}
+            key={depth}
+          />
+        ))}
+        <Selector
+          onSelect={() => {
+            if (current) {
+              onSelect(current.value);
+              setSelected(current);
+            }
+          }}
+          currentSelection={current?.label}
+        />
+      </DropdownContainer>
+    </div>
   );
 };
 

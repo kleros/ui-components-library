@@ -15,6 +15,7 @@ const Dropdowns = () => (
       }}
     />
     <Cascader
+      placeholder={"Select Court"}
       onSelect={() => {
         // Called with the item value when select is clicked
       }}
