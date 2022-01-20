@@ -7,9 +7,9 @@ const Dropdowns = () => (
     <DropdownSelect
       items={[
         { text: "hello 1", dot: "red", value: 1 },
-        { text: "hello 2", dot: "blue", value: 0 },
+        { text: "hello 2", dot: "blue", value: 2 },
       ]}
-      defaultValue={0}
+      defaultValue={1}
       callback={() => {
         // function called when an item is clicked with it's value as argument
       }}

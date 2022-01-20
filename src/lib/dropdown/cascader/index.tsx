@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import styled, { css } from "styled-components";
 import useFocusOutside from "../../../hooks/use-focus-outside";
+import DropdownContainer from "../dropdown-container";
 import ItemContainer, { IItem, StyledBaseItem } from "./item-container";
 import DropdownButton from "../button";
 import Selector from "./selector";
@@ -10,17 +11,11 @@ interface ILayer {
   selected?: IItem["value"];
 }
 
-const DropdownContainer = styled.div<{ path: ILayer[]; isOpen: boolean }>`
+const Container = styled(DropdownContainer)<{ path: ILayer[] }>`
   ${({ theme, path, isOpen }) => css`
-    position: absolute;
-    z-index: 100;
-    overflow: hidden;
-    height: ${isOpen ? "auto" : "0px"};
-    box-shadow: 0px 2px 3px ${theme.defaultShadow};
-    transition: height ease ${theme.transitionSpeed};
-    background: ${theme.stroke};
-    padding: ${isOpen ? "1px" : "0"};
+    background: ${isOpen ? theme.stroke : theme.whiteBackground};
     border-radius: 3px;
+    padding: ${isOpen ? "1px" : "0"};
     display: grid;
     grid-template-columns: repeat(${path.length}, 238px);
     grid-template-rows: max-content 64px;
@@ -66,7 +61,7 @@ const Cascader: React.FC<ICascader> = ({
           )
         }
       />
-      <DropdownContainer {...{ path, isOpen }}>
+      <Container {...{ path, isOpen }}>
         {path.map((layer, depth) => (
           <ItemContainerWrapper key={depth}>
             <ItemContainer
@@ -92,7 +87,7 @@ const Cascader: React.FC<ICascader> = ({
           }}
           currentSelection={current?.label}
         />
-      </DropdownContainer>
+      </Container>
     </div>
   );
 };
