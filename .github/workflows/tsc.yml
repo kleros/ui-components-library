@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [ main ]
 jobs:
-  eslint:
+  TypeScriptCompiler:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
