@@ -1,4 +1,5 @@
-import "styled-components";
+import {} from "styled-components";
+import { lightTheme } from "./src/styles/themes";
 
 declare global {
   module "*.svg" {
@@ -8,36 +9,7 @@ declare global {
 }
 
 declare module "styled-components" {
-  export interface DefaultTheme {
-    primaryPurple: string;
-    secondaryPurple: string;
-    mediumPurple: string;
-    lightPurple: string;
-    primaryBlue: string;
-    secondaryBlue: string;
-    mediumBlue: string;
-    lightBlue: string;
-    primaryText: string;
-    secondaryText: string;
-    stroke: string;
-    lightGrey: string;
-
-    whiteBackground: string;
-    lightBackground: string;
-
-    defaultShadow: string;
-    hoveredShadow: string;
-
-    success: string;
-    successLight: string;
-    warning: string;
-    warningLight: string;
-    error: string;
-    errorLight: string;
-    tint: string;
-    tintMedium: string;
-    tintPurple: string;
-
-    transitionSpeed: string;
-  }
+  type Theme = typeof lightTheme;
+  //eslint-disable-next-line @typescript-eslint/no-empty-interface
+  export interface DefaultTheme extends Theme {}
 }

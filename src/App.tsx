@@ -10,14 +10,14 @@ import Buttons from "./examples/buttons";
 import Pagination from "./examples/pagination";
 import Containers from "./examples/containers";
 import Accordion from "./examples/accordion";
-import Breadcrumbs from "./examples/breadcrumbs";
-import Dropdowns from "./examples/dropdowns";
 import Form from "./examples/form";
+import Dropdowns from "./examples/dropdowns";
 import Displays from "./examples/displays";
 import Messages from "./examples/messages";
-import Tags from "./examples/tag";
 import Progress from "./examples/progress";
 import TimelineProgress from "./examples/timeline";
+import Input from "./examples/input";
+import Tooltips from "./examples/tooltip";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -71,14 +71,14 @@ const App = () => {
               { text: "Pagination", value: "pagination" },
               { text: "Containers", value: "containers" },
               { text: "Accordion", value: "accordion" },
-              { text: "Breadcrumbs", value: "breadcrumbs" },
-              { text: "Dropdowns", value: "dropdowns" },
               { text: "Form", value: "form" },
+              { text: "Dropdowns", value: "dropdowns" },
               { text: "Displays", value: "displays" },
               { text: "Messages", value: "messages" },
-              { text: "Tags", value: "tags" },
               { text: "Timeline", value: "timeline" },
               { text: "Progress", value: "progress" },
+              { text: "Input", value: "input" },
+              { text: "Tooltip", value: "tooltip" },
             ]}
             callback={setExample}
             currentValue={example}
@@ -88,14 +88,14 @@ const App = () => {
             {example === "pagination" && <Pagination />}
             {example === "containers" && <Containers />}
             {example === "accordion" && <Accordion />}
-            {example === "breadcrumbs" && <Breadcrumbs />}
-            {example === "dropdowns" && <Dropdowns />}
             {example === "form" && <Form />}
+            {example === "dropdowns" && <Dropdowns />}
             {example === "displays" && <Displays />}
             {example === "messages" && <Messages />}
-            {example === "tags" && <Tags />}
             {example === "timeline" && <TimelineProgress />}
             {example === "progress" && <Progress />}
+            {example === "input" && <Input />}
+            {example === "tooltip" && <Tooltips />}
           </StyledCard>
           <StyledButton
             variant="primary"
