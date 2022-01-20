@@ -1,9 +1,8 @@
 import React, { useState } from "react";
+import styled from "styled-components";
 import Radio from "../lib/form/radio";
 import Checkbox from "../lib/form/checkbox";
 import Switch from "../lib/form/switch";
-import styled from "styled-components";
-import DropdownSelect from "../lib/dropdown/select";
 
 const VerticalWrapper = styled.div`
   display: flex;
@@ -20,16 +19,6 @@ const Input: React.FC = () => {
 
   return (
     <>
-      <DropdownSelect
-        items={[
-          { text: "hello 1", dot: "red", value: 1 },
-          { text: "hello 2", dot: "blue", value: 0 },
-        ]}
-        defaultValue={0}
-        callback={() => {
-          // function called when an item is clicked with it's value as argument
-        }}
-      />
       <VerticalWrapper>
         <Checkbox
           label="Checkbox"

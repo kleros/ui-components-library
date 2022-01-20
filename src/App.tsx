@@ -11,6 +11,7 @@ import Pagination from "./examples/pagination";
 import Containers from "./examples/containers";
 import Accordion from "./examples/accordion";
 import Form from "./examples/form";
+import Dropdowns from "./examples/dropdowns";
 import Displays from "./examples/displays";
 import Messages from "./examples/messages";
 import Progress from "./examples/progress";
@@ -71,6 +72,7 @@ const App = () => {
               { text: "Containers", value: "containers" },
               { text: "Accordion", value: "accordion" },
               { text: "Form", value: "form" },
+              { text: "Dropdowns", value: "dropdowns" },
               { text: "Displays", value: "displays" },
               { text: "Messages", value: "messages" },
               { text: "Timeline", value: "timeline" },
@@ -87,6 +89,7 @@ const App = () => {
             {example === "containers" && <Containers />}
             {example === "accordion" && <Accordion />}
             {example === "form" && <Form />}
+            {example === "dropdowns" && <Dropdowns />}
             {example === "displays" && <Displays />}
             {example === "messages" && <Messages />}
             {example === "timeline" && <TimelineProgress />}
