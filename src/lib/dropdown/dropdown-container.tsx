@@ -11,7 +11,6 @@ const Container = styled.div<IDropdownContainer>`
     z-index: 100;
     transform: ${isOpen ? "scaleY(1)" : "scaleY(0)"};
     transform-origin: top;
-    transition: transform ease ${theme.transitionSpeed};
     height: auto;
     background: transparent;
     box-shadow: 0px 2px 3px ${theme.defaultShadow};

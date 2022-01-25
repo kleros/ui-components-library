@@ -23,13 +23,6 @@ const Container = styled(DropdownContainer)<{ path: ILayer[] }>`
   `}
 `;
 
-const ItemContainerWrapper = styled.div`
-  width: auto;
-  max-height: 350px;
-  background: ${({ theme }) => theme.whiteBackground};
-  overflow: auto;
-`;
-
 interface ICascader {
   items: IItem[];
   onSelect: (value: IItem["value"]) => void;
@@ -63,20 +56,19 @@ const Cascader: React.FC<ICascader> = ({
       />
       <Container {...{ path, isOpen }}>
         {path.map((layer, depth) => (
-          <ItemContainerWrapper key={depth}>
-            <ItemContainer
-              layer={layer}
-              onChange={(item: IItem) => {
-                let newPath;
-                if (depth < path.length) newPath = path.slice(0, depth + 1);
-                else newPath = path;
-                newPath[depth].selected = item.value;
-                if (item.children) newPath.push({ items: item.children });
-                setPath(newPath);
-                setCurrent(item);
-              }}
-            />
-          </ItemContainerWrapper>
+          <ItemContainer
+            key={depth}
+            layer={layer}
+            onChange={(item: IItem) => {
+              let newPath;
+              if (depth < path.length) newPath = path.slice(0, depth + 1);
+              else newPath = path;
+              newPath[depth].selected = item.value;
+              if (item.children) newPath.push({ items: item.children });
+              setPath(newPath);
+              setCurrent(item);
+            }}
+          />
         ))}
         <Selector
           onSelect={() => {

@@ -1,6 +1,8 @@
+import React from "react";
 import styled from "styled-components";
+import ScrollbarContainer from "../scrollbar";
 
-const BaseItemContainer = styled.div`
+const ItemContainer = styled.div`
   flex: 1;
   width: 238px;
   height: auto;
@@ -10,4 +12,17 @@ const BaseItemContainer = styled.div`
   grid-template-rows: repeat(auto-fill, minmax(0, 45px));
 `;
 
-export default BaseItemContainer;
+const StyledScrollbarContainer = styled(ScrollbarContainer)`
+  width: 238px;
+  max-height: 350px;
+`;
+
+const ItemContainerWithScrollbar: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <StyledScrollbarContainer>
+    <ItemContainer>{children}</ItemContainer>
+  </StyledScrollbarContainer>
+);
+
+export default ItemContainerWithScrollbar;

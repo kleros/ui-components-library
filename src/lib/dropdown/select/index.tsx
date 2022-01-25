@@ -13,13 +13,6 @@ const Container = styled(DropdownContainer)`
   `}
 `;
 
-const ItemContainerWrapper = styled.div`
-  width: auto;
-  max-height: 350px;
-  background: ${({ theme }) => theme.whiteBackground};
-  overflow: auto;
-`;
-
 interface ISelect {
   items: IItem[];
   callback: (value: IItem["value"]) => void;
@@ -27,7 +20,7 @@ interface ISelect {
   placeholder?: Omit<IItem, "value">;
 }
 
-const Cascader: React.FC<ISelect> = ({
+const Select: React.FC<ISelect> = ({
   items,
   callback,
   defaultValue,
@@ -54,18 +47,16 @@ const Cascader: React.FC<ISelect> = ({
         }
       />
       <Container {...{ isOpen }}>
-        <ItemContainerWrapper>
-          <ItemContainer
-            {...{ items, selected }}
-            onChange={(value: IItem["value"]) => {
-              setSelected(value);
-              callback(value);
-            }}
-          />
-        </ItemContainerWrapper>
+        <ItemContainer
+          {...{ items, selected }}
+          onChange={(value: IItem["value"]) => {
+            setSelected(value);
+            callback(value);
+          }}
+        />
       </Container>
     </div>
   );
 };
 
-export default Cascader;
+export default Select;
