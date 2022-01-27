@@ -1,17 +1,8 @@
 import React from "react";
 import styled from "styled-components";
 import BaseItem from "../base-item";
+import BaseItemContainer from "../base-item-container";
 import LightArrow from "../../../assets/svgs/arrows/light-left.svg";
-
-const Wrapper = styled.div`
-  flex: 1;
-  width: 238px;
-  height: auto;
-  background: ${({ theme }) => theme.whiteBackground};
-  padding: 16px 0px;
-  display: grid;
-  grid-template-rows: repeat(auto-fill, minmax(0, 45px));
-`;
 
 export const StyledBaseItem = styled(BaseItem)`
   position: relative;
@@ -37,9 +28,10 @@ interface IItemContainer {
 }
 
 const ItemContainer: React.FC<IItemContainer> = ({ layer, onChange }) => (
-  <Wrapper>
+  <BaseItemContainer>
     {layer.items.map((item, i) => (
       <StyledBaseItem
+        tabIndex={0}
         key={i}
         text={item.label}
         icon={item.children && <LightArrow />}
@@ -47,7 +39,7 @@ const ItemContainer: React.FC<IItemContainer> = ({ layer, onChange }) => (
         selected={item.value === layer.selected}
       />
     ))}
-  </Wrapper>
+  </BaseItemContainer>
 );
 
 export default ItemContainer;

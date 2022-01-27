@@ -41,14 +41,16 @@ const StyledDot = styled(Dot)`
   margin-right: 8px;
 `;
 
-interface IBaseItem extends IItem {
+export interface IBaseItem
+  extends IItem,
+    Omit<React.HTMLAttributes<HTMLDivElement>, "onClick"> {
   text: string;
   icon?: ReactNode;
   dot?: string;
   onClick?: () => void;
 }
 
-const SelectItem: React.FC<IBaseItem> = ({
+const BaseItem: React.FC<IBaseItem> = ({
   text,
   icon,
   dot,
@@ -56,9 +58,8 @@ const SelectItem: React.FC<IBaseItem> = ({
   ...props
 }) => (
   <Item
-    onClick={onClick}
     onKeyPress={(e) => (onClick && e.key === "Enter" ? onClick() : undefined)}
-    {...props}
+    {...{ onClick, ...props }}
   >
     {icon}
     {dot && <StyledDot color={dot} />}
@@ -66,4 +67,4 @@ const SelectItem: React.FC<IBaseItem> = ({
   </Item>
 );
 
-export default SelectItem;
+export default BaseItem;
