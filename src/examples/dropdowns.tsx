@@ -1,14 +1,20 @@
 import React from "react";
 import DropdownSelect from "../lib/dropdown/select";
 import Cascader from "../lib/dropdown/cascader";
-import SimpleButton from "../lib/dropdown/simple-button";
 
 const Dropdowns = () => (
   <>
-    {/*eslint-disable-next-line @typescript-eslint/no-empty-function*/}
-    <SimpleButton text={"Court"} isOpen={true} setIsOpen={() => {}} />
-    {/*eslint-disable-next-line @typescript-eslint/no-empty-function*/}
-    <SimpleButton small text={"Court"} isOpen={true} setIsOpen={() => {}} />
+    <DropdownSelect
+      simpleButton
+      items={[
+        { text: "hello", dot: "red", value: 1 },
+        { text: "world", dot: "blue", value: 2 },
+      ]}
+      defaultValue={1}
+      callback={() => {
+        // function called when an item is clicked with it's value as argument
+      }}
+    />
     <DropdownSelect
       items={[
         { text: "hello 1", dot: "red", value: 1 },

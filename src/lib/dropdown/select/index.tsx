@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
 import styled, { css } from "styled-components";
 import useFocusOutside from "../../../hooks/use-focus-outside";
+import DropdownButton from "./button";
 import DropdownContainer from "../dropdown-container";
-import ItemContainer, { IItem, StyledItem } from "./item-container";
-import DropdownButton from "../button";
+import ItemContainer, { IItem } from "./item-container";
 
 const Container = styled(DropdownContainer)`
   ${({ theme, isOpen }) => css`
@@ -18,11 +18,15 @@ interface ISelect {
   callback: (value: IItem["value"]) => void;
   defaultValue?: IItem["value"];
   placeholder?: Omit<IItem, "value">;
+  simpleButton?: boolean;
+  smallButton?: boolean;
 }
 
 const Select: React.FC<ISelect> = ({
   items,
   callback,
+  simpleButton,
+  smallButton,
   defaultValue,
   placeholder,
   ...props
@@ -35,16 +39,17 @@ const Select: React.FC<ISelect> = ({
   return (
     <div ref={containerRef} {...props}>
       <DropdownButton
-        {...{ isOpen, setIsOpen }}
-        node={
-          currentItem ? (
-            <StyledItem current {...currentItem} />
-          ) : placeholder ? (
-            <StyledItem current {...placeholder} />
-          ) : (
-            ""
-          )
-        }
+        {...{
+          item: currentItem
+            ? currentItem
+            : placeholder
+            ? placeholder
+            : { text: "" },
+          isOpen,
+          setIsOpen,
+          simple: simpleButton,
+          small: smallButton,
+        }}
       />
       <Container {...{ isOpen }}>
         <ItemContainer
