@@ -1,10 +1,10 @@
+/.yarn/*
+!/.yarn/versions
+!/.yarn/plugins
+!/.yarn/releases
+!/.yarn/sdks
+/.pnp.*
 node_modules
-yarn.lock
-package-lock.json
-.eslintcache
-
-# testing
-/coverage
 
 # parcel
 .parcel-cache
@@ -14,6 +14,7 @@ dist
 parcel-bundle-reports
 
 # misc
+.eslintcache
 .DS_Store
 .env
 .env.test
