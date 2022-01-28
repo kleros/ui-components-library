@@ -12,12 +12,16 @@ __metadata:
     "@commitlint/cli": ^15.0.0
     "@commitlint/config-conventional": ^15.0.0
     "@datepicker-react/hooks": ^2.8.4
+    "@parcel/packager-ts": ^2.2.1
     "@parcel/transformer-svg-react": ^2.0.1
+    "@parcel/transformer-typescript-types": ^2.2.1
+    "@swc/helpers": ^0.3.2
     "@types/react": ^17.0.38
     "@types/react-dom": ^17.0.11
     "@types/styled-components": ^5.1.20
     "@typescript-eslint/eslint-plugin": ^5.9.1
     "@typescript-eslint/parser": ^5.9.1
+    babel-plugin-styled-components: ^2.0.2
     eslint: ^7
     eslint-config-prettier: ^8.3.0
     eslint-import-resolver-parcel: ^1.10.6
@@ -33,6 +37,7 @@ __metadata:
     rc-slider: ^9.7.5
     react: ^17.0.2
     react-dom: ^17.0.2
+    simplebar: ^5.3.6
     simplebar-react: ^2.3.6
     styled-components: ^5.3.3
     typescript: ^4.5.4
@@ -1273,6 +1278,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@parcel/packager-ts@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "@parcel/packager-ts@npm:2.2.1"
+  dependencies:
+    "@parcel/plugin": ^2.2.1
+  checksum: 733fac0efdd6e6e1f9f9296dda0875676fbce5e42eeb74106653ef45989bc637686c6f8c9ae83a292ca33f036d216002e3babe6467e409912f4caa8ca7b47148
+  languageName: node
+  linkType: hard
+
 "@parcel/plugin@npm:^2.0.1":
   version: 2.0.1
   resolution: "@parcel/plugin@npm:2.0.1"
@@ -1566,6 +1580,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@parcel/transformer-typescript-types@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "@parcel/transformer-typescript-types@npm:2.2.1"
+  dependencies:
+    "@parcel/diagnostic": ^2.2.1
+    "@parcel/plugin": ^2.2.1
+    "@parcel/source-map": ^2.0.0
+    "@parcel/ts-utils": ^2.2.1
+    nullthrows: ^1.1.1
+  peerDependencies:
+    typescript: ">=3.0.0"
+  checksum: 71cfaaac62b9dc154ab872eec8fe3940e767224a442f0c7e3eff23d53a2b60789d59efa0d59692d7f70b96424b2fcb5860be662c30d3ea82a03baf60df98258d
+  languageName: node
+  linkType: hard
+
+"@parcel/ts-utils@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "@parcel/ts-utils@npm:2.2.1"
+  dependencies:
+    nullthrows: ^1.1.1
+  peerDependencies:
+    typescript: ">=3.0.0"
+  checksum: 9781ff400390d3193cbf507bcd705aebbbcca3bafef61ed58ad96a7bc59f5abdc48320cfd24ae7f3d92cbd5a59187285b99c581d4f6a4f53298486d70e4da509
+  languageName: node
+  linkType: hard
+
 "@parcel/types@npm:^2.0.1":
   version: 2.0.1
   resolution: "@parcel/types@npm:2.0.1"
@@ -1816,6 +1856,13 @@ __metadata:
   version: 0.2.14
   resolution: "@swc/helpers@npm:0.2.14"
   checksum: c7b718924ee20d64bd784b64fae9a0e228f1a7a0474e8f772e7ff89282f3e2df6a2c1325da3b98a001b1a1823c93a378886320b9ce0761dcdbcb9f76d887de45
+  languageName: node
+  linkType: hard
+
+"@swc/helpers@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "@swc/helpers@npm:0.3.2"
+  checksum: ab0ed08c234eaae108ba241e3c73212062cc0533e4f6e5e37e17343fbf3da13b60a63109bcd052dd937072e6f290cda76fb74ccb7bfd632e3f85a51b0acea7fd
   languageName: node
   linkType: hard
 
@@ -2368,7 +2415,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-plugin-styled-components@npm:>= 1.12.0":
+"babel-plugin-styled-components@npm:>= 1.12.0, babel-plugin-styled-components@npm:^2.0.2":
   version: 2.0.2
   resolution: "babel-plugin-styled-components@npm:2.0.2"
   dependencies:

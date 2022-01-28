@@ -1,8 +1,10 @@
 {
   "name": "@alcercu/frontend-library",
-  "version": "0.0.5",
-  "main": "src/lib/index.js",
-  "source": "src/index.html",
+  "version": "0.0.18",
+  "source": "src/lib/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/types.d.ts",
+  "isLibrary": true,
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "repository": "git@github.com:alcercu/frontend-library.git",
   "author": "alcercu <alcercu@alumni.upv.es>",
@@ -10,21 +12,27 @@
   "scripts": {
     "clear": "rm -r .parcel-cache",
     "clean": "rm dist/bundle.js",
-    "start": "parcel",
+    "start": "parcel src/index.html",
     "build": "parcel build",
     "prepare": "husky install",
     "check-style": "eslint 'src/**/*.{ts,tsx}'",
     "check-types": "tsc --noEmit"
   },
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@commitlint/cli": "^15.0.0",
     "@commitlint/config-conventional": "^15.0.0",
+    "@parcel/packager-ts": "^2.2.1",
     "@parcel/transformer-svg-react": "^2.0.1",
+    "@parcel/transformer-typescript-types": "^2.2.1",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",
     "@types/styled-components": "^5.1.20",
     "@typescript-eslint/eslint-plugin": "^5.9.1",
     "@typescript-eslint/parser": "^5.9.1",
+    "babel-plugin-styled-components": "^2.0.2",
     "eslint": "^7",
     "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-parcel": "^1.10.6",
@@ -41,9 +49,11 @@
   },
   "dependencies": {
     "@datepicker-react/hooks": "^2.8.4",
+    "@swc/helpers": "^0.3.2",
     "rc-slider": "^9.7.5",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "simplebar": "^5.3.6",
     "simplebar-react": "^2.3.6",
     "styled-components": "^5.3.3"
   },
