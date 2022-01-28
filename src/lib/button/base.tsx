@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { borderBox, p, svg } from "../../styles/common-style";
+import { borderBox, button, p, svg } from "../../styles/common-style";
 
 export interface BaseButtonProps {
   variant?: "primary" | "secondary" | "tertiary";
@@ -8,6 +8,7 @@ export interface BaseButtonProps {
 
 const BaseButton = styled.button<BaseButtonProps>`
   ${borderBox}
+  ${button}
   width: fit-content;
   height: fit-content;
   display: flex;
