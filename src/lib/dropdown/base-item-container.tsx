@@ -1,8 +1,10 @@
 import React from "react";
 import styled from "styled-components";
 import ScrollbarContainer from "../scrollbar";
+import { borderBox } from "../../styles/common-style";
 
 const ItemContainer = styled.div`
+  ${borderBox}
   flex: 1;
   width: 238px;
   height: auto;

@@ -4,11 +4,11 @@ import BaseButton from "./base";
 const TertiaryButton = styled(BaseButton)`
   background: ${(props) => props.theme.secondaryPurple};
 
-  p {
+  .button-text {
     color: ${(props) => props.theme.whiteBackground};
   }
 
-  svg {
+  .button-svg {
     fill: ${(props) => props.theme.whiteBackground};
   }
 

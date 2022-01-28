@@ -1,11 +1,13 @@
 import React from "react";
 import styled, { css } from "styled-components";
+import { borderBox } from "../../styles/common-style";
 
 export interface IDropdownContainer {
   isOpen: boolean;
 }
 
 const Container = styled.div<IDropdownContainer>`
+  ${borderBox}
   ${({ theme, isOpen }) => css`
     position: absolute;
     z-index: 100;

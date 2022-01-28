@@ -7,7 +7,7 @@ import TertiaryButton from "./tertiary";
 interface ButtonProps extends BaseButtonProps {
   disabled?: boolean;
   text: string;
-  icon?: ReactNode;
+  icon?: (className: string) => ReactNode;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
@@ -24,8 +24,8 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <ButtonType {...{ variant, onClick, ...props }}>
-      {icon}
-      <p>{text}</p>
+      {icon && icon("button-svg")}
+      <p className="button-text">{text}</p>
     </ButtonType>
   );
 };

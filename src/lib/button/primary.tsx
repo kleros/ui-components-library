@@ -5,12 +5,12 @@ const PrimaryButton = styled(BaseButton)`
   background: ${(props) =>
     props.disabled ? props.theme.lightGrey : props.theme.primaryBlue};
 
-  p {
+  .button-text {
     color: ${(props) =>
       props.disabled ? props.theme.stroke : props.theme.whiteBackground};
   }
 
-  svg {
+  .button-svg {
     fill: ${(props) =>
       props.disabled ? props.theme.stroke : props.theme.whiteBackground};
   }

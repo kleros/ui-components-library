@@ -1,9 +1,11 @@
 import React, { ReactNode, useState } from "react";
 import styled from "styled-components";
 import AccordionItem from "./accordion-item";
+import { borderBox } from "../../styles/common-style";
 
 const Wrapper = styled.div`
-  diplay: flex;
+  ${borderBox}
+  display: flex;
   flex-direction: column;
   width: 1000px;
 `;

@@ -2,8 +2,10 @@ import React from "react";
 import styled from "styled-components";
 import BaseItem from "../base-item";
 import Button from "../../button";
+import { borderBox } from "../../../styles/common-style";
 
 const Wrapper = styled.div`
+  ${borderBox}
   grid-column: 1 / -1;
   grid-row: 2 / 2;
   height: 64px;

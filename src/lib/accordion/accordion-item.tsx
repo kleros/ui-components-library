@@ -2,10 +2,12 @@ import React, { ReactNode, useRef } from "react";
 import styled from "styled-components";
 import Plus from "../../assets/svgs/accordion/plus.svg";
 import Minus from "../../assets/svgs/accordion/minus.svg";
+import { p, svg, button } from "../../styles/common-style";
 
 const StyledDiv = styled.div`
-  margin: 8px;
-  button {
+  margin: 8px 0px;
+  .accordion-button {
+    ${button}
     width: 100%;
     background: ${({ theme }) => theme.primaryPurple};
     border-radius: 3px;
@@ -14,14 +16,16 @@ const StyledDiv = styled.div`
     justify-content: space-between;
     align-items: center;
 
-    p {
+    .accordion-title {
+      ${p}
       width: fit-content;
       font-weight: 600;
       text-align: center;
       color: white;
     }
 
-    svg {
+    .accordion-svg {
+      ${svg}
       height: 16px;
       width: 16px;
     }
@@ -41,9 +45,6 @@ const Collapsible = styled.div<CollapsibleProps>`
 
 const Body = styled.div`
   padding: 32px;
-  small {
-    color: ${({ theme }) => theme.primaryText};
-  }
 `;
 
 interface AccordionItemProps {
@@ -60,15 +61,20 @@ const AccordionItem: React.FC<AccordionItemProps> = (props) => {
   return (
     <StyledDiv>
       <button
+        className="accordion-button"
         onClick={() => props.setExpanded(props.expanded ? -1 : props.index)}
       >
         {props.icon}
-        <p> {props.title} </p>
-        {props.expanded ? <Minus /> : <Plus />}
+        <p className="accordion-title">{props.title}</p>
+        {props.expanded ? (
+          <Minus className="accordion-svg" />
+        ) : (
+          <Plus className="accordion-svg" />
+        )}
       </button>
       <Collapsible expanded={props.expanded} totalHeight={heightRef.current}>
         <Body ref={(ref) => (heightRef.current = ref?.clientHeight || 0)}>
-          <small>{props.body}</small>
+          {props.body}
         </Body>
       </Collapsible>
     </StyledDiv>

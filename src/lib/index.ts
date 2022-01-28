@@ -38,3 +38,6 @@ export { default as Timeline } from "../lib/progress/timeline";
 
 export { default as Tag } from "../lib/tag";
 export { default as Tooltip } from "../lib/tooltip";
+
+export { GlobalStyle } from "../styles/global-style";
+export { lightTheme, darkTheme } from "../styles/themes";

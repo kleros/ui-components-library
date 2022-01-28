@@ -7,7 +7,7 @@ import LightArrow from "../../../assets/svgs/arrows/light-left.svg";
 export const StyledBaseItem = styled(BaseItem)`
   position: relative;
 
-  svg {
+  .item-icon {
     position: absolute;
     transform: rotate(180deg);
     right: 16px;
@@ -34,7 +34,9 @@ const ItemContainer: React.FC<IItemContainer> = ({ layer, onChange }) => (
         tabIndex={0}
         key={i}
         text={item.label}
-        icon={item.children && <LightArrow />}
+        icon={(className: string) =>
+          item.children && <LightArrow {...{ className }} />
+        }
         onClick={() => onChange(item)}
         selected={item.value === layer.selected}
       />

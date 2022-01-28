@@ -1,11 +1,14 @@
 import React from "react";
 import styled from "styled-components";
+import { borderBox, small, button } from "../styles/common-style";
 
 const Wrapper = styled.div`
+  ${borderBox}
   display: flex;
 `;
 
 const Element = styled.button`
+  ${button}
   background: none;
   padding: 0;
 
@@ -17,6 +20,7 @@ const Element = styled.button`
 `;
 
 const Content = styled.small`
+  ${small}
   transition: color ease ${({ theme }) => theme.transitionSpeed};
 `;
 
