@@ -6,14 +6,17 @@ import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import InfoIcon from "../../assets/svgs/status-icons/info.svg";
 import { variantColor } from "./field";
+import { borderBox, small, svg, button } from "../../styles/common-style";
 
 type VariantProp = { variant?: "success" | "warning" | "error" | "info" };
 
 const Wrapper = styled.div`
+  ${borderBox}
   width: 200px;
 `;
 
 const DropZone = styled.button`
+  ${button}
   height: 64px;
   width: 100%;
   background: ${({ theme }) => theme.mediumBlue};
@@ -26,12 +29,10 @@ const DropZone = styled.button`
 
   font-size: 14px;
   color: ${({ theme }) => theme.primaryBlue};
-
-  svg {
-  }
 `;
 
 const StyledUploadIcon = styled(UploadIcon)`
+  ${svg}
   height: 24px;
   width: 24px;
   fill: ${({ theme }) => theme.primaryBlue};
@@ -41,19 +42,23 @@ const FileInput = styled.input`
   display: none;
 `;
 
-const Message = styled.div`
+const StyledSmall = styled.small`
+  ${small}
+  position: relative;
+  top: -1px;
+  text-align: justify;
+  color: ${variantColor};
+`;
+
+const StyledSVG = styled.svg``;
+
+const Message = styled.div<VariantProp>`
   margin-top: 16px;
   display: flex;
   align-items: flex-start;
 
-  small {
-    position: relative;
-    top: -1px;
-    text-align: justify;
-    color: ${variantColor};
-  }
-
-  svg {
+  & ${StyledSVG} {
+    ${svg}
     min-width: 16px;
     max-width: 16px;
     margin-right: 8px;
@@ -119,12 +124,20 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         }}
         {...props}
       />
-      <Message variant={variant}>
-        {variant === "success" && <SuccessIcon />}
-        {variant === "warning" && <WarningIcon />}
-        {variant === "error" && <ErrorIcon />}
-        {variant === "info" && <InfoIcon />}
-        <small>{msg}</small>
+      <Message {...{ variant }}>
+        {variant === "success" && (
+          <SuccessIcon className={StyledSVG.styledComponentId} />
+        )}
+        {variant === "warning" && (
+          <WarningIcon className={StyledSVG.styledComponentId} />
+        )}
+        {variant === "error" && (
+          <ErrorIcon className={StyledSVG.styledComponentId} />
+        )}
+        {variant === "info" && (
+          <InfoIcon className={StyledSVG.styledComponentId} />
+        )}
+        <StyledSmall {...{ variant }}>{msg}</StyledSmall>
       </Message>
     </Wrapper>
   );

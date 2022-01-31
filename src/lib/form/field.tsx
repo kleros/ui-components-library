@@ -3,6 +3,7 @@ import styled, { css } from "styled-components";
 import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
+import { borderBox, svg } from "../../styles/common-style";
 
 export type VariantProp = {
   variant?: "success" | "warning" | "error" | string;
@@ -13,17 +14,19 @@ export const variantColor = css<VariantProp>`
     if (variant === "warning") return theme.warning;
     if (variant === "error") return theme.error;
     if (variant === "success") return theme.success;
-    return theme.stroke;
+    return theme.secondaryText;
   }}
 `;
 
 const Wrapper = styled.div`
+  ${borderBox}
   height: 45px;
   width: 278px;
   position: relative;
   color: red;
 
-  svg {
+  .field-svg {
+    ${svg}
     height: 16px;
     width: 16px;
     position: absolute;
@@ -48,7 +51,8 @@ export const baseInputStyle = css<VariantProp>`
   height: 100%;
   width: 100%;
   background: ${(props) => props.theme.whiteBackground};
-  border: 1px solid ${variantColor};
+  border: 1px solid
+    ${({ variant, theme }) => (variant ? variantColor : theme.stroke)};
   border-radius: 3px;
 
   color: ${(props) => props.theme.primaryText};
@@ -82,11 +86,11 @@ type FieldProps = VariantProp &
 
 const Field: React.FC<FieldProps> = ({ variant, message, ...props }) => (
   <Wrapper>
-    <StyledInput {...props} />
-    {variant === "success" && <StyledSuccessIcon />}
-    {variant === "warning" && <StyledWarningIcon />}
-    {variant === "error" && <StyledErrorIcon />}
-    {message && <StyledMessage>{message}</StyledMessage>}
+    <StyledInput {...{ variant, ...props }} />
+    {variant === "success" && <StyledSuccessIcon className="field-svg" />}
+    {variant === "warning" && <StyledWarningIcon className="field-svg" />}
+    {variant === "error" && <StyledErrorIcon className="field-svg" />}
+    {message && <StyledMessage {...{ variant }}>{message}</StyledMessage>}
   </Wrapper>
 );
 

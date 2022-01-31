@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import LeftArrow from "../../../assets/svgs/arrows/simple-left.svg";
+import { small, button, svg } from "../../../styles/common-style";
 
 const TimeControl = styled.div`
   flex-grow: 1;
@@ -20,12 +21,13 @@ const TimeDisplay = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+`;
 
-  small {
-    font-weight: 600;
-    color: ${({ theme }) => theme.primaryBlue};
-    user-select: none;
-  }
+const StyledTime = styled.small`
+  ${small}
+  font-weight: 600;
+  color: ${({ theme }) => theme.primaryBlue};
+  user-select: none;
 `;
 
 const TimeButtons = styled(TimeDisplay)`
@@ -34,8 +36,10 @@ const TimeButtons = styled(TimeDisplay)`
 `;
 
 const StyledArrow = styled(LeftArrow)`
+  ${svg}
   width: 16px;
   height: 16px;
+  fill: ${({ theme }) => theme.primaryBlue};
   transition: fill ease ${({ theme }) => theme.transitionSpeed};
 `;
 
@@ -48,19 +52,17 @@ const DownArrow = styled(StyledArrow)`
 `;
 
 const UnstyledButton = styled.button`
+  ${button}
   background: none;
   padding: 0;
 
-  svg {
-    fill: ${({ theme }) => theme.primaryBlue};
-  }
   :hover {
-    svg {
+    & ${StyledArrow} {
       fill: ${({ theme }) => theme.secondaryBlue};
     }
   }
   :disabled {
-    svg {
+    & ${StyledArrow} {
       fill: ${({ theme }) => theme.stroke};
     }
   }
@@ -105,19 +107,19 @@ const TimeControls: React.FC<ITimeControls> = ({
       </UnstyledButton>
     </TimeButtons>
     <TimeDisplay>
-      <small>
+      <StyledTime>
         {hours.toLocaleString("en-US", {
           minimumIntegerDigits: 2,
           useGrouping: false,
         })}
-      </small>
-      <small>:</small>
-      <small>
+      </StyledTime>
+      <StyledTime>:</StyledTime>
+      <StyledTime>
         {minutes.toLocaleString("en-US", {
           minimumIntegerDigits: 2,
           useGrouping: false,
         })}
-      </small>
+      </StyledTime>
     </TimeDisplay>
     <TimeButtons>
       <UnstyledButton

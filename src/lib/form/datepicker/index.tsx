@@ -5,8 +5,10 @@ import { useDatepicker, START_DATE } from "@datepicker-react/hooks";
 import DatepickerContext from "./datepickerContext";
 import DisplayButton from "./display-button";
 import Dropdown from "./dropdown";
+import { borderBox } from "../../../styles/common-style";
 
 const PositionedContainer = styled.div`
+  ${borderBox}
   position: relative;
 `;
 

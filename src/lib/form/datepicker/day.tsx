@@ -2,8 +2,19 @@ import React, { useRef, useContext } from "react";
 import styled from "styled-components";
 import { useDay } from "@datepicker-react/hooks";
 import DatepickerContext from "./datepickerContext";
+import { button, small } from "../../../styles/common-style";
+
+const StyledDayNumber = styled.small<{ isSelected: boolean }>`
+  ${small}
+  color: ${(props) =>
+    props.isSelected
+      ? props.theme.whiteBackground
+      : props.theme.secondaryText} !important;
+  font-weight: 600;
+`;
 
 const StyledButton = styled.button<{ isSelected: boolean }>`
+  ${button}
   height: 24px;
   width: 24px;
   border-radius: 12px;
@@ -18,17 +29,9 @@ const StyledButton = styled.button<{ isSelected: boolean }>`
     background-color: ${(props) =>
       props.isSelected ? props.theme.primaryBlue : props.theme.secondaryBlue};
     cursor: pointer;
-    small {
+    & ${StyledDayNumber} {
       color: ${({ theme }) => theme.whiteBackground} !important;
     }
-  }
-
-  small {
-    color: ${(props) =>
-      props.isSelected
-        ? props.theme.whiteBackground
-        : props.theme.secondaryText} !important;
-    font-weight: 600;
   }
 `;
 
@@ -49,7 +52,7 @@ const Day: React.FC<IDay> = ({ date, dayLabel }) => {
       ref={dayRef}
       {...{ isSelected, onClick, onKeyDown, onMouseEnter, tabIndex }}
     >
-      <small>{dayLabel}</small>
+      <StyledDayNumber {...{ isSelected }}>{dayLabel}</StyledDayNumber>
     </StyledButton>
   );
 };

@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import LeftArrow from "../../../assets/svgs/arrows/simple-left.svg";
+import { h2, svg, button } from "../../../styles/common-style";
 
 const Wrapper = styled.div`
   width: 100%;
@@ -8,13 +9,15 @@ const Wrapper = styled.div`
   padding: 24px;
   display: flex;
   justify-content: space-between;
+`;
 
-  h2 {
-    user-select: none;
-  }
+const StyledMonthTitle = styled.h2`
+  ${h2}
+  user-select: none;
 `;
 
 const StyledArrow = styled(LeftArrow)`
+  ${svg}
   width: 16px;
   height: 16px;
   fill: ${({ theme }) => theme.primaryBlue};
@@ -29,6 +32,7 @@ const RightArrow = styled(StyledArrow)`
 `;
 
 const UnstyledButton = styled.button`
+  ${button}
   background: none;
   padding: 0;
 `;
@@ -48,7 +52,7 @@ const MonthSelector: React.FC<IMonthSelector> = ({
     <UnstyledButton onClick={goToPreviousMonths}>
       <StyledArrow />
     </UnstyledButton>
-    <h2>{monthLabel}</h2>
+    <StyledMonthTitle>{monthLabel}</StyledMonthTitle>
     <UnstyledButton onClick={goToNextMonths}>
       <RightArrow />
     </UnstyledButton>

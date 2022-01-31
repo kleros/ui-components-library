@@ -1,8 +1,10 @@
 import React from "react";
 import styled from "styled-components";
 import Calendar from "../../../assets/svgs/form/calendar.svg";
+import { button, p } from "../../../styles/common-style";
 
 const StyledButton = styled.button`
+  ${button}
   height: 45px;
   width: 330px;
   background: ${({ theme }) => theme.whiteBackground};
@@ -13,6 +15,10 @@ const StyledButton = styled.button`
   display: flex;
   justify-content: flex-start;
   align-items: center;
+`;
+
+const StyledDate = styled.p`
+  ${p}
 `;
 
 const StyledCalendar = styled(Calendar)`
@@ -31,7 +37,7 @@ interface IDisplayButton extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const DisplayButton: React.FC<IDisplayButton> = ({ onClick, date, time }) => (
   <StyledButton {...{ onClick }}>
-    <p>
+    <StyledDate>
       {date.toLocaleDateString()}
       {time &&
         `, ${date.getHours().toLocaleString("en-US", {
@@ -41,7 +47,7 @@ const DisplayButton: React.FC<IDisplayButton> = ({ onClick, date, time }) => (
           minimumIntegerDigits: 2,
           useGrouping: false,
         })} Local time`}
-    </p>
+    </StyledDate>
     <StyledCalendar />
   </StyledButton>
 );

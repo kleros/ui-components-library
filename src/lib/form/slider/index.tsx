@@ -3,8 +3,10 @@ import styled, { withTheme } from "styled-components";
 import RCSlider, { SliderProps as RCSliderProps } from "rc-slider";
 import Handle from "./handle";
 import "rc-slider/assets/index.css";
+import { borderBox, small } from "../../../styles/common-style";
 
 const Wrapper = styled.div`
+  ${borderBox}
   width: 500px;
   margin-top: 30px;
 `;
@@ -16,16 +18,17 @@ const StyledSlider = styled(RCSlider)`
   }
 `;
 
+const StyledLabel = styled.small`
+  ${small}
+  color: ${(props) => props.theme.primaryText};
+`;
+
 const Labels = styled.div`
   width: 100%;
   margin-top: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  small {
-    color: ${(props) => props.theme.primaryText};
-  }
 `;
 
 interface SliderBaseProps {
@@ -75,8 +78,8 @@ const Slider: React.FC<SliderBaseProps & RCSliderProps> = ({
       {...props}
     />
     <Labels>
-      {leftLabel && <small>{leftLabel}</small>}
-      {rightLabel && <small>{rightLabel}</small>}
+      {leftLabel && <StyledLabel>{leftLabel}</StyledLabel>}
+      {rightLabel && <StyledLabel>{rightLabel}</StyledLabel>}
     </Labels>
   </Wrapper>
 );

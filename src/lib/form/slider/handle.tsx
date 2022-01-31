@@ -2,8 +2,10 @@ import React from "react";
 import styled from "styled-components";
 import { Handle as RCHandle, HandleProps as RCHandleProps } from "rc-slider";
 import "rc-slider/assets/index.css";
+import { borderBox } from "../../../styles/common-style";
 
 const Wrapper = styled.div`
+  ${borderBox}
   display: flex;
   flex-direction: column;
   justify-content: flex-start;

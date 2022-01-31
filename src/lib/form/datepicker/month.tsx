@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import Day from "./day";
+import { small } from "../../../styles/common-style";
 
 const MonthContainer = styled.div`
   width: 330px;
@@ -12,25 +13,26 @@ const MonthContainer = styled.div`
   border-bottom: 1px solid ${({ theme }) => theme.stroke};
 `;
 
+const StyledGridContainer = styled.div`
+  height: 26px;
+  width: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const StyledWeekDay = styled.small`
+  ${small}
+  color: ${({ theme }) => theme.primaryText};
+  font-weight: 600;
+  user-select: none;
+`;
+
 const StyledMonth = styled.div`
   width: fit-content;
   height: fit-content;
   display: grid;
   grid-template-columns: repeat(7, 32px);
-
-  div {
-    height: 26px;
-    width: 32px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    small {
-      color: ${({ theme }) => theme.primaryText};
-      font-weight: 600;
-      user-select: none;
-    }
-  }
 `;
 
 export interface IMonth {
@@ -42,17 +44,17 @@ const Month: React.FC<IMonth> = ({ days, weekdayLabels }) => (
   <MonthContainer>
     <StyledMonth>
       {weekdayLabels.map((dayLabel, i) => (
-        <div key={i}>
-          <small>{dayLabel}</small>
-        </div>
+        <StyledGridContainer key={i}>
+          <StyledWeekDay>{dayLabel}</StyledWeekDay>
+        </StyledGridContainer>
       ))}
       {days.map((day, i) =>
         typeof day === "number" ? (
-          <div key={i}></div>
+          <StyledGridContainer key={i}></StyledGridContainer>
         ) : (
-          <div key={i}>
+          <StyledGridContainer key={i}>
             <Day key={i} {...day} />
-          </div>
+          </StyledGridContainer>
         )
       )}
     </StyledMonth>

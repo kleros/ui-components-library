@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import TimeControls, { ITimeControls } from "./time-controls";
 export type { ITimeControls };
+import { h2 } from "../../../styles/common-style";
 
 const Wrapper = styled.div`
   width: 100%;
@@ -16,17 +17,18 @@ const Header = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
 
-  h2 {
-    user-select: none;
-  }
+const StyledTitle = styled.h2`
+  ${h2}
+  user-select: none;
 `;
 
 const TimeSelector: React.FC<ITimeControls> = (props) => {
   return (
     <Wrapper>
       <Header>
-        <h2>Time</h2>
+        <StyledTitle>Time</StyledTitle>
       </Header>
       <TimeControls {...props} />
     </Wrapper>
