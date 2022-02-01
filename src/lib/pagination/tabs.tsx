@@ -1,13 +1,18 @@
 import React, { ReactNode } from "react";
 import styled from "styled-components";
+import { borderBox, button, svg } from "../../styles/common-style";
 
 const Wrapper = styled.div`
+  ${borderBox}
   height: fit-content;
   width: 500px;
   display: flex;
 `;
 
+const StyledSVG = styled.svg``;
+
 const StyledTab = styled.button<{ selected?: boolean }>`
+  ${button}
   flex-grow: 1;
   height: 45px;
   background: ${(props) => props.theme.lightBackground};
@@ -31,7 +36,8 @@ const StyledTab = styled.button<{ selected?: boolean }>`
           }`
       : ""}
 
-  svg {
+  & ${StyledSVG} {
+    ${svg}
     height: 16px;
     width: 16px;
     margin-right: 16px;
@@ -45,9 +51,9 @@ const StyledTab = styled.button<{ selected?: boolean }>`
 `;
 
 interface TabsItem {
-  icon?: ReactNode;
   text: string;
   value: any;
+  icon?: (className: string) => ReactNode;
   disabled?: boolean;
 }
 
@@ -68,7 +74,7 @@ const Tabs: React.FC<TabsProps> = ({ items, ...props }) => {
           key={value}
           onClick={() => props.callback(value)}
         >
-          {icon}
+          {icon && icon(StyledSVG.styledComponentId)}
           {text}
         </StyledTab>
       ))}

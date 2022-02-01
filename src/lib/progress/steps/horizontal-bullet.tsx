@@ -1,6 +1,9 @@
 import React from "react";
 import styled from "styled-components";
 import BulletCircle from "./bullet-circle";
+import { h2 } from "../../../styles/common-style";
+
+const StyledTitle = styled.h2``;
 
 const Wrapper = styled.div<{ active?: boolean }>`
   flex-grow: 1;
@@ -9,7 +12,8 @@ const Wrapper = styled.div<{ active?: boolean }>`
   justify-content: center;
   align-items: center;
 
-  h2 {
+  & ${StyledTitle} {
+    ${h2}
     font-size: 14px;
     line-height: 19px;
     margin-left: 8px;
@@ -46,7 +50,7 @@ const HorizontalBullet: React.FC<HorizontalBulletProps> = ({
 }) => (
   <Wrapper active={active} {...props}>
     <BulletCircle active={active} completed={completed} index={index} />
-    <h2>{title}</h2>
+    <StyledTitle>{title}</StyledTitle>
     {line && <Line completed={completed} />}
   </Wrapper>
 );

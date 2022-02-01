@@ -1,5 +1,6 @@
 import React, { InputHTMLAttributes } from "react";
 import styled, { css } from "styled-components";
+import { borderBox } from "../../styles/common-style";
 
 interface SwitchBaseProps {
   small?: boolean;
@@ -7,6 +8,7 @@ interface SwitchBaseProps {
 }
 
 const StyledSwitch = styled.label<SwitchBaseProps>`
+  ${borderBox}
   position: relative;
   display: inline-block;
   height: ${({ small }) => (small ? "16px" : "24px")};

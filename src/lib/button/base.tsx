@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { borderBox, button, p, svg } from "../../styles/common-style";
 
 export interface BaseButtonProps {
   variant?: "primary" | "secondary" | "tertiary";
@@ -6,6 +7,8 @@ export interface BaseButtonProps {
 }
 
 const BaseButton = styled.button<BaseButtonProps>`
+  ${borderBox}
+  ${button}
   width: fit-content;
   height: fit-content;
   display: flex;
@@ -22,12 +25,14 @@ const BaseButton = styled.button<BaseButtonProps>`
 
   transition: background ease ${(props) => props.theme.transitionSpeed};
 
-  p {
+  .button-text {
+    ${p}
     font-weight: 600;
     text-align: center;
   }
 
-  svg {
+  .button-svg {
+    ${svg}
     height: 16px;
     width: 16px;
     margin-right: 8px;

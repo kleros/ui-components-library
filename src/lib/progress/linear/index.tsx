@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import styled, { css, keyframes } from "styled-components";
 import HourglassIcon from "../../../assets/svgs/hourglass.svg";
+import { borderBox, svg, p } from "../../../styles/common-style";
 
 interface LineBaseProps {
   animated?: boolean;
@@ -14,11 +15,16 @@ const progressAnimation = (width: number) => keyframes`
 `;
 
 const Wrapper = styled.div`
+  ${borderBox}
   display: flex;
   flex-direction: column;
   align-items: center;
   font-size: 14px;
   color: ${({ theme }) => theme.stroke};
+`;
+
+const StyledText = styled.p`
+  ${p}
 `;
 
 const BarTimerWrapper = styled.div`
@@ -28,6 +34,7 @@ const BarTimerWrapper = styled.div`
 `;
 
 const LinearChart = styled.svg<LineBaseProps>`
+  ${svg}
   stroke: ${({ width }) => width};
   display: block;
   margin: 10px auto;
@@ -46,16 +53,20 @@ const Line = styled.path<LineBaseProps>`
     `}
 `;
 
+const StyledHourglass = styled(HourglassIcon)`
+  ${svg}
+  margin-right: 9.75px;
+  fill: ${({ theme }) => theme.error};
+`;
+
 const TimerMessage = styled.div`
-  line-height: 1em;
   margin-top: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   color: ${({ theme }) => theme.error};
   font-weight: 600;
-  fill: ${({ theme }) => theme.error};
-
-  svg {
-    margin-right: 9.75px;
-  }
+  line-height: 1em;
 `;
 
 interface LinearProps extends LineBaseProps {
@@ -76,7 +87,7 @@ const Linear: React.FC<LinearProps> = ({
 
   return (
     <Wrapper>
-      {text && <p>{text}</p>}
+      {text && <StyledText>{text}</StyledText>}
       <BarTimerWrapper>
         <LinearChart
           width={width}
@@ -97,7 +108,7 @@ const Linear: React.FC<LinearProps> = ({
         </LinearChart>
         {timerText && (
           <TimerMessage>
-            <HourglassIcon />
+            <StyledHourglass />
             {timerText}
           </TimerMessage>
         )}

@@ -1,8 +1,11 @@
 import React, { ReactNode } from "react";
 import styled, { css } from "styled-components";
 import Arrow from "../../assets/svgs/dropdown/arrow.svg";
+import { borderBox, button, svg } from "../../styles/common-style";
 
 const Container = styled.button`
+  ${borderBox}
+  ${button}
   width: 240px;
   background: ${({ theme }) => theme.whiteBackground};
   border: 1px solid ${({ theme }) => theme.stroke};
@@ -16,6 +19,7 @@ const Container = styled.button`
 const StyledArrow = styled(({ ignoredIsOpen, ...props }) => (
   <Arrow {...props} />
 ))`
+  ${svg}
   width: 16px;
   height: 16px;
   fill: ${({ theme }) => theme.stroke};

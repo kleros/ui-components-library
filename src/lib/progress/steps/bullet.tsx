@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import BulletCircle from "./bullet-circle";
+import { h2, small } from "../../../styles/common-style";
 
 const Wrapper = styled.div`
   flex-basis: 0;
@@ -9,18 +10,23 @@ const Wrapper = styled.div`
   display: flex;
 `;
 
+const StyledTitle = styled.h2``;
+const StyledBody = styled.small``;
+
 const TextContainer = styled.div<{ active?: boolean }>`
   margin-left: 16px;
   margin-top: 2px;
 
-  h2 {
+  & ${StyledTitle} {
+    ${h2}
     font-size: 14px;
     line-height: 19px;
     color: ${(props) =>
       props.active ? props.theme.primaryText : props.theme.secondaryText};
   }
 
-  small {
+  & ${StyledBody} {
+    ${small}
     font-size: 12px;
     line-height: 16px;
   }
@@ -57,11 +63,11 @@ const Bullet: React.FC<BulletProps> = ({
       line={line}
     />
     <TextContainer active={active}>
-      <h2>{title}</h2>
+      <StyledTitle>{title}</StyledTitle>
       {subitems && (
         <SubitemsContainer>
           {subitems.map((item, i) => (
-            <small key={i}>{item}</small>
+            <StyledBody key={i}>{item}</StyledBody>
           ))}
         </SubitemsContainer>
       )}

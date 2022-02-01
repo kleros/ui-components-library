@@ -15,3 +15,8 @@
 ## Introduction
 
 🚧 Under Construction 🚧
+
+## Usage
+- Install the package with `yarn add @kleros/ui-components-library` or `npm install @kleros/ui-components-library`
+- Create a theme file where you destructure `lightTheme` or `darkTheme` (or both) in your theme object to provide the correct colors to the components.
+- Provide the theme with styled-components `ThemeProvider`.

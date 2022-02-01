@@ -2,15 +2,18 @@ import React from "react";
 import styled from "styled-components";
 import Card from "../container/card";
 import { DisplayIconProps } from "./icon";
+import { borderBox, svg, h2, small } from "../../styles/common-style";
 
 const Wrapper = styled.div`
+  ${borderBox}
   width: 217px;
   display: flex;
   flex-direction: column;
+`;
 
-  small {
-    color: ${(props) => props.theme.primaryText};
-  }
+const StyledLabel = styled.small`
+  ${small}
+  color: ${(props) => props.theme.primaryText};
 `;
 
 const StyledCard = styled(Card)`
@@ -21,11 +24,16 @@ const StyledCard = styled(Card)`
   align-items: center;
   padding: 0px 16px;
 
-  svg {
+  .display-icon {
+    ${svg}
     max-height: 16px;
     max-width: 16px;
     margin-right: 8px;
   }
+`;
+
+const StyledText = styled.h2`
+  ${h2}
 `;
 
 const DisplaySmall: React.FC<DisplayIconProps> = ({
@@ -35,10 +43,10 @@ const DisplaySmall: React.FC<DisplayIconProps> = ({
   ...props
 }) => (
   <Wrapper {...props}>
-    <small>{label}</small>
+    <StyledLabel>{label}</StyledLabel>
     <StyledCard>
-      {icon}
-      <h2>{text}</h2>
+      {icon && icon("display-icon")}
+      <StyledText>{text}</StyledText>
     </StyledCard>
   </Wrapper>
 );

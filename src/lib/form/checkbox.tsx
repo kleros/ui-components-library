@@ -1,6 +1,7 @@
 import React, { InputHTMLAttributes } from "react";
 import styled, { css } from "styled-components";
 import CheckmarkIcon from "../../assets/svgs/form/checkmark.svg";
+import { borderBox } from "../../styles/common-style";
 
 interface CheckboxBaseProps {
   checked?: boolean;
@@ -8,6 +9,7 @@ interface CheckboxBaseProps {
 }
 
 const Wrapper = styled.label<CheckboxBaseProps>`
+  ${borderBox}
   display: block;
   position: relative;
   cursor: pointer;

@@ -1,8 +1,10 @@
 import React, { TextareaHTMLAttributes } from "react";
 import styled from "styled-components";
 import { baseInputStyle, StyledMessage, VariantProp } from "./field";
+import { borderBox } from "../../styles/common-style";
 
 const Wrapper = styled.div`
+  ${borderBox}
   height: 115px;
   width: 400px;
   position: relative;
@@ -19,8 +21,8 @@ type TextareaProps = VariantProp &
 
 const Textarea: React.FC<TextareaProps> = ({ message, variant, ...props }) => (
   <Wrapper>
-    <StyledTextarea {...props} />
-    {message && <StyledMessage variant={variant}>{message}</StyledMessage>}
+    <StyledTextarea {...{ variant, ...props }} />
+    {message && <StyledMessage {...{ variant }}>{message}</StyledMessage>}
   </Wrapper>
 );
 

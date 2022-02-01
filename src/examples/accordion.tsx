@@ -6,14 +6,18 @@ const StyledAccordion = styled(Accordion)`
   width: 800px;
 `;
 
+const StyledContent = styled.small`
+  color: ${({ theme }) => theme.primaryText} !important;
+`;
+
 const AccordionExample = () => (
   <StyledAccordion
     items={[
       {
         title: "How it works?",
-        body: <p>{"hello\nhello\n\n\n\n\nhello"}</p>,
+        body: <StyledContent>{"hello\nhello\n\n\n\n\nhello"}</StyledContent>,
       },
-      { title: "How it works?", body: "hello" },
+      { title: "How it works?", body: <StyledContent>hello</StyledContent> },
     ]}
   />
 );

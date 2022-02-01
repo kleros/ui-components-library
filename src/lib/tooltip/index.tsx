@@ -1,12 +1,16 @@
 import React from "react";
 import styled, { css } from "styled-components";
+import { borderBox, small as smallStyle } from "../../styles/common-style";
 
 interface TooltipBaseProps {
   place?: "left" | "right" | "top" | "bottom";
   small?: boolean;
 }
 
+const StyledText = styled.small``;
+
 const StyledTooltip = styled.span<TooltipBaseProps>`
+  ${borderBox}
   ${({ place, theme, small }) => css`
     visibility: hidden;
     position: absolute;
@@ -20,7 +24,8 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
     justify-content: center;
     align-items: center;
 
-    small {
+    & ${StyledText} {
+      ${smallStyle}
       font-weight: 600;
       text-align: ${small ? "center" : "left"};
       color: ${theme.whiteBackground};
@@ -105,8 +110,8 @@ const Tooltip: React.FC<TooltipProps> = ({
 }) => (
   <Wrapper>
     {children}
-    <StyledTooltip small={small} place={place}>
-      <small>{text}</small>
+    <StyledTooltip {...{ small, place }}>
+      <StyledText>{text}</StyledText>
     </StyledTooltip>
   </Wrapper>
 );

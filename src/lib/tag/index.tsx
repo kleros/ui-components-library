@@ -1,11 +1,14 @@
 import React from "react";
 import styled from "styled-components";
+import { borderBox, p, button } from "../../styles/common-style";
 
 interface BaseTagProps {
   active?: boolean;
 }
 
 const BaseTag = styled.button<BaseTagProps>`
+  ${borderBox}
+  ${button}
   height: 32px;
   background: ${({ theme }) => theme.mediumBlue};
   border: ${({ theme, active }) =>
@@ -15,10 +18,11 @@ const BaseTag = styled.button<BaseTagProps>`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
 
-  p {
-    color: ${({ theme }) => theme.primaryBlue};
-  }
+const StyledText = styled.p`
+  ${p}
+  color: ${({ theme }) => theme.primaryBlue};
 `;
 
 interface TagProps extends BaseTagProps {
@@ -26,8 +30,8 @@ interface TagProps extends BaseTagProps {
 }
 
 const Tag: React.FC<TagProps> = ({ text, active, ...props }) => (
-  <BaseTag active={active} {...props}>
-    <p>{text}</p>
+  <BaseTag {...{ active, ...props }}>
+    <StyledText>{text}</StyledText>
   </BaseTag>
 );
 

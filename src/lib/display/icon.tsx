@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import styled from "styled-components";
 import Card from "../container/card";
+import { borderBox, svg, h1, small } from "../../styles/common-style";
 
 const StyledCard = styled(Card)`
   height: 80px;
@@ -10,12 +11,21 @@ const StyledCard = styled(Card)`
 `;
 
 const Text = styled.div`
+  ${borderBox}
   height: 100%;
   width: auto;
   margin-left: 16px;
   flex-direction: column;
   align-items: start;
   justify-content: center;
+
+  .display-text {
+    ${h1}
+  }
+
+  .display-label {
+    ${small}
+  }
 `;
 
 const IconCard = styled(Card)`
@@ -25,7 +35,8 @@ const IconCard = styled(Card)`
   justify-content: center;
   align-items: center;
 
-  svg {
+  .display-icon {
+    ${svg}
     max-height: 32px;
     max-width: 32px;
   }
@@ -33,7 +44,7 @@ const IconCard = styled(Card)`
 
 export interface DisplayIconProps {
   text: string;
-  icon?: ReactNode;
+  icon?: (className: string) => ReactNode;
   label?: string;
 }
 
@@ -45,10 +56,10 @@ const DisplayIcon: React.FC<DisplayIconProps> = ({
 }) => {
   return (
     <StyledCard {...props}>
-      <IconCard>{icon}</IconCard>
+      <IconCard>{icon && icon("display-icon")}</IconCard>
       <Text>
-        <h1>{text}</h1>
-        <small>{label}</small>
+        <h1 className="display-text">{text}</h1>
+        <small className="display-label">{label}</small>
       </Text>
     </StyledCard>
   );

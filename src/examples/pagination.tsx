@@ -23,7 +23,11 @@ const Pagination = () => {
       <Tabs
         items={[
           { text: "hello", value: 0 },
-          { text: "Telegram", value: 1, icon: <Telegram /> },
+          {
+            text: "Telegram",
+            value: 1,
+            icon: (className: string) => <Telegram {...{ className }} />,
+          },
           { text: "hello1", value: 2, disabled: true },
         ]}
         callback={() => {

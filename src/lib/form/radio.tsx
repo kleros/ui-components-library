@@ -1,5 +1,6 @@
 import React, { InputHTMLAttributes } from "react";
 import styled, { css } from "styled-components";
+import { borderBox } from "../../styles/common-style";
 
 interface RadioBaseProps {
   small?: boolean;
@@ -7,6 +8,7 @@ interface RadioBaseProps {
 }
 
 const Wrapper = styled.label<RadioBaseProps>`
+  ${borderBox}
   display: block;
   position: relative;
   cursor: pointer;

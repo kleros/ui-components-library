@@ -2,21 +2,27 @@ import React, { ReactNode } from "react";
 import styled from "styled-components";
 import usePagination from "../../hooks/pagination/use-pagination";
 import Arrow from "../../assets/svgs/arrows/circle-left.svg";
+import { borderBox, button, svg } from "../../styles/common-style";
 
 const Wrapper = styled.div`
+  ${borderBox}
   display: flex;
   align-items: center;
   justify-content: end;
 `;
 
+const StyledSVG = styled.svg``;
+
 const ArrowButton = styled.button`
+  ${button}
   height: 24px;
   width: 24px;
   background: none;
   padding: 0;
   border-radius: 50%;
 
-  svg {
+  & ${StyledSVG} {
+    ${svg}
     height: 24px;
     width: 24px;
     fill: ${(props) =>
@@ -25,7 +31,7 @@ const ArrowButton = styled.button`
   }
 
   :hover:enabled {
-    svg {
+    & ${StyledSVG} {
       fill: ${({ theme }) => theme.secondaryBlue};
     }
   }
@@ -38,7 +44,7 @@ const LeftArrow = styled(ArrowButton)`
 const RightArrow = styled(ArrowButton)`
   margin-left: 8px;
 
-  svg {
+  & ${StyledSVG} {
     transform: rotate(180deg);
   }
 `;
@@ -64,10 +70,10 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
     <Wrapper>
       {label}
       <LeftArrow disabled={minPageReached} onClick={decrementPage}>
-        <Arrow />
+        <Arrow className={StyledSVG.styledComponentId} />
       </LeftArrow>
       <RightArrow disabled={maxPageReached} onClick={incrementPage}>
-        <Arrow />
+        <Arrow className={StyledSVG.styledComponentId} />
       </RightArrow>
     </Wrapper>
   );

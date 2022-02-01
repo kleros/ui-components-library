@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { borderBox } from "../../styles/common-style";
 
 interface CardProps {
   round?: boolean;
@@ -6,6 +7,7 @@ interface CardProps {
 }
 
 const Card = styled.div<CardProps>`
+  ${borderBox}
   background: ${({ theme }) => theme.whiteBackground};
   border: 1px solid ${({ theme }) => theme.stroke};
   box-shadow: 0px 2px 3px ${({ theme }) => theme.defaultShadow};
@@ -18,9 +20,10 @@ const Card = styled.div<CardProps>`
   ${({ theme, hover }) =>
     hover &&
     `
-  :hover {
-    box-shadow: 0px 6px 9px ${theme.hoveredShadow};
-  }
+      :hover {
+        box-shadow: 0px 6px 9px ${theme.hoveredShadow};
+        cursor: pointer;
+      }
   `}
 `;
 

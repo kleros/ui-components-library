@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import styled, { css } from "styled-components";
 import Dot from "../dot";
+import { borderBox, svg, p } from "../../styles/common-style";
 
 interface IItem {
   selected?: boolean;
@@ -8,6 +9,7 @@ interface IItem {
 }
 
 const Item = styled.div<IItem>`
+  ${borderBox}
   background: ${({ selected, theme }) =>
     selected ? theme.mediumBlue : theme.whiteBackground};
   padding: ${({ current }) =>
@@ -24,17 +26,19 @@ const Item = styled.div<IItem>`
       }
     `}
 
-  p {
-    font-size: 16px;
-    user-select: none;
-  }
-
-  svg {
+  .item-icon {
+    ${svg}
     max-height: 16px;
     max-width: 16px;
     min-height: 12px;
     min-width: 12px;
   }
+`;
+
+const StyledText = styled.p`
+  ${p}
+  font-size: 16px;
+  user-select: none;
 `;
 
 const StyledDot = styled(Dot)`
@@ -45,7 +49,7 @@ export interface IBaseItem
   extends IItem,
     Omit<React.HTMLAttributes<HTMLDivElement>, "onClick"> {
   text: string;
-  icon?: ReactNode;
+  icon?: (className: string) => ReactNode;
   dot?: string;
   onClick?: () => void;
 }
@@ -61,9 +65,9 @@ const BaseItem: React.FC<IBaseItem> = ({
     onKeyPress={(e) => (onClick && e.key === "Enter" ? onClick() : undefined)}
     {...{ onClick, ...props }}
   >
-    {icon}
+    {icon && icon("item-icon")}
     {dot && <StyledDot color={dot} />}
-    <p>{text}</p>
+    <StyledText>{text}</StyledText>
   </Item>
 );
 
