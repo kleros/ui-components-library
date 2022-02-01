@@ -1,8 +1,10 @@
 import React from "react";
 import styled from "styled-components";
 import Bullet, { SideProp, VariantProp } from "./bullet";
+import { borderBox } from "../../../styles/common-style";
 
 const Wrapper = styled.div`
+  ${borderBox}
   display: flex;
   flex-direction: column;
 `;

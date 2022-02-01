@@ -2,14 +2,17 @@ import React from "react";
 import styled from "styled-components";
 import usePagination from "../../hooks/pagination/use-pagination";
 import Arrow from "../../assets/svgs/arrows/light-left.svg";
+import { borderBox, button, svg } from "../../styles/common-style";
 
 const Wrapper = styled.div`
+  ${borderBox}
   display: flex;
   align-items: center;
   justify-content: center;
 `;
 
 const PageButton = styled.button<{ selected?: boolean }>`
+  ${button}
   height: 32px;
   width: 32px;
   margin: 4px;
@@ -38,28 +41,31 @@ const PageButton = styled.button<{ selected?: boolean }>`
   }
 `;
 
+const StyledArrow = styled.svg``;
+
 const ArrowButton = styled(PageButton)`
-  svg {
+  & ${StyledArrow} {
+    ${svg}
     fill: ${(props) =>
       props.disabled ? props.theme.stroke : props.theme.primaryText};
     transition: fill ease ${({ theme }) => theme.transitionSpeed};
   }
 
   :hover:enabled {
-    svg {
+    & ${StyledArrow} {
       fill: ${({ theme }) => theme.secondaryBlue};
     }
   }
 `;
 
 const LeftArrow = styled(ArrowButton)`
-  svg {
+  & ${StyledArrow} {
     padding-right: 1px;
   }
 `;
 
 const RightArrow = styled(ArrowButton)`
-  svg {
+  & ${StyledArrow} {
     padding-left: 1px;
     transform: rotate(180deg);
   }
@@ -91,7 +97,7 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
   return (
     <Wrapper>
       <LeftArrow disabled={minPageReached} onClick={decrementPage}>
-        <Arrow />
+        <Arrow className={StyledArrow.styledComponentId} />
       </LeftArrow>
       {getPageRange().map((i) => (
         <PageButton
@@ -103,7 +109,7 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
         </PageButton>
       ))}
       <RightArrow disabled={maxPageReached} onClick={incrementPage}>
-        <Arrow />
+        <Arrow className={StyledArrow.styledComponentId} />
       </RightArrow>
     </Wrapper>
   );

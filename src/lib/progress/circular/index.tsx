@@ -1,5 +1,6 @@
 import React from "react";
 import styled, { css, keyframes } from "styled-components";
+import { borderBox, svg } from "../../../styles/common-style";
 
 interface ProgressBaseProps {
   progress: number;
@@ -13,6 +14,8 @@ const progressAnimation = (circ: number) => keyframes`
 `;
 
 const CircularChart = styled.svg`
+  ${borderBox}
+  ${svg}
   display: block;
   margin: 10px auto;
 `;

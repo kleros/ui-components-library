@@ -4,11 +4,15 @@ import SuccessIcon from "../../assets/svgs/status-icons/solid-success.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/solid-error.svg";
 import SyncIcon from "../../assets/svgs/status-icons/sync.svg";
 import CloseIcon from "../../assets/svgs/status-icons/close.svg";
+import { borderBox, svg, h2, small, button } from "../../styles/common-style";
 
 type SmallProp = { small?: boolean };
 type VariantProp = { variant?: "success" | "error" | "sync" };
 
+const StyledSVG = styled.svg``;
+
 const Wrapper = styled.div<SmallProp>`
+  ${borderBox}
   position: relative;
   height: ${({ small }) => (small ? "48px" : "100px")};
   width: ${({ small }) => (small ? "300px" : "422px")};
@@ -19,7 +23,8 @@ const Wrapper = styled.div<SmallProp>`
   display: flex;
   align-items: center;
 
-  svg {
+  & ${StyledSVG} {
+    ${svg}
     height: ${({ small }) => (small ? "24px" : "32px")};
     width: ${({ small }) => (small ? "24px" : "32px")};
     min-height: ${({ small }) => (small ? "24px" : "32px")};
@@ -28,19 +33,23 @@ const Wrapper = styled.div<SmallProp>`
   }
 `;
 
+const StyledTitle = styled.h2<VariantProp>`
+  ${h2}
+  color: inherit;
+`;
+
+const StyledMessage = styled.small`
+  ${small}
+  color: inherit;
+`;
+
 const Text = styled.div`
   margin-left: 16px;
   color: ${({ theme }) => theme.whiteBackground};
-
-  h2 {
-    color: inherit;
-  }
-  small {
-    color: inherit;
-  }
 `;
 
 const CloseButton = styled.button`
+  ${button}
   position: absolute;
   top: 24px;
   right: 24px;
@@ -49,14 +58,15 @@ const CloseButton = styled.button`
   background: none;
   padding: 0;
   display: inline-flex;
+`;
 
-  svg {
-    position: absolute;
-    height: 8px;
-    width: 8px;
-    min-height: 8px;
-    min-width: 8px;
-  }
+const StyledCloseIcon = styled(CloseIcon)`
+  ${svg}
+  height: 8px;
+  width: 8px;
+  min-height: 8px;
+  min-width: 8px;
+  fill: ${({ theme }) => theme.whiteBackground};
 `;
 
 interface PushProps extends SmallProp, VariantProp {
@@ -74,17 +84,21 @@ const Push: React.FC<PushProps> = ({
   small,
   ...props
 }) => (
-  <Wrapper small={small} {...props}>
-    {variant === "success" && <SuccessIcon />}
-    {variant === "error" && <ErrorIcon />}
-    {variant === "sync" && <SyncIcon />}
+  <Wrapper {...{ small, ...props }}>
+    {variant === "success" && (
+      <SuccessIcon className={StyledSVG.styledComponentId} />
+    )}
+    {variant === "error" && (
+      <ErrorIcon className={StyledSVG.styledComponentId} />
+    )}
+    {variant === "sync" && <SyncIcon className={StyledSVG.styledComponentId} />}
     <Text>
-      <h2>{title}</h2>
-      {!small && <small>{msg}</small>}
+      <StyledTitle>{title}</StyledTitle>
+      {!small && <StyledMessage>{msg}</StyledMessage>}
     </Text>
     {!small && (
       <CloseButton onClick={() => callback()}>
-        <CloseIcon />
+        <StyledCloseIcon />
       </CloseButton>
     )}
   </Wrapper>

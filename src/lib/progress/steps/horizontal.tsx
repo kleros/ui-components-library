@@ -2,8 +2,10 @@ import React from "react";
 import styled from "styled-components";
 import { StepsProps } from ".";
 import Bullet from "./horizontal-bullet";
+import { borderBox } from "../../../styles/common-style";
 
 const Wrapper = styled.div`
+  ${borderBox}
   width: 250px;
   display: flex;
   justify-content: center;

@@ -4,6 +4,7 @@ import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 import InfoIcon from "../../assets/svgs/status-icons/info.svg";
+import { borderBox, svg, h2, small } from "../../styles/common-style";
 
 type VariantProp = { variant: "success" | "warning" | "error" | "info" };
 
@@ -16,7 +17,10 @@ const variantColor = css<VariantProp>`
   }}
 `;
 
+const StyledSVG = styled.svg``;
+
 const Wrapper = styled.div<VariantProp>`
+  ${borderBox}
   min-width: 328px;
   width: fit-content;
   height: fit-content;
@@ -27,21 +31,26 @@ const Wrapper = styled.div<VariantProp>`
   display: flex;
   align-items: center;
 
-  svg {
+  & ${StyledSVG} {
+    ${svg}
     height: 24px;
     width: 24px;
     fill: ${variantColor};
   }
 `;
 
+const StyledTitle = styled.h2<VariantProp>`
+  ${h2}
+  color: ${variantColor};
+`;
+
+const StyledMessage = styled.small`
+  ${small}
+  color: ${({ theme }) => theme.primaryText};
+`;
+
 const Text = styled.div<VariantProp>`
   margin-left: 16px;
-  h2 {
-    color: ${variantColor};
-  }
-  small {
-    color: ${({ theme }) => theme.primaryText};
-  }
 `;
 
 interface AlertProps extends VariantProp {
@@ -51,13 +60,19 @@ interface AlertProps extends VariantProp {
 
 const Alert: React.FC<AlertProps> = ({ variant, title, msg }) => (
   <Wrapper variant={variant}>
-    {variant === "success" && <SuccessIcon />}
-    {variant === "warning" && <WarningIcon />}
-    {variant === "error" && <ErrorIcon />}
-    {variant === "info" && <InfoIcon />}
-    <Text variant={variant}>
-      <h2>{title}</h2>
-      <small>{msg}</small>
+    {variant === "success" && (
+      <SuccessIcon className={StyledSVG.styledComponentId} />
+    )}
+    {variant === "warning" && (
+      <WarningIcon className={StyledSVG.styledComponentId} />
+    )}
+    {variant === "error" && (
+      <ErrorIcon className={StyledSVG.styledComponentId} />
+    )}
+    {variant === "info" && <InfoIcon className={StyledSVG.styledComponentId} />}
+    <Text {...{ variant }}>
+      <StyledTitle {...{ variant }}>{title}</StyledTitle>
+      <StyledMessage>{msg}</StyledMessage>
     </Text>
   </Wrapper>
 );
