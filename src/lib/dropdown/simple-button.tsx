@@ -6,7 +6,7 @@ import { borderBox, button, svg, small, h1 } from "../../styles/common-style";
 const Container = styled.button`
   ${borderBox}
   ${button}
-  background: ${({ theme }) => theme.whiteBackground};
+  background: none;
   display: flex;
   align-items: center;
   padding: 0px;

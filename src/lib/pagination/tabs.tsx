@@ -15,7 +15,7 @@ const StyledTab = styled.button<{ selected?: boolean }>`
   ${button}
   flex-grow: 1;
   height: 45px;
-  background: ${(props) => props.theme.lightBackground};
+  background: none;
   border-bottom: 3px solid
     ${(props) =>
       props.selected ? props.theme.primaryBlue : props.theme.stroke};
