@@ -19,8 +19,13 @@ const StyledTextarea = styled.textarea`
 type TextareaProps = VariantProp &
   TextareaHTMLAttributes<HTMLTextAreaElement> & { message?: string };
 
-const Textarea: React.FC<TextareaProps> = ({ message, variant, ...props }) => (
-  <Wrapper>
+const Textarea: React.FC<TextareaProps> = ({
+  message,
+  variant,
+  className,
+  ...props
+}) => (
+  <Wrapper {...{ className }}>
     <StyledTextarea {...{ variant, ...props }} />
     {message && <StyledMessage {...{ variant }}>{message}</StyledMessage>}
   </Wrapper>
