@@ -19,12 +19,10 @@ const Wrapper = styled.label<RadioBaseProps>`
       ? css`
           font-size: 16px;
           padding-left: 28px;
-          margin-bottom: 10px;
         `
       : css`
           font-size: 22px;
           padding-left: 35px;
-          margin-bottom: 12px;
         `}
 `;
 
@@ -91,8 +89,14 @@ interface RadioProps
   label: string;
 }
 
-const Radio: React.FC<RadioProps> = ({ small, checked, label, ...props }) => (
-  <Wrapper small={small}>
+const Radio: React.FC<RadioProps> = ({
+  small,
+  checked,
+  label,
+  className,
+  ...props
+}) => (
+  <Wrapper {...{ small, className }}>
     {label}
     <HiddenInput checked={checked} {...props} />
     <StyledRadio small={small} checked={checked} />

@@ -84,8 +84,13 @@ export const StyledMessage = styled.small<VariantProp>`
 type FieldProps = VariantProp &
   InputHTMLAttributes<HTMLInputElement> & { message?: string };
 
-const Field: React.FC<FieldProps> = ({ variant, message, ...props }) => (
-  <Wrapper>
+const Field: React.FC<FieldProps> = ({
+  variant,
+  message,
+  className,
+  ...props
+}) => (
+  <Wrapper {...{ className }}>
     <StyledInput {...{ variant, ...props }} />
     {variant === "success" && <StyledSuccessIcon className="field-svg" />}
     {variant === "warning" && <StyledWarningIcon className="field-svg" />}

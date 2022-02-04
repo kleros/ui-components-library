@@ -7,6 +7,7 @@ import Switch from "../lib/form/switch";
 const VerticalWrapper = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 16px;
 `;
 
 const Input: React.FC = () => {
