@@ -73,8 +73,9 @@ const Cascader: React.FC<ICascader> = ({
         <Selector
           onSelect={() => {
             if (current) {
-              onSelect(current.value);
-              setSelected(current);
+              new Promise((resolve) => resolve(onSelect(current.value)))
+                .then(() => setSelected(current))
+                .catch((error) => console.error(error));
             }
           }}
           currentSelection={current?.label}
