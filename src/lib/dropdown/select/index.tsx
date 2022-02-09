@@ -55,8 +55,9 @@ const Select: React.FC<ISelect> = ({
         <ItemContainer
           {...{ items, selected }}
           onChange={(value: IItem["value"]) => {
-            setSelected(value);
-            callback(value);
+            new Promise((resolve) => resolve(callback(value)))
+              .then(() => setSelected(value))
+              .catch((error) => console.error(error));
           }}
         />
       </Container>
