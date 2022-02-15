@@ -107,8 +107,9 @@ const Tooltip: React.FC<TooltipProps> = ({
   text,
   children,
   small,
+  ...props
 }) => (
-  <Wrapper>
+  <Wrapper {...props}>
     {children}
     <StyledTooltip {...{ small, place }}>
       <StyledText>{text}</StyledText>
