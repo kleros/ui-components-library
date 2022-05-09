@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import styled from "styled-components";
 import Card from "../container/card";
 import { borderBox, svg, h1, small } from "../../styles/common-style";
@@ -44,19 +44,21 @@ const IconCard = styled(Card)`
 
 export interface DisplayIconProps {
   text: string;
-  icon?: (className: string) => ReactNode;
+  Icon: React.FC<React.SVGAttributes<SVGElement>>;
   label?: string;
 }
 
 const DisplayIcon: React.FC<DisplayIconProps> = ({
   text,
-  icon,
+  Icon,
   label,
   ...props
 }) => {
   return (
     <StyledCard {...props}>
-      <IconCard>{icon && icon("display-icon")}</IconCard>
+      <IconCard>
+        <Icon className="display-icon" />
+      </IconCard>
       <Text>
         <h1 className="display-text">{text}</h1>
         <small className="display-label">{label}</small>

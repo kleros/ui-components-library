@@ -34,12 +34,12 @@ const StyledCard = styled(Card)`
 
 const DisplayLarge: React.FC<DisplayIconProps> = ({
   text,
-  icon,
+  Icon,
   label,
   ...props
 }) => (
   <StyledCard {...props}>
-    {icon && icon("display-icon")}
+    {Icon && <Icon className="display-icon" />}
     <h1 className="display-text">{text}</h1>
     <small className="display-label">{label}</small>
   </StyledCard>

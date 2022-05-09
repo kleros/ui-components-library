@@ -13,7 +13,7 @@ const Wrapper = styled.div`
 interface AccordionItem {
   title: string;
   body: ReactNode;
-  icon?: ReactNode;
+  Icon?: React.FC<React.SVGAttributes<SVGElement>>;
 }
 
 interface AccordionProps {
@@ -29,7 +29,7 @@ const Accordion: React.FC<AccordionProps> = ({ items, ...props }) => {
           key={index}
           index={index}
           title={item.title}
-          icon={item.icon}
+          Icon={item.Icon}
           body={item.body}
           setExpanded={setExpanded}
           expanded={expanded === index}

@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import styled from "styled-components";
 import { borderBox, button, svg } from "../../styles/common-style";
 
@@ -53,7 +53,7 @@ const StyledTab = styled.button<{ selected?: boolean }>`
 interface TabsItem {
   text: string;
   value: any;
-  icon?: (className: string) => ReactNode;
+  Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   disabled?: boolean;
 }
 
@@ -67,14 +67,14 @@ interface TabsProps {
 const Tabs: React.FC<TabsProps> = ({ items, ...props }) => {
   return (
     <Wrapper {...props}>
-      {items.map(({ icon, text, value, disabled }) => (
+      {items.map(({ Icon, text, value, disabled }) => (
         <StyledTab
           disabled={disabled}
           selected={value === props.currentValue}
           key={value}
           onClick={() => props.callback(value)}
         >
-          {icon && icon(StyledSVG.styledComponentId)}
+          {Icon && <Icon className={StyledSVG.styledComponentId} />}
           {text}
         </StyledTab>
       ))}

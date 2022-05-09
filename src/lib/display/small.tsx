@@ -38,14 +38,14 @@ const StyledText = styled.h2`
 
 const DisplaySmall: React.FC<DisplayIconProps> = ({
   text,
-  icon,
+  Icon,
   label,
   ...props
 }) => (
   <Wrapper {...props}>
     <StyledLabel>{label}</StyledLabel>
     <StyledCard>
-      {icon && icon("display-icon")}
+      {Icon && <Icon className="display-icon" />}
       <StyledText>{text}</StyledText>
     </StyledCard>
   </Wrapper>

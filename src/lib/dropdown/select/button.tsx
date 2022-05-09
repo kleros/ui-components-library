@@ -4,7 +4,7 @@ import SimpleButton from "../simple-button";
 import { IItem, StyledItem } from "./item-container";
 
 export interface ISelectButton {
-  item: Omit<IItem, "value" | "icon" | "dot" | "onClick">;
+  item: Omit<IItem, "value" | "Icon" | "dot" | "onClick">;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   simple?: boolean;

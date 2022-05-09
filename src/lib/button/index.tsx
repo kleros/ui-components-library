@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import { BaseButtonProps } from "./base";
 import PrimaryButton from "./primary";
 import SecondaryButton from "./secondary";
@@ -7,14 +7,14 @@ import TertiaryButton from "./tertiary";
 interface ButtonProps extends BaseButtonProps {
   disabled?: boolean;
   text: string;
-  icon?: (className: string) => ReactNode;
+  Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 const Button: React.FC<ButtonProps> = ({
   text,
   variant,
-  icon,
+  Icon,
   onClick,
   ...props
 }) => {
@@ -24,7 +24,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <ButtonType {...{ variant, onClick, ...props }}>
-      {icon && icon("button-svg")}
+      {Icon && <Icon className="button-svg" />}
       <p className="button-text">{text}</p>
     </ButtonType>
   );

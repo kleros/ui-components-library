@@ -52,29 +52,36 @@ interface AccordionItemProps {
   index: number;
   title: string;
   body: ReactNode;
-  icon?: ReactNode;
+  Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   expanded?: boolean;
 }
 
-const AccordionItem: React.FC<AccordionItemProps> = (props) => {
+const AccordionItem: React.FC<AccordionItemProps> = ({
+  title,
+  Icon,
+  body,
+  index,
+  expanded,
+  setExpanded,
+}) => {
   const heightRef = useRef<number>(0);
   return (
     <StyledDiv>
       <button
         className="accordion-button"
-        onClick={() => props.setExpanded(props.expanded ? -1 : props.index)}
+        onClick={() => setExpanded(expanded ? -1 : index)}
       >
-        {props.icon}
-        <p className="accordion-title">{props.title}</p>
-        {props.expanded ? (
+        {Icon && <Icon />}
+        <p className="accordion-title">{title}</p>
+        {expanded ? (
           <Minus className="accordion-svg" />
         ) : (
           <Plus className="accordion-svg" />
         )}
       </button>
-      <Collapsible expanded={props.expanded} totalHeight={heightRef.current}>
+      <Collapsible expanded={expanded} totalHeight={heightRef.current}>
         <Body ref={(ref) => (heightRef.current = ref?.clientHeight || 0)}>
-          {props.body}
+          {body}
         </Body>
       </Collapsible>
     </StyledDiv>

@@ -8,21 +8,9 @@ import Tag from "../lib/tag";
 
 const Displays = () => (
   <>
-    <DisplaySmall
-      text="250 DAI"
-      label="Amount"
-      icon={(className: string) => <Dai {...{ className }} />}
-    />
-    <DisplayLarge
-      text="$244.08"
-      label="ETH Price"
-      icon={(className: string) => <Dai {...{ className }} />}
-    />
-    <DisplayIcon
-      text="247"
-      label="Disputes"
-      icon={(className: string) => <Balance {...{ className }} />}
-    />
+    <DisplaySmall text="250 DAI" label="Amount" Icon={Dai} />
+    <DisplayLarge text="$244.08" label="ETH Price" Icon={Dai} />
+    <DisplayIcon text="247" label="Disputes" Icon={Balance} />
     <Tag text={"First tag"} />
     <Tag active text={"Active tag"} />
     <Tag text={"Tag with lots and lots of text, ok maybe not that much"} />

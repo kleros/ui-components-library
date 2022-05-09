@@ -34,9 +34,7 @@ const ItemContainer: React.FC<IItemContainer> = ({ layer, onChange }) => (
         tabIndex={0}
         key={i}
         text={item.label}
-        icon={(className: string) =>
-          item.children && <LightArrow {...{ className }} />
-        }
+        Icon={item.children && LightArrow}
         onClick={() => onChange(item)}
         selected={item.value === layer.selected}
       />

@@ -26,7 +26,7 @@ const Pagination = () => {
           {
             text: "Telegram",
             value: 1,
-            icon: (className: string) => <Telegram {...{ className }} />,
+            Icon: Telegram,
           },
           { text: "hello1", value: 2, disabled: true },
         ]}

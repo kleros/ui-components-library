@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import styled, { css } from "styled-components";
 import Dot from "../dot";
 import { borderBox, svg, p } from "../../styles/common-style";
@@ -49,14 +49,14 @@ export interface IBaseItem
   extends IItem,
     Omit<React.HTMLAttributes<HTMLDivElement>, "onClick"> {
   text: string;
-  icon?: (className: string) => ReactNode;
+  Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   dot?: string;
   onClick?: () => void;
 }
 
 const BaseItem: React.FC<IBaseItem> = ({
   text,
-  icon,
+  Icon,
   dot,
   onClick,
   ...props
@@ -65,7 +65,7 @@ const BaseItem: React.FC<IBaseItem> = ({
     onKeyPress={(e) => (onClick && e.key === "Enter" ? onClick() : undefined)}
     {...{ onClick, ...props }}
   >
-    {icon && icon("item-icon")}
+    {Icon && <Icon className="item-icon" />}
     {dot && <StyledDot color={dot} />}
     <StyledText>{text}</StyledText>
   </Item>
