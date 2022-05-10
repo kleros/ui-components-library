@@ -1,6 +1,6 @@
 {
   "name": "@kleros/ui-components-library",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "source": "src/lib/index.ts",
   "main": "dist/index.js",
   "types": "dist/types.d.ts",
