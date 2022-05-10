@@ -15,7 +15,7 @@ const Container = styled(DropdownContainer)<{ path: ILayer[] }>`
   ${({ theme, path, isOpen }) => css`
     background: ${isOpen ? theme.stroke : theme.whiteBackground};
     border-radius: 3px;
-    padding: ${isOpen ? "1px" : "0"};
+    padding: 1px;
     display: grid;
     grid-template-columns: repeat(${path.length}, 238px);
     grid-template-rows: max-content 64px;
