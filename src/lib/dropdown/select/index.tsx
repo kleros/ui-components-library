@@ -2,13 +2,17 @@ import React, { useState, useRef } from "react";
 import styled, { css } from "styled-components";
 import useFocusOutside from "../../../hooks/use-focus-outside";
 import DropdownButton from "./button";
-import DropdownContainer from "../dropdown-container";
+import _DropdownContainer from "../dropdown-container";
 import ItemContainer, { IItem } from "./item-container";
 
-const Container = styled(DropdownContainer)`
-  ${({ theme, isOpen }) => css`
+const Container = styled.div`
+  position: relative;
+`;
+
+const DropdownContainer = styled(_DropdownContainer)`
+  ${({ theme }) => css`
     background: ${theme.whiteBackground};
-    border: ${isOpen ? "1px" : "0"} solid ${theme.stroke};
+    border: 1px solid ${theme.stroke};
     border-radius: 3px;
   `}
 `;
@@ -20,6 +24,7 @@ interface ISelect {
   placeholder?: Omit<IItem, "value">;
   simpleButton?: boolean;
   smallButton?: boolean;
+  alignRight?: boolean;
 }
 
 const Select: React.FC<ISelect> = ({
@@ -29,6 +34,7 @@ const Select: React.FC<ISelect> = ({
   smallButton,
   defaultValue,
   placeholder,
+  alignRight,
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -37,7 +43,7 @@ const Select: React.FC<ISelect> = ({
   const [selected, setSelected] = useState(defaultValue);
   const currentItem = items.find(({ value }) => value === selected);
   return (
-    <div ref={containerRef} {...props}>
+    <Container ref={containerRef} {...props}>
       <DropdownButton
         {...{
           item: currentItem
@@ -51,7 +57,7 @@ const Select: React.FC<ISelect> = ({
           small: smallButton,
         }}
       />
-      <Container {...{ isOpen }}>
+      <DropdownContainer {...{ isOpen, alignRight }}>
         <ItemContainer
           {...{ items, selected }}
           onChange={(value: IItem["value"]) => {
@@ -60,8 +66,8 @@ const Select: React.FC<ISelect> = ({
               .catch((error) => console.error(error));
           }}
         />
-      </Container>
-    </div>
+      </DropdownContainer>
+    </Container>
   );
 };
 
