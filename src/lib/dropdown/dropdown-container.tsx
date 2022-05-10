@@ -5,9 +5,10 @@ import { borderBox } from "../../styles/common-style";
 export interface IDropdownContainer {
   isOpen: boolean;
   alignRight?: boolean;
+  children?: React.ReactNode;
 }
 
-const Container = styled.div<IDropdownContainer>`
+const Container = styled.div<Omit<IDropdownContainer, "children">>`
   ${borderBox}
   ${({ theme, isOpen, alignRight }) => css`
     position: absolute;

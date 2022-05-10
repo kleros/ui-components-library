@@ -100,6 +100,7 @@ const Wrapper = styled.div`
 
 interface TooltipProps extends TooltipBaseProps {
   text: string;
+  children?: React.ReactNode;
 }
 
 const Tooltip: React.FC<TooltipProps> = ({
