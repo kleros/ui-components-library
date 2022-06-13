@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import styled, { css } from "styled-components";
+import { mobileStyle } from "../../../styles/common-style";
 import useFocusOutside from "../../../hooks/use-focus-outside";
 import DropdownContainer from "../dropdown-container";
 import ItemContainer, { IItem, StyledBaseItem } from "./item-container";
@@ -20,6 +21,10 @@ const Container = styled(DropdownContainer)<{ path: ILayer[] }>`
     grid-template-columns: repeat(${path.length}, 238px);
     grid-template-rows: max-content 64px;
     gap: 1px;
+    ${mobileStyle(css`
+      width: 240px;
+      overflow: auto;
+    `)}
   `}
 `;
 

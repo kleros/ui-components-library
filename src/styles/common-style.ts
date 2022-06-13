@@ -1,4 +1,12 @@
-import { css } from "styled-components";
+import { css, FlattenSimpleInterpolation } from "styled-components";
+
+export const mobileStyle: (
+  style: FlattenSimpleInterpolation
+) => FlattenSimpleInterpolation = (style) => css`
+  @media (max-width: 900px) {
+    ${style}
+  }
+`;
 
 export const h1 = css`
   font-size: 24px;
