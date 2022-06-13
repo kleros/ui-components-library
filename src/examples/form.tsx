@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import FileUploader from "../lib/form/file-uploader";
 import Field from "../lib/form/field";
+import Searchbar from "../lib/form/searchbar";
 import Textarea from "../lib/form/textarea";
 import Slider from "../lib/form/slider";
 import Datepicker from "../lib/form/datepicker";
@@ -21,6 +22,7 @@ const Form = () => {
         }}
       />
       <Field placeholder={"eg. Escrow"} variant="success" />
+      <Searchbar />
       <Textarea
         placeholder={"eg. longer text"}
         message={"Error msg"}

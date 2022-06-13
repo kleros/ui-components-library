@@ -70,7 +70,7 @@ export const baseInputStyle = css<VariantProp>`
 `;
 
 const StyledInput = styled.input`
-  padding: 0px 40px 0px 16px;
+  padding: 14px 40px 14px 16px;
   ${baseInputStyle}
 `;
 
