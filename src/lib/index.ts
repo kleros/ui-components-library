@@ -13,6 +13,7 @@ export { default as DropdownSelect } from "./dropdown/select";
 export { default as DropdownCascader } from "./dropdown/cascader";
 
 export { default as Field } from "./form/field";
+export { default as Searchbar } from "./form/searchbar";
 export { default as Textarea } from "./form/textarea";
 export { default as Slider } from "./form/slider";
 export { default as FileUploader } from "./form/file-uploader";
