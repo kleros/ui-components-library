@@ -76,12 +76,14 @@ interface CompactPaginationProps {
   numPages: number;
   //eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function;
+  className?: string;
 }
 
 const CompactPagination: React.FC<CompactPaginationProps> = ({
   currentPage,
   numPages,
   callback,
+  className,
 }) => {
   const [
     {
@@ -95,7 +97,7 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
   ] = usePagination(currentPage, numPages, callback);
 
   return (
-    <Wrapper>
+    <Wrapper {...{ className }}>
       <LeftArrow disabled={minPageReached} onClick={decrementPage}>
         <Arrow className={StyledArrow.styledComponentId} />
       </LeftArrow>
