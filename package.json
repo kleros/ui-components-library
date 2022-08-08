@@ -1,16 +1,11 @@
 {
   "name": "@kleros/ui-components-library",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "source": "src/lib/index.ts",
   "main": "dist/index.js",
   "types": "dist/types.d.ts",
   "isLibrary": true,
   "browserslist": "> 0.5%, last 2 versions, not dead",
-  "targets": {
-    "main": {
-      "includeNodeModules": false
-    }
-  },
   "repository": "git@github.com:alcercu/frontend-library.git",
   "author": "alcercu <alcercu@alumni.upv.es>",
   "license": "MIT",
@@ -54,7 +49,10 @@
     "typescript": "^4.5.4"
   },
   "peerDependencies": {
-    "styled-components": "^5.3.3"
+    "styled-components": "^5.3.3",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-is": "^18.0.0"
   },
   "dependencies": {
     "@datepicker-react/hooks": "^2.8.4",
