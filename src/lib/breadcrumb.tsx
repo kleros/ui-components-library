@@ -7,15 +7,16 @@ const Wrapper = styled.div`
   display: flex;
 `;
 
-const Element = styled.button`
+const Element = styled.button<{ clickable?: boolean }>`
   ${button}
   background: none;
   padding: 0;
 
   :hover {
-    small {
-      color: ${({ theme }) => theme.primaryText};
-    }
+    ${({ clickable, theme }) =>
+      clickable
+        ? `small { color: ${theme.primaryText}; }`
+        : `cursor: text !important`}
   }
 `;
 
@@ -33,19 +34,27 @@ const ActiveElement = styled(Content)`
 `;
 
 interface BreadcrumbProps {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  callback: Function;
   items: { text: string; value: any }[];
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  callback?: Function;
+  clickable?: boolean;
 }
 
-const Breadcrumb: React.FC<BreadcrumbProps> = ({ callback, items }) => (
+const Breadcrumb: React.FC<BreadcrumbProps> = ({
+  items,
+  callback,
+  clickable,
+}) => (
   <Wrapper>
     {items.map(({ text, value }, i) =>
       i === items.length - 1 ? (
         <ActiveElement key={i}>{text}</ActiveElement>
       ) : (
         <React.Fragment key={i}>
-          <Element onClick={() => callback(value)}>
+          <Element
+            onClick={() => (callback ? callback(value) : null)}
+            {...{ clickable }}
+          >
             <Content>{text}</Content>
           </Element>
           <Separator>{"/"}</Separator>

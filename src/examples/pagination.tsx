@@ -41,9 +41,6 @@ const Pagination = () => {
           { text: "Blockchain", value: 1 },
           { text: "Non-Technical", value: 2 },
         ]}
-        callback={() => {
-          // executed when an item is clicked passing it's value as argument
-        }}
       />
     </>
   );
