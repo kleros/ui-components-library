@@ -38,14 +38,16 @@ interface BreadcrumbProps {
   // eslint-disable-next-line @typescript-eslint/ban-types
   callback?: Function;
   clickable?: boolean;
+  className?: string;
 }
 
 const Breadcrumb: React.FC<BreadcrumbProps> = ({
   items,
   callback,
   clickable,
+  className,
 }) => (
-  <Wrapper>
+  <Wrapper {...{ className }}>
     {items.map(({ text, value }, i) =>
       i === items.length - 1 ? (
         <ActiveElement key={i}>{text}</ActiveElement>
