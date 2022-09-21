@@ -13,6 +13,10 @@ const SecondaryButton = styled(BaseButton)`
     fill: ${(props) => props.theme.primaryBlue};
   }
 
+  .button-loading {
+    fill: ${(props) => props.theme.primaryBlue};
+  }
+
   :hover {
     background: ${(props) => props.theme.mediumBlue};
   }

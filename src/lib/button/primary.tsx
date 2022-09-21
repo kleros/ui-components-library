@@ -15,6 +15,11 @@ const PrimaryButton = styled(BaseButton)`
       props.disabled ? props.theme.stroke : props.theme.whiteBackground};
   }
 
+  .button-loading {
+    fill: ${(props) =>
+      props.disabled ? props.theme.stroke : props.theme.whiteBackground};
+  }
+
   :hover {
     background: ${(props) =>
       props.disabled ? props.theme.lightGrey : props.theme.secondaryBlue};

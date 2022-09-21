@@ -3,6 +3,7 @@ import { BaseButtonProps } from "./base";
 import PrimaryButton from "./primary";
 import SecondaryButton from "./secondary";
 import TertiaryButton from "./tertiary";
+import KlerosSymbol from "../../assets/svgs/kleros.svg";
 
 interface ButtonProps extends BaseButtonProps {
   disabled?: boolean;
@@ -16,6 +17,7 @@ const Button: React.FC<ButtonProps> = ({
   variant,
   Icon,
   onClick,
+  loading,
   ...props
 }) => {
   let ButtonType = PrimaryButton;
@@ -23,7 +25,8 @@ const Button: React.FC<ButtonProps> = ({
   if (variant === "tertiary") ButtonType = TertiaryButton;
 
   return (
-    <ButtonType {...{ variant, onClick, ...props }}>
+    <ButtonType {...{ variant, onClick, loading, ...props }}>
+      {loading && <KlerosSymbol className="button-loading" />}
       {Icon && <Icon className="button-svg" />}
       <p className="button-text">{text}</p>
     </ButtonType>

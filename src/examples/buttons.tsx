@@ -6,7 +6,7 @@ const Buttons = () => (
   <>
     <Button text={"Primary Button"} />
     <Button small text={"Get help"} Icon={Telegram} />
-    <Button disabled text={"Hello"} />
+    <Button disabled loading text={"Hello"} />
     <Button variant={"secondary"} text={"Hello"} />
     <Button variant={"tertiary"} small text={"Hello"} />
   </>

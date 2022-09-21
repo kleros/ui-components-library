@@ -12,6 +12,10 @@ const TertiaryButton = styled(BaseButton)`
     fill: ${(props) => props.theme.whiteBackground};
   }
 
+  .button-loading {
+    fill: ${(props) => props.theme.whiteBackground};
+  }
+
   :hover {
     background: ${(props) => props.theme.primaryPurple};
   }

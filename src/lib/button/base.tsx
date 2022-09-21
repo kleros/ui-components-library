@@ -1,14 +1,30 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { borderBox, button, p, svg } from "../../styles/common-style";
+
+const breathing = keyframes`
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+`;
 
 export interface BaseButtonProps {
   variant?: "primary" | "secondary" | "tertiary";
   small?: boolean;
+  loading?: boolean;
 }
 
 const BaseButton = styled.button<BaseButtonProps>`
   ${borderBox}
   ${button}
+  position: relative;
   width: fit-content;
   height: fit-content;
   display: flex;
@@ -27,15 +43,24 @@ const BaseButton = styled.button<BaseButtonProps>`
 
   .button-text {
     ${p}
+    ${({ loading }) => loading && "visibility: hidden;"}
     font-weight: 600;
     text-align: center;
   }
 
   .button-svg {
     ${svg}
+    ${({ loading }) => loading && "visibility: hidden;"}
     height: 16px;
     width: 16px;
     margin-right: 8px;
+  }
+
+  .button-loading {
+    position: absolute;
+    height: 22px;
+    fill: ${({ theme }) => theme.stroke};
+    animation: ${breathing} 2s ease-out infinite normal;
   }
 `;
 
