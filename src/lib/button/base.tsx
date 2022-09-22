@@ -18,7 +18,7 @@ const breathing = keyframes`
 export interface BaseButtonProps {
   variant?: "primary" | "secondary" | "tertiary";
   small?: boolean;
-  loading?: boolean;
+  isLoading?: boolean;
 }
 
 const BaseButton = styled.button<BaseButtonProps>`
@@ -43,14 +43,14 @@ const BaseButton = styled.button<BaseButtonProps>`
 
   .button-text {
     ${p}
-    ${({ loading }) => loading && "visibility: hidden;"}
+    ${({ isLoading }) => isLoading && "visibility: hidden;"}
     font-weight: 600;
     text-align: center;
   }
 
   .button-svg {
     ${svg}
-    ${({ loading }) => loading && "visibility: hidden;"}
+    ${({ isLoading }) => isLoading && "visibility: hidden;"}
     height: 16px;
     width: 16px;
     margin-right: 8px;

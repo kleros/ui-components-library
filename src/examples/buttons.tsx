@@ -4,11 +4,11 @@ import Telegram from "../assets/svgs/telegram.svg";
 
 const Buttons = () => (
   <>
-    <Button text={"Primary Button"} />
-    <Button small text={"Get help"} Icon={Telegram} />
-    <Button disabled loading text={"Hello"} />
-    <Button variant={"secondary"} text={"Hello"} />
-    <Button variant={"tertiary"} small text={"Hello"} />
+    <Button text="Primary Button" />
+    <Button small text="Get help" Icon={Telegram} />
+    <Button disabled isLoading text="Hello" />
+    <Button variant="secondary" text="Hello" />
+    <Button variant="tertiary" small text="Hello" />
   </>
 );
 
