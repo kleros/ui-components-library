@@ -12,7 +12,7 @@ const Wrapper = styled.div`
   align-items: start;
 `;
 
-const HorizontalSteps: React.FC<StepsProps<"horizontal">> = ({
+const HorizontalSteps: React.FC<StepsProps> = ({
   items,
   currentItemIndex,
   ...props

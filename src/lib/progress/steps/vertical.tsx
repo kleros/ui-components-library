@@ -21,11 +21,7 @@ const LastBullet = styled(Bullet)`
   flex-grow: 0;
 `;
 
-const Steps: React.FC<StepsProps<"vertical">> = ({
-  items,
-  currentItemIndex,
-  ...props
-}) => {
+const Steps: React.FC<StepsProps> = ({ items, currentItemIndex, ...props }) => {
   const lastItem = items[items.length - 1];
   return (
     <Wrapper {...props}>
