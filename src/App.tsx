@@ -1,5 +1,5 @@
+import { createRoot } from "react-dom/client";
 import React, { useState } from "react";
-import ReactDOM from "react-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { GlobalStyle } from "./styles/global-style";
 import { lightTheme, darkTheme } from "./styles/themes";
@@ -111,4 +111,7 @@ const App = () => {
 };
 
 const app = document.getElementById("app");
-ReactDOM.render(<App />, app);
+if (app) {
+  const root = createRoot(app);
+  root.render(<App />);
+}
