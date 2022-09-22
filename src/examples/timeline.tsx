@@ -26,7 +26,7 @@ const TimelineProgress = () => (
       horizontal
       items={[
         { title: "Escrow Details", subitems: ["Type of Escrow", "Title"] },
-        { title: "Terms", subitems: ["Deliverable", "Payment", "Deadline"] },
+        { title: "Terms", subitems: ["Deliverable"] },
         { title: "Preview" },
       ]}
       currentItemIndex={1}

@@ -9,20 +9,7 @@ const Wrapper = styled.div`
   width: 250px;
   display: flex;
   justify-content: center;
-  align-items: center;
-`;
-
-const BulletsContainer = styled.div`
-  width: auto;
-  display: flex;
-  flex-grow: 1;
-  justify-content: center;
-  align-items: center;
-`;
-
-const LastBullet = styled(Bullet)`
-  flex-basis: auto;
-  flex-grow: 0;
+  align-items: start;
 `;
 
 const HorizontalSteps: React.FC<StepsProps<"horizontal">> = ({
@@ -31,24 +18,16 @@ const HorizontalSteps: React.FC<StepsProps<"horizontal">> = ({
   ...props
 }) => (
   <Wrapper {...props}>
-    <BulletsContainer>
-      {items.slice(0, -1).map(({ title }, i) => (
-        <Bullet
-          {...{ title }}
-          completed={i < currentItemIndex}
-          active={i === currentItemIndex}
-          line={!(i + 1 === items.length)}
-          index={i + 1}
-          key={i}
-        />
-      ))}
-    </BulletsContainer>
-    <LastBullet
-      title={items[items.length - 1].title}
-      completed={items.length - 1 < currentItemIndex}
-      active={items.length - 1 === currentItemIndex}
-      index={items.length}
-    />
+    {items.map((item, i) => (
+      <Bullet
+        {...item}
+        completed={i < currentItemIndex}
+        active={i === currentItemIndex}
+        last={i + 1 === items.length}
+        index={i + 1}
+        key={i}
+      />
+    ))}
   </Wrapper>
 );
 
