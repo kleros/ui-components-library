@@ -1,20 +1,19 @@
 import React from "react";
-import styled from "styled-components";
-import BaseItem from "../base-item";
+import styled, { css } from "styled-components";
 import Button from "../../button";
-import { borderBox } from "../../../styles/common-style";
+import { mobileStyle, borderBox } from "../../../styles/common-style";
 
 const Wrapper = styled.div`
   ${borderBox}
-  grid-column: 1 / -1;
-  grid-row: 2 / 2;
-  height: 64px;
   border-bottom-left-radius: 3px;
   border-bottom-right-radius: 3px;
   background: ${({ theme }) => theme.whiteBackground};
-  padding: 0px 16px;
+  padding: 8px 16px;
   display: flex;
-  justify-content: space-between;
+  ${mobileStyle(css`
+    justify-content: center;
+  `)}
+  justify-content: end;
   align-items: center;
 `;
 
@@ -29,10 +28,9 @@ const Selector: React.FC<ISelector> = ({
   ...props
 }) => (
   <Wrapper {...props}>
-    {currentSelection && <BaseItem current text={currentSelection} />}
     <Button
       onClick={() => onSelect()}
-      text={"Select"}
+      text={currentSelection ? `Select\n${currentSelection}` : "No Selection"}
       disabled={!currentSelection}
     />
   </Wrapper>

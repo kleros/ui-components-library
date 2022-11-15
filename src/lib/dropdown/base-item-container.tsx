@@ -21,8 +21,9 @@ const StyledScrollbarContainer = styled(ScrollbarContainer)`
 
 const ItemContainerWithScrollbar: React.FC<{ children: React.ReactNode }> = ({
   children,
+  ...props
 }) => (
-  <StyledScrollbarContainer>
+  <StyledScrollbarContainer {...props}>
     <ItemContainer>{children}</ItemContainer>
   </StyledScrollbarContainer>
 );

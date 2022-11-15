@@ -1,5 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled, { css } from "styled-components";
+import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import { mobileStyle } from "../../../styles/common-style";
 import useFocusOutside from "../../../hooks/use-focus-outside";
 import DropdownContainer from "../dropdown-container";
@@ -12,17 +13,24 @@ interface ILayer {
   selected?: IItem["value"];
 }
 
-const Container = styled(DropdownContainer)<{ path: ILayer[] }>`
+const Wrapper = styled(DropdownContainer)`
+  border: 1px solid ${({ theme }) => theme.stroke};
+  ${mobileStyle(css`
+    width: 240px;
+  `)}
+  border-radius: 3px;
+`;
+
+const Container = styled.div<{ path: ILayer[]; isOpen: boolean }>`
   ${({ theme, path, isOpen }) => css`
     background: ${isOpen ? theme.stroke : theme.whiteBackground};
+    border-bottom: 1px solid ${({ theme }) => theme.stroke};
     border-radius: 3px;
-    padding: 1px;
     display: grid;
-    grid-template-columns: repeat(${path.length}, 238px);
-    grid-template-rows: max-content 64px;
+    grid-template-columns: repeat(${path.length}, 238px) 0px;
+    grid-template-rows: max-content;
     gap: 1px;
     ${mobileStyle(css`
-      width: 240px;
       overflow: auto;
     `)}
   `}
@@ -45,7 +53,14 @@ const Cascader: React.FC<ICascader> = ({
   const [selected, setSelected] = useState<IItem>();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const containerRef = useRef(null);
+  const lastElementRef = useRef(null);
   useFocusOutside(containerRef, () => setIsOpen(false));
+  useEffect(() => {
+    if (lastElementRef?.current && isOpen) {
+      scrollIntoView(lastElementRef.current);
+    }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [path]);
   return (
     <div ref={containerRef} {...props}>
       <DropdownButton
@@ -59,33 +74,39 @@ const Cascader: React.FC<ICascader> = ({
           )
         }
       />
-      <Container {...{ path, isOpen }}>
-        {path.map((layer, depth) => (
-          <ItemContainer
-            key={depth}
-            layer={layer}
-            onChange={(item: IItem) => {
-              let newPath;
-              if (depth < path.length) newPath = path.slice(0, depth + 1);
-              else newPath = path;
-              newPath[depth].selected = item.value;
-              if (item.children) newPath.push({ items: item.children });
-              setPath(newPath);
-              setCurrent(item);
-            }}
-          />
-        ))}
+      <Wrapper {...{ isOpen }}>
+        <Container {...{ path, isOpen }}>
+          {path.map((layer, depth) => (
+            <ItemContainer
+              key={depth}
+              layer={layer}
+              onChange={(item: IItem) => {
+                let newPath;
+                if (depth < path.length) newPath = path.slice(0, depth + 1);
+                else newPath = path;
+                newPath[depth].selected = item.value;
+                if (item.children) newPath.push({ items: item.children });
+                setPath(newPath);
+                setCurrent(item);
+              }}
+            />
+          ))}
+          <div ref={lastElementRef} />
+        </Container>
         <Selector
           onSelect={() => {
             if (current) {
               new Promise((resolve) => resolve(onSelect(current.value)))
-                .then(() => setSelected(current))
+                .then(() => {
+                  setSelected(current);
+                  setIsOpen(false);
+                })
                 .catch((error) => console.error(error));
             }
           }}
           currentSelection={current?.label}
         />
-      </Container>
+      </Wrapper>
     </div>
   );
 };

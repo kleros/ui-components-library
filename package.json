@@ -49,10 +49,10 @@
     "typescript": "^4.5.4"
   },
   "peerDependencies": {
-    "styled-components": "^5.3.3",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "react-is": "^18.0.0"
+    "react-is": "^18.0.0",
+    "styled-components": "^5.3.3"
   },
   "dependencies": {
     "@datepicker-react/hooks": "^2.8.4",
@@ -62,7 +62,8 @@
     "react-dom": "^18.0.0",
     "react-is": "^18.0.0",
     "simplebar": "^5.3.6",
-    "simplebar-react": "^2.3.6"
+    "simplebar-react": "^2.3.6",
+    "smooth-scroll-into-view-if-needed": "^1.1.33"
   },
   "lint-staged": {
     "*.js": "eslint --cache --fix",

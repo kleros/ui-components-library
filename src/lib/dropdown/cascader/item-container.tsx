@@ -27,8 +27,12 @@ interface IItemContainer {
   onChange: (item: IItem) => void;
 }
 
-const ItemContainer: React.FC<IItemContainer> = ({ layer, onChange }) => (
-  <BaseItemContainer>
+const ItemContainer: React.FC<IItemContainer> = ({
+  layer,
+  onChange,
+  ...props
+}) => (
+  <BaseItemContainer {...props}>
     {layer.items.map((item, i) => (
       <StyledBaseItem
         tabIndex={0}

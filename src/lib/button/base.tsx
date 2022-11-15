@@ -46,6 +46,7 @@ const BaseButton = styled.button<BaseButtonProps>`
     ${({ isLoading }) => isLoading && "visibility: hidden;"}
     font-weight: 600;
     text-align: center;
+    white-space: pre;
   }
 
   .button-svg {
