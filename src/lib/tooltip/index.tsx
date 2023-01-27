@@ -1,9 +1,9 @@
-import React from "react";
-import styled, { css } from "styled-components";
-import { borderBox, small as smallStyle } from "../../styles/common-style";
+import React from 'react';
+import styled, { css } from 'styled-components';
+import { borderBox, small as smallStyle } from '../../styles/common-style';
 
 interface TooltipBaseProps {
-  place?: "left" | "right" | "top" | "bottom";
+  place?: 'left' | 'right' | 'top' | 'bottom';
   small?: boolean;
 }
 
@@ -26,19 +26,19 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
 
     & ${StyledText} {
       ${smallStyle}
-      font-weight: 600;
-      text-align: ${small ? "center" : "left"};
+      font-weight: 100;
+      text-align: ${small ? 'center' : 'left'};
       color: ${theme.whiteBackground};
     }
 
     ::after {
-      content: "";
+      content: '';
       position: absolute;
       border-width: 8px;
       border-style: solid;
     }
 
-    ${place === "top" &&
+    ${place === 'top' &&
     css`
       bottom: calc(100% + 16px);
       left: 50%;
@@ -50,7 +50,7 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
         border-color: ${theme.primaryBlue} transparent transparent transparent;
       }
     `}
-    ${place === "right" &&
+    ${place === 'right' &&
     css`
       top: 50%;
       left: calc(100% + 16px);
@@ -62,7 +62,7 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
         border-color: transparent ${theme.primaryBlue} transparent transparent;
       }
     `}
-    ${place === "bottom" &&
+    ${place === 'bottom' &&
     css`
       top: calc(100% + 16px);
       left: 50%;
@@ -74,7 +74,7 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
         border-color: transparent transparent ${theme.primaryBlue} transparent;
       }
     `}
-    ${place === "left" &&
+    ${place === 'left' &&
     css`
       top: 50%;
       right: calc(100% + 16px);
@@ -104,7 +104,7 @@ interface TooltipProps extends TooltipBaseProps {
 }
 
 const Tooltip: React.FC<TooltipProps> = ({
-  place = "top",
+  place = 'top',
   text,
   children,
   small,
