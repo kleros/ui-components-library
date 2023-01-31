@@ -26,7 +26,7 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
 
     & ${StyledText} {
       ${smallStyle}
-      font-weight: 600;
+      font-weight: 100;
       text-align: ${small ? "center" : "left"};
       color: ${theme.whiteBackground};
     }
