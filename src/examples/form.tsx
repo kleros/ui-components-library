@@ -21,7 +21,11 @@ const Form = () => {
           // Called when select is clicked with date as args
         }}
       />
-      <Field placeholder={"eg. Escrow"} variant="success" />
+      <Field
+        placeholder={"eg. Escrow"}
+        variant="success"
+        message="success msg"
+      />
       <Searchbar />
       <Textarea
         placeholder={"eg. longer text"}
