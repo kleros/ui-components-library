@@ -3,6 +3,7 @@ import styled from "styled-components";
 import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
+import InfoIcon from "../../assets/svgs/status-icons/info.svg";
 
 import { baseInputStyle, variantColor, VariantProp } from "./field";
 import { borderBox, small, svg } from "../../styles/common-style";
@@ -17,13 +18,14 @@ const Wrapper = styled.div`
 const StyledTextarea = styled.textarea`
   resize: none;
   padding: 16px;
+  display: block;
   ${baseInputStyle}
 `;
 
 const StyledSVG = styled.svg``;
 
 const Message = styled.div<VariantProp>`
-  margin-top: 16px;
+  margin-top: 6px;
   display: flex;
   align-items: flex-start;
 
@@ -39,7 +41,6 @@ const Message = styled.div<VariantProp>`
 const StyledSmall = styled.small`
   ${small}
   position: relative;
-  top: -1px;
   text-align: justify;
   color: ${variantColor};
 `;
@@ -65,6 +66,9 @@ const Textarea: React.FC<TextareaProps> = ({
         )}
         {variant === "error" && (
           <ErrorIcon className={StyledSVG.styledComponentId} />
+        )}
+        {variant === "info" && (
+          <InfoIcon className={StyledSVG.styledComponentId} />
         )}
         <StyledSmall {...{ variant }}>{message}</StyledSmall>
       </Message>
