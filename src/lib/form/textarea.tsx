@@ -55,7 +55,6 @@ const Textarea: React.FC<TextareaProps> = ({
 }) => (
   <Wrapper {...{ className }}>
     <StyledTextarea {...{ variant, ...props }} />
-
     {message && (
       <Message {...{ variant }}>
         {variant === "success" && (
