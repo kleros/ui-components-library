@@ -3,7 +3,7 @@ import styled, { css } from "styled-components";
 import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
-import { borderBox, svg } from "../../styles/common-style";
+import { borderBox, small, svg } from "../../styles/common-style";
 
 export type VariantProp = {
   variant?: "success" | "warning" | "error" | string;
@@ -74,10 +74,27 @@ const StyledInput = styled.input`
   ${baseInputStyle}
 `;
 
+const StyledSVG = styled.svg``;
+
 export const StyledMessage = styled.small<VariantProp>`
-  line-height: 1em;
-  margin-top: 5px;
-  margin-left: 16px;
+  margin-top: 16px;
+  display: flex;
+  align-items: flex-start;
+
+  & ${StyledSVG} {
+    ${svg}
+    min-width: 16px;
+    max-width: 16px;
+    margin-right: 8px;
+    fill: ${variantColor};
+  }
+`;
+
+const StyledSmall = styled.small`
+  ${small}
+  position: relative;
+  top: -1px;
+  text-align: justify;
   color: ${variantColor};
 `;
 
@@ -95,7 +112,20 @@ const Field: React.FC<FieldProps> = ({
     {variant === "success" && <StyledSuccessIcon className="field-svg" />}
     {variant === "warning" && <StyledWarningIcon className="field-svg" />}
     {variant === "error" && <StyledErrorIcon className="field-svg" />}
-    {message && <StyledMessage {...{ variant }}>{message}</StyledMessage>}
+    {message && (
+      <StyledMessage {...{ variant }}>
+        {variant === "success" && (
+          <SuccessIcon className={StyledSVG.styledComponentId} />
+        )}
+        {variant === "warning" && (
+          <WarningIcon className={StyledSVG.styledComponentId} />
+        )}
+        {variant === "error" && (
+          <ErrorIcon className={StyledSVG.styledComponentId} />
+        )}
+        <StyledSmall {...{ variant }}>{message}</StyledSmall>
+      </StyledMessage>
+    )}
   </Wrapper>
 );
 
