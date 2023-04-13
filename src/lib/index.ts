@@ -42,4 +42,4 @@ export { default as Tooltip } from "../lib/tooltip";
 
 export { default as ScrollbarContainer } from "../lib/scrollbar";
 
-export { lightTheme, darkTheme } from "../styles/themes";
+export { lightTheme, darkTheme, veaTheme } from "../styles/themes";
