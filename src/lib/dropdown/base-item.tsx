@@ -11,7 +11,9 @@ interface IItem {
 const Item = styled.div<IItem>`
   ${borderBox}
   background: ${({ selected, theme }) =>
-    selected ? theme.mediumBlue : theme.whiteBackground};
+    selected
+      ? theme.klerosUIComponentsMediumBlue
+      : theme.klerosUIComponentsWhiteBackground};
   padding: ${({ current }) =>
     current ? "10.5px 16px 10.5px 13px" : "11.5px 16px 11.5px 13px"};
   display: flex;
@@ -21,7 +23,7 @@ const Item = styled.div<IItem>`
     !props.current &&
     css`
       :hover {
-        background: ${props.theme.mediumBlue};
+        background: ${props.theme.klerosUIComponentsMediumBlue};
         cursor: pointer;
       }
     `}

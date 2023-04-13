@@ -11,8 +11,8 @@ const Container = styled.div`
 
 const DropdownContainer = styled(_DropdownContainer)`
   ${({ theme }) => css`
-    background: ${theme.whiteBackground};
-    border: 1px solid ${theme.stroke};
+    background: ${theme.klerosUIComponentsWhiteBackground};
+    border: 1px solid ${theme.klerosUIComponentsStroke};
     border-radius: 3px;
   `}
 `;

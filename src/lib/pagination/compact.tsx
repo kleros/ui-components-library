@@ -26,13 +26,16 @@ const ArrowButton = styled.button`
     height: 24px;
     width: 24px;
     fill: ${(props) =>
-      props.disabled ? props.theme.stroke : props.theme.primaryBlue};
-    transition: fill ease ${({ theme }) => theme.transitionSpeed};
+      props.disabled
+        ? props.theme.klerosUIComponentsStroke
+        : props.theme.klerosUIComponentsPrimaryBlue};
+    transition: fill ease
+      ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
   }
 
   :hover:enabled {
     & ${StyledSVG} {
-      fill: ${({ theme }) => theme.secondaryBlue};
+      fill: ${({ theme }) => theme.klerosUIComponentsSecondaryBlue};
     }
   }
 `;

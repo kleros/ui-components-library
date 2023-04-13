@@ -6,14 +6,18 @@ import BaseItem, { IBaseItem } from "../base-item";
 export const StyledItem = styled(BaseItem)`
   border-left: 3px solid
     ${({ theme, selected }) =>
-      selected ? theme.primaryBlue : theme.whiteBackground};
+      selected
+        ? theme.klerosUIComponentsPrimaryBlue
+        : theme.klerosUIComponentsWhiteBackground};
 
   ${({ theme, selected, current }) =>
     !current &&
     css`
       :hover {
         border-left: 3px solid
-          ${selected ? theme.primaryBlue : theme.mediumBlue};
+          ${selected
+            ? theme.klerosUIComponentsPrimaryBlue
+            : theme.klerosUIComponentsMediumBlue};
       }
     `}
 `;

@@ -7,7 +7,7 @@ const StyledAccordion = styled(Accordion)`
 `;
 
 const StyledContent = styled.small`
-  color: ${({ theme }) => theme.primaryText} !important;
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText} !important;
 `;
 
 const AccordionExample = () => (

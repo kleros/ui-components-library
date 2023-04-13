@@ -28,7 +28,9 @@ const Container = styled.div<IContainer>`
             width: auto;
             flex-grow: 1;
             border-top: 1px solid
-              ${completed ? theme.primaryBlue : theme.stroke};
+              ${completed
+                ? theme.klerosUIComponentsPrimaryBlue
+                : theme.klerosUIComponentsStroke};
             margin: 12px 16px;
           }
         `}
@@ -49,7 +51,9 @@ const TextWrapper = styled.div<ITextWrapper>`
     font-size: 14px;
     line-height: 24px;
     color: ${(props) =>
-      props.active ? props.theme.primaryText : props.theme.secondaryText};
+      props.active
+        ? props.theme.klerosUIComponentsPrimaryText
+        : props.theme.klerosUIComponentsSecondaryText};
   }
 
   > small {

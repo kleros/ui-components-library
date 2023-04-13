@@ -12,10 +12,10 @@ export type VariantProp = {
 
 export const variantColor = css<VariantProp>`
   ${({ variant, theme }) => {
-    if (variant === "warning") return theme.warning;
-    if (variant === "error") return theme.error;
-    if (variant === "success") return theme.success;
-    return theme.secondaryText;
+    if (variant === "warning") return theme.klerosUIComponentsWarning;
+    if (variant === "error") return theme.klerosUIComponentsError;
+    if (variant === "success") return theme.klerosUIComponentsSuccess;
+    return theme.klerosUIComponentsSecondaryText;
   }}
 `;
 
@@ -37,36 +37,38 @@ const Wrapper = styled.div`
 `;
 
 const StyledSuccessIcon = styled(SuccessIcon)`
-  fill: ${(props) => props.theme.success};
+  fill: ${(props) => props.theme.klerosUIComponentsSuccess};
 `;
 
 const StyledWarningIcon = styled(WarningIcon)`
-  fill: ${(props) => props.theme.warning};
+  fill: ${(props) => props.theme.klerosUIComponentsWarning};
 `;
 
 const StyledErrorIcon = styled(ErrorIcon)`
-  fill: ${(props) => props.theme.error};
+  fill: ${(props) => props.theme.klerosUIComponentsError};
 `;
 
 export const baseInputStyle = css<VariantProp>`
   height: 100%;
   width: 100%;
-  background: ${(props) => props.theme.whiteBackground};
+  background: ${(props) => props.theme.klerosUIComponentsWhiteBackground};
   border: 1px solid
-    ${({ variant, theme }) => (variant ? variantColor : theme.stroke)};
+    ${({ variant, theme }) =>
+      variant ? variantColor : theme.klerosUIComponentsStroke};
   border-radius: 3px;
 
-  color: ${(props) => props.theme.primaryText};
+  color: ${(props) => props.theme.klerosUIComponentsPrimaryText};
 
   :focus {
     outline: none;
-    border: 1px solid ${(props) => props.theme.primaryBlue}40;
-    box-shadow: 0px 0px 6px ${(props) => props.theme.primaryBlue};
+    border: 1px solid ${(props) => props.theme.klerosUIComponentsPrimaryBlue}40;
+    box-shadow: 0px 0px 6px
+      ${(props) => props.theme.klerosUIComponentsPrimaryBlue};
     border-radius: 3px;
   }
 
   ::placeholder {
-    color: ${(props) => props.theme.secondaryText};
+    color: ${(props) => props.theme.klerosUIComponentsSecondaryText};
   }
 `;
 

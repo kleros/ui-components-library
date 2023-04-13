@@ -6,13 +6,13 @@ import { borderBox } from "../styles/common-style";
 const CustomScrollbarContainer = styled(SimpleBar)`
   ${borderBox}
   .simplebar-scrollbar:before {
-    background: ${({ theme }) => theme.primaryBlue};
+    background: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
   }
   .simplebar-scrollbar.simplebar-visible:before {
     opacity: 1;
   }
   .simplebar-mask {
-    background: ${({ theme }) => theme.whiteBackground};
+    background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
 `;
 
 export default CustomScrollbarContainer;

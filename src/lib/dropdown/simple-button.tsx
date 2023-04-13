@@ -15,13 +15,13 @@ const Container = styled.button`
 const StyledSmallText = styled.small`
   ${small}
   font-weight: 600;
-  color: ${({ theme }) => theme.primaryBlue};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
 `;
 
 const StyledBigText = styled.h1`
   ${h1}
   font-weight: 600;
-  color: ${({ theme }) => theme.primaryBlue};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
 `;
 
 const StyledArrow = styled(({ ignoredIsOpen, ignoredSmall, ...props }) => (
@@ -30,13 +30,14 @@ const StyledArrow = styled(({ ignoredIsOpen, ignoredSmall, ...props }) => (
   ${svg}
   width: ${({ ignoredSmall: small }) => (small ? "8" : "16")}px;
   height: ${({ ignoredSmall: small }) => (small ? "8" : "16")}px;
-  fill: ${({ theme }) => theme.primaryBlue};
+  fill: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
   ${({ ignoredIsOpen: isOpen }) =>
     isOpen &&
     css`
       transform: rotate(180deg);
     `}
-  transition: transform ease ${({ theme }) => theme.transitionSpeed};
+  transition: transform ease
+    ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
   margin-left: 8px;
 `;
 

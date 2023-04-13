@@ -18,11 +18,11 @@ const Container = styled.div<Omit<IDropdownContainer, "children">>`
     transform: scaleY(${isOpen ? "1" : "0"});
     transform-origin: top;
     transition-property: transform, visibility;
-    transition-duration: ${theme.transitionSpeed};
+    transition-duration: ${theme.klerosUIComponentsTransitionSpeed};
     transition-timing-function: ease;
     height: auto;
     background: transparent;
-    box-shadow: 0px 2px 3px ${theme.defaultShadow};
+    box-shadow: 0px 2px 3px ${theme.klerosUIComponentsDefaultShadow};
     overflow: hidden;
   `}
 `;

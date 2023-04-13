@@ -24,23 +24,23 @@ const Label = styled.small<LabelProps>`
   transform: translateX(-50%);
   bottom: 44px;
 
-  color: ${({ theme }) => theme.primaryBlue};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
 `;
 
 const StyledHandle = styled(RCHandle)<{ dragging: string }>`
   width: 30px;
   height: 30px;
   margin-top: -19px;
-  border: 3px solid ${({ theme }) => theme.primaryBlue};
-  background-color: ${({ theme }) => theme.whiteBackground};
+  border: 3px solid ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
+  background-color: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
 
   :hover {
     cursor: pointer;
-    border-color: ${({ theme }) => theme.primaryBlue};
+    border-color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
   }
 
   :active {
-    box-shadow: 0 0 5px ${({ theme }) => theme.primaryBlue};
+    box-shadow: 0 0 5px ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
   }
 `;
 

@@ -7,7 +7,7 @@ import { h2 } from "../../../styles/common-style";
 const Wrapper = styled.div`
   width: 100%;
   height: 284px;
-  border-left: 1px solid ${({ theme }) => theme.stroke};
+  border-left: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
   display: flex;
   flex-direction: column;
 `;

@@ -7,8 +7,8 @@ const StyledButton = styled.button`
   ${button}
   height: 45px;
   width: 330px;
-  background: ${({ theme }) => theme.whiteBackground};
-  border: 1px solid ${({ theme }) => theme.stroke};
+  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
+  border: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
   border-radius: 3px;
   padding: 0px 16px;
 
@@ -27,7 +27,7 @@ const StyledCalendar = styled(Calendar)`
   height: 16px;
   width: 16px;
 
-  fill: ${({ theme }) => theme.stroke};
+  fill: ${({ theme }) => theme.klerosUIComponentsStroke};
 `;
 
 interface IDisplayButton extends React.ButtonHTMLAttributes<HTMLButtonElement> {

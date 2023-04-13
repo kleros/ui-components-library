@@ -2,27 +2,19 @@ import React, { ReactNode, useRef } from "react";
 import styled from "styled-components";
 import Plus from "../../assets/svgs/accordion/plus.svg";
 import Minus from "../../assets/svgs/accordion/minus.svg";
-import { p, svg, button } from "../../styles/common-style";
+import { svg, button } from "../../styles/common-style";
 
 const StyledDiv = styled.div`
   margin: 8px 0px;
   .accordion-button {
     ${button}
     width: 100%;
-    background: ${({ theme }) => theme.primaryPurple};
+    background: ${({ theme }) => theme.klerosUIComponentsPrimaryPurple};
     border-radius: 3px;
     padding: 11.5px 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-
-    .accordion-title {
-      ${p}
-      width: fit-content;
-      font-weight: 600;
-      text-align: center;
-      color: white;
-    }
 
     .accordion-svg {
       ${svg}
@@ -40,7 +32,8 @@ interface CollapsibleProps {
 const Collapsible = styled.div<CollapsibleProps>`
   height: ${(props) => (props.expanded ? props.totalHeight.toString() : "0")}px;
   overflow: hidden;
-  transition: height ease ${({ theme }) => theme.transitionSpeed};
+  transition: height ease
+    ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
 `;
 
 const Body = styled.div`
@@ -50,15 +43,13 @@ const Body = styled.div`
 interface AccordionItemProps {
   setExpanded: React.Dispatch<React.SetStateAction<number>>;
   index: number;
-  title: string;
+  title: ReactNode;
   body: ReactNode;
-  Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   expanded?: boolean;
 }
 
 const AccordionItem: React.FC<AccordionItemProps> = ({
   title,
-  Icon,
   body,
   index,
   expanded,
@@ -71,8 +62,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
         className="accordion-button"
         onClick={() => setExpanded(expanded ? -1 : index)}
       >
-        {Icon && <Icon />}
-        <p className="accordion-title">{title}</p>
+        {title}
         {expanded ? (
           <Minus className="accordion-svg" />
         ) : (

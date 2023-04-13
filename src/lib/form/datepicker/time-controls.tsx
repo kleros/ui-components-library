@@ -5,8 +5,8 @@ import { small, button, svg } from "../../../styles/common-style";
 
 const TimeControl = styled.div`
   flex-grow: 1;
-  border-top: 1px solid ${({ theme }) => theme.stroke};
-  border-bottom: 1px solid ${({ theme }) => theme.stroke};
+  border-top: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
+  border-bottom: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
 
   display: flex;
   flex-direction: column;
@@ -15,7 +15,7 @@ const TimeControl = styled.div`
 const TimeDisplay = styled.div`
   width: 100%;
   height: 64px;
-  background-color: ${({ theme }) => theme.mediumBlue};
+  background-color: ${({ theme }) => theme.klerosUIComponentsMediumBlue};
   padding: 0px 24px;
 
   display: flex;
@@ -26,21 +26,22 @@ const TimeDisplay = styled.div`
 const StyledTime = styled.small`
   ${small}
   font-weight: 600;
-  color: ${({ theme }) => theme.primaryBlue};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
   user-select: none;
 `;
 
 const TimeButtons = styled(TimeDisplay)`
   flex-grow: 1;
-  background-color: ${({ theme }) => theme.whiteBackground};
+  background-color: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
 `;
 
 const StyledArrow = styled(LeftArrow)`
   ${svg}
   width: 16px;
   height: 16px;
-  fill: ${({ theme }) => theme.primaryBlue};
-  transition: fill ease ${({ theme }) => theme.transitionSpeed};
+  fill: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
+  transition: fill ease
+    ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
 `;
 
 const UpArrow = styled(StyledArrow)`
@@ -58,12 +59,12 @@ const UnstyledButton = styled.button`
 
   :hover {
     & ${StyledArrow} {
-      fill: ${({ theme }) => theme.secondaryBlue};
+      fill: ${({ theme }) => theme.klerosUIComponentsSecondaryBlue};
     }
   }
   :disabled {
     & ${StyledArrow} {
-      fill: ${({ theme }) => theme.stroke};
+      fill: ${({ theme }) => theme.klerosUIComponentsStroke};
     }
   }
 `;

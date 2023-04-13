@@ -39,7 +39,8 @@ const BaseButton = styled.button<BaseButtonProps>`
   border-radius: 3px;
   border: none;
 
-  transition: background ease ${(props) => props.theme.transitionSpeed};
+  transition: background ease
+    ${(props) => props.theme.klerosUIComponentsTransitionSpeed};
 
   .button-text {
     ${p}
@@ -60,7 +61,7 @@ const BaseButton = styled.button<BaseButtonProps>`
   .button-loading {
     position: absolute;
     height: 22px;
-    fill: ${({ theme }) => theme.stroke};
+    fill: ${({ theme }) => theme.klerosUIComponentsStroke};
     animation: ${breathing} 2s ease-out infinite normal;
   }
 `;

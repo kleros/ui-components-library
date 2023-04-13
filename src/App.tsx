@@ -31,8 +31,9 @@ const StyledDiv = styled.div`
   align-items: center;
   flex-wrap: wrap;
   padding: 36px 36px;
-  background: ${(props) => props.theme.lightBackground};
-  transition: background ease ${(props) => props.theme.transitionSpeed};
+  background: ${(props) => props.theme.klerosUIComponentsLightBackground};
+  transition: background ease
+    ${(props) => props.theme.klerosUIComponentsTransitionSpeed};
 `;
 
 const StyledCard = styled(Card)`
@@ -45,8 +46,9 @@ const StyledCard = styled(Card)`
   overflow: auto;
   flex-wrap: wrap;
   padding: 36px 36px;
-  background: ${(props) => props.theme.lightBackground};
-  transition: background ease ${(props) => props.theme.transitionSpeed};
+  background: ${(props) => props.theme.klerosUIComponentsLightBackground};
+  transition: background ease
+    ${(props) => props.theme.klerosUIComponentsTransitionSpeed};
 `;
 
 const StyledTabs = styled(Tabs)`

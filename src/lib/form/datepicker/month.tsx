@@ -9,8 +9,8 @@ const MonthContainer = styled.div`
   padding-top: 16px;
   display: flex;
   justify-content: center;
-  border-top: 1px solid ${({ theme }) => theme.stroke};
-  border-bottom: 1px solid ${({ theme }) => theme.stroke};
+  border-top: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
+  border-bottom: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
 `;
 
 const StyledGridContainer = styled.div`
@@ -23,7 +23,7 @@ const StyledGridContainer = styled.div`
 
 const StyledWeekDay = styled.small`
   ${small}
-  color: ${({ theme }) => theme.primaryText};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
   font-weight: 600;
   user-select: none;
 `;

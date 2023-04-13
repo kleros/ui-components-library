@@ -8,8 +8,8 @@ const StyledDayNumber = styled.small<{ isSelected: boolean }>`
   ${small}
   color: ${(props) =>
     props.isSelected
-      ? props.theme.whiteBackground
-      : props.theme.secondaryText} !important;
+      ? props.theme.klerosUIComponentsWhiteBackground
+      : props.theme.klerosUIComponentsSecondaryText} !important;
   font-weight: 600;
 `;
 
@@ -19,7 +19,9 @@ const StyledButton = styled.button<{ isSelected: boolean }>`
   width: 24px;
   border-radius: 12px;
   background-color: ${(props) =>
-    props.isSelected ? props.theme.primaryBlue : props.theme.whiteBackground};
+    props.isSelected
+      ? props.theme.klerosUIComponentsPrimaryBlue
+      : props.theme.klerosUIComponentsWhiteBackground};
   padding: 0;
   display: flex;
   justify-content: center;
@@ -27,10 +29,13 @@ const StyledButton = styled.button<{ isSelected: boolean }>`
 
   :hover {
     background-color: ${(props) =>
-      props.isSelected ? props.theme.primaryBlue : props.theme.secondaryBlue};
+      props.isSelected
+        ? props.theme.klerosUIComponentsPrimaryBlue
+        : props.theme.klerosUIComponentsSecondaryBlue};
     cursor: pointer;
     & ${StyledDayNumber} {
-      color: ${({ theme }) => theme.whiteBackground} !important;
+      color: ${({ theme }) =>
+        theme.klerosUIComponentsWhiteBackground} !important;
     }
   }
 `;

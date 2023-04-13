@@ -16,7 +16,7 @@ const Wrapper = styled.div<SmallProp>`
   position: relative;
   height: ${({ small }) => (small ? "48px" : "100px")};
   width: ${({ small }) => (small ? "300px" : "422px")};
-  background: ${({ theme }) => theme.primaryBlue};
+  background: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
   border-radius: 3px;
   padding: ${({ small }) =>
     small ? "12px 24px 12px 24px" : "16px 32px 16px 24px"};
@@ -29,7 +29,7 @@ const Wrapper = styled.div<SmallProp>`
     width: ${({ small }) => (small ? "24px" : "32px")};
     min-height: ${({ small }) => (small ? "24px" : "32px")};
     min-width: ${({ small }) => (small ? "24px" : "32px")};
-    fill: ${({ theme }) => theme.whiteBackground};
+    fill: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
   }
 `;
 
@@ -45,7 +45,7 @@ const StyledMessage = styled.small`
 
 const Text = styled.div`
   margin-left: 16px;
-  color: ${({ theme }) => theme.whiteBackground};
+  color: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
 `;
 
 const CloseButton = styled.button`
@@ -66,7 +66,7 @@ const StyledCloseIcon = styled(CloseIcon)`
   width: 8px;
   min-height: 8px;
   min-width: 8px;
-  fill: ${({ theme }) => theme.whiteBackground};
+  fill: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
 `;
 
 interface PushProps extends SmallProp, VariantProp {

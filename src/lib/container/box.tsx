@@ -3,7 +3,7 @@ import { borderBox } from "../../styles/common-style";
 
 const Box = styled.div`
   ${borderBox}
-  background: ${({ theme }) => theme.mediumBlue};
+  background: ${({ theme }) => theme.klerosUIComponentsMediumBlue};
   border-radius: 18px;
   width: 328px;
   height: 200px;

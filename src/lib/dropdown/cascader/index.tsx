@@ -14,7 +14,7 @@ interface ILayer {
 }
 
 const Wrapper = styled(DropdownContainer)`
-  border: 1px solid ${({ theme }) => theme.stroke};
+  border: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
   ${mobileStyle(css`
     width: 240px;
   `)}
@@ -23,8 +23,10 @@ const Wrapper = styled(DropdownContainer)`
 
 const Container = styled.div<{ path: ILayer[]; isOpen: boolean }>`
   ${({ theme, path, isOpen }) => css`
-    background: ${isOpen ? theme.stroke : theme.whiteBackground};
-    border-bottom: 1px solid ${({ theme }) => theme.stroke};
+    background: ${isOpen
+      ? theme.klerosUIComponentsStroke
+      : theme.klerosUIComponentsWhiteBackground};
+    border-bottom: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
     border-radius: 3px;
     display: grid;
     grid-template-columns: repeat(${path.length}, 238px) 0px;

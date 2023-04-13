@@ -14,10 +14,13 @@ const Container = styled.div<IContainer>`
   overflow: hidden;
   height: ${({ isOpen }) => (isOpen ? "350" : "0")}px;
   width: ${({ time }) => (time ? "450px" : "330px")};
-  transition: height ease ${({ theme }) => theme.transitionSpeed};
-  background: ${({ theme }) => theme.whiteBackground};
-  ${({ isOpen, theme }) => (isOpen ? `border: 1px solid ${theme.stroke}` : "")};
-  box-shadow: 0px 2px 3px ${({ theme }) => theme.defaultShadow};
+  transition: height ease
+    ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
+  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
+  ${({ isOpen, theme }) =>
+    isOpen ? `border: 1px solid ${theme.klerosUIComponentsStroke}` : ""};
+  box-shadow: 0px 2px 3px
+    ${({ theme }) => theme.klerosUIComponentsDefaultShadow};
   border-radius: 3px;
 `;
 

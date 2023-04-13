@@ -8,7 +8,7 @@ const ItemContainer = styled.div`
   flex: 1;
   width: 238px;
   height: auto;
-  background: ${({ theme }) => theme.whiteBackground};
+  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
   padding: 16px 0px;
   display: grid;
   grid-template-rows: repeat(auto-fill, minmax(0, 45px));

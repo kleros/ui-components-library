@@ -13,7 +13,7 @@ const Wrapper = styled.div`
 
 const StyledLabel = styled.small`
   ${small}
-  color: ${(props) => props.theme.primaryText};
+  color: ${(props) => props.theme.klerosUIComponentsPrimaryText};
 `;
 
 const StyledCard = styled(Card)`

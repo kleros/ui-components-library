@@ -14,7 +14,7 @@ const StyledSuccess = styled(SuccessIcon)`
   height: 24px;
   width: 24px;
   flex-basis: auto;
-  fill: ${(props) => props.theme.primaryBlue};
+  fill: ${(props) => props.theme.klerosUIComponentsPrimaryBlue};
 `;
 
 const Circle = styled.div<{ active?: boolean }>`
@@ -22,10 +22,15 @@ const Circle = styled.div<{ active?: boolean }>`
   width: 24px;
   flex-basis: auto;
   background-color: ${(props) =>
-    props.active ? props.theme.primaryBlue : props.theme.whiteBackground};
+    props.active
+      ? props.theme.klerosUIComponentsPrimaryBlue
+      : props.theme.klerosUIComponentsWhiteBackground};
   border-radius: 12px;
   border: 1px solid
-    ${(props) => (props.active ? props.theme.primaryBlue : props.theme.stroke)};
+    ${(props) =>
+      props.active
+        ? props.theme.klerosUIComponentsPrimaryBlue
+        : props.theme.klerosUIComponentsStroke};
 
   display: flex;
   justify-content: center;
@@ -33,7 +38,9 @@ const Circle = styled.div<{ active?: boolean }>`
 
   font-size: 12px;
   color: ${(props) =>
-    props.active ? props.theme.whiteBackground : props.theme.stroke};
+    props.active
+      ? props.theme.klerosUIComponentsWhiteBackground
+      : props.theme.klerosUIComponentsStroke};
 `;
 
 const Line = styled.div<{ completed?: boolean }>`
@@ -42,7 +49,9 @@ const Line = styled.div<{ completed?: boolean }>`
   flex-grow: 1;
   border-left: 1px solid
     ${(props) =>
-      props.completed ? props.theme.primaryBlue : props.theme.stroke};
+      props.completed
+        ? props.theme.klerosUIComponentsPrimaryBlue
+        : props.theme.klerosUIComponentsStroke};
   margin: 8px 0px;
 `;
 

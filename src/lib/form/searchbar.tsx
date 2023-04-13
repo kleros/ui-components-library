@@ -30,7 +30,7 @@ const StyledSearchIcon = styled(SearchIcon)`
   max-width: 16px;
   max-height: 16px;
 
-  fill: ${({ theme }) => theme.primaryText};
+  fill: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
 `;
 
 const Searchbar: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({

@@ -31,7 +31,7 @@ const TextContainer = styled.div<SideProp & VariantProp>`
     order: ${({ rightSided }) => (rightSided ? 1 : 2)};
     font-size: 14px;
     line-height: 19px;
-    color: ${({ theme }) => theme.primaryText};
+    color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
   }
 
   & ${StyledParty} {

@@ -28,7 +28,7 @@ const StyledSlider = styled.span<SwitchBaseProps>`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: ${({ theme }) => theme.stroke};
+  background-color: ${({ theme }) => theme.klerosUIComponentsStroke};
   transition: 0.4s;
   border-radius: 34px;
 
@@ -47,7 +47,7 @@ const StyledSlider = styled.span<SwitchBaseProps>`
   ${({ checked, theme, small }) =>
     checked &&
     css`
-      background-color: ${theme.primaryBlue};
+      background-color: ${theme.klerosUIComponentsPrimaryBlue};
 
       :before {
         transform: translateX(${small ? "16px" : "24px"});

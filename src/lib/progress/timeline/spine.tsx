@@ -13,9 +13,9 @@ export type VariantProp = { variant?: "accepted" | "refused" };
 
 export const variantColor = css<VariantProp>`
   ${({ variant, theme }) => {
-    if (variant === "accepted") return theme.success;
-    if (variant === "refused") return theme.error;
-    return theme.primaryBlue;
+    if (variant === "accepted") return theme.klerosUIComponentsSuccess;
+    if (variant === "refused") return theme.klerosUIComponentsError;
+    return theme.klerosUIComponentsPrimaryBlue;
   }}
 `;
 
@@ -23,7 +23,7 @@ const Circle = styled.div<VariantProp>`
   height: 16px;
   width: 16px;
   flex-basis: auto;
-  background-color: ${({ theme }) => theme.whiteBackground};
+  background-color: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
   border-radius: 8px;
   border: 2px solid ${variantColor};
 `;
@@ -32,7 +32,7 @@ const Line = styled.div`
   height: auto;
   width: 0px;
   flex-grow: 1;
-  border-left: 1px solid ${({ theme }) => theme.stroke};
+  border-left: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
 `;
 
 interface SpineProps extends VariantProp {

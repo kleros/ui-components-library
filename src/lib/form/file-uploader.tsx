@@ -19,8 +19,8 @@ const DropZone = styled.button`
   ${button}
   height: 64px;
   width: 100%;
-  background: ${({ theme }) => theme.mediumBlue};
-  border: 1px dashed ${({ theme }) => theme.primaryBlue};
+  background: ${({ theme }) => theme.klerosUIComponentsMediumBlue};
+  border: 1px dashed ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
   border-radius: 3px;
 
   display: flex;
@@ -28,14 +28,14 @@ const DropZone = styled.button`
   align-items: center;
 
   font-size: 14px;
-  color: ${({ theme }) => theme.primaryBlue};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
 `;
 
 const StyledUploadIcon = styled(UploadIcon)`
   ${svg}
   height: 24px;
   width: 24px;
-  fill: ${({ theme }) => theme.primaryBlue};
+  fill: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
 `;
 
 const FileInput = styled.input`

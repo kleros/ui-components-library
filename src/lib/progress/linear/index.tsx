@@ -20,7 +20,7 @@ const Wrapper = styled.div`
   flex-direction: column;
   align-items: center;
   font-size: 14px;
-  color: ${({ theme }) => theme.stroke};
+  color: ${({ theme }) => theme.klerosUIComponentsStroke};
 `;
 
 const StyledText = styled.p`
@@ -41,11 +41,11 @@ const LinearChart = styled.svg<LineBaseProps>`
 `;
 
 const LineBackground = styled.path`
-  stroke: ${({ theme }) => theme.stroke};
+  stroke: ${({ theme }) => theme.klerosUIComponentsStroke};
 `;
 
 const Line = styled.path<LineBaseProps>`
-  stroke: ${({ theme }) => theme.success};
+  stroke: ${({ theme }) => theme.klerosUIComponentsSuccess};
   ${({ animated, width }) =>
     animated &&
     css`
@@ -56,7 +56,7 @@ const Line = styled.path<LineBaseProps>`
 const StyledHourglass = styled(HourglassIcon)`
   ${svg}
   margin-right: 9.75px;
-  fill: ${({ theme }) => theme.error};
+  fill: ${({ theme }) => theme.klerosUIComponentsError};
 `;
 
 const TimerMessage = styled.div`
@@ -64,7 +64,7 @@ const TimerMessage = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  color: ${({ theme }) => theme.error};
+  color: ${({ theme }) => theme.klerosUIComponentsError};
   font-weight: 600;
   line-height: 1em;
 `;

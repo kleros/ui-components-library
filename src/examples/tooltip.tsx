@@ -6,7 +6,7 @@ import Card from "../lib/container/card";
 
 const StyledText = styled.p`
   ${({ theme }) => css`
-    color: ${theme.primaryText};
+    color: ${theme.klerosUIComponentsPrimaryText};
   `}
 `;
 

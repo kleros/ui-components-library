@@ -17,7 +17,7 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
     z-index: 1;
     width: max-content;
     max-width: 240px;
-    background: ${theme.primaryBlue};
+    background: ${theme.klerosUIComponentsPrimaryBlue};
     border-radius: 3px;
     padding: 13px 16px;
     display: flex;
@@ -28,7 +28,7 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
       ${smallStyle}
       font-weight: 100;
       text-align: ${small ? "center" : "left"};
-      color: ${theme.whiteBackground};
+      color: ${theme.klerosUIComponentsWhiteBackground};
     }
 
     ::after {
@@ -47,7 +47,8 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
         top: 100%;
         left: 50%;
         transform: translateX(-50%);
-        border-color: ${theme.primaryBlue} transparent transparent transparent;
+        border-color: ${theme.klerosUIComponentsPrimaryBlue} transparent
+          transparent transparent;
       }
     `}
     ${place === "right" &&
@@ -59,7 +60,8 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
         top: 50%;
         right: 100%;
         transform: translateY(-50%);
-        border-color: transparent ${theme.primaryBlue} transparent transparent;
+        border-color: transparent ${theme.klerosUIComponentsPrimaryBlue}
+          transparent transparent;
       }
     `}
     ${place === "bottom" &&
@@ -71,7 +73,8 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
         left: 50%;
         bottom: 100%;
         transform: translateX(-50%);
-        border-color: transparent transparent ${theme.primaryBlue} transparent;
+        border-color: transparent transparent
+          ${theme.klerosUIComponentsPrimaryBlue} transparent;
       }
     `}
     ${place === "left" &&
@@ -83,7 +86,8 @@ const StyledTooltip = styled.span<TooltipBaseProps>`
         top: 50%;
         left: 100%;
         transform: translateY(-50%);
-        border-color: transparent transparent transparent ${theme.primaryBlue};
+        border-color: transparent transparent transparent
+          ${theme.klerosUIComponentsPrimaryBlue};
       }
     `}
   `}

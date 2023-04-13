@@ -7,7 +7,7 @@ const Wrapper = styled.div`
   ${borderBox}
   border-bottom-left-radius: 3px;
   border-bottom-right-radius: 3px;
-  background: ${({ theme }) => theme.whiteBackground};
+  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
   padding: 8px 16px;
   display: flex;
   ${mobileStyle(css`

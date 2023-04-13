@@ -17,10 +17,14 @@ const PageButton = styled.button<{ selected?: boolean }>`
   width: 32px;
   margin: 4px;
   background: ${(props) =>
-    props.selected ? props.theme.lightBlue : props.theme.whiteBackground};
+    props.selected
+      ? props.theme.klerosUIComponentsLightBlue
+      : props.theme.klerosUIComponentsWhiteBackground};
   border: 1px solid
     ${(props) =>
-      props.selected ? props.theme.primaryBlue : props.theme.stroke};
+      props.selected
+        ? props.theme.klerosUIComponentsPrimaryBlue
+        : props.theme.klerosUIComponentsStroke};
   border-radius: 3px;
   display: flex;
   align-items: center;
@@ -28,16 +32,24 @@ const PageButton = styled.button<{ selected?: boolean }>`
 
   font-size: 14px;
   color: ${(props) =>
-    props.selected ? props.theme.primaryBlue : props.theme.primaryText};
+    props.selected
+      ? props.theme.klerosUIComponentsPrimaryBlue
+      : props.theme.klerosUIComponentsPrimaryText};
 
   :hover:enabled {
     background: ${(props) =>
-      props.selected ? props.theme.whiteBackground : props.theme.lightBlue};
+      props.selected
+        ? props.theme.klerosUIComponentsWhiteBackground
+        : props.theme.klerosUIComponentsLightBlue};
     border: 1px solid
       ${(props) =>
-        props.selected ? props.theme.primaryBlue : props.theme.secondaryBlue};
+        props.selected
+          ? props.theme.klerosUIComponentsPrimaryBlue
+          : props.theme.klerosUIComponentsSecondaryBlue};
     color: ${(props) =>
-      props.selected ? props.theme.primaryBlue : props.theme.secondaryBlue};
+      props.selected
+        ? props.theme.klerosUIComponentsPrimaryBlue
+        : props.theme.klerosUIComponentsSecondaryBlue};
   }
 `;
 
@@ -47,13 +59,16 @@ const ArrowButton = styled(PageButton)`
   & ${StyledArrow} {
     ${svg}
     fill: ${(props) =>
-      props.disabled ? props.theme.stroke : props.theme.primaryText};
-    transition: fill ease ${({ theme }) => theme.transitionSpeed};
+      props.disabled
+        ? props.theme.klerosUIComponentsStroke
+        : props.theme.klerosUIComponentsPrimaryText};
+    transition: fill ease
+      ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
   }
 
   :hover:enabled {
     & ${StyledArrow} {
-      fill: ${({ theme }) => theme.secondaryBlue};
+      fill: ${({ theme }) => theme.klerosUIComponentsSecondaryBlue};
     }
   }
 `;

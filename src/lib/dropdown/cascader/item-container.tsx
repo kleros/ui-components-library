@@ -12,7 +12,9 @@ export const StyledBaseItem = styled(BaseItem)`
     transform: rotate(180deg);
     right: 16px;
     fill: ${({ selected, theme }) =>
-      selected ? theme.primaryBlue : theme.stroke};
+      selected
+        ? theme.klerosUIComponentsPrimaryBlue
+        : theme.klerosUIComponentsStroke};
   }
 `;
 

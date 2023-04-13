@@ -10,9 +10,9 @@ const BaseTag = styled.button<BaseTagProps>`
   ${borderBox}
   ${button}
   height: 32px;
-  background: ${({ theme }) => theme.mediumBlue};
+  background: ${({ theme }) => theme.klerosUIComponentsMediumBlue};
   border: ${({ theme, active }) =>
-    active ? `1px solid ${theme.primaryBlue}` : "none"};
+    active ? `1px solid ${theme.klerosUIComponentsPrimaryBlue}` : "none"};
   border-radius: 300px;
   padding: 0 16px;
   display: flex;
@@ -22,7 +22,7 @@ const BaseTag = styled.button<BaseTagProps>`
 
 const StyledText = styled.p`
   ${p}
-  color: ${({ theme }) => theme.primaryBlue};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
 `;
 
 interface TagProps extends BaseTagProps {

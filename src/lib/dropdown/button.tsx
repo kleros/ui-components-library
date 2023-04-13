@@ -7,8 +7,8 @@ const Container = styled.button`
   ${borderBox}
   ${button}
   width: 240px;
-  background: ${({ theme }) => theme.whiteBackground};
-  border: 1px solid ${({ theme }) => theme.stroke};
+  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
+  border: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
   border-radius: 3px;
   display: flex;
   align-items: center;
@@ -22,13 +22,14 @@ const StyledArrow = styled(({ ignoredIsOpen, ...props }) => (
   ${svg}
   width: 16px;
   height: 16px;
-  fill: ${({ theme }) => theme.stroke};
+  fill: ${({ theme }) => theme.klerosUIComponentsStroke};
   ${({ ignoredIsOpen }) =>
     ignoredIsOpen &&
     css`
       transform: rotate(180deg);
     `}
-  transition: transform ease ${({ theme }) => theme.transitionSpeed};
+  transition: transform ease
+    ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
 `;
 
 interface DropdownButtonProps {

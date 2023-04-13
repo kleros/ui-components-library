@@ -18,21 +18,24 @@ const StyledTab = styled.button<{ selected?: boolean }>`
   background: none;
   border-bottom: 3px solid
     ${(props) =>
-      props.selected ? props.theme.primaryBlue : props.theme.stroke};
+      props.selected
+        ? props.theme.klerosUIComponentsPrimaryBlue
+        : props.theme.klerosUIComponentsStroke};
   display: flex;
   align-items: center;
   justify-content: center;
 
   color: ${(props) => {
-    if (props.selected) return props.theme.primaryBlue;
-    else if (props.disabled) return props.theme.stroke;
-    else return props.theme.primaryText;
+    if (props.selected) return props.theme.klerosUIComponentsPrimaryBlue;
+    else if (props.disabled) return props.theme.klerosUIComponentsStroke;
+    else return props.theme.klerosUIComponentsPrimaryText;
   }};
 
   ${(props) =>
     !props.disabled && !props.selected
       ? `:hover {
-            border-bottom: 3px solid ${props.theme.secondaryBlue};
+            border-bottom: 3px solid
+              ${props.theme.klerosUIComponentsSecondaryBlue};
           }`
       : ""}
 
@@ -43,9 +46,9 @@ const StyledTab = styled.button<{ selected?: boolean }>`
     margin-right: 16px;
 
     fill: ${(props) => {
-      if (props.selected) return props.theme.primaryBlue;
-      else if (props.disabled) return props.theme.stroke;
-      else return props.theme.primaryText;
+      if (props.selected) return props.theme.klerosUIComponentsPrimaryBlue;
+      else if (props.disabled) return props.theme.klerosUIComponentsStroke;
+      else return props.theme.klerosUIComponentsPrimaryText;
     }};
   }
 `;

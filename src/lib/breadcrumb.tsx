@@ -15,14 +15,15 @@ const Element = styled.button<{ clickable?: boolean }>`
   :hover {
     ${({ clickable, theme }) =>
       clickable
-        ? `small { color: ${theme.primaryText}; }`
+        ? `small { color: ${theme.klerosUIComponentsPrimaryText}; }`
         : `cursor: text !important`}
   }
 `;
 
 const Content = styled.small`
   ${small}
-  transition: color ease ${({ theme }) => theme.transitionSpeed};
+  transition: color ease
+    ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
 `;
 
 const Separator = styled(Content)`
@@ -30,7 +31,7 @@ const Separator = styled(Content)`
 `;
 
 const ActiveElement = styled(Content)`
-  color: ${({ theme }) => theme.primaryText};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
 `;
 
 interface BreadcrumbProps {

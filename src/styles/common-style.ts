@@ -13,7 +13,7 @@ export const h1 = css`
   font-weight: 600;
   line-height: 33px;
   margin: 0;
-  color: ${({ theme }) => theme.primaryText};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
 `;
 
 export const h2 = css`
@@ -21,7 +21,7 @@ export const h2 = css`
   font-weight: 600;
   line-height: 22px;
   margin: 0;
-  color: ${({ theme }) => theme.primaryText};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
 `;
 
 export const p = css`
@@ -29,7 +29,7 @@ export const p = css`
   font-weight: 400;
   line-height: 22px;
   margin: 0;
-  color: ${({ theme }) => theme.primaryText};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
   overflow-wrap: break-word;
 `;
 
@@ -38,7 +38,7 @@ export const small = css`
   font-weight: 400;
   line-height: 19px;
   margin: 0;
-  color: ${({ theme }) => theme.secondaryText};
+  color: ${({ theme }) => theme.klerosUIComponentsSecondaryText};
   overflow-wrap: break-word;
 `;
 

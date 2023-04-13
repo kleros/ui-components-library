@@ -10,10 +10,10 @@ type VariantProp = { variant: "success" | "warning" | "error" | "info" };
 
 const variantColor = css<VariantProp>`
   ${({ theme, variant }) => {
-    if (variant === "success") return theme.success;
-    if (variant === "warning") return theme.warning;
-    if (variant === "error") return theme.error;
-    return theme.primaryBlue;
+    if (variant === "success") return theme.klerosUIComponentsSuccess;
+    if (variant === "warning") return theme.klerosUIComponentsWarning;
+    if (variant === "error") return theme.klerosUIComponentsError;
+    return theme.klerosUIComponentsPrimaryBlue;
   }}
 `;
 
@@ -24,7 +24,7 @@ const Wrapper = styled.div<VariantProp>`
   min-width: 328px;
   width: fit-content;
   height: fit-content;
-  background: ${({ theme }) => theme.whiteBackground};
+  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
   border: 1px solid ${variantColor};
   border-radius: 3px;
   padding: 16px 24px;
@@ -46,7 +46,7 @@ const StyledTitle = styled.h2<VariantProp>`
 
 const StyledMessage = styled.small`
   ${small}
-  color: ${({ theme }) => theme.primaryText};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
 `;
 
 const Text = styled.div<VariantProp>`

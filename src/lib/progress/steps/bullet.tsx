@@ -22,7 +22,9 @@ const TextContainer = styled.div<{ active?: boolean }>`
     font-size: 14px;
     line-height: 19px;
     color: ${(props) =>
-      props.active ? props.theme.primaryText : props.theme.secondaryText};
+      props.active
+        ? props.theme.klerosUIComponentsPrimaryText
+        : props.theme.klerosUIComponentsSecondaryText};
   }
 
   & ${StyledBody} {

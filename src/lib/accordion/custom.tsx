@@ -1,7 +1,7 @@
 import React, { ReactNode, useState } from "react";
 import styled from "styled-components";
 import AccordionItem from "./accordion-item";
-import { p, borderBox } from "../../styles/common-style";
+import { borderBox } from "../../styles/common-style";
 
 const Wrapper = styled.div`
   ${borderBox}
@@ -11,31 +11,15 @@ const Wrapper = styled.div`
 `;
 
 interface AccordionItem {
-  title: string;
+  title: ReactNode;
   body: ReactNode;
-  Icon?: React.FC<React.SVGAttributes<SVGElement>>;
 }
 
 interface AccordionProps {
   items: AccordionItem[];
 }
 
-const AccordionTitle = styled.p`
-  ${p}
-  width: fit-content;
-  font-weight: 600;
-  text-align: center;
-  color: white;
-`;
-
-const DefaultTitle: React.FC<{ item: AccordionItem }> = ({ item }) => (
-  <>
-    {item.Icon && <item.Icon />}
-    <AccordionTitle>{item.title}</AccordionTitle>
-  </>
-);
-
-const Accordion: React.FC<AccordionProps> = ({ items, ...props }) => {
+const CustomAccordion: React.FC<AccordionProps> = ({ items, ...props }) => {
   const [expanded, setExpanded] = useState(-1);
   return (
     <Wrapper {...props}>
@@ -43,7 +27,7 @@ const Accordion: React.FC<AccordionProps> = ({ items, ...props }) => {
         <AccordionItem
           key={index}
           index={index}
-          title={<DefaultTitle {...{ item }} />}
+          title={item.title}
           body={item.body}
           setExpanded={setExpanded}
           expanded={expanded === index}
@@ -53,4 +37,4 @@ const Accordion: React.FC<AccordionProps> = ({ items, ...props }) => {
   );
 };
 
-export default Accordion;
+export default CustomAccordion;

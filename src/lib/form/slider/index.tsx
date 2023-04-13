@@ -14,13 +14,13 @@ const Wrapper = styled.div`
 const StyledSlider = styled(RCSlider)`
   width: 100%;
   .rc-slider-handle-click-focused:focus {
-    border-color: ${(props) => props.theme.primaryBlue};
+    border-color: ${(props) => props.theme.klerosUIComponentsPrimaryBlue};
   }
 `;
 
 const StyledLabel = styled.small`
   ${small}
-  color: ${(props) => props.theme.primaryText};
+  color: ${(props) => props.theme.klerosUIComponentsPrimaryText};
 `;
 
 const Labels = styled.div`
@@ -58,7 +58,7 @@ const Slider: React.FC<SliderBaseProps & RCSliderProps> = ({
       )}
       railStyle={{
         height: "8px",
-        backgroundColor: props.theme.stroke,
+        backgroundColor: props.theme.klerosUIComponentsStroke,
         borderRadius: "30px",
         cursor: "pointer",
       }}
@@ -66,7 +66,7 @@ const Slider: React.FC<SliderBaseProps & RCSliderProps> = ({
         [
           {
             height: "8px",
-            backgroundColor: props.theme.primaryBlue,
+            backgroundColor: props.theme.klerosUIComponentsPrimaryBlue,
             borderRadius: "30px",
             cursor: "pointer",
           },

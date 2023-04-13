@@ -20,11 +20,12 @@ const StyledArrow = styled(LeftArrow)`
   ${svg}
   width: 16px;
   height: 16px;
-  fill: ${({ theme }) => theme.primaryBlue};
-  transition: fill ease ${({ theme }) => theme.transitionSpeed};
+  fill: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
+  transition: fill ease
+    ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
 
   :hover {
-    fill: ${({ theme }) => theme.secondaryBlue};
+    fill: ${({ theme }) => theme.klerosUIComponentsSecondaryBlue};
   }
 `;
 const RightArrow = styled(StyledArrow)`

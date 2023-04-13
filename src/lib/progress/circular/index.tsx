@@ -21,12 +21,14 @@ const CircularChart = styled.svg`
 `;
 
 const CircleBackground = styled.path`
-  stroke: ${({ theme }) => theme.stroke};
+  stroke: ${({ theme }) => theme.klerosUIComponentsStroke};
 `;
 
 const Circle = styled.path<ProgressBaseProps & { circ: number }>`
   stroke: ${(props) =>
-    props.progress < 100 ? props.theme.primaryBlue : props.theme.success};
+    props.progress < 100
+      ? props.theme.klerosUIComponentsPrimaryBlue
+      : props.theme.klerosUIComponentsSuccess};
   ${({ animated, circ }) =>
     animated &&
     css`
@@ -35,7 +37,7 @@ const Circle = styled.path<ProgressBaseProps & { circ: number }>`
 `;
 
 const Percentage = styled.text`
-  fill: ${({ theme }) => theme.primaryText};
+  fill: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
 `;
 
 interface CircularProps extends ProgressBaseProps {

@@ -13,7 +13,7 @@ const Wrapper = styled.label<RadioBaseProps>`
   position: relative;
   cursor: pointer;
   user-select: none;
-  color: ${({ theme }) => theme.primaryText};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
   ${({ small }) =>
     small
       ? css`
@@ -36,7 +36,7 @@ const StyledRadio = styled.span<RadioBaseProps>`
   position: absolute;
   top: 0;
   left: 0;
-  border: 1px solid ${({ theme }) => theme.stroke};
+  border: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
   border-radius: 50%;
   ${({ small }) =>
     small
@@ -54,7 +54,7 @@ const StyledRadio = styled.span<RadioBaseProps>`
     position: absolute;
     display: none;
     border-radius: 50%;
-    background: ${({ theme }) => theme.primaryBlue};
+    background: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
     ${({ small }) =>
       small
         ? css`
@@ -74,8 +74,8 @@ const StyledRadio = styled.span<RadioBaseProps>`
   ${({ theme, checked }) =>
     checked &&
     css`
-      background: ${theme.whiteBackground};
-      border: 1px solid ${theme.primaryBlue};
+      background: ${theme.klerosUIComponentsWhiteBackground};
+      border: 1px solid ${theme.klerosUIComponentsPrimaryBlue};
 
       :after {
         display: block;

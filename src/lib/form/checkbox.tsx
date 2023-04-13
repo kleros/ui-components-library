@@ -14,7 +14,7 @@ const Wrapper = styled.label<CheckboxBaseProps>`
   position: relative;
   cursor: pointer;
   user-select: none;
-  color: ${({ theme }) => theme.primaryText};
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
   ${({ small }) =>
     small
       ? css`
@@ -43,7 +43,7 @@ const StyledCheckmark = styled(CheckmarkIcon)<
   top: 0;
   left: 0;
   border-radius: 3px;
-  border: 1px solid ${({ theme }) => theme.stroke};
+  border: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
   ${({ $small }) =>
     $small
       ? css`
@@ -60,7 +60,7 @@ const StyledCheckmark = styled(CheckmarkIcon)<
   ${({ theme, checked }) =>
     checked &&
     css`
-      background: ${theme.primaryBlue};
+      background: ${theme.klerosUIComponentsPrimaryBlue};
       border: none;
 
       :after {
