@@ -1,4 +1,5 @@
 export { default as Accordion } from "./accordion";
+export { default as CustomAccordion } from "./accordion/custom";
 
 export { default as Button } from "./button";
 
