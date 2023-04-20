@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import styled from "styled-components";
-import { useElementSize } from "usehooks-ts";
+import { useElementSize } from "../../hooks/useElementSize";
 import Plus from "../../assets/svgs/accordion/plus.svg";
 import Minus from "../../assets/svgs/accordion/minus.svg";
 import { svg, button } from "../../styles/common-style";
