@@ -4,6 +4,7 @@ import { borderBox, p, button } from "../../styles/common-style";
 
 interface BaseTagProps {
   active?: boolean;
+  as?: "div" | "span";
 }
 
 const BaseTag = styled.button<BaseTagProps>`
@@ -29,8 +30,8 @@ interface TagProps extends BaseTagProps {
   text: string;
 }
 
-const Tag: React.FC<TagProps> = ({ text, active, ...props }) => (
-  <BaseTag {...{ active, ...props }}>
+const Tag: React.FC<TagProps> = ({ text, active, as, ...props }) => (
+  <BaseTag {...{ active, as, ...props }}>
     <StyledText>{text}</StyledText>
   </BaseTag>
 );
