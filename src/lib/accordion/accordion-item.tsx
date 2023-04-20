@@ -1,5 +1,6 @@
-import React, { ReactNode, useRef } from "react";
+import React, { ReactNode } from "react";
 import styled from "styled-components";
+import { useElementSize } from "usehooks-ts";
 import Plus from "../../assets/svgs/accordion/plus.svg";
 import Minus from "../../assets/svgs/accordion/minus.svg";
 import { svg, button } from "../../styles/common-style";
@@ -55,7 +56,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   expanded,
   setExpanded,
 }) => {
-  const heightRef = useRef<number>(0);
+  const [ref, { height }] = useElementSize();
   return (
     <StyledDiv>
       <button
@@ -69,10 +70,8 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
           <Plus className="accordion-svg" />
         )}
       </button>
-      <Collapsible expanded={expanded} totalHeight={heightRef.current}>
-        <Body ref={(ref) => (heightRef.current = ref?.clientHeight || 0)}>
-          {body}
-        </Body>
+      <Collapsible expanded={expanded} totalHeight={height}>
+        <Body ref={ref}> {body} </Body>
       </Collapsible>
     </StyledDiv>
   );
