@@ -92,12 +92,14 @@ interface CompactPaginationProps {
   //eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function;
   className?: string;
+  disableNumbers?: boolean;
 }
 
 const CompactPagination: React.FC<CompactPaginationProps> = ({
   currentPage,
   numPages,
   callback,
+  disableNumbers,
   className,
 }) => {
   const [
@@ -121,6 +123,7 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
           key={i}
           selected={currentPage === i}
           onClick={() => goToPage(i)}
+          disabled={disableNumbers}
         >
           {i}
         </PageButton>
