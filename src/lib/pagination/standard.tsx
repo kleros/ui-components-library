@@ -51,6 +51,10 @@ const PageButton = styled.button<{ selected?: boolean }>`
         ? props.theme.klerosUIComponentsPrimaryBlue
         : props.theme.klerosUIComponentsSecondaryBlue};
   }
+
+  :hover:disabled {
+    cursor: default;
+  }
 `;
 
 const StyledArrow = styled.svg``;
@@ -86,20 +90,22 @@ const RightArrow = styled(ArrowButton)`
   }
 `;
 
-interface CompactPaginationProps {
+interface StandardPaginationProps {
   currentPage: number;
   numPages: number;
   //eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function;
   className?: string;
   disableNumbers?: boolean;
+  hideNumbers?: boolean;
 }
 
-const CompactPagination: React.FC<CompactPaginationProps> = ({
+const StandardPagination: React.FC<StandardPaginationProps> = ({
   currentPage,
   numPages,
   callback,
   disableNumbers,
+  hideNumbers,
   className,
 }) => {
   const [
@@ -118,16 +124,17 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
       <LeftArrow disabled={minPageReached} onClick={decrementPage}>
         <Arrow className={StyledArrow.styledComponentId} />
       </LeftArrow>
-      {getPageRange().map((i) => (
-        <PageButton
-          key={i}
-          selected={currentPage === i}
-          onClick={() => goToPage(i)}
-          disabled={disableNumbers}
-        >
-          {i}
-        </PageButton>
-      ))}
+      {!hideNumbers &&
+        getPageRange().map((i) => (
+          <PageButton
+            key={i}
+            selected={currentPage === i}
+            onClick={() => goToPage(i)}
+            disabled={disableNumbers}
+          >
+            {i}
+          </PageButton>
+        ))}
       <RightArrow disabled={maxPageReached} onClick={incrementPage}>
         <Arrow className={StyledArrow.styledComponentId} />
       </RightArrow>
@@ -135,4 +142,4 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
   );
 };
 
-export default CompactPagination;
+export default StandardPagination;
