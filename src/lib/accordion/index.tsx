@@ -14,6 +14,7 @@ interface AccordionItem {
   title: string;
   body: ReactNode;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
+  icon?: ReactNode;
 }
 
 interface AccordionProps {
@@ -25,12 +26,12 @@ const AccordionTitle = styled.p`
   width: fit-content;
   font-weight: 600;
   text-align: center;
-  color: white;
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
 `;
 
 const DefaultTitle: React.FC<{ item: AccordionItem }> = ({ item }) => (
   <>
-    {item.Icon && <item.Icon />}
+    {item.icon ?? (item.Icon && <item.Icon />)}
     <AccordionTitle>{item.title}</AccordionTitle>
   </>
 );

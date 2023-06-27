@@ -57,6 +57,7 @@ interface TabsItem {
   text: string;
   value: any;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
+  icon?: React.ReactNode;
   disabled?: boolean;
 }
 
@@ -70,14 +71,14 @@ interface TabsProps {
 const Tabs: React.FC<TabsProps> = ({ items, ...props }) => {
   return (
     <Wrapper {...props}>
-      {items.map(({ Icon, text, value, disabled }) => (
+      {items.map(({ Icon, icon, text, value, disabled }) => (
         <StyledTab
           disabled={disabled}
           selected={value === props.currentValue}
           key={value}
           onClick={() => props.callback(value)}
         >
-          {Icon && <Icon className={StyledSVG.styledComponentId} />}
+          {icon ?? (Icon && <Icon className={StyledSVG.styledComponentId} />)}
           {text}
         </StyledTab>
       ))}

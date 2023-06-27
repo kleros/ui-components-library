@@ -9,6 +9,7 @@ interface ButtonProps extends Omit<BaseButtonProps, "$loading"> {
   disabled?: boolean;
   text: string;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
+  icon?: React.ReactNode;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
@@ -16,6 +17,7 @@ const Button: React.FC<ButtonProps> = ({
   text,
   variant,
   Icon,
+  icon,
   onClick,
   isLoading,
   ...props
@@ -27,7 +29,7 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <ButtonType {...{ variant, onClick, isLoading, ...props }}>
       {isLoading && <KlerosSymbol className="button-loading" />}
-      {Icon && <Icon className="button-svg" />}
+      {icon ?? (Icon && <Icon className="button-svg" />)}
       <p className="button-text">{text}</p>
     </ButtonType>
   );

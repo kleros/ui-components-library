@@ -52,6 +52,7 @@ export interface IBaseItem
     Omit<React.HTMLAttributes<HTMLDivElement>, "onClick"> {
   text: string;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
+  icon?: React.ReactNode;
   dot?: string;
   onClick?: () => void;
 }
@@ -59,6 +60,7 @@ export interface IBaseItem
 const BaseItem: React.FC<IBaseItem> = ({
   text,
   Icon,
+  icon,
   dot,
   onClick,
   ...props
@@ -67,7 +69,7 @@ const BaseItem: React.FC<IBaseItem> = ({
     onKeyPress={(e) => (onClick && e.key === "Enter" ? onClick() : undefined)}
     {...{ onClick, ...props }}
   >
-    {Icon && <Icon className="item-icon" />}
+    {icon ?? (Icon && <Icon className="item-icon" />)}
     {dot && <StyledDot color={dot} />}
     <StyledText>{text}</StyledText>
   </Item>
