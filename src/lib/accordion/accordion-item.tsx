@@ -21,7 +21,7 @@ const StyledDiv = styled.div`
       ${svg}
       height: 16px;
       width: 16px;
-      fill: ${({ theme }) => theme.klerosUIComponentsSecondaryText};
+      fill: ${({ theme }) => theme.klerosUIComponentsLightPurple};
     }
   }
 `;
