@@ -26,7 +26,6 @@ const AccordionTitle = styled.p`
   width: fit-content;
   font-weight: 600;
   text-align: center;
-  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
 `;
 
 const DefaultTitle: React.FC<{ item: AccordionItem }> = ({ item }) => (
