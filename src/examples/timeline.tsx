@@ -2,6 +2,8 @@ import React from "react";
 import styled from "styled-components";
 import Steps from "../lib/progress/steps";
 import Timeline from "../lib/progress/timeline";
+import CustomTimeline from "../lib/progress/timeline/custom";
+import Circle from "../assets/svgs/check-circle-outline.svg";
 
 const StyledSteps = styled(Steps)`
   height: ${(props) => (props.horizontal ? "auto" : "300px")};
@@ -45,6 +47,23 @@ const TimelineProgress = () => (
           party: "bob.eth",
           subtitle: "08 Jan 2019 02:00 UTC",
           variant: "refused",
+        },
+      ]}
+    />
+    <CustomTimeline
+      items={[
+        {
+          title: "Pay 250 DAI",
+          party: "alice.eth",
+          subtitle: "06 Jul 2023 12:00 UTC",
+          variant: "#4D00B4",
+          Icon: Circle,
+        },
+        {
+          title: "Jury Decision - Round 1",
+          party: "No",
+          subtitle: "06 Jul 2023 12:00 UTC",
+          variant: "#ca2314",
         },
       ]}
     />

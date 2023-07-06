@@ -24,8 +24,7 @@ const TextContainer = styled.div<SideProp & VariantProp>`
   margin-${({ rightSided }) => (rightSided ? "left" : "right")}: 24px;
   order: ${({ rightSided }) => (rightSided ? 1 : -1)};
   display: flex;
-  flex-direction: column;
-
+  flex-direction: column;  
   & ${StyledTitle} {
     ${h2}
     order: ${({ rightSided }) => (rightSided ? 1 : 2)};
@@ -38,6 +37,7 @@ const TextContainer = styled.div<SideProp & VariantProp>`
     ${p}
     order: ${({ rightSided }) => (rightSided ? 2 : 1)};
     margin-${({ rightSided }) => (rightSided ? "left" : "right")}: 8px;
+    
     font-size: 14px;
     line-height: 19px;
     color: ${variantColor};
@@ -61,16 +61,17 @@ interface BulletProps extends VariantProp, SideProp {
   party: string;
   subtitle: string;
   active?: boolean;
+  Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   line?: boolean;
 }
 
 const Bullet: React.FC<BulletProps> = (props) => {
   const { title, party, subtitle, ...restProps } = props;
-  const { rightSided, variant, line, ...wrapperProps } = restProps;
+  const { rightSided, variant, line, Icon, ...wrapperProps } = restProps;
 
   return (
     <Wrapper {...{ rightSided }} {...wrapperProps}>
-      <Spine {...{ variant, line }} />
+      <Spine {...{ variant, line, Icon }} />
       <TextContainer {...{ variant, rightSided }}>
         <PartyTitleContainer>
           <StyledTitle>{title}</StyledTitle>
