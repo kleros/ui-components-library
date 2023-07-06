@@ -37,6 +37,7 @@ export { default as CircularProgress } from "../lib/progress/circular";
 
 export { default as Steps } from "../lib/progress/steps";
 export { default as Timeline } from "../lib/progress/timeline";
+export { default as CustomTimeline } from "../lib/progress/timeline/custom";
 
 export { default as Tag } from "../lib/tag";
 export { default as Tooltip } from "../lib/tooltip";
