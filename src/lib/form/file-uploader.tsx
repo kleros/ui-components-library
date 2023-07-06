@@ -13,11 +13,12 @@ type VariantProp = { variant?: "success" | "warning" | "error" | "info" };
 const Wrapper = styled.div`
   ${borderBox}
   width: 200px;
+  height: 64px;
 `;
 
 const DropZone = styled.button`
   ${button}
-  height: 64px;
+  height: 100%;
   width: 100%;
   background: ${({ theme }) => theme.klerosUIComponentsMediumBlue};
   border: 1px dashed ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
@@ -71,12 +72,14 @@ interface FileUploaderProps extends VariantProp {
   callback: Function;
   msg?: string;
   info?: boolean;
+  className?: string;
 }
 
 const FileUploader: React.FC<FileUploaderProps> = ({
   callback,
   msg,
   variant,
+  className,
   ...props
 }) => {
   const fileInputRef = useRef<any>(); //! type
@@ -103,7 +106,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   };
 
   return (
-    <Wrapper>
+    <Wrapper {...{ className }}>
       <DropZone
         onClick={() => fileInputRef?.current.click()}
         onDrop={(e) => handleDrop(e)}
