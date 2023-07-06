@@ -9,12 +9,15 @@ const Wrapper = styled.div`
   align-items: center;
 `;
 
-export type VariantProp = { variant?: "accepted" | "refused" };
+const colorRegex = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
+
+export type VariantProp = { variant?: "accepted" | "refused" | string };
 
 export const variantColor = css<VariantProp>`
   ${({ variant, theme }) => {
     if (variant === "accepted") return theme.klerosUIComponentsSuccess;
     if (variant === "refused") return theme.klerosUIComponentsError;
+    if (variant && colorRegex.test(variant)) return variant;
     return theme.klerosUIComponentsPrimaryBlue;
   }}
 `;
@@ -38,11 +41,12 @@ const Line = styled.div`
 interface SpineProps extends VariantProp {
   active?: boolean;
   line?: boolean;
+  Icon?: React.FC<React.SVGAttributes<SVGElement>>;
 }
 
-const Spine: React.FC<SpineProps> = ({ variant, line }) => (
+const Spine: React.FC<SpineProps> = ({ variant, line, Icon }) => (
   <Wrapper>
-    <Circle {...{ variant }} />
+    {Icon ? <Icon /> : <Circle {...{ variant }} />}
     {line && <Line />}
   </Wrapper>
 );
