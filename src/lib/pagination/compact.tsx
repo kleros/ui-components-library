@@ -2,7 +2,7 @@ import React, { ReactNode } from "react";
 import styled from "styled-components";
 import usePagination from "../../hooks/pagination/use-pagination";
 import Arrow from "../../assets/svgs/arrows/circle-left.svg";
-import { borderBox, button, svg } from "../../styles/common-style";
+import { borderBox, button, small, svg } from "../../styles/common-style";
 
 const Wrapper = styled.div`
   ${borderBox}
@@ -40,6 +40,11 @@ const ArrowButton = styled.button`
   }
 `;
 
+const StyledLabel = styled.small`
+  ${small}
+  color: ${(props) => props.theme.klerosUIComponentsPrimaryText};
+`;
+
 const LeftArrow = styled(ArrowButton)`
   margin-left: 16px;
 `;
@@ -73,7 +78,7 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
 
   return (
     <Wrapper {...{ className }}>
-      {label}
+      <StyledLabel>{label}</StyledLabel>
       <LeftArrow disabled={minPageReached} onClick={decrementPage}>
         <Arrow className={StyledSVG.styledComponentId} />
       </LeftArrow>

@@ -69,6 +69,7 @@ export const baseInputStyle = css<VariantProp>`
 
   ::placeholder {
     color: ${(props) => props.theme.klerosUIComponentsSecondaryText};
+    opacity: 0.5;
   }
 `;
 
