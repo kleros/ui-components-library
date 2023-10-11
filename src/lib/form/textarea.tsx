@@ -19,6 +19,7 @@ const StyledTextarea = styled.textarea`
   resize: none;
   padding: 16px;
   display: block;
+  font-family: inherit;
   ${baseInputStyle}
 `;
 
