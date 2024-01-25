@@ -26,7 +26,7 @@ const StyledTextarea = styled.textarea`
 const StyledSVG = styled.svg``;
 
 const Message = styled.div<VariantProp>`
-  margin-top: 6px;
+  margin-top: 12px;
   display: flex;
   align-items: flex-start;
 
