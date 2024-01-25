@@ -62,19 +62,21 @@ const TextWrapper = styled.div<ITextWrapper>`
     line-height: 16px;
   }
 
-  ${mobileStyle(css`
-    position: absolute;
-    top: 24px;
-    left: 0;
-    margin-left: 0px;
-    transform: translateX(calc(-50% + 12px));
-    align-items: center;
-    text-align: center;
+  ${mobileStyle(
+    () => css`
+      position: absolute;
+      top: 24px;
+      left: 0;
+      margin-left: 0px;
+      transform: translateX(calc(-50% + 12px));
+      align-items: center;
+      text-align: center;
 
-    > h2 {
-      line-height: 19px;
-    }
-  `)}
+      > h2 {
+        line-height: 19px;
+      }
+    `
+  )}
 `;
 
 interface HorizontalBulletProps extends IContainer, ITextWrapper {

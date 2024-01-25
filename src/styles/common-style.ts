@@ -1,10 +1,15 @@
-import { css, FlattenSimpleInterpolation } from "styled-components";
+import {
+  css,
+  DefaultTheme,
+  FlattenInterpolation,
+  ThemeProps,
+} from "styled-components";
 
-export const mobileStyle: (
-  style: FlattenSimpleInterpolation
-) => FlattenSimpleInterpolation = (style) => css`
+export const mobileStyle = (
+  styleFn: () => FlattenInterpolation<ThemeProps<DefaultTheme>>
+) => css`
   @media (max-width: 900px) {
-    ${style}
+    ${() => styleFn()}
   }
 `;
 

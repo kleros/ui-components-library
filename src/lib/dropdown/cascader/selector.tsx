@@ -10,9 +10,11 @@ const Wrapper = styled.div`
   background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
   padding: 8px 16px;
   display: flex;
-  ${mobileStyle(css`
-    justify-content: center;
-  `)}
+  ${mobileStyle(
+    () => css`
+      justify-content: center;
+    `
+  )}
   justify-content: end;
   align-items: center;
 `;
