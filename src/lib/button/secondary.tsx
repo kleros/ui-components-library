@@ -2,24 +2,41 @@ import styled from "styled-components";
 import BaseButton from "./base";
 
 const SecondaryButton = styled(BaseButton)`
-  background: ${(props) => props.theme.klerosUIComponentsWhiteBackground};
+  background: ${(props) =>
+    props.disabled
+      ? props.theme.klerosUIComponentsLightGrey
+      : props.theme.klerosUIComponentsWhiteBackground};
   border: ${(props) =>
-    "1px solid " + props.theme.klerosUIComponentsPrimaryBlue};
+    props.disabled
+      ? `1px solid ${props.theme.klerosUIComponentsStroke}`
+      : `1px solid ${props.theme.klerosUIComponentsPrimaryBlue}`};
 
   .button-text {
-    color: ${(props) => props.theme.klerosUIComponentsPrimaryBlue};
+    color: ${(props) =>
+      props.disabled
+        ? props.theme.klerosUIComponentsStroke
+        : props.theme.klerosUIComponentsPrimaryBlue};
   }
 
   .button-svg {
-    fill: ${(props) => props.theme.klerosUIComponentsPrimaryBlue};
+    fill: ${(props) =>
+      props.disabled
+        ? props.theme.klerosUIComponentsStroke
+        : props.theme.klerosUIComponentsPrimaryBlue};
   }
 
   .button-loading {
-    fill: ${(props) => props.theme.klerosUIComponentsPrimaryBlue};
+    fill: ${(props) =>
+      props.disabled
+        ? props.theme.klerosUIComponentsStroke
+        : props.theme.klerosUIComponentsPrimaryBlue};
   }
 
   :hover {
-    background: ${(props) => props.theme.klerosUIComponentsMediumBlue};
+    background: ${(props) =>
+      props.disabled
+        ? props.theme.klerosUIComponentsLightGrey
+        : props.theme.klerosUIComponentsMediumBlue};
   }
 `;
 
