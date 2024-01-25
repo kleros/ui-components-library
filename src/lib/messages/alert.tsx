@@ -4,53 +4,79 @@ import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 import InfoIcon from "../../assets/svgs/status-icons/info.svg";
-import { borderBox, svg, h2, small } from "../../styles/common-style";
 
 type VariantProp = { variant: "success" | "warning" | "error" | "info" };
 
 const variantColor = css<VariantProp>`
   ${({ theme, variant }) => {
-    if (variant === "success") return theme.klerosUIComponentsSuccess;
-    if (variant === "warning") return theme.klerosUIComponentsWarning;
-    if (variant === "error") return theme.klerosUIComponentsError;
-    return theme.klerosUIComponentsPrimaryBlue;
+    switch (variant) {
+      case "success":
+        return css`
+          color: ${theme.klerosUIComponentsSuccess};
+        `;
+      case "warning":
+        return css`
+          color: ${theme.klerosUIComponentsWarning};
+        `;
+      case "error":
+        return css`
+          color: ${theme.klerosUIComponentsError};
+        `;
+      case "info":
+      default:
+        return css`
+          color: ${theme.klerosUIComponentsPrimaryBlue};
+        `;
+    }
   }}
 `;
 
-const StyledSVG = styled.svg``;
+const borderColor = ({
+  theme,
+  variant,
+}: {
+  theme: any;
+  variant: VariantProp["variant"];
+}) => {
+  const colors = {
+    success: theme.klerosUIComponentsSuccess,
+    warning: theme.klerosUIComponentsWarning,
+    error: theme.klerosUIComponentsError,
+    info: theme.klerosUIComponentsPrimaryBlue,
+  };
+  return colors[variant];
+};
 
 const Wrapper = styled.div<VariantProp>`
-  ${borderBox}
-  min-width: 328px;
-  width: fit-content;
-  height: fit-content;
-  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
-  border: 1px solid ${variantColor};
-  border-radius: 3px;
-  padding: 16px 24px;
   display: flex;
   align-items: center;
+  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
+  border: 1px solid ${({ theme, variant }) => borderColor({ theme, variant })};
+  border-radius: 3px;
+  padding: 16px 24px;
+`;
 
-  & ${StyledSVG} {
-    ${svg}
+const IconWrapper = styled.div<VariantProp>`
+  ${variantColor}
+  svg {
+    fill: currentColor;
     height: 24px;
     width: 24px;
-    fill: ${variantColor};
   }
 `;
 
+const Text = styled.div`
+  margin-left: 16px;
+`;
+
 const StyledTitle = styled.h2<VariantProp>`
-  ${h2}
-  color: ${variantColor};
+  ${variantColor}
+  font-size: 16px;
+  margin: 0;
 `;
 
 const StyledMessage = styled.small`
-  ${small}
   color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
-`;
-
-const Text = styled.div<VariantProp>`
-  margin-left: 16px;
 `;
 
 interface AlertProps extends VariantProp {
@@ -60,18 +86,14 @@ interface AlertProps extends VariantProp {
 
 const Alert: React.FC<AlertProps> = ({ variant, title, msg }) => (
   <Wrapper variant={variant}>
-    {variant === "success" && (
-      <SuccessIcon className={StyledSVG.styledComponentId} />
-    )}
-    {variant === "warning" && (
-      <WarningIcon className={StyledSVG.styledComponentId} />
-    )}
-    {variant === "error" && (
-      <ErrorIcon className={StyledSVG.styledComponentId} />
-    )}
-    {variant === "info" && <InfoIcon className={StyledSVG.styledComponentId} />}
-    <Text {...{ variant }}>
-      <StyledTitle {...{ variant }}>{title}</StyledTitle>
+    <IconWrapper variant={variant}>
+      {variant === "success" && <SuccessIcon />}
+      {variant === "warning" && <WarningIcon />}
+      {variant === "error" && <ErrorIcon />}
+      {variant === "info" && <InfoIcon />}
+    </IconWrapper>
+    <Text>
+      <StyledTitle variant={variant}>{title}</StyledTitle>
       <StyledMessage>{msg}</StyledMessage>
     </Text>
   </Wrapper>

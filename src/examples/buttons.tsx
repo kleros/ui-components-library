@@ -8,6 +8,7 @@ const Buttons = () => (
     <Button small text="Get help" Icon={Telegram} />
     <Button disabled isLoading text="Hello" />
     <Button variant="secondary" text="Hello" />
+    <Button variant="secondary" isLoading disabled text="Hello" />
     <Button variant="tertiary" small text="Hello" />
   </>
 );

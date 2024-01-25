@@ -15,9 +15,11 @@ interface ILayer {
 
 const Wrapper = styled(DropdownContainer)`
   border: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
-  ${mobileStyle(css`
-    width: 240px;
-  `)}
+  ${mobileStyle(
+    () => css`
+      width: 240px;
+    `
+  )}
   border-radius: 3px;
 `;
 
@@ -32,9 +34,11 @@ const Container = styled.div<{ path: ILayer[]; isOpen: boolean }>`
     grid-template-columns: repeat(${path.length}, 238px) 0px;
     grid-template-rows: max-content;
     gap: 1px;
-    ${mobileStyle(css`
-      overflow: auto;
-    `)}
+    ${mobileStyle(
+      () => css`
+        overflow: auto;
+      `
+    )}
   `}
 `;
 
