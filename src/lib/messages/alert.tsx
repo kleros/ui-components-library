@@ -73,10 +73,12 @@ const StyledTitle = styled.h2<VariantProp>`
   ${variantColor}
   font-size: 16px;
   margin: 0;
+  font-weight: 600;
 `;
 
 const StyledMessage = styled.small`
   color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
+  font-weight: 400;
 `;
 
 interface AlertProps extends VariantProp {
