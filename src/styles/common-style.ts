@@ -9,7 +9,7 @@ export const mobileStyle = (
   styleFn: () => FlattenInterpolation<ThemeProps<DefaultTheme>>
 ) => css`
   @media (max-width: 900px) {
-    ${() => styleFn()}
+    ${styleFn()}
   }
 `;
 
