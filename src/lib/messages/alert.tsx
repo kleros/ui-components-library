@@ -1,6 +1,6 @@
 import React from "react";
 import styled, { css } from "styled-components";
-import { svg } from "../../styles/common-style";
+import { mobileStyle, svg } from "../../styles/common-style";
 import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
@@ -56,7 +56,7 @@ const Wrapper = styled.div<VariantProp>`
   background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
   border: 1px solid ${({ theme, variant }) => borderColor({ theme, variant })};
   border-radius: 3px;
-  padding: 16px 24px;
+  padding: 16px 24px 20px 24px;
 `;
 
 const IconWrapper = styled.div<VariantProp>`
@@ -74,6 +74,18 @@ const StyledTitle = styled.h2<VariantProp>`
   font-size: 16px;
   margin: 0;
   font-weight: 600;
+  line-height: 24px;
+`;
+
+const TitleAndMessage = styled.div`
+  display: flex;
+  flex-direction: column;
+
+  ${mobileStyle(
+    () => css`
+      gap: 8px;
+    `
+  )};
 `;
 
 const StyledMessage = styled.small`
@@ -94,10 +106,10 @@ const Alert: React.FC<AlertProps> = ({ variant, title, msg }) => (
       {variant === "error" && <ErrorIcon />}
       {variant === "info" && <InfoIcon />}
     </IconWrapper>
-    <div>
+    <TitleAndMessage>
       <StyledTitle variant={variant}>{title}</StyledTitle>
       <StyledMessage>{msg}</StyledMessage>
-    </div>
+    </TitleAndMessage>
   </Wrapper>
 );
 
