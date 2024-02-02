@@ -6,7 +6,6 @@ import Minus from "../../assets/svgs/accordion/minus.svg";
 import { svg, button } from "../../styles/common-style";
 
 const StyledDiv = styled.div`
-  margin: 8px 0px;
   .accordion-button {
     ${button}
     width: 100%;
