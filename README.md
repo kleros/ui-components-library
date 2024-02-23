@@ -20,7 +20,7 @@
 With `yarn add @kleros/ui-components-library` or `npm install @kleros/ui-components-library`
 
 #### Create a theme file
-Wwhere you destructure `lightTheme` or `darkTheme` (or both) in your theme object to provide the correct colors to the components. ([example](https://github.com/kleros/kleros-v2/blob/dev/web/src/styles/themes.ts)).
+Where you destructure `lightTheme` or `darkTheme` (or both) in your theme object to provide the correct colors to the components. ([example](https://github.com/kleros/kleros-v2/blob/dev/web/src/styles/themes.ts)).
 
 #### Provide the theme
 With styled-components `ThemeProvider` ([example](https://github.com/kleros/kleros-v2/blob/dev/web/src/context/StyledComponentsProvider.tsx)).
