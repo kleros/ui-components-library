@@ -38,13 +38,13 @@ const ItemContainer: React.FC<IItemContainer> = ({
   onChange,
 }) => (
   <BaseItemContainer>
-    {items.map(({ text, Icon, dot, value }, i) => (
+    {items.map(({ text, Icon, icon, dot, value }, i) => (
       <StyledItem
         key={i}
         tabIndex={0}
         selected={value === selected}
         onClick={() => onChange(value)}
-        {...{ text, dot, Icon }}
+        {...{ text, dot, Icon, icon }}
       />
     ))}
   </BaseItemContainer>
