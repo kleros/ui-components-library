@@ -18,22 +18,21 @@ const StyledTitle = styled.h2``;
 const StyledParty = styled.p``;
 const StyledSubtitle = styled.small``;
 
-const TextContainer = styled.div<SideProp & VariantProp>`
+const TextContainer = styled.div<SideProp & VariantProp & { isLast: boolean }>`
   margin-${({ rightSided }) => (rightSided ? "left" : "right")}: 20px;
   order: ${({ rightSided }) => (rightSided ? 1 : -1)};
   display: flex;
   flex-direction: column;  
-  margin-bottom: 18px;
+  margin-bottom: ${({ isLast }) => (isLast ? "0" : "18px")};
   gap: 2px;
   text-align: ${({ rightSided }) => (rightSided ? "left" : "right")};
 
   @media (max-width: 900px) {
     margin-${({ rightSided }) => (rightSided ? "left" : "right")}: 16px;
-    margin-bottom: 16px;
+    margin-bottom: ${({ isLast }) => (isLast ? "0" : "16px")};
     gap: 4px;
-
   }
-  
+
   & ${StyledTitle} {
     ${h2}
     order: ${({ rightSided }) => (rightSided ? 1 : 2)};
@@ -75,16 +74,18 @@ interface BulletProps extends VariantProp, SideProp {
   active?: boolean;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   line?: boolean;
+  isLast: boolean;
 }
 
 const Bullet: React.FC<BulletProps> = (props) => {
   const { title, party, subtitle, ...restProps } = props;
-  const { rightSided, variant, line, Icon, ...wrapperProps } = restProps;
+  const { rightSided, variant, line, Icon, isLast, ...wrapperProps } =
+    restProps;
 
   return (
     <Wrapper {...{ rightSided }} {...wrapperProps}>
       <Spine {...{ variant, line, Icon }} />
-      <TextContainer {...{ variant, rightSided }}>
+      <TextContainer {...{ variant, rightSided, isLast }}>
         <PartyTitleContainer {...{ rightSided }}>
           <StyledTitle>{title}</StyledTitle>
           <StyledParty>{party}</StyledParty>
