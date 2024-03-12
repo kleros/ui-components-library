@@ -9,8 +9,6 @@ export interface SideProp {
 }
 
 const Wrapper = styled.div<SideProp>`
-  height: 50px;
-  width: 100%;
   display: flex;
   justify-content: ${({ rightSided }) =>
     rightSided ? "flex-start" : "flex-end"};
@@ -21,10 +19,21 @@ const StyledParty = styled.p``;
 const StyledSubtitle = styled.small``;
 
 const TextContainer = styled.div<SideProp & VariantProp>`
-  margin-${({ rightSided }) => (rightSided ? "left" : "right")}: 24px;
+  margin-${({ rightSided }) => (rightSided ? "left" : "right")}: 20px;
   order: ${({ rightSided }) => (rightSided ? 1 : -1)};
   display: flex;
   flex-direction: column;  
+  margin-bottom: 18px;
+  gap: 2px;
+  text-align: ${({ rightSided }) => (rightSided ? "left" : "right")};
+
+  @media (max-width: 900px) {
+    margin-${({ rightSided }) => (rightSided ? "left" : "right")}: 16px;
+    margin-bottom: 16px;
+    gap: 4px;
+
+  }
+  
   & ${StyledTitle} {
     ${h2}
     order: ${({ rightSided }) => (rightSided ? 1 : 2)};
@@ -36,7 +45,6 @@ const TextContainer = styled.div<SideProp & VariantProp>`
   & ${StyledParty} {
     ${p}
     order: ${({ rightSided }) => (rightSided ? 2 : 1)};
-    margin-${({ rightSided }) => (rightSided ? "left" : "right")}: 8px;
     
     font-size: 14px;
     line-height: 19px;
@@ -51,9 +59,13 @@ const TextContainer = styled.div<SideProp & VariantProp>`
   }
 `;
 
-const PartyTitleContainer = styled.div`
+const PartyTitleContainer = styled.div<SideProp>`
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  justify-content: ${({ rightSided }) =>
+    rightSided ? "flex-start" : "flex-end"};
 `;
 
 interface BulletProps extends VariantProp, SideProp {
@@ -73,7 +85,7 @@ const Bullet: React.FC<BulletProps> = (props) => {
     <Wrapper {...{ rightSided }} {...wrapperProps}>
       <Spine {...{ variant, line, Icon }} />
       <TextContainer {...{ variant, rightSided }}>
-        <PartyTitleContainer>
+        <PartyTitleContainer {...{ rightSided }}>
           <StyledTitle>{title}</StyledTitle>
           <StyledParty>{party}</StyledParty>
         </PartyTitleContainer>
