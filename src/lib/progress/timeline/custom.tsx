@@ -34,9 +34,9 @@ const CustomTimeline: React.FC<ICustomTimelineProps> = ({
   return (
     <Wrapper {...props}>
       {items.slice(0, -1).map((item, i) => (
-        <Bullet key={i} line {...item} rightSided />
+        <Bullet key={i} line {...item} rightSided isLast={false} />
       ))}
-      <LastBullet rightSided {...lastItem} />
+      <LastBullet rightSided {...lastItem} isLast={true} />
     </Wrapper>
   );
 };

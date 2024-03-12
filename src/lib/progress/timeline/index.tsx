@@ -37,9 +37,9 @@ const Timeline: React.FC<TimelineProps> = ({ items, ...props }) => {
   return (
     <Wrapper {...props}>
       {items.slice(0, -1).map((item, i) => (
-        <StyledBullet key={i} line {...item} />
+        <StyledBullet key={i} line {...item} isLast={false} />
       ))}
-      <LastBullet {...lastItem} />
+      <LastBullet {...lastItem} isLast={true} />
     </Wrapper>
   );
 };
