@@ -73,8 +73,18 @@ export const baseInputStyle = css<VariantProp>`
   }
 `;
 
-const StyledInput = styled.input`
-  padding: 14px 40px 14px 16px;
+const StyledInput = styled.input<{
+  variant?: string;
+  Icon?: React.FC<React.SVGAttributes<SVGElement>>;
+}>`
+  padding-top: 14px;
+  padding-bottom: 14px;
+  padding-left: 16px;
+  padding-right: ${({ Icon, variant }) => {
+    if (Icon) return "56px";
+    if (variant) return "44px";
+    return "16px";
+  }};
   ${baseInputStyle}
 `;
 
@@ -101,20 +111,47 @@ const StyledSmall = styled.small`
   color: ${variantColor};
 `;
 
+const IconContainer = styled.div`
+  display: flex;
+  width: 44px;
+  height: 43px;
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  align-items: center;
+  justify-content: center;
+  background: ${(props) => props.theme.klerosUIComponentsLightBlue};
+  border-left: 1px solid ${(props) => props.theme.klerosUIComponentsStroke};
+`;
+
+const StyledIconSVG = styled.svg`
+  width: 24px;
+  height: 24px;
+`;
+
 type FieldProps = VariantProp &
-  InputHTMLAttributes<HTMLInputElement> & { message?: string };
+  InputHTMLAttributes<HTMLInputElement> & {
+    message?: string;
+    Icon?: React.FC<React.SVGAttributes<SVGElement>>;
+  };
 
 const Field: React.FC<FieldProps> = ({
   variant,
   message,
+  Icon,
   className,
   ...props
 }) => (
   <Wrapper {...{ className }}>
-    <StyledInput {...{ variant, ...props }} />
+    <StyledInput {...{ variant, Icon, ...props }} />
     {variant === "success" && <StyledSuccessIcon className="field-svg" />}
     {variant === "warning" && <StyledWarningIcon className="field-svg" />}
     {variant === "error" && <StyledErrorIcon className="field-svg" />}
+    {Icon && (
+      <IconContainer>
+        <StyledIconSVG as={Icon} />
+      </IconContainer>
+    )}
     {message && (
       <StyledMessage {...{ variant }}>
         {variant === "info" && (
