@@ -1,6 +1,6 @@
 {
   "name": "@kleros/ui-components-library",
-  "version": "2.9.0",
+  "version": "2.9.1",
   "description": "UI components library which implements the Kleros design system.",
   "source": "src/lib/index.ts",
   "main": "dist/index.js",
@@ -75,5 +75,6 @@
   "volta": {
     "node": "16.20.1",
     "yarn": "1.22.19"
-  }
+  },
+  "packageManager": "yarn@1.22.19+sha256.732620bac8b1690d507274f025f3c6cfdc3627a84d9642e38a07452cc00e0f2e"
 }
