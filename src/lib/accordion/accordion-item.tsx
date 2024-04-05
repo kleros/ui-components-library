@@ -33,7 +33,7 @@ interface CollapsibleProps {
 
 const Collapsible = styled.div<CollapsibleProps>`
   height: ${(props) => (props.expanded ? props.totalHeight.toString() : "0")}px;
-  overflow: hidden;
+  overflow: ${(props) => (props.expanded ? "visible" : "hidden")};
   transition: height ease
     ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
 `;
