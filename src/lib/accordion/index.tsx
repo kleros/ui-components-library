@@ -19,6 +19,7 @@ interface AccordionItem {
 
 interface AccordionProps {
   items: AccordionItem[];
+  defaultExpanded?: number;
 }
 
 const AccordionTitle = styled.p`
@@ -36,8 +37,12 @@ const DefaultTitle: React.FC<{ item: AccordionItem }> = ({ item }) => (
   </>
 );
 
-const Accordion: React.FC<AccordionProps> = ({ items, ...props }) => {
-  const [expanded, setExpanded] = useState(-1);
+const Accordion: React.FC<AccordionProps> = ({
+  items,
+  defaultExpanded,
+  ...props
+}) => {
+  const [expanded, setExpanded] = useState(defaultExpanded ?? -1);
   return (
     <Wrapper {...props}>
       {items.map((item, index) => (
