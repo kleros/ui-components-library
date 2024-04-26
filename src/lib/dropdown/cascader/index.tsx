@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import styled, { css } from "styled-components";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import { mobileStyle } from "../../../styles/common-style";
@@ -46,12 +46,14 @@ interface ICascader {
   items: IItem[];
   onSelect: (value: IItem["value"]) => void;
   placeholder: string;
+  value?: string | number;
 }
 
 const Cascader: React.FC<ICascader> = ({
   items,
   onSelect,
   placeholder,
+  value,
   ...props
 }) => {
   const [path, setPath] = useState<ILayer[]>([{ items }]);
@@ -67,6 +69,12 @@ const Cascader: React.FC<ICascader> = ({
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [path]);
+
+  const label = useMemo(
+    () => (value ? findLabelByValue(items, value) : undefined),
+    [items, value]
+  );
+
   return (
     <div ref={containerRef} {...props}>
       <DropdownButton
@@ -76,7 +84,7 @@ const Cascader: React.FC<ICascader> = ({
           selected ? (
             <StyledBaseItem current text={selected.label} />
           ) : (
-            <StyledBaseItem current text={placeholder} />
+            <StyledBaseItem current text={label ?? placeholder} />
           )
         }
       />
@@ -116,5 +124,28 @@ const Cascader: React.FC<ICascader> = ({
     </div>
   );
 };
+
+/**
+ * @param nodes the nodes
+ * @param targetValue the value to search, can be string or number
+ * @returns the label if the item is found, else returns undefined
+ */
+function findLabelByValue(
+  nodes: IItem[],
+  targetValue: string | number
+): string | undefined {
+  for (const node of nodes) {
+    if (node.value == targetValue) {
+      return node.label;
+    }
+    if (node.children) {
+      const result = findLabelByValue(node.children, targetValue);
+      if (result) {
+        return result;
+      }
+    }
+  }
+  return undefined;
+}
 
 export default Cascader;
