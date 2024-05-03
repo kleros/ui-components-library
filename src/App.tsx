@@ -18,6 +18,7 @@ import Progress from "./examples/progress";
 import TimelineProgress from "./examples/timeline";
 import Input from "./examples/input";
 import Tooltips from "./examples/tooltip";
+import Copiable from "./examples/copiable";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -81,6 +82,7 @@ const App = () => {
               { text: "Progress", value: "progress" },
               { text: "Input", value: "input" },
               { text: "Tooltip", value: "tooltip" },
+              { text: "Copiable", value: "copiable" },
             ]}
             callback={setExample}
             currentValue={example}
@@ -98,6 +100,7 @@ const App = () => {
             {example === "progress" && <Progress />}
             {example === "input" && <Input />}
             {example === "tooltip" && <Tooltips />}
+            {example === "copiable" && <Copiable />}
           </StyledCard>
           <StyledButton
             variant="primary"
