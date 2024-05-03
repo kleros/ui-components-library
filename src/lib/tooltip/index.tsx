@@ -2,7 +2,7 @@ import React from "react";
 import styled, { css } from "styled-components";
 import { borderBox, small as smallStyle } from "../../styles/common-style";
 
-interface TooltipBaseProps {
+export interface TooltipBaseProps {
   place?: "left" | "right" | "top" | "bottom";
   small?: boolean;
 }
