@@ -44,4 +44,6 @@ export { default as Tooltip } from "../lib/tooltip";
 
 export { default as ScrollbarContainer } from "../lib/scrollbar";
 
+export { default as Copiable } from "../lib/copiable";
+
 export { lightTheme, darkTheme, veaTheme } from "../styles/themes";
