@@ -4,16 +4,24 @@ import { useDay } from "@datepicker-react/hooks";
 import DatepickerContext from "./datepickerContext";
 import { button, small } from "../../../styles/common-style";
 
-const StyledDayNumber = styled.small<{ isSelected: boolean }>`
+const StyledDayNumber = styled.small<{
+  isSelected: boolean;
+  disabledDate: boolean;
+}>`
   ${small}
   color: ${(props) =>
     props.isSelected
       ? props.theme.klerosUIComponentsWhiteBackground
+      : props.disabledDate
+      ? props.theme.klerosUIComponentsStroke
       : props.theme.klerosUIComponentsSecondaryText} !important;
   font-weight: 600;
 `;
 
-const StyledButton = styled.button<{ isSelected: boolean }>`
+const StyledButton = styled.button<{
+  isSelected: boolean;
+  disabledDate: boolean;
+}>`
   ${button}
   height: 24px;
   width: 24px;
@@ -31,11 +39,15 @@ const StyledButton = styled.button<{ isSelected: boolean }>`
     background-color: ${(props) =>
       props.isSelected
         ? props.theme.klerosUIComponentsPrimaryBlue
+        : props.disabledDate
+        ? props.theme.klerosUIComponentsWhiteBackground
         : props.theme.klerosUIComponentsSecondaryBlue};
     cursor: pointer;
     & ${StyledDayNumber} {
-      color: ${({ theme }) =>
-        theme.klerosUIComponentsWhiteBackground} !important;
+      color: ${(props) =>
+        props.disabledDate
+          ? props.theme.klerosUIComponentsStroke
+          : props.theme.klerosUIComponentsWhiteBackground} !important;
     }
   }
 `;
@@ -52,12 +64,32 @@ const Day: React.FC<IDay> = ({ date, dayLabel }) => {
     date,
     ...useContext(DatepickerContext),
   });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isPastDate = date.getTime() < today.getTime();
+
+  const handleClick = () => {
+    if (!isPastDate) {
+      onClick();
+    }
+  };
+
   return (
     <StyledButton
       ref={dayRef}
-      {...{ isSelected, onClick, onKeyDown, onMouseEnter, tabIndex }}
+      {...{
+        isSelected,
+        onClick: handleClick,
+        onKeyDown,
+        onMouseEnter,
+        tabIndex,
+        disabledDate: isPastDate,
+      }}
     >
-      <StyledDayNumber {...{ isSelected }}>{dayLabel}</StyledDayNumber>
+      <StyledDayNumber {...{ isSelected, disabledDate: isPastDate }}>
+        {dayLabel}
+      </StyledDayNumber>
     </StyledButton>
   );
 };

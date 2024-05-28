@@ -83,68 +83,92 @@ const TimeControls: React.FC<ITimeControls> = ({
   minutes,
   setHours,
   setMinutes,
-}) => (
-  <TimeControl>
-    <TimeButtons>
-      <UnstyledButton
-        onClick={() => {
-          const newHours = hours + 1;
-          setHours(newHours);
-          date.setHours(newHours, minutes);
-        }}
-        disabled={hours === 23}
-      >
-        <UpArrow />
-      </UnstyledButton>
-      <UnstyledButton
-        onClick={() => {
-          const newMinutes = minutes + 1;
-          setMinutes(newMinutes);
-          date.setHours(hours, newMinutes);
-        }}
-        disabled={minutes === 59}
-      >
-        <UpArrow />
-      </UnstyledButton>
-    </TimeButtons>
-    <TimeDisplay>
-      <StyledTime>
-        {hours.toLocaleString("en-US", {
-          minimumIntegerDigits: 2,
-          useGrouping: false,
-        })}
-      </StyledTime>
-      <StyledTime>:</StyledTime>
-      <StyledTime>
-        {minutes.toLocaleString("en-US", {
-          minimumIntegerDigits: 2,
-          useGrouping: false,
-        })}
-      </StyledTime>
-    </TimeDisplay>
-    <TimeButtons>
-      <UnstyledButton
-        onClick={() => {
-          const newHours = hours - 1;
-          setHours(newHours);
-          date.setHours(newHours, minutes);
-        }}
-        disabled={hours === 0}
-      >
-        <DownArrow />
-      </UnstyledButton>
-      <UnstyledButton
-        onClick={() => {
-          const newMinutes = minutes - 1;
-          setMinutes(newMinutes);
-          date.setHours(hours, newMinutes);
-        }}
-        disabled={minutes === 0}
-      >
-        <DownArrow />
-      </UnstyledButton>
-    </TimeButtons>
-  </TimeControl>
-);
+}) => {
+  const today = new Date();
+
+  const disableHourUp = hours === 23;
+  const disableMinuteUp = minutes === 59;
+
+  const isToday = date.toDateString() === today.toDateString();
+  const currentTime = today.getTime();
+  const checkTime = new Date(date).setHours(hours - 1, minutes);
+
+  const disableHourDown =
+    hours === 0 ||
+    (isToday &&
+      (hours - 1 < today.getHours() ||
+        (hours - 1 === today.getHours() && minutes <= today.getMinutes()) ||
+        checkTime <= currentTime));
+
+  const disableMinuteDown =
+    minutes === 0 ||
+    (isToday &&
+      (hours < today.getHours() ||
+        (hours === today.getHours() && minutes - 1 <= today.getMinutes())));
+
+  return (
+    <TimeControl>
+      <TimeButtons>
+        <UnstyledButton
+          onClick={() => {
+            const newHours = hours + 1;
+            setHours(newHours);
+            date.setHours(newHours, minutes);
+          }}
+          disabled={disableHourUp}
+        >
+          <UpArrow />
+        </UnstyledButton>
+        <UnstyledButton
+          onClick={() => {
+            const newMinutes = minutes + 1;
+            setMinutes(newMinutes);
+            date.setHours(hours, newMinutes);
+          }}
+          disabled={disableMinuteUp}
+        >
+          <UpArrow />
+        </UnstyledButton>
+      </TimeButtons>
+      <TimeDisplay>
+        <StyledTime>
+          {hours.toLocaleString("en-US", {
+            minimumIntegerDigits: 2,
+            useGrouping: false,
+          })}
+        </StyledTime>
+        <StyledTime>:</StyledTime>
+        <StyledTime>
+          {minutes.toLocaleString("en-US", {
+            minimumIntegerDigits: 2,
+            useGrouping: false,
+          })}
+        </StyledTime>
+      </TimeDisplay>
+      <TimeButtons>
+        <UnstyledButton
+          onClick={() => {
+            const newHours = hours - 1;
+            setHours(newHours);
+            date.setHours(newHours, minutes);
+          }}
+          disabled={disableHourDown}
+        >
+          <DownArrow />
+        </UnstyledButton>
+        <UnstyledButton
+          onClick={() => {
+            const newMinutes = minutes - 1;
+            setMinutes(newMinutes);
+            date.setHours(hours, newMinutes);
+          }}
+          disabled={disableMinuteDown}
+        >
+          <DownArrow />
+        </UnstyledButton>
+      </TimeButtons>
+    </TimeControl>
+  );
+};
 
 export default TimeControls;

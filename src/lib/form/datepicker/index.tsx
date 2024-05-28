@@ -34,7 +34,7 @@ const DatePicker: React.FC<IDatePicker> = ({ onSelect, time }) => {
     isDateFocused,
     focusedDate,
     onDateHover,
-    onDateSelect,
+    onDateSelect: handleDateSelect,
     onDateFocus,
     goToPreviousMonths,
     goToNextMonths,
@@ -46,12 +46,30 @@ const DatePicker: React.FC<IDatePicker> = ({ onSelect, time }) => {
       if (date.startDate) {
         date.startDate.setHours(hours, minutes);
         setDate(date.startDate);
+        onSelect(date.startDate);
       }
     },
     numberOfMonths: 1,
     minBookingDays: 1,
     exactMinBookingDays: true,
   });
+
+  const onDateSelect = (date: Date) => {
+    handleDateSelect(date);
+    date.setHours(hours, minutes);
+    setDate(date);
+    onSelect(date);
+  };
+
+  const onTimeChange = (hours: number, minutes: number) => {
+    const newDate = new Date(date);
+    newDate.setHours(hours, minutes);
+    setHours(hours);
+    setMinutes(minutes);
+    setDate(newDate);
+    onSelect(newDate);
+  };
+
   return (
     <DatepickerContext.Provider
       value={{
@@ -79,8 +97,8 @@ const DatePicker: React.FC<IDatePicker> = ({ onSelect, time }) => {
             date,
             hours,
             minutes,
-            setHours,
-            setMinutes,
+            setHours: (hours) => onTimeChange(hours, minutes),
+            setMinutes: (minutes) => onTimeChange(hours, minutes),
             onSelect: () => {
               date.setHours(hours, minutes);
               onSelect(date);
