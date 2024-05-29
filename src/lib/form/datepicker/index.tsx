@@ -24,17 +24,33 @@ const DatePicker: React.FC<IDatePicker> = ({ onSelect, time }) => {
   const [date, setDate] = useState(new Date());
   const [hours, setHours] = useState(date.getHours());
   const [minutes, setMinutes] = useState(date.getMinutes());
+  const today = new Date();
+  const lastSelectableDate = new Date(today);
+  lastSelectableDate.setDate(today.getDate());
+
+  const updateDateWithTime = (selectedDate: Date) => {
+    if (selectedDate.toDateString() === lastSelectableDate.toDateString()) {
+      const now = new Date();
+      selectedDate.setHours(now.getHours(), now.getMinutes());
+      setHours(now.getHours());
+      setMinutes(now.getMinutes());
+    } else {
+      selectedDate.setHours(hours, minutes);
+    }
+    setDate(selectedDate);
+    onSelect(selectedDate);
+  };
+
   const {
     firstDayOfWeek,
     activeMonths,
-    isDateSelected,
     isDateHovered,
     isFirstOrLastSelectedDate,
     isDateBlocked,
     isDateFocused,
     focusedDate,
     onDateHover,
-    onDateSelect,
+    onDateSelect: handleDateSelect,
     onDateFocus,
     goToPreviousMonths,
     goToNextMonths,
@@ -42,26 +58,44 @@ const DatePicker: React.FC<IDatePicker> = ({ onSelect, time }) => {
     startDate: date,
     endDate: date,
     focusedInput: START_DATE,
-    onDatesChange: (date) => {
-      if (date.startDate) {
-        date.startDate.setHours(hours, minutes);
-        setDate(date.startDate);
+    onDatesChange: (data) => {
+      if (data.startDate) {
+        updateDateWithTime(new Date(data.startDate));
       }
     },
     numberOfMonths: 1,
     minBookingDays: 1,
     exactMinBookingDays: true,
   });
+
+  const onTimeChange = (newHours: number, newMinutes: number) => {
+    const newDate = new Date(date);
+    newDate.setHours(newHours, newMinutes);
+    setHours(newHours);
+    setMinutes(newMinutes);
+    setDate(newDate);
+    onSelect(newDate);
+  };
+
   return (
     <DatepickerContext.Provider
       value={{
         focusedDate,
         isDateFocused,
-        isDateSelected,
+        isDateSelected: (selectedDate) => {
+          return (
+            selectedDate.getDate() === date.getDate() &&
+            selectedDate.getMonth() === date.getMonth() &&
+            selectedDate.getFullYear() === date.getFullYear()
+          );
+        },
         isDateHovered,
         isDateBlocked,
         isFirstOrLastSelectedDate,
-        onDateSelect,
+        onDateSelect: (selectedDate: Date) => {
+          handleDateSelect(selectedDate);
+          updateDateWithTime(selectedDate);
+        },
         onDateFocus,
         onDateHover,
       }}
@@ -79,8 +113,8 @@ const DatePicker: React.FC<IDatePicker> = ({ onSelect, time }) => {
             date,
             hours,
             minutes,
-            setHours,
-            setMinutes,
+            setHours: (newHours) => onTimeChange(newHours, minutes),
+            setMinutes: (newMinutes) => onTimeChange(hours, newMinutes),
             onSelect: () => {
               date.setHours(hours, minutes);
               onSelect(date);
