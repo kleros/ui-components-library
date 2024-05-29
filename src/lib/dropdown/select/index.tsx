@@ -62,7 +62,10 @@ const Select: React.FC<ISelect> = ({
           {...{ items, selected }}
           onChange={(value: IItem["value"]) => {
             new Promise((resolve) => resolve(callback(value)))
-              .then(() => setSelected(value))
+              .then(() => {
+                setSelected(value);
+                setIsOpen(false);
+              })
               .catch((error) => console.error(error));
           }}
         />
