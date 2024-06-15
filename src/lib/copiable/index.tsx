@@ -7,13 +7,16 @@ import Copied from "../../assets/svgs/copiable/copied.svg";
 interface CopiableBaseProps {
   copiableContent: string;
   info?: string;
+  iconPlacement?: "left" | "right";
 }
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ iconPlacement: string }>`
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  flex-direction: ${({ iconPlacement }) =>
+    iconPlacement === "left" ? "row-reverse" : "row"};
 `;
 
 const StyledTooltip = styled(Tooltip)`
@@ -46,6 +49,7 @@ const Copiable: React.FC<CopiableProps> = ({
   info,
   children,
   tooltipProps,
+  iconPlacement = "right",
   ...props
 }) => {
   const [isCopied, setIsCopied] = useState(false);
@@ -61,7 +65,7 @@ const Copiable: React.FC<CopiableProps> = ({
   };
 
   return (
-    <Wrapper {...props}>
+    <Wrapper {...props} iconPlacement={iconPlacement}>
       {children}
       <StyledTooltip
         text={isCopied ? "Copied!" : `${info ?? "Copy"}`}
