@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 
 const Wrapper = styled.div`
@@ -31,10 +31,10 @@ const Circle = styled.div<VariantProp>`
   border: 2px solid ${variantColor};
 `;
 
-const Line = styled.div`
-  height: auto;
+const Line = styled.div<{ topHeight?: number }>`
+  height: ${({ topHeight }) => (topHeight ? `${topHeight}px` : "auto")};
   width: 0px;
-  flex-grow: 1;
+  flex-grow: ${({ topHeight }) => (topHeight ? 0 : 1)};
   border-left: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
 `;
 
@@ -42,13 +42,25 @@ interface SpineProps extends VariantProp {
   active?: boolean;
   line?: boolean;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
+  titleRef?: React.RefObject<HTMLHeadingElement>;
 }
 
-const Spine: React.FC<SpineProps> = ({ variant, line, Icon }) => (
-  <Wrapper>
-    {Icon ? <Icon /> : <Circle {...{ variant }} />}
-    {line && <Line />}
-  </Wrapper>
-);
+const Spine: React.FC<SpineProps> = ({ variant, line, Icon, titleRef }) => {
+  const [topHeight, setTopHeight] = useState<number>();
+
+  useEffect(() => {
+    if (titleRef?.current) {
+      setTopHeight(titleRef.current.offsetTop);
+    }
+  }, [titleRef]);
+
+  return (
+    <Wrapper>
+      {topHeight ? <Line topHeight={topHeight} /> : null}
+      {Icon ? <Icon /> : <Circle {...{ variant }} />}
+      {line && <Line />}
+    </Wrapper>
+  );
+};
 
 export default Spine;

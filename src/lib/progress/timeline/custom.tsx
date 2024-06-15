@@ -5,7 +5,7 @@ import { borderBox } from "../../../styles/common-style";
 
 interface TimelineItem extends SideProp, VariantProp {
   title: string;
-  party: string;
+  party: string | React.ReactElement;
   subtitle: string;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
 }
