@@ -14,6 +14,24 @@ const StyledTimeline = styled(Timeline)`
   margin: 0px 100px;
 `;
 
+const PartyContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const StyledLabel = styled.label`
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
+  line-height: 19px;
+`;
+
+const StyledLink = styled.a`
+  font-size: 14px;
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
+  text-decoration: none;
+  line-height: 19px;
+`;
+
 const TimelineProgress = () => (
   <>
     <StyledSteps
@@ -54,7 +72,18 @@ const TimelineProgress = () => (
       items={[
         {
           title: "Pay 250 DAI",
-          party: "alice.eth",
+          party: (
+            <PartyContainer>
+              <StyledLabel>alice.eth -</StyledLabel>
+              <StyledLink
+                href="https://docs.kleros.io/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Justification
+              </StyledLink>
+            </PartyContainer>
+          ),
           subtitle: "06 Jul 2023 12:00 UTC",
           variant: "#4D00B4",
           Icon: Circle,
