@@ -49,10 +49,23 @@ const Spine: React.FC<SpineProps> = ({ variant, line, Icon, titleRef }) => {
   const [topHeight, setTopHeight] = useState<number>();
 
   useEffect(() => {
-    if (titleRef?.current) {
-      setTopHeight(titleRef.current.offsetTop);
-    }
-  }, [titleRef]);
+    const handleOffsetTopChange = () => {
+      if (titleRef?.current) {
+        const newOffsetTop = titleRef.current.offsetTop;
+        if (newOffsetTop !== topHeight) {
+          setTopHeight(newOffsetTop);
+        }
+      }
+    };
+
+    handleOffsetTopChange();
+
+    window.addEventListener("resize", handleOffsetTopChange);
+
+    return () => {
+      window.removeEventListener("resize", handleOffsetTopChange);
+    };
+  }, [titleRef, topHeight]);
 
   return (
     <Wrapper>
