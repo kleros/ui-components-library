@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import styled from "styled-components";
 import Spine, { VariantProp, variantColor } from "./spine";
 export type { VariantProp };
@@ -17,6 +17,9 @@ const Wrapper = styled.div<SideProp>`
 const StyledTitle = styled.h2``;
 const StyledParty = styled.p``;
 const StyledSubtitle = styled.small``;
+const PartyElementWrapper = styled.div`
+  display: inline-flex;
+`;
 
 const TextContainer = styled.div<SideProp & VariantProp & { isLast: boolean }>`
   margin-${({ rightSided }) => (rightSided ? "left" : "right")}: 20px;
@@ -49,6 +52,12 @@ const TextContainer = styled.div<SideProp & VariantProp & { isLast: boolean }>`
     line-height: 19px;
     color: ${variantColor};
   }
+  
+  & ${PartyElementWrapper} {
+    order: ${({ rightSided }) => (rightSided ? 2 : 1)};   
+    max-height: 32px;
+    overflow: hidden;
+  }
 
   & ${StyledSubtitle} {
     ${small}
@@ -60,6 +69,8 @@ const TextContainer = styled.div<SideProp & VariantProp & { isLast: boolean }>`
 
 const PartyTitleContainer = styled.div<SideProp>`
   display: flex;
+  position: relative;
+  align-items: center;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 4px 8px;
@@ -69,7 +80,7 @@ const PartyTitleContainer = styled.div<SideProp>`
 
 interface BulletProps extends VariantProp, SideProp {
   title: string;
-  party: string;
+  party: string | React.ReactElement;
   subtitle: string;
   active?: boolean;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
@@ -81,14 +92,21 @@ const Bullet: React.FC<BulletProps> = (props) => {
   const { title, party, subtitle, ...restProps } = props;
   const { rightSided, variant, line, Icon, isLast, ...wrapperProps } =
     restProps;
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   return (
     <Wrapper {...{ rightSided }} {...wrapperProps}>
-      <Spine {...{ variant, line, Icon }} />
+      <Spine {...{ variant, line, Icon, titleRef }} />
       <TextContainer {...{ variant, rightSided, isLast }}>
         <PartyTitleContainer {...{ rightSided }}>
-          <StyledTitle>{title}</StyledTitle>
-          <StyledParty>{party}</StyledParty>
+          <StyledTitle ref={titleRef}>{title}</StyledTitle>
+          {typeof party === `string` ? (
+            <StyledParty>{party}</StyledParty>
+          ) : (
+            <PartyElementWrapper className="party-wrapper">
+              {party}
+            </PartyElementWrapper>
+          )}
         </PartyTitleContainer>
         <StyledSubtitle>{subtitle}</StyledSubtitle>
       </TextContainer>

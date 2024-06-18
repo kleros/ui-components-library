@@ -4,7 +4,9 @@ import { Tooltip } from "../lib";
 
 const CopiableExample: React.FC = () => (
   <>
-    <Copiable copiableContent="Copied text">Copiable text</Copiable>
+    <Copiable copiableContent="Copied text" iconPlacement="left">
+      Copiable text
+    </Copiable>
     <Copiable
       copiableContent="0xbe8d95497E53aB41d5A45CC8def90d0e59b49f99"
       info="Copy Address"
