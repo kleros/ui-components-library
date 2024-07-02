@@ -77,7 +77,7 @@ interface CompactPaginationProps {
   numPages: number;
   //eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function;
-  closeOnLastPage?: () => void;
+  onCloseOnLastPage?: () => void;
   label?: ReactNode;
   className?: string;
 }
@@ -86,12 +86,12 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
   currentPage,
   numPages,
   callback,
-  closeOnLastPage,
+  onCloseOnLastPage,
   label,
   className,
 }) => {
   const [{ incrementPage, decrementPage, minPageReached, maxPageReached }] =
-    usePagination(currentPage, numPages, callback, closeOnLastPage);
+    usePagination(currentPage, numPages, callback, onCloseOnLastPage);
 
   return (
     <Wrapper {...{ className }}>
@@ -99,8 +99,8 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
       <LeftArrow disabled={minPageReached} onClick={decrementPage}>
         <Arrow className={StyledSVG.styledComponentId} />
       </LeftArrow>
-      {currentPage === numPages && closeOnLastPage ? (
-        <CloseButton onClick={closeOnLastPage}>
+      {currentPage === numPages && onCloseOnLastPage ? (
+        <CloseButton onClick={onCloseOnLastPage}>
           <SolidErrorIcon className={StyledSVG.styledComponentId} />
         </CloseButton>
       ) : (

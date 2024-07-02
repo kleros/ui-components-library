@@ -3,12 +3,12 @@ const usePagination = (
   numPages: number,
   //eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function,
-  closeOnLastPage?: () => void,
+  onCloseOnLastPage?: () => void,
   numNeighbors = 2
 ) => {
   const incrementPage = () => {
-    if (currentPage === numPages && closeOnLastPage) {
-      closeOnLastPage();
+    if (currentPage === numPages && onCloseOnLastPage) {
+      onCloseOnLastPage();
     } else {
       const newPage = Math.min(numPages, currentPage + 1);
       callback(newPage);
