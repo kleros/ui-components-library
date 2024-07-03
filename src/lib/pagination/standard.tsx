@@ -93,8 +93,7 @@ const RightArrow = styled(ArrowButton)`
 interface StandardPaginationProps {
   currentPage: number;
   numPages: number;
-  //eslint-disable-next-line @typescript-eslint/ban-types
-  callback: Function;
+  callback: (newPage: number) => void;
   className?: string;
   disableNumbers?: boolean;
   hideNumbers?: boolean;
