@@ -2,6 +2,7 @@ import React, { ReactNode } from "react";
 import styled from "styled-components";
 import usePagination from "../../hooks/pagination/use-pagination";
 import Arrow from "../../assets/svgs/arrows/circle-left.svg";
+import SolidErrorIcon from "../../assets/svgs/status-icons/solid-error.svg";
 import { borderBox, button, small, svg } from "../../styles/common-style";
 
 const Wrapper = styled.div`
@@ -57,11 +58,25 @@ const RightArrow = styled(ArrowButton)`
   }
 `;
 
+const CloseButton = styled(ArrowButton)`
+  margin-left: 8px;
+
+  & ${StyledSVG} {
+    fill: ${(props) => props.theme.klerosUIComponentsPrimaryBlue};
+  }
+
+  :hover:enabled {
+    & ${StyledSVG} {
+      fill: ${({ theme }) => theme.klerosUIComponentsSecondaryBlue};
+    }
+  }
+`;
+
 interface CompactPaginationProps {
   currentPage: number;
   numPages: number;
-  //eslint-disable-next-line @typescript-eslint/ban-types
-  callback: Function;
+  callback: (newPage: number) => void;
+  onCloseOnLastPage?: () => void;
   label?: ReactNode;
   className?: string;
 }
@@ -70,11 +85,12 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
   currentPage,
   numPages,
   callback,
+  onCloseOnLastPage,
   label,
   className,
 }) => {
   const [{ incrementPage, decrementPage, minPageReached, maxPageReached }] =
-    usePagination(currentPage, numPages, callback);
+    usePagination(currentPage, numPages, callback, onCloseOnLastPage);
 
   return (
     <Wrapper {...{ className }}>
@@ -82,9 +98,15 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
       <LeftArrow disabled={minPageReached} onClick={decrementPage}>
         <Arrow className={StyledSVG.styledComponentId} />
       </LeftArrow>
-      <RightArrow disabled={maxPageReached} onClick={incrementPage}>
-        <Arrow className={StyledSVG.styledComponentId} />
-      </RightArrow>
+      {currentPage === numPages && onCloseOnLastPage ? (
+        <CloseButton onClick={onCloseOnLastPage}>
+          <SolidErrorIcon className={StyledSVG.styledComponentId} />
+        </CloseButton>
+      ) : (
+        <RightArrow disabled={maxPageReached} onClick={incrementPage}>
+          <Arrow className={StyledSVG.styledComponentId} />
+        </RightArrow>
+      )}
     </Wrapper>
   );
 };
