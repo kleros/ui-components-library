@@ -75,8 +75,7 @@ const CloseButton = styled(ArrowButton)`
 interface CompactPaginationProps {
   currentPage: number;
   numPages: number;
-  //eslint-disable-next-line @typescript-eslint/ban-types
-  callback: Function;
+  callback: (newPage: number) => void;
   onCloseOnLastPage?: () => void;
   label?: ReactNode;
   className?: string;
