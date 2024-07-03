@@ -1,7 +1,6 @@
 const usePagination = (
   currentPage: number,
   numPages: number,
-  //eslint-disable-next-line @typescript-eslint/ban-types
   callback: (newPage: number) => void,
   onCloseOnLastPage?: () => void,
   numNeighbors = 2
