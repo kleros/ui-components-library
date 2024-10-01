@@ -58,15 +58,19 @@ const StyledCheckmark = styled(CheckmarkIcon)<
         `}
 
   ${({ theme, checked }) =>
-    checked &&
-    css`
-      background: ${theme.klerosUIComponentsPrimaryBlue};
-      border: none;
+    checked
+      ? css`
+          fill: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
+          background: ${theme.klerosUIComponentsPrimaryBlue};
+          border: none;
 
-      :after {
-        display: block;
-      }
-    `}
+          :after {
+            display: block;
+          }
+        `
+      : css`
+          fill: transparent;
+        `}
 `;
 
 interface CheckboxProps
