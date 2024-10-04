@@ -1,10 +1,14 @@
-import React, { InputHTMLAttributes } from "react";
+import React, { InputHTMLAttributes, useRef } from "react";
 import styled, { css } from "styled-components";
 import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 import InfoIcon from "../../assets/svgs/status-icons/info.svg";
+import UpArrowIcon from "../../assets/svgs/arrows/field-arrow-up.svg";
+import DownArrowIcon from "../../assets/svgs/arrows/field-arrow-down.svg";
+
 import { borderBox, small, svg } from "../../styles/common-style";
+import { useHover } from "usehooks-ts";
 
 export type VariantProp = {
   variant?: "success" | "warning" | "error" | string;
@@ -80,12 +84,65 @@ const StyledInput = styled.input<{
   padding-top: 14px;
   padding-bottom: 14px;
   padding-left: 16px;
-  padding-right: ${({ Icon, variant }) => {
-    if (Icon) return "56px";
-    if (variant) return "44px";
-    return "16px";
+  padding-right: ${({ Icon, variant, type }) => {
+    if (Icon) return type === "number" ? "64px" : "56px";
+    if (variant) return type === "number" ? "52px" : "44px";
+    return type === "number" ? "30px" : "16px";
   }};
+
+  /* Chrome, Safari, Edge, Opera */
+  ::-webkit-outer-spin-button,
+  ::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Firefox */
+  -moz-appearance: textfield;
+  appearance: textfield;
   ${baseInputStyle}
+`;
+
+const ArrowsContainer = styled.div<{
+  variant?: string;
+  Icon?: React.FC<React.SVGAttributes<SVGElement>>;
+}>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  height: 17px;
+  width: 14px;
+  top: 14px;
+  right: ${({ Icon, variant }) => {
+    if (Icon) return "48px";
+    if (variant) return "36px";
+    return "12px";
+  }};
+`;
+
+const ArrowButton = styled.button`
+  height: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+
+  cursor: pointer;
+  :hover {
+    background: ${(props) => props.theme.klerosUIComponentsStroke};
+  }
+`;
+
+const StyledArrowIcon = styled.svg`
+  width: 8px;
+  height: 8px;
+  path {
+    fill: ${(props) => props.theme.klerosUIComponentsSecondaryText};
+  }
 `;
 
 const StyledSVG = styled.svg``;
@@ -141,27 +198,49 @@ const Field: React.FC<FieldProps> = ({
   Icon,
   className,
   ...props
-}) => (
-  <Wrapper {...{ className }}>
-    <StyledInput {...{ variant, Icon, ...props }} />
-    {variant === "success" && <StyledSuccessIcon className="field-svg" />}
-    {variant === "warning" && <StyledWarningIcon className="field-svg" />}
-    {variant === "error" && <StyledErrorIcon className="field-svg" />}
-    {Icon && (
-      <IconContainer>
-        <StyledIconSVG as={Icon} />
-      </IconContainer>
-    )}
-    {message && (
-      <StyledMessage {...{ variant }}>
-        {variant === "info" && (
-          <InfoIcon className={StyledSVG.styledComponentId} />
-        )}
-        <StyledSmall {...{ variant }}>{message}</StyledSmall>
-      </StyledMessage>
-    )}
-  </Wrapper>
-);
+}) => {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const hovering = useHover(wrapperRef);
+
+  return (
+    <Wrapper ref={wrapperRef} {...{ className }}>
+      <StyledInput ref={inputRef} {...{ variant, Icon, ...props }} />
+      {props.type === "number" && hovering && (
+        <ArrowsContainer className="field-arrows" {...{ variant, Icon }}>
+          <ArrowButton
+            aria-label="increment"
+            onClick={() => inputRef?.current?.stepUp()}
+          >
+            <StyledArrowIcon as={UpArrowIcon} />
+          </ArrowButton>
+          <ArrowButton aria-label="decrement">
+            <StyledArrowIcon
+              as={DownArrowIcon}
+              onClick={() => inputRef?.current?.stepDown()}
+            />
+          </ArrowButton>
+        </ArrowsContainer>
+      )}
+      {variant === "success" && <StyledSuccessIcon className="field-svg" />}
+      {variant === "warning" && <StyledWarningIcon className="field-svg" />}
+      {variant === "error" && <StyledErrorIcon className="field-svg" />}
+      {Icon && (
+        <IconContainer>
+          <StyledIconSVG as={Icon} />
+        </IconContainer>
+      )}
+      {message && (
+        <StyledMessage {...{ variant }}>
+          {variant === "info" && (
+            <InfoIcon className={StyledSVG.styledComponentId} />
+          )}
+          <StyledSmall {...{ variant }}>{message}</StyledSmall>
+        </StyledMessage>
+      )}
+    </Wrapper>
+  );
+};
 
 Field.displayName = "Field";
 
