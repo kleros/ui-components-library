@@ -214,11 +214,11 @@ const Field: React.FC<FieldProps> = ({
           >
             <StyledArrowIcon as={UpArrowIcon} />
           </ArrowButton>
-          <ArrowButton aria-label="decrement">
-            <StyledArrowIcon
-              as={DownArrowIcon}
-              onClick={() => inputRef?.current?.stepDown()}
-            />
+          <ArrowButton
+            aria-label="decrement"
+            onClick={() => inputRef?.current?.stepDown()}
+          >
+            <StyledArrowIcon as={DownArrowIcon} />
           </ArrowButton>
         </ArrowsContainer>
       )}
