@@ -5,6 +5,7 @@ import Searchbar from "../lib/form/searchbar";
 import Textarea from "../lib/form/textarea";
 import Slider from "../lib/form/slider";
 import Datepicker from "../lib/form/datepicker";
+import Telegram from "../assets/svgs/telegram.svg";
 
 const Form = () => {
   const [value, setValue] = useState(1);
@@ -26,6 +27,8 @@ const Form = () => {
         variant="success"
         message="success msg"
       />
+      <Field placeholder={"Number"} type="number" Icon={Telegram} />
+      <Field placeholder={"Number"} type="number" />
       <Searchbar />
       <Textarea
         placeholder={"eg. longer text"}
