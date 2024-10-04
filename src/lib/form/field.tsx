@@ -109,11 +109,13 @@ const ArrowsContainer = styled.div<{
 }>`
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
   position: absolute;
-  height: 17px;
+  height: 100%;
   width: 14px;
-  top: 14px;
+  gap: 4px;
+  top: 0;
   right: ${({ Icon, variant }) => {
     if (Icon) return "48px";
     if (variant) return "36px";
@@ -122,13 +124,14 @@ const ArrowsContainer = styled.div<{
 `;
 
 const ArrowButton = styled.button`
-  height: 10px;
-  width: 100%;
+  height: 14px;
+  width: 14px;
   display: flex;
   justify-content: center;
   align-items: center;
   background: transparent;
   border: none;
+  border-radius: 3px;
   padding: 0;
 
   cursor: pointer;
