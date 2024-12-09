@@ -27,15 +27,21 @@ const loading = keyframes`
 const Wrapper = styled.div<SideProp & StateProp>`
   display: flex;
   position: relative;
-  opacity: ${({ state }) => (!state || state === "active" ? 1 : 0.5)};
   justify-content: ${({ rightSided }) =>
     rightSided ? "flex-start" : "flex-end"};
-  ${({ state }) =>
-    state === "loading"
-      ? css`
-          animation: ${loading} 2s ease-in-out infinite normal;
-        `
-      : "none"};
+  ${({ state }) => {
+    if (state === "disabled")
+      return css`
+        opacity: 0.5;
+      `;
+    if (state === "loading")
+      return css`
+        animation: ${loading} 2s ease-in-out infinite normal;
+      `;
+    return css`
+      opacity: 1;
+    `;
+  }}
 `;
 
 const StyledTitle = styled.h2``;
