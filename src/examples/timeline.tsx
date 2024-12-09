@@ -93,6 +93,7 @@ const TimelineProgress = () => (
           party: "No",
           subtitle: "06 Jul 2023 12:00 UTC",
           variant: "#ca2314",
+          state: "loading",
         },
       ]}
     />

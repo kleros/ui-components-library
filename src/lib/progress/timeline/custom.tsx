@@ -1,9 +1,9 @@
 import React from "react";
 import styled from "styled-components";
-import Bullet, { SideProp, VariantProp } from "./bullet";
+import Bullet, { SideProp, StateProp, VariantProp } from "./bullet";
 import { borderBox } from "../../../styles/common-style";
 
-interface TimelineItem extends SideProp, VariantProp {
+interface TimelineItem extends SideProp, VariantProp, StateProp {
   title: string;
   party: string | React.ReactElement;
   subtitle: string;
