@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import styled from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import Spine, { VariantProp, variantColor } from "./spine";
 export type { VariantProp };
 import { h2, p, small } from "../../../styles/common-style";
@@ -8,10 +8,34 @@ export interface SideProp {
   rightSided?: boolean;
 }
 
-const Wrapper = styled.div<SideProp>`
+export interface StateProp {
+  state?: "loading" | "disabled" | "active";
+}
+
+const loading = keyframes`
+  0%{
+    opacity: 1;
+  }
+  50%{
+    opacity: 0.5;
+  }
+  100%{
+    opacity: 1;
+  }
+`;
+
+const Wrapper = styled.div<SideProp & StateProp>`
   display: flex;
+  position: relative;
+  opacity: ${({ state }) => (!state || state === "active" ? 1 : 0.5)};
   justify-content: ${({ rightSided }) =>
     rightSided ? "flex-start" : "flex-end"};
+  ${({ state }) =>
+    state === "loading"
+      ? css`
+          animation: ${loading} 2s ease-in-out infinite normal;
+        `
+      : "none"};
 `;
 
 const StyledTitle = styled.h2``;
@@ -78,7 +102,7 @@ const PartyTitleContainer = styled.div<SideProp>`
     rightSided ? "flex-start" : "flex-end"};
 `;
 
-interface BulletProps extends VariantProp, SideProp {
+interface BulletProps extends VariantProp, SideProp, StateProp {
   title: string;
   party: string | React.ReactElement;
   subtitle: string;
@@ -90,14 +114,17 @@ interface BulletProps extends VariantProp, SideProp {
 
 const Bullet: React.FC<BulletProps> = (props) => {
   const { title, party, subtitle, ...restProps } = props;
-  const { rightSided, variant, line, Icon, isLast, ...wrapperProps } =
+  const { rightSided, variant, line, Icon, isLast, state, ...wrapperProps } =
     restProps;
   const titleRef = useRef<HTMLHeadingElement>(null);
 
   return (
-    <Wrapper {...{ rightSided }} {...wrapperProps}>
+    <Wrapper {...{ rightSided, state }} {...wrapperProps}>
       <Spine {...{ variant, line, Icon, titleRef }} />
-      <TextContainer {...{ variant, rightSided, isLast }}>
+      <TextContainer
+        className="text-container"
+        {...{ variant, rightSided, isLast }}
+      >
         <PartyTitleContainer {...{ rightSided }}>
           <StyledTitle ref={titleRef}>{title}</StyledTitle>
           {typeof party === `string` ? (
