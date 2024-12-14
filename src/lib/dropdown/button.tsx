@@ -1,13 +1,21 @@
 import React, { ReactNode } from "react";
 import styled, { css } from "styled-components";
 import Arrow from "../../assets/svgs/dropdown/arrow.svg";
-import { borderBox, button, svg } from "../../styles/common-style";
+import {
+  borderBox,
+  button,
+  hoverLongTransitionTiming,
+  svg,
+  hoverMediumBlue,
+} from "../../styles/common-style";
 
 const Container = styled.button`
   ${borderBox}
   ${button}
+  ${hoverLongTransitionTiming}
+  ${hoverMediumBlue}
   width: 240px;
-  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
+  background-color: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
   border: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
   border-radius: 3px;
   display: flex;

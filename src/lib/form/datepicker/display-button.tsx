@@ -1,10 +1,17 @@
 import React from "react";
 import styled from "styled-components";
 import Calendar from "../../../assets/svgs/form/calendar.svg";
-import { button, p } from "../../../styles/common-style";
+import {
+  button,
+  hoverLongTransitionTiming,
+  hoverMediumBlue,
+  p,
+} from "../../../styles/common-style";
 
 const StyledButton = styled.button`
   ${button}
+  ${hoverMediumBlue}
+  ${hoverLongTransitionTiming}
   height: 45px;
   width: 330px;
   background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};

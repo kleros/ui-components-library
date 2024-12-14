@@ -1,4 +1,5 @@
 export const lightTheme = {
+  klerosUIComponentsName: "light",
   klerosUIComponentsPrimaryPurple: "#4D00B4",
   klerosUIComponentsSecondaryPurple: "#9013FE",
   klerosUIComponentsMediumPurple: "#F8F1FF",
@@ -32,6 +33,7 @@ export const lightTheme = {
 };
 
 export const darkTheme = {
+  klerosUIComponentsName: "dark",
   klerosUIComponentsPrimaryPurple: "#7E1BD4",
   klerosUIComponentsSecondaryPurple: "#B45FFF",
   klerosUIComponentsMediumPurple: "#390F6C",

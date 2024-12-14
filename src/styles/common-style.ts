@@ -113,3 +113,36 @@ export const borderBox = css`
     box-sizing: border-box;
   }
 `;
+
+export const hoverShortTransitionTiming = css`
+  :hover {
+    transition: 0.1s;
+  }
+
+  :not(:hover) {
+    transition: 0.1s;
+  }
+`;
+
+export const hoverLongTransitionTiming = css`
+  :hover {
+    transition: 0.2s;
+  }
+
+  :not(:hover) {
+    transition: 0.2s;
+  }
+`;
+
+export const hoverMediumBlue = css`
+  :hover {
+    background-color: ${(props) => props.theme.klerosUIComponentsMediumBlue};
+  }
+`;
+
+export const hoverWhiteBackground = css`
+  :hover {
+    background-color: ${(props) =>
+      props.theme.klerosUIComponentsWhiteBackground};
+  }
+`;

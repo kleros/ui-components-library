@@ -7,7 +7,13 @@ import InfoIcon from "../../assets/svgs/status-icons/info.svg";
 import UpArrowIcon from "../../assets/svgs/arrows/field-arrow-up.svg";
 import DownArrowIcon from "../../assets/svgs/arrows/field-arrow-down.svg";
 
-import { borderBox, small, svg } from "../../styles/common-style";
+import {
+  borderBox,
+  hoverMediumBlue,
+  hoverLongTransitionTiming,
+  small,
+  svg,
+} from "../../styles/common-style";
 import { useHover } from "usehooks-ts";
 
 export type VariantProp = {
@@ -53,6 +59,8 @@ const StyledErrorIcon = styled(ErrorIcon)`
 `;
 
 export const baseInputStyle = css<VariantProp>`
+  ${hoverMediumBlue}
+  ${hoverLongTransitionTiming}
   height: 100%;
   width: 100%;
   background: ${(props) => props.theme.klerosUIComponentsWhiteBackground};

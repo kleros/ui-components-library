@@ -3,14 +3,22 @@ import styled from "styled-components";
 import { useElementSize } from "../../hooks/useElementSize";
 import Plus from "../../assets/svgs/accordion/plus.svg";
 import Minus from "../../assets/svgs/accordion/minus.svg";
-import { svg, button } from "../../styles/common-style";
+import {
+  svg,
+  button,
+  hoverMediumBlue,
+  hoverShortTransitionTiming,
+} from "../../styles/common-style";
 
 const StyledDiv = styled.div`
   margin: 8px 0px;
   .accordion-button {
     ${button}
+    ${hoverMediumBlue}
+    ${hoverShortTransitionTiming}
     width: 100%;
-    background: ${({ theme }) => theme.klerosUIComponentsPrimaryPurple};
+    background-color: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
+    border: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
     border-radius: 3px;
     padding: 11.5px 32px;
     display: flex;
@@ -21,7 +29,7 @@ const StyledDiv = styled.div`
       ${svg}
       height: 16px;
       width: 16px;
-      fill: ${({ theme }) => theme.klerosUIComponentsLightPurple};
+      fill: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
     }
   }
 `;

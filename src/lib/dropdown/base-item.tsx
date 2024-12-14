@@ -1,7 +1,12 @@
 import React from "react";
 import styled, { css } from "styled-components";
 import Dot from "../dot";
-import { borderBox, svg, p } from "../../styles/common-style";
+import {
+  borderBox,
+  svg,
+  p,
+  hoverShortTransitionTiming,
+} from "../../styles/common-style";
 
 interface IItem {
   selected?: boolean;
@@ -10,10 +15,9 @@ interface IItem {
 
 const Item = styled.div<IItem>`
   ${borderBox}
-  background: ${({ selected, theme }) =>
-    selected
-      ? theme.klerosUIComponentsMediumBlue
-      : theme.klerosUIComponentsWhiteBackground};
+  ${hoverShortTransitionTiming}
+  background-color: ${({ selected, theme }) =>
+    selected ? theme.klerosUIComponentsMediumBlue : ""};
   padding: ${({ current }) =>
     current ? "10.5px 16px 10.5px 13px" : "11.5px 16px 11.5px 13px"};
   display: flex;
