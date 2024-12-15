@@ -6,7 +6,7 @@ const Wrapper = styled.div`
   ${borderBox}
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 0;
+  gap: 2px 0;
 `;
 
 const Element = styled.button<{ clickable?: boolean }>`
