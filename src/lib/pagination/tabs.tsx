@@ -3,6 +3,7 @@ import styled from "styled-components";
 import {
   borderBox,
   button,
+  hoverLongTransitionTiming,
   hoverShortTransitionTiming,
   svg,
 } from "../../styles/common-style";
@@ -40,25 +41,15 @@ const StyledTab = styled.button<{ selected?: boolean }>`
   ${(props) =>
     !props.disabled && !props.selected
       ? `:hover {
+        ${hoverLongTransitionTiming}
             border-bottom: 3px solid
-              ${props.theme.klerosUIComponentsSecondaryBlue};
-            color: ${
-              props.theme.klerosUIComponentsName === "light"
-                ? `${props.theme.klerosUIComponentsPrimaryBlue}B0`
-                : `${props.theme.klerosUIComponentsSecondaryBlue}`
-            }; 
-            svg {
-              fill: ${
-                props.theme.klerosUIComponentsName === "light"
-                  ? `${props.theme.klerosUIComponentsPrimaryBlue}B0`
-                  : `${props.theme.klerosUIComponentsSecondaryBlue}`
-              };
-            }
+              ${props.theme.klerosUIComponentsPrimaryBlue};
           }`
       : ""}
 
   & ${StyledSVG} {
     ${svg}
+    ${hoverShortTransitionTiming}
     height: 16px;
     width: 16px;
     margin-right: 16px;

@@ -1,5 +1,8 @@
 import styled from "styled-components";
-import { borderBox } from "../../styles/common-style";
+import {
+  borderBox,
+  hoverShortTransitionTiming,
+} from "../../styles/common-style";
 
 interface CardProps {
   round?: boolean;
@@ -8,7 +11,8 @@ interface CardProps {
 
 const Card = styled.div<CardProps>`
   ${borderBox}
-  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
+  ${hoverShortTransitionTiming}
+  background-color: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
   border: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
   box-shadow: 0px 2px 3px
     ${({ theme }) => theme.klerosUIComponentsDefaultShadow};
@@ -16,14 +20,11 @@ const Card = styled.div<CardProps>`
   width: 328px;
   height: 200px;
 
-  transition: box-shadow ease
-    ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
-
   ${({ theme, hover }) =>
     hover &&
     `
       :hover {
-        box-shadow: 0px 6px 9px ${theme.klerosUIComponentsHoveredShadow};
+        background-color: ${theme.klerosUIComponentsLightGrey}BB;
         cursor: pointer;
       }
   `}
