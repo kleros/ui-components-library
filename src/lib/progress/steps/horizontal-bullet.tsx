@@ -1,7 +1,8 @@
-import React, { useRef, useLayoutEffect, useState } from "react";
+import React from "react";
 import styled, { css } from "styled-components";
 import BulletCircle from "./bullet-circle";
 import { h2, small, mobileStyle } from "../../../styles/common-style";
+import { useElementSize } from "../../../hooks/useElementSize";
 
 interface IContainer {
   last?: boolean;
@@ -105,15 +106,8 @@ const HorizontalBullet: React.FC<HorizontalBulletProps> = ({
   completed,
   ...props
 }) => {
-  const textRef = useRef<HTMLDivElement>(null);
-  const [paddingBottom, setPaddingBottom] = useState(0);
-
-  useLayoutEffect(() => {
-    if (textRef.current) {
-      const totalHeight = textRef.current.clientHeight;
-      setPaddingBottom(totalHeight);
-    }
-  }, [subitems]);
+  const [textRef, { height }] = useElementSize<HTMLDivElement>();
+  const paddingBottom = height;
 
   return (
     <Container {...{ active, completed, last, paddingBottom }} {...props}>
