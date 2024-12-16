@@ -1,7 +1,14 @@
 import React from "react";
 import styled, { css } from "styled-components";
 import Arrow from "../../assets/svgs/dropdown/arrow.svg";
-import { borderBox, button, svg, small, h1 } from "../../styles/common-style";
+import {
+  borderBox,
+  button,
+  svg,
+  small,
+  h1,
+  hoverShortTransitionTiming,
+} from "../../styles/common-style";
 
 const Container = styled.button`
   ${borderBox}
@@ -10,16 +17,30 @@ const Container = styled.button`
   display: flex;
   align-items: center;
   padding: 0px;
+
+  :hover {
+    small {
+      color: ${({ theme }) => theme.klerosUIComponentsSecondaryBlue};
+    }
+    h1 {
+      color: ${({ theme }) => theme.klerosUIComponentsSecondaryBlue};
+    }
+    svg {
+      fill: ${({ theme }) => theme.klerosUIComponentsSecondaryBlue};
+    }
+  }
 `;
 
 const StyledSmallText = styled.small`
   ${small}
+  ${hoverShortTransitionTiming}
   font-weight: 600;
   color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
 `;
 
 const StyledBigText = styled.h1`
   ${h1}
+  ${hoverShortTransitionTiming}
   font-weight: 600;
   color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
 `;
@@ -28,6 +49,7 @@ const StyledArrow = styled(({ ignoredIsOpen, ignoredSmall, ...props }) => (
   <Arrow {...props} />
 ))`
   ${svg}
+  ${hoverShortTransitionTiming}
   width: ${({ ignoredSmall: small }) => (small ? "8" : "16")}px;
   height: ${({ ignoredSmall: small }) => (small ? "8" : "16")}px;
   fill: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};

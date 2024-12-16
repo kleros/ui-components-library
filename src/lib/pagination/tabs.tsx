@@ -1,6 +1,12 @@
 import React from "react";
 import styled from "styled-components";
-import { borderBox, button, svg } from "../../styles/common-style";
+import {
+  borderBox,
+  button,
+  hoverShortTransitionTiming,
+  hoverLongTransitionTiming,
+  svg,
+} from "../../styles/common-style";
 
 const Wrapper = styled.div`
   ${borderBox}
@@ -13,6 +19,7 @@ const StyledSVG = styled.svg``;
 
 const StyledTab = styled.button<{ selected?: boolean }>`
   ${button}
+  ${hoverShortTransitionTiming}
   flex-grow: 1;
   height: 45px;
   background: none;
@@ -34,6 +41,7 @@ const StyledTab = styled.button<{ selected?: boolean }>`
   ${(props) =>
     !props.disabled && !props.selected
       ? `:hover {
+        ${hoverLongTransitionTiming}
             border-bottom: 3px solid
               ${props.theme.klerosUIComponentsSecondaryBlue};
           }`
@@ -41,6 +49,7 @@ const StyledTab = styled.button<{ selected?: boolean }>`
 
   & ${StyledSVG} {
     ${svg}
+    ${hoverShortTransitionTiming}
     height: 16px;
     width: 16px;
     margin-right: 16px;

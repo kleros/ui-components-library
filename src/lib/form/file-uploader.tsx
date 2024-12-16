@@ -6,7 +6,14 @@ import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import InfoIcon from "../../assets/svgs/status-icons/info.svg";
 import { variantColor } from "./field";
-import { borderBox, small, svg, button } from "../../styles/common-style";
+import {
+  borderBox,
+  small,
+  svg,
+  button,
+  hoverShortTransitionTiming,
+  hoverWhiteBackground,
+} from "../../styles/common-style";
 
 type VariantProp = { variant?: "success" | "warning" | "error" | "info" };
 
@@ -18,9 +25,11 @@ const Wrapper = styled.div`
 
 const DropZone = styled.button`
   ${button}
+  ${hoverWhiteBackground}
+  ${hoverShortTransitionTiming}
   height: 100%;
   width: 100%;
-  background: ${({ theme }) => theme.klerosUIComponentsMediumBlue};
+  background-color: ${({ theme }) => theme.klerosUIComponentsMediumBlue};
   border: 1px dashed ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
   border-radius: 3px;
 

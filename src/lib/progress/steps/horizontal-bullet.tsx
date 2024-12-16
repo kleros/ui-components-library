@@ -2,10 +2,12 @@ import React from "react";
 import styled, { css } from "styled-components";
 import BulletCircle from "./bullet-circle";
 import { h2, small, mobileStyle } from "../../../styles/common-style";
+import { useElementSize } from "../../../hooks/useElementSize";
 
 interface IContainer {
   last?: boolean;
   completed?: boolean;
+  paddingBottom?: number;
 }
 
 const Container = styled.div<IContainer>`
@@ -14,6 +16,16 @@ const Container = styled.div<IContainer>`
   display: flex;
   justify-content: center;
   align-items: start;
+  ${({ paddingBottom }) =>
+    paddingBottom
+      ? css`
+          ${mobileStyle(
+            () => css`
+              padding-bottom: ${paddingBottom}px;
+            `
+          )}
+        `
+      : ""}
 
   ${({ theme, last, completed }) =>
     last
@@ -93,14 +105,19 @@ const HorizontalBullet: React.FC<HorizontalBulletProps> = ({
   last,
   completed,
   ...props
-}) => (
-  <Container {...{ active, completed, last }} {...props}>
-    <BulletCircle {...{ active, completed, index }} />
-    <TextWrapper {...{ active }}>
-      <h2>{title}</h2>
-      {subitems && subitems.map((item, i) => <small key={i}>{item}</small>)}
-    </TextWrapper>
-  </Container>
-);
+}) => {
+  const [textRef, { height }] = useElementSize<HTMLDivElement>();
+  const paddingBottom = height;
+
+  return (
+    <Container {...{ active, completed, last, paddingBottom }} {...props}>
+      <BulletCircle {...{ active, completed, index }} />
+      <TextWrapper ref={textRef} {...{ active }}>
+        <h2>{title}</h2>
+        {subitems && subitems.map((item, i) => <small key={i}>{item}</small>)}
+      </TextWrapper>
+    </Container>
+  );
+};
 
 export default HorizontalBullet;
