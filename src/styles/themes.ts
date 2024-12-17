@@ -44,7 +44,7 @@ export const darkTheme = {
   klerosUIComponentsLightBlue: "#2A1260",
   klerosUIComponentsPrimaryText: "#DAF0FF",
   klerosUIComponentsSecondaryText: "#BECCE5",
-  klerosUIComponentsStroke: "#42498F",
+  klerosUIComponentsStroke: "#392C74",
   klerosUIComponentsLightGrey: "#2D1865",
 
   klerosUIComponentsWhiteBackground: "#220050",
