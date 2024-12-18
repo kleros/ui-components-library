@@ -1,10 +1,6 @@
 import React from "react";
 import styled, { css } from "styled-components";
-import {
-  borderBox,
-  fadeIn,
-  small as smallStyle,
-} from "../../styles/common-style";
+import { borderBox, small as smallStyle } from "../../styles/common-style";
 
 export interface TooltipBaseProps {
   place?: "left" | "right" | "top" | "bottom";
@@ -91,8 +87,10 @@ const Tip = styled.div<TooltipBaseProps>`
 
 const StyledTooltip = styled.span<TooltipBaseProps>`
   ${borderBox}
+  transition: opacity 0.5s, visibility 0.5s;
   ${({ place, theme, small }) => css`
     visibility: hidden;
+    opacity: 0%;
     position: absolute;
     z-index: 1;
     width: max-content;
@@ -145,7 +143,7 @@ const Wrapper = styled.div`
 
   &:hover ${StyledTooltip} {
     visibility: visible;
-    animation: ${fadeIn} 200ms ease-in;
+    opacity: 100%;
   }
 `;
 
