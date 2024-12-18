@@ -1,6 +1,6 @@
 {
   "name": "@kleros/ui-components-library",
-  "version": "2.18.0",
+  "version": "2.19.0",
   "description": "UI components library which implements the Kleros design system.",
   "source": "src/lib/index.ts",
   "main": "dist/index.js",
