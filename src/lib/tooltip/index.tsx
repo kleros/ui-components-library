@@ -87,7 +87,7 @@ const Tip = styled.div<TooltipBaseProps>`
 
 const StyledTooltip = styled.span<TooltipBaseProps>`
   ${borderBox}
-  transition: opacity 0.5s, visibility 0.5s;
+  transition: opacity 200ms ease-in, visibility 200ms ease-in;
   ${({ place, theme, small }) => css`
     visibility: hidden;
     opacity: 0%;
