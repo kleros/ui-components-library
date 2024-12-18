@@ -2,6 +2,7 @@ import {
   css,
   DefaultTheme,
   FlattenInterpolation,
+  keyframes,
   ThemeProps,
 } from "styled-components";
 
@@ -132,5 +133,17 @@ export const hoverWhiteBackground = css`
   :hover {
     background-color: ${(props) =>
       props.theme.klerosUIComponentsWhiteBackground};
+  }
+`;
+
+export const fadeIn = keyframes`
+  0%{
+    opacity: 0;
+  }
+  50%{
+    opacity: 0.5;
+  }
+  100%{
+    opacity: 1;
   }
 `;
