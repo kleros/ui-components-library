@@ -32,6 +32,7 @@ const StyledDiv = styled.div`
   align-items: center;
   flex-wrap: wrap;
   padding: 36px 36px;
+  overflow: scroll;
   background: ${(props) => props.theme.klerosUIComponentsLightBackground};
   transition: background ease
     ${(props) => props.theme.klerosUIComponentsTransitionSpeed};

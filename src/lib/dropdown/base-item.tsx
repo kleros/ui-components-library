@@ -51,6 +51,19 @@ const StyledDot = styled(Dot)`
   margin-right: 8px;
 `;
 
+const CountDisplay = styled.label`
+  width: 24px;
+  height: 24px;
+  border: 1px solid ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
+  border-radius: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 12px;
+  color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
+`;
 export interface IBaseItem
   extends IItem,
     Omit<React.HTMLAttributes<HTMLDivElement>, "onClick"> {
@@ -58,6 +71,7 @@ export interface IBaseItem
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   icon?: React.ReactNode;
   dot?: string;
+  childrenCount?: number;
   onClick?: () => void;
 }
 
@@ -67,6 +81,7 @@ const BaseItem: React.FC<IBaseItem> = ({
   icon,
   dot,
   onClick,
+  childrenCount,
   ...props
 }) => (
   <Item
@@ -76,6 +91,11 @@ const BaseItem: React.FC<IBaseItem> = ({
     {icon ?? (Icon && <Icon className="item-icon" />)}
     {dot && <StyledDot color={dot} />}
     <StyledText>{text}</StyledText>
+    {childrenCount !== undefined ? (
+      <CountDisplay className="count-display">
+        <span>{childrenCount}</span>
+      </CountDisplay>
+    ) : null}
   </Item>
 );
 
