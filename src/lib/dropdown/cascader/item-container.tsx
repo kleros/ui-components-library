@@ -16,6 +16,19 @@ export const StyledBaseItem = styled(BaseItem)`
         ? theme.klerosUIComponentsPrimaryBlue
         : theme.klerosUIComponentsStroke};
   }
+
+  .count-display {
+    position: absolute;
+    right: 32px;
+    border-color: ${({ selected, theme }) =>
+      selected
+        ? theme.klerosUIComponentsPrimaryBlue
+        : theme.klerosUIComponentsStroke};
+    color: ${({ selected, theme }) =>
+      selected
+        ? theme.klerosUIComponentsPrimaryBlue
+        : theme.klerosUIComponentsStroke};
+  }
 `;
 
 export interface IItem {
@@ -42,6 +55,7 @@ const ItemContainer: React.FC<IItemContainer> = ({
         text={item.label}
         Icon={item.children && LightArrow}
         onClick={() => onChange(item)}
+        childrenCount={item.children?.length}
         selected={item.value === layer.selected}
       />
     ))}
