@@ -1,0 +1,216 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --klerosUIComponentsPrimaryPurple: #4d00b4;
+    --klerosUIComponentsSecondaryPurple: #9013fe;
+    --klerosUIComponentsMediumPurple: #f8f1ff;
+    --klerosUIComponentsLightPurple: #fbf9fe;
+    --klerosUIComponentsPrimaryBlue: #009aff;
+    --klerosUIComponentsSecondaryBlue: #7bcbff;
+    --klerosUIComponentsMediumBlue: #f0f9ff;
+    --klerosUIComponentsLightBlue: #fcfeff;
+    --klerosUIComponentsPrimaryText: #333333;
+    --klerosUIComponentsSecondaryText: #999999;
+    --klerosUIComponentsStroke: #e5e5e5;
+    --klerosUIComponentsLightGrey: #fafafa;
+
+    --klerosUIComponentsWhiteBackground: #ffffff;
+    --klerosUIComponentsLightBackground: #fafbfc;
+
+    --klerosUIComponentsDefaultShadow: #00000002;
+    --klerosUIComponentsHoveredShadow: #00000002;
+
+    --klerosUIComponentsSuccess: #00c42b;
+    --klerosUIComponentsSuccessLight: #f0fbf2;
+    --klerosUIComponentsWarning: #ff9900;
+    --klerosUIComponentsWarningLight: #fff9f0;
+    --klerosUIComponentsError: #f60c36;
+    --klerosUIComponentsErrorLight: #FEFF0F3;
+    --klerosUIComponentsTint: #d14eff;
+    --klerosUIComponentsTintMedium: #401d6c;
+    --klerosUIComponentsTintPurple: #f4f0fa;
+
+    --klerosUIComponentsTransitionSpeed: 0.25s;
+  }
+
+  :root[class="dark"] {
+    --klerosUIComponentsName: dark;
+    --klerosUIComponentsPrimaryPurple: #7e1bd4;
+    --klerosUIComponentsSecondaryPurple: #b45fff;
+    --klerosUIComponentsMediumPurple: #390f6c;
+    --klerosUIComponentsLightPurple: #fcfbff;
+    --klerosUIComponentsPrimaryBlue: #6cc5ff;
+    --klerosUIComponentsSecondaryBlue: #a5dbff;
+    --klerosUIComponentsMediumBlue: #2e206c;
+    --klerosUIComponentsLightBlue: #2a1260;
+    --klerosUIComponentsPrimaryText: #daf0ff;
+    --klerosUIComponentsSecondaryText: #becce5;
+    --klerosUIComponentsStroke: #392c74;
+    --klerosUIComponentsLightGrey: #2d1865;
+
+    --klerosUIComponentsWhiteBackground: #220050;
+    --klerosUIComponentsLightBackground: #1b003f;
+
+    --klerosUIComponentsDefaultShadow: #00000000;
+    --klerosUIComponentsHoveredShadow: #42498f80;
+
+    --klerosUIComponentsSuccess: #65dc7f;
+    --klerosUIComponentsSuccessLight: #32355b;
+    --klerosUIComponentsWarning: #ffc46b;
+    --klerosUIComponentsWarningLight: #451f54;
+    --klerosUIComponentsError: #ff5a78;
+    --klerosUIComponentsErrorLight: #360652;
+    --klerosUIComponentsTint: #ddb6ff;
+    --klerosUIComponentsTintMedium: #401d6c;
+    --klerosUIComponentsTintPurple: #2f0960;
+
+    --klerosUIComponentsTransitionSpeed: 0.25s;
+  }
+
+  /* Typography styles */
+  h1 {
+    @apply text-2xl font-semibold leading-[33px] m-0;
+    color: var(--klerosUIComponentsPrimaryText);
+  }
+
+  h2 {
+    @apply text-base font-semibold leading-[22px] m-0;
+    color: var(--klerosUIComponentsPrimaryText);
+  }
+
+  p {
+    @apply text-base font-normal leading-[22px] m-0 break-words;
+    color: var(--klerosUIComponentsPrimaryText);
+  }
+
+  small {
+    @apply text-sm font-normal leading-[19px] m-0 break-words;
+    color: var(--klerosUIComponentsSecondaryText);
+  }
+
+  /* Element styles */
+  hr {
+    @apply opacity-100;
+  }
+
+  svg {
+    @apply inline-block align-middle;
+  }
+
+  img {
+    @apply inline-block align-middle;
+  }
+
+  button {
+    @apply text-base m-0 border-none overflow-visible normal-case;
+  }
+
+  button:hover:enabled {
+    @apply cursor-pointer;
+  }
+
+  input {
+    @apply text-base m-0 border-none overflow-visible;
+  }
+
+  optgroup {
+    @apply text-base m-0 border-none;
+  }
+
+  select {
+    @apply text-base m-0 border-none normal-case;
+  }
+
+  textarea {
+    @apply text-base m-0 border-none;
+  }
+
+  /* Box sizing */
+  .border-box, .border-box *, .border-box *:before, .border-box *:after {
+    @apply box-border;
+  }
+
+  /* Transitions */
+  .hover-short-transition {
+    transition: 0.1s;
+  }
+
+  .hover-long-transition {
+    transition: 0.2s;
+  }
+
+  /* Hover effects */
+  .hover-medium-blue:hover {
+    background-color: var(--klerosUIComponentsMediumBlue);
+  }
+
+  .hover-white-background:hover {
+    background-color: var(--klerosUIComponentsWhiteBackground);
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+}
+
+@theme {
+  --color-klerosUIComponentsPrimaryPurple: var(
+    --klerosUIComponentsPrimaryPurple
+  );
+  --color-klerosUIComponentsSecondaryPurple: var(
+    --klerosUIComponentsSecondaryPurple
+  );
+  --color-klerosUIComponentsMediumPurple: var(--klerosUIComponentsMediumPurple);
+  --color-klerosUIComponentsLightPurple: var(--klerosUIComponentsLightPurple);
+  --color-klerosUIComponentsPrimaryBlue: var(--klerosUIComponentsPrimaryBlue);
+  --color-klerosUIComponentsSecondaryBlue: var(
+    --klerosUIComponentsSecondaryBlue
+  );
+  --color-klerosUIComponentsMediumBlue: var(--klerosUIComponentsMediumBlue);
+  --color-klerosUIComponentsLightBlue: var(--klerosUIComponentsLightBlue);
+  --color-klerosUIComponentsPrimaryText: var(--klerosUIComponentsPrimaryText);
+  --color-klerosUIComponentsSecondaryText: var(
+    --klerosUIComponentsSecondaryText
+  );
+  --color-klerosUIComponentsStroke: var(--klerosUIComponentsStroke);
+  --color-klerosUIComponentsLightGrey: var(--klerosUIComponentsLightGrey);
+
+  --color-klerosUIComponentsWhiteBackground: var(
+    --klerosUIComponentsWhiteBackground
+  );
+  --color-klerosUIComponentsLightBackground: var(
+    --klerosUIComponentsLightBackground
+  );
+  --color-klerosUIComponentsDefaultShadow: var(
+    --klerosUIComponentsDefaultShadow
+  );
+  --color-klerosUIComponentsHoveredShadow: var(
+    --klerosUIComponentsHoveredShadow
+  );
+  --color-klerosUIComponentsSuccess: var(--klerosUIComponentsSuccess);
+  --color-klerosUIComponentsSuccessLight: var(--klerosUIComponentsSuccessLight);
+  --color-klerosUIComponentsWarning: var(--klerosUIComponentsWarning);
+  --color-klerosUIComponentsWarningLight: var(--klerosUIComponentsWarningLight);
+  --color-klerosUIComponentsError: var(--klerosUIComponentsError);
+  --color-klerosUIComponentsErrorLight: var(--klerosUIComponentsErrorLight);
+  --color-klerosUIComponentsTint: var(--klerosUIComponentsTint);
+  --color-klerosUIComponentsTintMedium: var(--klerosUIComponentsTintMedium);
+  --color-klerosUIComponentsTintPurple: var(--klerosUIComponentsTintPurple);
+  --color-klerosUIComponentsTransitionSpeed: var(
+    --klerosUIComponentsTransitionSpeed
+  );
+}

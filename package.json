@@ -28,6 +28,7 @@
     "@parcel/packager-ts": "^2.2.1",
     "@parcel/transformer-svg-react": "^2.0.1",
     "@parcel/transformer-typescript-types": "^2.2.1",
+    "@tailwindcss/postcss": "^4.0.11",
     "@types/react": "^18.0.9",
     "@types/react-dom": "^18.0.3",
     "@types/styled-components": "^5.1.20",
@@ -44,21 +45,26 @@
     "eslint-plugin-security": "^1.4.0",
     "husky": "^7.0.0",
     "lint-staged": "^12.1.2",
-    "parcel": "^2.2.1",
+    "parcel": "^2.13.3",
     "prettier": "^2.5.1",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "process": "^0.11.10",
     "styled-components": "^5.3.3",
+    "tailwindcss": "^4.0.11",
     "typescript": "^4.5.4"
   },
   "peerDependencies": {
+    "@tailwindcss/postcss": "^4.0.11",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-is": "^18.0.0",
-    "styled-components": "^5.3.3"
+    "styled-components": "^5.3.3",
+    "tailwindcss": "^4.0.11"
   },
   "dependencies": {
     "@datepicker-react/hooks": "^2.8.4",
     "@swc/helpers": "^0.3.2",
+    "clsx": "^2.1.1",
     "rc-slider": "^9.7.5",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
@@ -73,7 +79,7 @@
     "*.{js,css,md}": "prettier --write"
   },
   "volta": {
-    "node": "16.20.1",
+    "node": "20.18.3",
     "yarn": "1.22.19"
   },
   "packageManager": "yarn@1.22.19+sha256.732620bac8b1690d507274f025f3c6cfdc3627a84d9642e38a07452cc00e0f2e"
