@@ -64,7 +64,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
           </Element>
           <Separator>{"/"}</Separator>
         </React.Fragment>
-      )
+      ),
     )}
   </Wrapper>
 );

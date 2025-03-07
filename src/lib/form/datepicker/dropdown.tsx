@@ -32,7 +32,7 @@ const Container = styled.div<IContainer>`
       margin: 0;
       left: 0;
       top: 0;
-    `
+    `,
   )}
 `;
 
@@ -44,7 +44,7 @@ const Selectors = styled.div`
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-    `
+    `,
   )}
 `;
 
@@ -58,7 +58,7 @@ const ButtonContainer = styled.div`
   ${mobileStyle(
     () => css`
       justify-content: center;
-    `
+    `,
   )}
 `;
 

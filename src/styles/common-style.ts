@@ -7,7 +7,7 @@ import {
 } from "styled-components";
 
 export const mobileStyle = (
-  styleFn: () => FlattenInterpolation<ThemeProps<DefaultTheme>>
+  styleFn: () => FlattenInterpolation<ThemeProps<DefaultTheme>>,
 ) => css`
   @media (max-width: 900px) {
     ${styleFn()}

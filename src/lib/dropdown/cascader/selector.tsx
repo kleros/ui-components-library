@@ -13,7 +13,7 @@ const Wrapper = styled.div`
   ${mobileStyle(
     () => css`
       justify-content: center;
-    `
+    `,
   )}
   justify-content: end;
   align-items: center;

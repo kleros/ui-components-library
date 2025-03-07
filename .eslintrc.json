@@ -18,21 +18,16 @@
     "plugin:react-hooks/recommended",
     "plugin:import/recommended",
     "plugin:import/react",
-    "plugin:security/recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
-    "prettier"
+    "prettier",
+    "plugin:security/recommended-legacy"
   ],
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
   },
-  "plugins": [
-    "react",
-    "react-hooks",
-    "security",
-    "import"
-  ],
+  "plugins": ["react", "react-hooks", "security", "import"],
   "ignorePatterns": ["src/assets"],
   "settings": {
     "react": {
@@ -41,20 +36,12 @@
     "import/resolver": {
       "parcel": {
         "rootDir": "src",
-        "extensions": [
-          ".js",
-          ".jsx",
-          ".ts",
-          ".tsx",
-          ".svg",
-          ".png",
-          ".jpeg"
-        ]
+        "extensions": [".js", ".jsx", ".ts", ".tsx", ".svg", ".png", ".jpeg"]
       }
     }
   },
   "rules": {
-    "max-len": ["warn", {"code": 80}],
+    "max-len": ["warn", { "code": 80 }],
     "react/prop-types": 0,
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": [
@@ -67,12 +54,7 @@
     "no-console": [
       "error",
       {
-        "allow": [
-          "warn",
-          "error",
-          "info",
-          "debug"
-        ]
+        "allow": ["warn", "error", "info", "debug"]
       }
     ],
     "@typescript-eslint/no-explicit-any": ["off"],
