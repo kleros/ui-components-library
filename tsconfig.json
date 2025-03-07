@@ -16,7 +16,6 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
@@ -32,6 +31,7 @@
     "jest",
     "src/setupTests.ts",
     "dist",
-    "commitlint.config.js"
+    "commitlint.config.js",
+    "eslint.config.mjs"
   ]
 }

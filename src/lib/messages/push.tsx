@@ -72,7 +72,7 @@ const StyledCloseIcon = styled(CloseIcon)`
 interface PushProps extends SmallProp, VariantProp {
   title: string;
   msg?: string;
-  //eslint-disable-next-line @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   callback: Function;
 }
 

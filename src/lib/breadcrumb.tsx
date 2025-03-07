@@ -38,7 +38,7 @@ const ActiveElement = styled(Content)`
 
 interface BreadcrumbProps {
   items: { text: string; value: any }[];
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   callback?: Function;
   clickable?: boolean;
   className?: string;
