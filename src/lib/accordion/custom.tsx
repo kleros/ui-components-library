@@ -1,14 +1,5 @@
 import React, { ReactNode, useState } from "react";
-import styled from "styled-components";
 import AccordionItem from "./accordion-item";
-import { borderBox } from "../../styles/common-style";
-
-const Wrapper = styled.div`
-  ${borderBox}
-  display: flex;
-  flex-direction: column;
-  width: 1000px;
-`;
 
 interface AccordionItem {
   title: ReactNode;
@@ -22,7 +13,7 @@ interface AccordionProps {
 const CustomAccordion: React.FC<AccordionProps> = ({ items, ...props }) => {
   const [expanded, setExpanded] = useState(-1);
   return (
-    <Wrapper {...props}>
+    <div className="border-box flex w-[1000px] flex-col" {...props}>
       {items.map((item, index) => (
         <AccordionItem
           key={index}
@@ -33,7 +24,7 @@ const CustomAccordion: React.FC<AccordionProps> = ({ items, ...props }) => {
           expanded={expanded === index}
         />
       ))}
-    </Wrapper>
+    </div>
   );
 };
 
