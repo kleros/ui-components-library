@@ -63,7 +63,22 @@ const StyledButton = styled(Button)`
 
 const App = () => {
   const [theme, setTheme] = useState(lightTheme);
+  const [tailwindTheme, setTailwindTheme] = useState("light");
   const [example, setExample] = useState("buttons");
+
+  // temporary
+  const changeTheme = () => {
+    if (tailwindTheme === "dark") {
+      document.documentElement.classList.remove("dark");
+      setTailwindTheme("light");
+    } else {
+      document.documentElement.classList.add("dark");
+      setTailwindTheme("dark");
+    }
+    if (theme === lightTheme) setTheme(darkTheme);
+    else setTheme(lightTheme);
+  };
+
   return (
     <React.StrictMode>
       <ThemeProvider theme={theme}>
@@ -106,9 +121,7 @@ const App = () => {
           <StyledButton
             variant="primary"
             text={"Change theme"}
-            onClick={() =>
-              theme === lightTheme ? setTheme(darkTheme) : setTheme(lightTheme)
-            }
+            onClick={changeTheme}
           />
         </StyledDiv>
       </ThemeProvider>

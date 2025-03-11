@@ -26,7 +26,7 @@
     --klerosUIComponentsWarning: #ff9900;
     --klerosUIComponentsWarningLight: #fff9f0;
     --klerosUIComponentsError: #f60c36;
-    --klerosUIComponentsErrorLight: #FEF0F3;
+    --klerosUIComponentsErrorLight: #fef0f3;
     --klerosUIComponentsTint: #d14eff;
     --klerosUIComponentsTintMedium: #401d6c;
     --klerosUIComponentsTintPurple: #f4f0fa;
@@ -70,85 +70,23 @@
 
   /* Typography styles */
   h1 {
-    @apply text-2xl font-semibold leading-[33px] m-0;
     color: var(--klerosUIComponentsPrimaryText);
   }
 
   h2 {
-    @apply text-base font-semibold leading-[22px] m-0;
     color: var(--klerosUIComponentsPrimaryText);
   }
 
   p {
-    @apply text-base font-normal leading-[22px] m-0 break-words;
     color: var(--klerosUIComponentsPrimaryText);
   }
 
   small {
-    @apply text-sm font-normal leading-[19px] m-0 break-words;
     color: var(--klerosUIComponentsSecondaryText);
   }
+}
 
-  /* Element styles */
-  hr {
-    @apply opacity-100;
-  }
-
-  svg {
-    @apply inline-block align-middle;
-  }
-
-  img {
-    @apply inline-block align-middle;
-  }
-
-  button {
-    @apply text-base m-0 border-none overflow-visible normal-case;
-  }
-
-  button:hover:enabled {
-    @apply cursor-pointer;
-  }
-
-  input {
-    @apply text-base m-0 border-none overflow-visible;
-  }
-
-  optgroup {
-    @apply text-base m-0 border-none;
-  }
-
-  select {
-    @apply text-base m-0 border-none normal-case;
-  }
-
-  textarea {
-    @apply text-base m-0 border-none;
-  }
-
-  /* Box sizing */
-  .border-box, .border-box *, .border-box *:before, .border-box *:after {
-    @apply box-border;
-  }
-
-  /* Transitions */
-  .hover-short-transition {
-    transition: 0.1s;
-  }
-
-  .hover-long-transition {
-    transition: 0.2s;
-  }
-
-  /* Hover effects */
-  .hover-medium-blue:hover {
-    background-color: var(--klerosUIComponentsMediumBlue);
-  }
-
-  .hover-white-background:hover {
-    background-color: var(--klerosUIComponentsWhiteBackground);
-  }
-
+@layer components {
   /* Animations */
   @keyframes fadeIn {
     0% {
@@ -164,6 +102,24 @@
 
   .fade-in {
     animation: fadeIn 0.3s ease-in-out;
+  }
+
+  /* Transitions */
+  .hover-short-transition {
+    transition: 0.1s;
+  }
+
+  .hover-long-transition {
+    transition: 0.2s;
+  }
+
+  /* Hover effects */
+  .hover-medium-blue:hover {
+    background-color: var(--klerosUIComponentsMediumBlue) !important;
+  }
+
+  .hover-white-background:hover {
+    background-color: var(--klerosUIComponentsWhiteBackground) !important;
   }
 }
 
