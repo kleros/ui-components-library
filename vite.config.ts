@@ -9,5 +9,9 @@ export default defineConfig({
       name: "Kleros-UI-Components",
     },
   },
-  plugins: [svgr()],
+  plugins: [
+    svgr({
+      include: "**/*.svg",
+    }),
+  ],
 });
