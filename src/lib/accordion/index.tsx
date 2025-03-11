@@ -12,23 +12,28 @@ interface AccordionItem {
 interface AccordionProps {
   items: AccordionItem[];
   defaultExpanded?: number;
+  className?: string;
 }
 
 const DefaultTitle: React.FC<{ item: AccordionItem }> = ({ item }) => (
   <>
     {item.icon ?? (item.Icon && <item.Icon />)}
-    <p className={clsx("w-fit", "text-center font-semibold")}>{item.title}</p>
+    <p className="w-fit text-center font-semibold">{item.title}</p>
   </>
 );
 
 const Accordion: React.FC<AccordionProps> = ({
   items,
   defaultExpanded,
+  className,
   ...props
 }) => {
   const [expanded, setExpanded] = useState(defaultExpanded ?? -1);
   return (
-    <div className="box-border flex w-[1000px] flex-col" {...props}>
+    <div
+      className={clsx("box-border flex w-[1000px] flex-col", className)}
+      {...props}
+    >
       {items.map((item, index) => (
         <AccordionItem
           key={index}

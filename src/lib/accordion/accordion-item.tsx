@@ -23,12 +23,12 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
 }) => {
   const [ref, { height }] = useElementSize();
   return (
-    <div className="mt-2 mb-2">
+    <div className="my-2">
       <Button
         className={clsx(
           "bg-klerosUIComponentsWhiteBackground border-klerosUIComponentsStroke border",
           "hover-medium-blue hover-short-transition hover:cursor-pointer",
-          "rounded-[3px] pt-[11.5px] pr-8 pb-[11.5px] pl-8",
+          "rounded-[3px] px-8 py-[11.5px]",
           "flex w-full items-center justify-between",
         )}
         onPress={() => setExpanded(expanded ? -1 : index)}
