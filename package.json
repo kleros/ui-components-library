@@ -98,7 +98,7 @@
   },
   "volta": {
     "node": "20.18.3",
-    "yarn": "1.22.19"
+    "yarn": "4.7.0"
   },
   "packageManager": "yarn@4.7.0",
   "eslintConfig": {
