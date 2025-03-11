@@ -69,9 +69,9 @@ export default [
       },
 
       "import/resolver": {
-        parcel: {
-          rootDir: "src",
+        node: {
           extensions: [".js", ".jsx", ".ts", ".tsx", ".svg", ".png", ".jpeg"],
+          paths: ["src"],
         },
       },
     },
