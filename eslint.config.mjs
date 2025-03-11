@@ -67,13 +67,6 @@ export default [
       react: {
         version: "^16.12.0",
       },
-
-      "import/resolver": {
-        parcel: {
-          rootDir: "src",
-          extensions: [".js", ".jsx", ".ts", ".tsx", ".svg", ".png", ".jpeg"],
-        },
-      },
     },
 
     rules: {

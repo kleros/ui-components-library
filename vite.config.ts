@@ -1,6 +1,8 @@
+import { resolve } from "path";
 import { defineConfig } from "vite";
 import svgr from "vite-plugin-svgr";
-import { resolve } from "path";
+// eslint-disable-next-line import/no-unresolved
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   build: {
@@ -13,5 +15,6 @@ export default defineConfig({
     svgr({
       include: "**/*.svg",
     }),
+    tailwindcss(),
   ],
 });
