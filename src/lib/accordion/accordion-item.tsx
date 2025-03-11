@@ -4,6 +4,7 @@ import Plus from "../../assets/svgs/accordion/plus.svg";
 import Minus from "../../assets/svgs/accordion/minus.svg";
 
 import clsx from "clsx";
+import { Button } from "react-aria-components";
 
 interface AccordionItemProps {
   setExpanded: React.Dispatch<React.SetStateAction<number>>;
@@ -23,14 +24,14 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   const [ref, { height }] = useElementSize();
   return (
     <div className="mt-2 mb-2">
-      <button
+      <Button
         className={clsx(
           "bg-klerosUIComponentsWhiteBackground border-klerosUIComponentsStroke border",
           "hover-medium-blue hover-short-transition hover:cursor-pointer",
           "rounded-[3px] pt-[11.5px] pr-8 pb-[11.5px] pl-8",
           "flex w-full items-center justify-between",
         )}
-        onClick={() => setExpanded(expanded ? -1 : index)}
+        onPress={() => setExpanded(expanded ? -1 : index)}
       >
         {title}
         {expanded ? (
@@ -42,7 +43,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
             className={clsx("fill-klerosUIComponentsPrimaryText h-4 w-4")}
           />
         )}
-      </button>
+      </Button>
       <div
         style={{ height: expanded ? `${height.toString()}px` : 0 }}
         className={clsx(
