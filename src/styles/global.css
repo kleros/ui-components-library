@@ -67,103 +67,26 @@
 
     --klerosUIComponentsTransitionSpeed: 0.25s;
   }
+
+  /* Typography styles */
+  h1 {
+    color: var(--klerosUIComponentsPrimaryText);
+  }
+
+  h2 {
+    color: var(--klerosUIComponentsPrimaryText);
+  }
+
+  p {
+    color: var(--klerosUIComponentsPrimaryText);
+  }
+
+  small {
+    color: var(--klerosUIComponentsSecondaryText);
+  }
 }
 
 @layer components {
-  /* Typography styles */
-  .h1 {
-    font-size: 24px;
-    font-weight: 600;
-    line-height: 33px;
-    margin: 0;
-    color: var(--klerosUIComponentsPrimaryText);
-  }
-
-  .h2 {
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 22px;
-    margin: 0;
-    color: var(--klerosUIComponentsPrimaryText);
-  }
-
-  .p {
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 22px;
-    margin: 0;
-    overflow-wrap: break-word;
-    color: var(--klerosUIComponentsPrimaryText);
-  }
-
-  .small {
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 19px;
-    margin: 0;
-    overflow-wrap: break-word;
-    color: var(--klerosUIComponentsSecondaryText);
-  }
-
-  /* Element styles */
-  .hr {
-    opacity: 1;
-  }
-
-  .svg {
-    display: inline-block;
-    vertical-align: middle;
-  }
-
-  .img {
-    display: inline-block;
-    vertical-align: middle;
-  }
-
-  .button {
-    font-family: inherit;
-    font-size: 100%;
-    margin: 0;
-    border: none;
-    overflow: visible;
-    text-transform: none;
-    -webkit-appearance: button;
-
-    &:hover:enabled {
-      cursor: pointer;
-    }
-  }
-
-  .input {
-    font-family: inherit;
-    font-size: 100%;
-    margin: 0;
-    border: none;
-    overflow: visible;
-  }
-
-  .optgroup {
-    font-family: inherit;
-    font-size: 100%;
-    margin: 0;
-    border: none;
-  }
-
-  .select {
-    font-family: inherit;
-    font-size: 100%;
-    margin: 0;
-    border: none;
-    text-transform: none;
-  }
-
-  .textarea {
-    font-family: inherit;
-    font-size: 100%;
-    margin: 0;
-    border: none;
-  }
-
   /* Animations */
   @keyframes fadeIn {
     0% {
@@ -179,13 +102,6 @@
 
   .fade-in {
     animation: fadeIn 0.3s ease-in-out;
-  }
-  /* Box sizing */
-  .border-box,
-  .border-box *,
-  .border-box *:before,
-  .border-box *:after {
-    box-sizing: border-box;
   }
 
   /* Transitions */

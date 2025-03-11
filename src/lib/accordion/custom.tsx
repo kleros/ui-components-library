@@ -13,7 +13,7 @@ interface AccordionProps {
 const CustomAccordion: React.FC<AccordionProps> = ({ items, ...props }) => {
   const [expanded, setExpanded] = useState(-1);
   return (
-    <div className="border-box flex w-[1000px] flex-col" {...props}>
+    <div className="box-border flex w-[1000px] flex-col" {...props}>
       {items.map((item, index) => (
         <AccordionItem
           key={index}

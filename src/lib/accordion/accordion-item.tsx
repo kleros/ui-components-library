@@ -25,9 +25,8 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
     <div className="mt-2 mb-2">
       <button
         className={clsx(
-          "button",
           "bg-klerosUIComponentsWhiteBackground border-klerosUIComponentsStroke border",
-          "hover-medium-blue hover-short-transition",
+          "hover-medium-blue hover-short-transition hover:cursor-pointer",
           "rounded-[3px] pt-[11.5px] pr-8 pb-[11.5px] pl-8",
           "flex w-full items-center justify-between",
         )}
@@ -36,11 +35,11 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
         {title}
         {expanded ? (
           <Minus
-            className={clsx("svg fill-klerosUIComponentsPrimaryText h-4 w-4")}
+            className={clsx("fill-klerosUIComponentsPrimaryText h-4 w-4")}
           />
         ) : (
           <Plus
-            className={clsx("svg fill-klerosUIComponentsPrimaryText h-4 w-4")}
+            className={clsx("fill-klerosUIComponentsPrimaryText h-4 w-4")}
           />
         )}
       </button>

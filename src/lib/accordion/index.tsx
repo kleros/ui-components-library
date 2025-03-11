@@ -19,7 +19,7 @@ const DefaultTitle: React.FC<{ item: AccordionItem }> = ({ item }) => (
     {item.icon ?? (item.Icon && <item.Icon />)}
     <p
       className={clsx(
-        "p w-fit",
+        "w-fit",
         "text-klerosUIComponentsPrimaryText text-center font-semibold",
       )}
     >
@@ -35,7 +35,7 @@ const Accordion: React.FC<AccordionProps> = ({
 }) => {
   const [expanded, setExpanded] = useState(defaultExpanded ?? -1);
   return (
-    <div className="border-box flex w-[1000px] flex-col" {...props}>
+    <div className="box-border flex w-[1000px] flex-col" {...props}>
       {items.map((item, index) => (
         <AccordionItem
           key={index}
