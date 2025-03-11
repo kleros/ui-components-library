@@ -6,37 +6,47 @@
   "main": "dist/index.js",
   "types": "dist/types.d.ts",
   "isLibrary": true,
+  "type": "module",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "repository": "git@github.com:kleros/ui-components-library",
   "author": "Kleros",
   "license": "MIT",
   "scripts": {
-    "clear": "rm -r .parcel-cache",
-    "clean": "rm dist/bundle.js",
-    "start": "parcel src/index.html",
-    "build": "parcel build",
-    "prepare": "husky install",
+    "build": "vite build",
+    "build-storybook": "storybook build",
     "check-style": "eslint 'src/**/*.{ts,tsx}'",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepare": "husky install",
+    "preview": "vite preview",
+    "start": "vite",
+    "storybook": "storybook dev -p 6006"
   },
   "files": [
     "dist"
   ],
   "devDependencies": {
+    "@chromatic-com/storybook": "^3.2.5",
     "@commitlint/cli": "^15.0.0",
     "@commitlint/config-conventional": "^15.0.0",
     "@eslint/compat": "^1.2.7",
     "@eslint/eslintrc": "^3.3.0",
     "@eslint/js": "^9.21.0",
-    "@parcel/packager-ts": "^2.2.1",
-    "@parcel/transformer-svg-react": "^2.0.1",
-    "@parcel/transformer-typescript-types": "^2.2.1",
+    "@storybook/addon-essentials": "^8.6.4",
+    "@storybook/addon-interactions": "^8.6.4",
+    "@storybook/addon-onboarding": "^8.6.4",
+    "@storybook/blocks": "^8.6.4",
+    "@storybook/react": "^8.6.4",
+    "@storybook/react-vite": "^8.6.4",
+    "@storybook/test": "^8.6.4",
     "@tailwindcss/postcss": "^4.0.11",
+    "@types/node": "^22.13.10",
     "@types/react": "^18.0.9",
     "@types/react-dom": "^18.0.3",
     "@types/styled-components": "^5.1.20",
     "@typescript-eslint/eslint-plugin": "^8.26.0",
     "@typescript-eslint/parser": "^8.26.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "babel-plugin-styled-components": "^2.0.2",
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.1.1",
@@ -46,16 +56,19 @@
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-security": "^3.0.1",
+    "eslint-plugin-storybook": "^0.11.4",
     "globals": "^16.0.0",
     "husky": "^7.0.0",
     "lint-staged": "^12.1.2",
-    "parcel": "^2.13.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "process": "^0.11.10",
+    "storybook": "^8.6.4",
     "styled-components": "^5.3.3",
     "tailwindcss": "^4.0.11",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vite": "^6.2.1",
+    "vite-plugin-svgr": "^4.3.0"
   },
   "peerDependencies": {
     "@tailwindcss/postcss": "^4.0.11",
@@ -68,6 +81,7 @@
   "dependencies": {
     "@datepicker-react/hooks": "^2.8.4",
     "@swc/helpers": "^0.3.2",
+    "@tailwindcss/vite": "^4.0.12",
     "clsx": "^2.1.1",
     "rc-slider": "^9.7.5",
     "react": "^18.0.0",
@@ -85,7 +99,12 @@
   },
   "volta": {
     "node": "20.18.3",
-    "yarn": "1.22.19"
+    "yarn": "4.7.0"
   },
-  "packageManager": "yarn@1.22.19+sha256.732620bac8b1690d507274f025f3c6cfdc3627a84d9642e38a07452cc00e0f2e"
+  "packageManager": "yarn@4.7.0",
+  "eslintConfig": {
+    "extends": [
+      "plugin:storybook/recommended"
+    ]
+  }
 }

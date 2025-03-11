@@ -31,7 +31,8 @@
     "jest",
     "src/setupTests.ts",
     "dist",
-    "commitlint.config.js",
-    "eslint.config.mjs"
+    "commitlint.config.cjs",
+    "eslint.config.mjs",
+    "vite.config.ts"
   ]
 }
