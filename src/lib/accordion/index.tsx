@@ -17,14 +17,7 @@ interface AccordionProps {
 const DefaultTitle: React.FC<{ item: AccordionItem }> = ({ item }) => (
   <>
     {item.icon ?? (item.Icon && <item.Icon />)}
-    <p
-      className={clsx(
-        "w-fit",
-        "text-klerosUIComponentsPrimaryText text-center font-semibold",
-      )}
-    >
-      {item.title}
-    </p>
+    <p className={clsx("w-fit", "text-center font-semibold")}>{item.title}</p>
   </>
 );
 
