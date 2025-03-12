@@ -118,7 +118,7 @@ const App = () => {
             variant="primary"
             className="mt-16"
             text={"Change theme"}
-            onClick={changeTheme}
+            onPress={changeTheme}
           />
         </StyledDiv>
       </ThemeProvider>

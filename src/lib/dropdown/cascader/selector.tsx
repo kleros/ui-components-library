@@ -31,7 +31,7 @@ const Selector: React.FC<ISelector> = ({
 }) => (
   <Wrapper {...props}>
     <Button
-      onClick={() => onSelect()}
+      onPress={() => onSelect()}
       text={currentSelection ? `Select\n${currentSelection}` : "No Selection"}
       isDisabled={!currentSelection}
     />

@@ -31,7 +31,6 @@ export interface ButtonProps
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   /** A React node element to show as is on button */
   icon?: React.ReactNode;
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   className?: string;
 }
 
@@ -40,7 +39,6 @@ function Button({
   variant,
   Icon,
   icon,
-  onClick,
   isLoading,
   className,
   isDisabled,
@@ -75,7 +73,7 @@ function Button({
         ],
         className,
       )}
-      {...{ variant, onClick, isLoading, isDisabled, ...props }}
+      {...{ variant, isLoading, isDisabled, ...props }}
     >
       {isLoading && <KlerosSymbol {...{ isDisabled, variant }} />}
       <ButtonIcon {...{ icon, Icon, isDisabled, isLoading, variant }} />
