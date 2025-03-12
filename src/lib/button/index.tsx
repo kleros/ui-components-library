@@ -9,8 +9,17 @@ import KlerosSymbol from "./KlerosSymbol";
 import ButtonIcon from "./ButtonIcon";
 
 export interface BaseButtonProps {
+  /** @default primary */
   variant?: "primary" | "secondary" | "tertiary";
+  /**
+   * Reduce the paddings on button
+   * @default false
+   */
   small?: boolean;
+  /**
+   * Indicate if button is in loading state
+   * @default false
+   */
   isLoading?: boolean;
 }
 
@@ -18,13 +27,15 @@ export interface ButtonProps
   extends AriaButtonProps,
     Omit<BaseButtonProps, "$loading"> {
   text: string;
+  /** A React svg element to show as icon on button */
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
+  /** A React node element to show as is on button */
   icon?: React.ReactNode;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   className?: string;
 }
 
-const Button: React.FC<ButtonProps> = ({
+function Button({
   text,
   variant,
   Icon,
@@ -34,7 +45,7 @@ const Button: React.FC<ButtonProps> = ({
   className,
   isDisabled,
   ...props
-}) => {
+}: ButtonProps): React.ReactElement {
   const isPrimary = variant === "primary" || variant === undefined;
   const isSecondary = variant === "secondary";
   const isTertiary = variant === "tertiary";
@@ -71,6 +82,6 @@ const Button: React.FC<ButtonProps> = ({
       <ButtonText {...{ isLoading, isDisabled, variant, text }} />
     </AriaButton>
   );
-};
+}
 
 export default Button;
