@@ -67,6 +67,11 @@ export default [
       react: {
         version: "^16.12.0",
       },
+      "import/resolver": {
+        node: {
+          extensions: [".js", ".jsx", ".ts", ".tsx"],
+        },
+      },
     },
 
     rules: {

@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from "react";
 import AccordionItem from "./accordion-item";
-import clsx from "clsx";
+import { cn } from "../../utils";
 
 interface AccordionItem {
   title: ReactNode;
@@ -20,7 +20,7 @@ const CustomAccordion: React.FC<AccordionProps> = ({
   const [expanded, setExpanded] = useState(-1);
   return (
     <div
-      className={clsx("box-border flex w-[1000px] flex-col", className)}
+      className={cn("box-border flex w-[1000px] flex-col", className)}
       {...props}
     >
       {items.map((item, index) => (
