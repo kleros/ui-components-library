@@ -7,6 +7,8 @@ import Accordion from "../lib/accordion/index";
 
 const meta = {
   component: Accordion,
+  title: "Accordion",
+  tags: ["autodocs"],
 } satisfies Meta<typeof Accordion>;
 
 export default meta;

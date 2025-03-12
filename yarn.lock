@@ -1250,6 +1250,7 @@ __metadata:
     smooth-scroll-into-view-if-needed: "npm:^1.1.33"
     storybook: "npm:^8.6.4"
     styled-components: "npm:^5.3.3"
+    tailwind-merge: "npm:^3.0.2"
     tailwindcss: "npm:^4.0.11"
     typescript: "npm:^5.8.2"
     usehooks-ts: "npm:^2.9.1"
@@ -10391,6 +10392,13 @@ __metadata:
     "@pkgr/core": "npm:^0.1.0"
     tslib: "npm:^2.6.2"
   checksum: 10c0/e0c262817444e5b872708adb6f5ad37951ba33f6b2d1d4477d45db1f57573a784618ceed5e6614e0225db330632b1f6b95bb74d21e4d013e45ad4bde03d0cb59
+  languageName: node
+  linkType: hard
+
+"tailwind-merge@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "tailwind-merge@npm:3.0.2"
+  checksum: 10c0/73f528345e5130e7690c5c57701155849ae4f0834e0a4bf56bc03e25d4563d45d4905ff9c487a7dce9efdfa18689a223e78365962105ad0e2f2d1226216c66ef
   languageName: node
   linkType: hard
 

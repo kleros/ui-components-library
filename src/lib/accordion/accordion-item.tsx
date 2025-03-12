@@ -3,8 +3,8 @@ import { useElementSize } from "../../hooks/useElementSize";
 import Plus from "../../assets/svgs/accordion/plus.svg";
 import Minus from "../../assets/svgs/accordion/minus.svg";
 
-import clsx from "clsx";
 import { Button } from "react-aria-components";
+import { cn } from "../../utils";
 
 interface AccordionItemProps {
   setExpanded: React.Dispatch<React.SetStateAction<number>>;
@@ -25,7 +25,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   return (
     <div className="my-2">
       <Button
-        className={clsx(
+        className={cn(
           "bg-klerosUIComponentsWhiteBackground border-klerosUIComponentsStroke border",
           "hover-medium-blue hover-short-transition hover:cursor-pointer",
           "rounded-[3px] px-8 py-[11.5px]",
@@ -35,18 +35,14 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
       >
         {title}
         {expanded ? (
-          <Minus
-            className={clsx("fill-klerosUIComponentsPrimaryText h-4 w-4")}
-          />
+          <Minus className={cn("fill-klerosUIComponentsPrimaryText h-4 w-4")} />
         ) : (
-          <Plus
-            className={clsx("fill-klerosUIComponentsPrimaryText h-4 w-4")}
-          />
+          <Plus className={cn("fill-klerosUIComponentsPrimaryText h-4 w-4")} />
         )}
       </Button>
       <div
         style={{ height: expanded ? `${height.toString()}px` : 0 }}
-        className={clsx(
+        className={cn(
           expanded ? `overflow-visible` : "overflow-hidden",
           "transition-[height] duration-(--klerosUIComponentsTransitionSpeed) ease-initial",
         )}
