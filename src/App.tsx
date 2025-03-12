@@ -57,10 +57,6 @@ const StyledTabs = styled(Tabs)`
   width: 995px;
 `;
 
-const StyledButton = styled(Button)`
-  margin-top: 64px;
-`;
-
 const App = () => {
   const [theme, setTheme] = useState(lightTheme);
   const [tailwindTheme, setTailwindTheme] = useState("light");
@@ -118,8 +114,9 @@ const App = () => {
             {example === "tooltip" && <Tooltips />}
             {example === "copiable" && <Copiable />}
           </StyledCard>
-          <StyledButton
+          <Button
             variant="primary"
+            className="mt-16"
             text={"Change theme"}
             onClick={changeTheme}
           />

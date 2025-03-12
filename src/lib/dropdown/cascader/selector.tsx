@@ -33,7 +33,7 @@ const Selector: React.FC<ISelector> = ({
     <Button
       onClick={() => onSelect()}
       text={currentSelection ? `Select\n${currentSelection}` : "No Selection"}
-      disabled={!currentSelection}
+      isDisabled={!currentSelection}
     />
   </Wrapper>
 );
