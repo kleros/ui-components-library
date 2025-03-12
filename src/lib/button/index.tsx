@@ -45,7 +45,7 @@ function Button({
   className,
   isDisabled,
   ...props
-}: ButtonProps): React.ReactElement {
+}: Readonly<ButtonProps>): React.ReactElement {
   const isPrimary = variant === "primary" || variant === undefined;
   const isSecondary = variant === "secondary";
   const isTertiary = variant === "tertiary";
