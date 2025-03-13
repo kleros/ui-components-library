@@ -85,7 +85,7 @@ const Dropdown: React.FC<IDropdown> = ({
       )}
     </Selectors>
     <ButtonContainer>
-      <Button small variant={"primary"} text={"Select"} onClick={onSelect} />
+      <Button small variant={"primary"} text={"Select"} onPress={onSelect} />
     </ButtonContainer>
   </Container>
 );
