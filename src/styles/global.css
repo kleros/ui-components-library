@@ -157,6 +157,8 @@
 
   --radius-base: var(--klerosUIComponentsBaseRadius);
 
+  --default-transition-duration: var(--klerosUIComponentsTransitionSpeed);
+
   /* Animations */
   @keyframes fadeIn {
     0% {
