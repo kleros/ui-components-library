@@ -1,40 +1,7 @@
 import React from "react";
-import styled from "styled-components";
-import { borderBox, small, button } from "../styles/common-style";
-
-const Wrapper = styled.div`
-  ${borderBox}
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 0;
-`;
-
-const Element = styled.button<{ clickable?: boolean }>`
-  ${button}
-  background: none;
-  padding: 0;
-
-  :hover {
-    ${({ clickable, theme }) =>
-      clickable
-        ? `small { color: ${theme.klerosUIComponentsPrimaryText}; }`
-        : `cursor: text !important`}
-  }
-`;
-
-const Content = styled.small`
-  ${small}
-  transition: color ease
-    ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
-`;
-
-const Separator = styled(Content)`
-  margin: 0px 8px;
-`;
-
-const ActiveElement = styled(Content)`
-  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
-`;
+import { cn } from "../utils";
+import { Button } from "react-aria-components";
+import { clsx } from "clsx";
 
 interface BreadcrumbProps {
   items: { text: string; value: any }[];
@@ -42,31 +9,71 @@ interface BreadcrumbProps {
   callback?: Function;
   clickable?: boolean;
   className?: string;
+  variant?: "primary" | "secondary";
 }
 
-const Breadcrumb: React.FC<BreadcrumbProps> = ({
+const Content: React.FC<
+  React.ComponentProps<"small"> & { variant?: "primary" | "secondary" }
+> = ({ children, className, variant, ...props }) => (
+  <small
+    className={cn(
+      "ease-ease transition-colors",
+      "text-klerosUIComponentsSecondaryText text-sm break-words",
+      className,
+      variant === "primary" && "text-klerosUIComponentsPrimaryBlue",
+    )}
+    {...props}
+  >
+    {children}
+  </small>
+);
+
+function Breadcrumb({
   items,
   callback,
   clickable,
   className,
-}) => (
-  <Wrapper {...{ className }}>
-    {items.map(({ text, value }, i) =>
-      i === items.length - 1 ? (
-        <ActiveElement key={i}>{text}</ActiveElement>
-      ) : (
-        <React.Fragment key={i}>
-          <Element
-            onClick={() => (callback ? callback(value) : null)}
-            {...{ clickable }}
+  variant,
+}: Readonly<BreadcrumbProps>) {
+  return (
+    <div
+      className={cn(
+        "box-border flex flex-wrap items-center gap-y-0.5",
+        className,
+      )}
+    >
+      {items.map(({ text, value }, i) =>
+        i === items.length - 1 ? (
+          <Content
+            className="text-klerosUIComponentsPrimaryText font-semibold"
+            {...{ variant }}
+            key={i}
           >
-            <Content>{text}</Content>
-          </Element>
-          <Separator>{"/"}</Separator>
-        </React.Fragment>
-      ),
-    )}
-  </Wrapper>
-);
+            {text}
+          </Content>
+        ) : (
+          <React.Fragment key={i}>
+            <Button
+              className={clsx(clickable ? "cursor-pointer" : "cursor-text")}
+              onPress={() => (callback ? callback(value) : null)}
+            >
+              <Content
+                className={clsx(
+                  clickable && "hover:text-klerosUIComponentsPrimaryText",
+                )}
+                {...{ variant }}
+              >
+                {text}
+              </Content>
+            </Button>
+            <Content className="mx-2" {...{ variant }}>
+              {"/"}
+            </Content>
+          </React.Fragment>
+        ),
+      )}
+    </div>
+  );
+}
 
 export default Breadcrumb;
