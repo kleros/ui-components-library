@@ -1,76 +1,29 @@
 import React, { ReactNode } from "react";
-import styled from "styled-components";
 import usePagination from "../../hooks/pagination/use-pagination";
 import Arrow from "../../assets/svgs/arrows/circle-left.svg";
 import SolidErrorIcon from "../../assets/svgs/status-icons/solid-error.svg";
-import { borderBox, button, small, svg } from "../../styles/common-style";
+import { cn } from "../../utils";
+import { Button, type ButtonProps } from "react-aria-components";
+import clsx from "clsx";
 
-const Wrapper = styled.div`
-  ${borderBox}
-  display: flex;
-  align-items: center;
-  justify-content: end;
-`;
-
-const StyledSVG = styled.svg``;
-
-const ArrowButton = styled.button`
-  ${button}
-  height: 24px;
-  width: 24px;
-  background: none;
-  padding: 0;
-  border-radius: 50%;
-
-  & ${StyledSVG} {
-    ${svg}
-    height: 24px;
-    width: 24px;
-    fill: ${(props) =>
-      props.disabled
-        ? props.theme.klerosUIComponentsStroke
-        : props.theme.klerosUIComponentsPrimaryBlue};
-    transition: fill ease
-      ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
-  }
-
-  :hover:enabled {
-    & ${StyledSVG} {
-      fill: ${({ theme }) => theme.klerosUIComponentsSecondaryBlue};
-    }
-  }
-`;
-
-const StyledLabel = styled.small`
-  ${small}
-  color: ${(props) => props.theme.klerosUIComponentsPrimaryText};
-`;
-
-const LeftArrow = styled(ArrowButton)`
-  margin-left: 16px;
-`;
-
-const RightArrow = styled(ArrowButton)`
-  margin-left: 8px;
-
-  & ${StyledSVG} {
-    transform: rotate(180deg);
-  }
-`;
-
-const CloseButton = styled(ArrowButton)`
-  margin-left: 8px;
-
-  & ${StyledSVG} {
-    fill: ${(props) => props.theme.klerosUIComponentsPrimaryBlue};
-  }
-
-  :hover:enabled {
-    & ${StyledSVG} {
-      fill: ${({ theme }) => theme.klerosUIComponentsSecondaryBlue};
-    }
-  }
-`;
+const ArrowButton: React.FC<ButtonProps> = ({ className, ...props }) => {
+  return (
+    <Button
+      className={cn(
+        "h-6 w-6 rounded-full bg-none hover:enabled:cursor-pointer hover:disabled:cursor-default",
+        "[&>svg]:ease-ease [&>svg]:h-6 [&>svg]:w-6 [&>svg]:transition-[fill]",
+        ":hover:enabled:[&>svg]:fill-klerosUIComponentsSecondaryBlue",
+        props.isDisabled
+          ? ["[&>svg]:fill-klerosUIComponentsStroke"]
+          : ["[&>svg]:fill-klerosUIComponentsPrimaryBlue"],
+        className,
+      )}
+      {...props}
+    >
+      {props.children}
+    </Button>
+  );
+};
 
 interface CompactPaginationProps {
   currentPage: number;
@@ -93,21 +46,36 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
     usePagination(currentPage, numPages, callback, onCloseOnLastPage);
 
   return (
-    <Wrapper {...{ className }}>
-      <StyledLabel>{label}</StyledLabel>
-      <LeftArrow disabled={minPageReached} onClick={decrementPage}>
-        <Arrow className={StyledSVG.styledComponentId} />
-      </LeftArrow>
+    <div className={cn("box-border flex items-center justify-end", className)}>
+      <small className="text-klerosUIComponentsPrimaryText text-sm">
+        {label}
+      </small>
+      <ArrowButton
+        className="ml-4"
+        isDisabled={minPageReached}
+        onPress={decrementPage}
+      >
+        <Arrow />
+      </ArrowButton>
       {currentPage === numPages && onCloseOnLastPage ? (
-        <CloseButton onClick={onCloseOnLastPage}>
-          <SolidErrorIcon className={StyledSVG.styledComponentId} />
-        </CloseButton>
+        <ArrowButton className="ml-2" onPress={onCloseOnLastPage}>
+          <SolidErrorIcon
+            className={clsx(
+              "fill-klerosUIComponentsPrimaryBlue",
+              "hover:enabled:fill-klerosUIComponentsSecondaryBlue",
+            )}
+          />
+        </ArrowButton>
       ) : (
-        <RightArrow disabled={maxPageReached} onClick={incrementPage}>
-          <Arrow className={StyledSVG.styledComponentId} />
-        </RightArrow>
+        <ArrowButton
+          className={"ml-2"}
+          isDisabled={maxPageReached}
+          onPress={incrementPage}
+        >
+          <Arrow className="rotate-180" />
+        </ArrowButton>
       )}
-    </Wrapper>
+    </div>
   );
 };
 
