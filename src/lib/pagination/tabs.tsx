@@ -1,97 +1,129 @@
-import React from "react";
-import styled from "styled-components";
+import React, { ReactNode, useCallback, useState } from "react";
+
+import { cn } from "../../utils";
 import {
-  borderBox,
-  button,
-  hoverShortTransitionTiming,
-  hoverLongTransitionTiming,
-  svg,
-} from "../../styles/common-style";
-
-const Wrapper = styled.div`
-  ${borderBox}
-  height: fit-content;
-  width: 500px;
-  display: flex;
-`;
-
-const StyledSVG = styled.svg``;
-
-const StyledTab = styled.button<{ selected?: boolean }>`
-  ${button}
-  ${hoverShortTransitionTiming}
-  flex-grow: 1;
-  height: 45px;
-  background: none;
-  border-bottom: 3px solid
-    ${(props) =>
-      props.selected
-        ? props.theme.klerosUIComponentsPrimaryBlue
-        : props.theme.klerosUIComponentsStroke};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: ${(props) => {
-    if (props.selected) return props.theme.klerosUIComponentsPrimaryBlue;
-    else if (props.disabled) return props.theme.klerosUIComponentsStroke;
-    else return props.theme.klerosUIComponentsPrimaryText;
-  }};
-
-  ${(props) =>
-    !props.disabled && !props.selected
-      ? `:hover {
-        ${hoverLongTransitionTiming}
-            border-bottom: 3px solid
-              ${props.theme.klerosUIComponentsSecondaryBlue};
-          }`
-      : ""}
-
-  & ${StyledSVG} {
-    ${svg}
-    ${hoverShortTransitionTiming}
-    height: 16px;
-    width: 16px;
-    margin-right: 16px;
-
-    fill: ${(props) => {
-      if (props.selected) return props.theme.klerosUIComponentsPrimaryBlue;
-      else if (props.disabled) return props.theme.klerosUIComponentsStroke;
-      else return props.theme.klerosUIComponentsPrimaryText;
-    }};
-  }
-`;
+  Tabs as AriaTabs,
+  Collection,
+  Tab,
+  TabList,
+  TabPanel,
+  type TabsProps as AriaTabsProps,
+  type Key,
+  type TabListProps,
+  type TabPanelProps,
+  type TabProps,
+} from "react-aria-components";
 
 interface TabsItem {
+  id: Key;
   text: string;
   value: any;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   icon?: React.ReactNode;
   disabled?: boolean;
+  content: ReactNode;
+  tabPanelProps?: TabPanelProps;
 }
 
-interface TabsProps {
-  currentValue: any;
+interface TabsProps extends Omit<AriaTabsProps, "orientation"> {
   items: TabsItem[];
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  callback: Function;
+  callback?: Function;
+  className?: string;
+  panelClassName?: string;
+  tabListProps?: TabListProps<TabProps>;
 }
 
-const Tabs: React.FC<TabsProps> = ({ items, ...props }) => {
+const Tabs: React.FC<TabsProps> = ({
+  items,
+  className,
+  tabListProps,
+  panelClassName,
+  callback,
+  defaultSelectedKey,
+  ...props
+}) => {
+  const [selectedKey, setSelectedKey] = useState<Key | undefined>(
+    defaultSelectedKey,
+  );
+
+  const handleSelection = useCallback(
+    (key: Key) => {
+      setSelectedKey(key);
+      const selectedItem = items.find((item) => item.text === key);
+      if (selectedItem && callback) callback(key, selectedItem.value);
+    },
+    [items, callback],
+  );
+
   return (
-    <Wrapper {...props}>
-      {items.map(({ Icon, icon, text, value, disabled }) => (
-        <StyledTab
-          disabled={disabled}
-          selected={value === props.currentValue}
-          key={value}
-          onClick={() => props.callback(value)}
-        >
-          {icon ?? (Icon && <Icon className={StyledSVG.styledComponentId} />)}
-          {text}
-        </StyledTab>
-      ))}
-    </Wrapper>
+    <AriaTabs
+      className={cn("box-border flex flex-col", className)}
+      {...props}
+      onSelectionChange={handleSelection}
+    >
+      <TabList
+        className={cn("box-border flex h-fit w-full", tabListProps?.className)}
+        {...tabListProps}
+      >
+        {items.map(({ id, Icon, icon, text, disabled }) => (
+          <Tab
+            id={id}
+            key={id}
+            isDisabled={disabled}
+            className={cn(
+              "hover-short-transition h-[45px] bg-none hover:cursor-pointer",
+              "flex grow items-center justify-center",
+              "border-b-klerosUIComponentsStroke border-b-[3px]",
+              id === selectedKey && ["border-b-klerosUIComponentsPrimaryBlue"],
+              disabled && ["hover:cursor-default"],
+              id !== selectedKey &&
+                !disabled && [
+                  "hover:hover-long-transition",
+                  "hover:border-b-klerosUIComponentsSecondaryBlue",
+                ],
+            )}
+          >
+            {icon ??
+              (Icon && (
+                <Icon
+                  className={cn(
+                    "hover-short-transition h-4 w-4",
+                    "fill-klerosUIComponentsPrimaryText mr-4",
+                    id === selectedKey && "fill-klerosUIComponentsPrimaryBlue",
+                    disabled && "fill-klerosUIComponentsStroke",
+                  )}
+                />
+              ))}
+            <span
+              className={cn(
+                "text-klerosUIComponentsPrimaryText",
+                id === selectedKey && "text-klerosUIComponentsPrimaryBlue",
+                disabled && "text-klerosUIComponentsStroke",
+              )}
+            >
+              {text}
+            </span>
+          </Tab>
+        ))}
+      </TabList>
+
+      <Collection items={items}>
+        {(item) => (
+          <TabPanel
+            className={cn(
+              "box-border h-fit w-full",
+              panelClassName,
+              // custom style for a panel should override global style provided with panelClassName
+              item?.tabPanelProps?.className,
+            )}
+            {...item.tabPanelProps}
+          >
+            {item.content}
+          </TabPanel>
+        )}
+      </Collection>
+    </AriaTabs>
   );
 };
 
