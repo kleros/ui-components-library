@@ -39,18 +39,20 @@ interface StandardPaginationProps {
   numPages: number;
   callback: (newPage: number) => void;
   className?: string;
+  /** Disables the number buttons, allowing only use of arrows */
   disableNumbers?: boolean;
+  /** Hides the number buttons */
   hideNumbers?: boolean;
 }
 
-const StandardPagination: React.FC<StandardPaginationProps> = ({
+function StandardPagination({
   currentPage,
   numPages,
   callback,
   disableNumbers,
   hideNumbers,
   className,
-}) => {
+}: Readonly<StandardPaginationProps>) {
   const [
     {
       incrementPage,
@@ -107,6 +109,6 @@ const StandardPagination: React.FC<StandardPaginationProps> = ({
       </PageButton>
     </div>
   );
-};
+}
 
 export default StandardPagination;

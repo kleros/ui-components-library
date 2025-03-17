@@ -29,19 +29,20 @@ interface CompactPaginationProps {
   currentPage: number;
   numPages: number;
   callback: (newPage: number) => void;
+  /** Callback function called when end of pages has been reached */
   onCloseOnLastPage?: () => void;
   label?: ReactNode;
   className?: string;
 }
 
-const CompactPagination: React.FC<CompactPaginationProps> = ({
+function CompactPagination({
   currentPage,
   numPages,
   callback,
   onCloseOnLastPage,
   label,
   className,
-}) => {
+}: Readonly<CompactPaginationProps>) {
   const [{ incrementPage, decrementPage, minPageReached, maxPageReached }] =
     usePagination(currentPage, numPages, callback, onCloseOnLastPage);
 
@@ -51,7 +52,7 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
         {label}
       </small>
       <ArrowButton
-        className="ml-4"
+        className={clsx(label && "ml-4")}
         isDisabled={minPageReached}
         onPress={decrementPage}
       >
@@ -77,6 +78,6 @@ const CompactPagination: React.FC<CompactPaginationProps> = ({
       )}
     </div>
   );
-};
+}
 
 export default CompactPagination;

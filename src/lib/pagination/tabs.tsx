@@ -15,13 +15,24 @@ import {
 } from "react-aria-components";
 
 interface TabsItem {
+  /** Unique id for each tab panel */
   id: Key;
   text: string;
+  /** Value associated with each tab. Passed as an arg to callback function. */
   value: any;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   icon?: React.ReactNode;
   disabled?: boolean;
+  /** Content to display when this tab is selected. */
   content: ReactNode;
+  /** Props for Tab
+   * {@link https://react-spectrum.adobe.com/react-aria/Tabs.html#tab | TabProps}
+   */
+  tabProps?: TabProps;
+  /**
+   * Can be used to provide separate styling for a TabPanel, apart from one passed in panelClassName parent props.
+   * {@link https://react-spectrum.adobe.com/react-aria/Tabs.html#tabpanel | TabListProps}
+   */
   tabPanelProps?: TabPanelProps;
 }
 
@@ -30,11 +41,16 @@ interface TabsProps extends Omit<AriaTabsProps, "orientation"> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   callback?: Function;
   className?: string;
+  /** ClassName to provide a common style for all TabPanels */
   panelClassName?: string;
+  /**
+   * Can be used to override default style.
+   * {@link https://react-spectrum.adobe.com/react-aria/Tabs.html#tablist | TabListProps}
+   */
   tabListProps?: TabListProps<TabProps>;
 }
 
-const Tabs: React.FC<TabsProps> = ({
+function Tabs({
   items,
   className,
   tabListProps,
@@ -42,7 +58,7 @@ const Tabs: React.FC<TabsProps> = ({
   callback,
   defaultSelectedKey,
   ...props
-}) => {
+}: Readonly<TabsProps>) {
   const [selectedKey, setSelectedKey] = useState<Key | undefined>(
     defaultSelectedKey,
   );
@@ -114,7 +130,7 @@ const Tabs: React.FC<TabsProps> = ({
             className={cn(
               "box-border h-fit w-full",
               panelClassName,
-              // custom style for a panel should override global style provided with panelClassName
+              // custom style for a panel should override parent style provided with panelClassName
               item?.tabPanelProps?.className,
             )}
             {...item.tabPanelProps}
@@ -125,6 +141,6 @@ const Tabs: React.FC<TabsProps> = ({
       </Collection>
     </AriaTabs>
   );
-};
+}
 
 export default Tabs;
