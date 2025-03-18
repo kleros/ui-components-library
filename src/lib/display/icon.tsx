@@ -1,70 +1,49 @@
 import React from "react";
-import styled from "styled-components";
 import Card from "../container/card";
-import { borderBox, svg, h1, small } from "../../styles/common-style";
-
-const StyledCard = styled(Card)`
-  height: 80px;
-  width: 288px;
-  padding: 16px;
-  display: flex;
-`;
-
-const Text = styled.div`
-  ${borderBox}
-  height: 100%;
-  width: auto;
-  margin-left: 16px;
-  flex-direction: column;
-  align-items: start;
-  justify-content: center;
-
-  .display-text {
-    ${h1}
-  }
-
-  .display-label {
-    ${small}
-  }
-`;
-
-const IconCard = styled(Card)`
-  height: 48px;
-  width: 48px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  .display-icon {
-    ${svg}
-    max-height: 32px;
-    max-width: 32px;
-  }
-`;
+import { cn } from "../../utils";
+import clsx from "clsx";
+import { Label } from "react-aria-components";
 
 export interface DisplayIconProps {
   text: string;
   Icon: React.FC<React.SVGAttributes<SVGElement>>;
   label?: string;
+  className?: string;
 }
 
-const DisplayIcon: React.FC<DisplayIconProps> = ({
+function DisplayIcon({
   text,
   Icon,
   label,
+  className,
   ...props
-}) => {
+}: Readonly<DisplayIconProps>) {
   return (
-    <StyledCard {...props}>
-      <IconCard>
-        <Icon className="display-icon" />
-      </IconCard>
-      <Text>
-        <h1 className="display-text">{text}</h1>
-        <small className="display-label">{label}</small>
-      </Text>
-    </StyledCard>
+    <Card className={cn("flex h-20 w-72 p-4", className)} {...props}>
+      <Card className={clsx("h-12 w-12", "flex items-center justify-center")}>
+        <Icon className="max--8 max-w-8" />
+      </Card>
+      <div
+        className={clsx(
+          "ml-4 box-border h-full",
+          "flex flex-col items-start justify-center",
+        )}
+      >
+        <h1
+          aria-labelledby={label}
+          className="text-klerosUIComponentsPrimaryText text-2xl font-semibold"
+        >
+          {text}
+        </h1>
+        <Label
+          id={label}
+          className="text-klerosUIComponentsSecondaryText text-sm break-words"
+        >
+          {label}
+        </Label>
+      </div>
+    </Card>
   );
-};
+}
 
 export default DisplayIcon;
