@@ -1,10 +1,17 @@
-import styled from "styled-components";
+import React from "react";
+import { cn } from "../../utils";
 
-const Modal = styled.div`
-  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
-  border-radius: 3px;
-  width: 328px;
-  height: 200px;
-`;
-
+function Modal({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "bg-klerosUIComponentsWhiteBackground h-[200px] w-[328px]",
+        "rounded-base box-border",
+        className,
+      )}
+    >
+      {props.children}
+    </div>
+  );
+}
 export default Modal;
