@@ -54,7 +54,7 @@ function Tooltip({
           "bg-klerosUIComponentsLightBlue w-max max-w-60",
           "border-klerosUIComponentsStroke box-border rounded-[7px] border",
           "flex items-center justify-center px-4 py-[13px]",
-          "data-[entering]:animate-fade-in data-[exiting]:animate-fade-out",
+          "entering:animate-fade-in exiting:animate-fade-out",
           className,
         )}
       >
