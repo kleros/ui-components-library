@@ -28,51 +28,29 @@ const Tooltips: React.FC = () => (
     <VerticalContainer>
       <SimpleContainer>
         <Tooltip small text={SHORT_TEXT}>
-          <Tooltip small place="bottom" text={SHORT_TEXT}>
-            <Tooltip small place="right" text={SHORT_TEXT}>
-              <Tooltip small place="left" text={SHORT_TEXT}>
-                <StyledText>{"Hover me, I'm simple text"}</StyledText>
-              </Tooltip>
-            </Tooltip>
-          </Tooltip>
+          <StyledText>{"Hover me, I'm simple text"}</StyledText>
         </Tooltip>
       </SimpleContainer>
       <SimpleContainer>
         <Tooltip small text={SHORT_TEXT}>
-          <Tooltip small place="bottom" text={SHORT_TEXT}>
-            <Tooltip small place="right" text={SHORT_TEXT}>
-              <Tooltip small place="left" text={SHORT_TEXT}>
-                <Tag active text="Hover me, I'm a tag" />
-              </Tooltip>
-            </Tooltip>
-          </Tooltip>
+          <Tag active text="Hover me, I'm a tag" />
         </Tooltip>
       </SimpleContainer>
     </VerticalContainer>
     <Tooltip small text={SHORT_TEXT}>
-      <Tooltip small place="bottom" text={SHORT_TEXT}>
-        <Tooltip small place="right" text={SHORT_TEXT}>
-          <Tooltip small place="left" text={SHORT_TEXT}>
-            <Card>
-              <StyledText>{"Hover me, I'm a card"}</StyledText>
-            </Card>
-          </Tooltip>
-        </Tooltip>
-      </Tooltip>
+      <Card>
+        <StyledText>{"Hover me, I'm a card"}</StyledText>
+      </Card>
     </Tooltip>
     <VerticalContainer>
       <SimpleContainer>
         <Tooltip text={LONG_TEXT}>
-          <Tooltip place="bottom" text={LONG_TEXT}>
-            <StyledText>Big tooltips horizontal</StyledText>
-          </Tooltip>
+          <StyledText>Big tooltips horizontal</StyledText>
         </Tooltip>
       </SimpleContainer>
       <SimpleContainer>
         <Tooltip place="right" text={LONG_TEXT}>
-          <Tooltip place="left" text={LONG_TEXT}>
-            <StyledText>Big tooltips vertical</StyledText>
-          </Tooltip>
+          <StyledText>Big tooltips vertical</StyledText>
         </Tooltip>
       </SimpleContainer>
     </VerticalContainer>

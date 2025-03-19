@@ -35,7 +35,7 @@ const IconContainer = styled.div`
 
 interface CopiableProps extends CopiableBaseProps {
   children?: React.ReactNode;
-  tooltipProps?: TooltipBaseProps;
+  tooltipProps?: Omit<TooltipBaseProps, "children">;
 }
 
 /**
