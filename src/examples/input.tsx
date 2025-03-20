@@ -48,10 +48,10 @@ const Input: React.FC = () => {
         ]}
       />
 
-      <Switch checked={checked} onChange={() => setChecked((old) => !old)} />
+      <Switch isSelected={checked} onChange={() => setChecked((old) => !old)} />
       <Switch
         small
-        checked={checked}
+        isSelected={checked}
         onChange={() => setChecked((old) => !old)}
       />
     </>

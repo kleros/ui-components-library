@@ -1,68 +1,45 @@
-import React, { InputHTMLAttributes } from "react";
-import styled, { css } from "styled-components";
-import { borderBox } from "../../styles/common-style";
-
+import React from "react";
+import {
+  Switch as AriaSwitch,
+  type SwitchProps as AriaSwitchProps,
+} from "react-aria-components";
+import { cn } from "../../utils";
 interface SwitchBaseProps {
   small?: boolean;
-  checked?: boolean;
 }
 
-const StyledSwitch = styled.label<SwitchBaseProps>`
-  ${borderBox}
-  position: relative;
-  display: inline-block;
-  height: ${({ small }) => (small ? "16px" : "24px")};
-  width: ${({ small }) => (small ? "32px" : "48px")};
-`;
+type SwitchProps = SwitchBaseProps & AriaSwitchProps;
 
-const HiddenInput = styled.input.attrs({ type: "checkbox" })`
-  opacity: 0;
-  width: 0;
-  height: 0;
-`;
-
-const StyledSlider = styled.span<SwitchBaseProps>`
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: ${({ theme }) => theme.klerosUIComponentsStroke};
-  transition: 0.4s;
-  border-radius: 34px;
-
-  &:before {
-    position: absolute;
-    content: "";
-    height: ${({ small }) => (small ? "12px" : "20px")};
-    width: ${({ small }) => (small ? "12px" : "20px")};
-    left: 2px;
-    bottom: 2px;
-    border-radius: 50%;
-    background-color: white;
-    transition: 0.4s;
-  }
-
-  ${({ checked, theme, small }) =>
-    checked &&
-    css`
-      background-color: ${theme.klerosUIComponentsPrimaryBlue};
-
-      :before {
-        transform: translateX(${small ? "16px" : "24px"});
-      }
-    `}
-`;
-
-type SwitchProps = SwitchBaseProps &
-  Omit<InputHTMLAttributes<HTMLInputElement>, "type">;
-
-const Switch: React.FC<SwitchProps> = ({ small, checked, ...props }) => (
-  <StyledSwitch small={small}>
-    <HiddenInput checked={checked} {...props} />
-    <StyledSlider small={small} checked={checked} />
-  </StyledSwitch>
-);
+/** A switch allows a user to turn a setting on or off.  */
+function Switch({
+  small,
+  isSelected,
+  className,
+  ...props
+}: Readonly<SwitchProps>) {
+  return (
+    <AriaSwitch
+      {...props}
+      className={cn(
+        "relative box-border inline-block",
+        small ? "h-4 w-8" : "h-6 w-12",
+        className,
+      )}
+    >
+      <span
+        className={cn(
+          "bg-klerosUIComponentsStroke cursor-pointer rounded-[34px] duration-400",
+          "absolute top-0 right-0 bottom-0 left-0",
+          "before:absolute before:bottom-0.5 before:left-0.5 before:rounded-full before:bg-white before:duration-400",
+          small ? "before:h-3 before:w-3" : "before:h-5 before:w-5",
+          isSelected && [
+            "bg-klerosUIComponentsPrimaryBlue",
+            small ? "before:translate-x-4" : "before:translate-x-6",
+          ],
+        )}
+      />
+    </AriaSwitch>
+  );
+}
 
 export default Switch;
