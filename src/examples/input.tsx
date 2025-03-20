@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import Radio from "../lib/form/radio";
 import Checkbox from "../lib/form/checkbox";
 import Switch from "../lib/form/switch";
+import RadioGroup from "../lib/form/radio-group";
 
 const VerticalWrapper = styled.div`
   display: flex;
@@ -14,9 +14,7 @@ const Input: React.FC = () => {
   const [checked, setChecked] = useState(false);
   const [radioValue, setRadioValue] = useState("bitcoin");
 
-  const changeRadioValue: React.ChangeEventHandler<HTMLInputElement> = (
-    event,
-  ) => setRadioValue(event.target.value);
+  const changeRadioValue = (val: string) => setRadioValue(val);
 
   return (
     <>
@@ -38,44 +36,18 @@ const Input: React.FC = () => {
           onChange={() => setChecked((old) => !old)}
         />
       </VerticalWrapper>
-      <VerticalWrapper>
-        <VerticalWrapper>
-          <Radio
-            label="Bitcoin"
-            value="bitcoin"
-            checked={radioValue === "bitcoin"}
-            onChange={changeRadioValue}
-          />
-          <Radio
-            label="Ethereum"
-            value="ethereum"
-            checked={radioValue === "ethereum"}
-            onChange={changeRadioValue}
-          />
-          <Radio
-            label="Pinakion"
-            value="pinakion"
-            checked={radioValue === "pinakion"}
-            onChange={changeRadioValue}
-          />
-        </VerticalWrapper>
-        <VerticalWrapper>
-          <Radio
-            label="Bitcoin"
-            small
-            value="bitcoin"
-            checked={radioValue === "bitcoin"}
-            onChange={changeRadioValue}
-          />
-          <Radio
-            small
-            label="Ethereum"
-            value="ethereum"
-            checked={radioValue === "ethereum"}
-            onChange={changeRadioValue}
-          />
-        </VerticalWrapper>
-      </VerticalWrapper>
+      <RadioGroup
+        groupLabel="Variants"
+        small
+        orientation="horizontal"
+        value={radioValue}
+        onChange={changeRadioValue}
+        options={[
+          { value: "primary", label: "Primary" },
+          { value: "secondary", label: "Secondary" },
+        ]}
+      />
+
       <Switch checked={checked} onChange={() => setChecked((old) => !old)} />
       <Switch
         small

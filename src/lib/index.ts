@@ -20,7 +20,7 @@ export { default as Slider } from "./form/slider";
 export { default as FileUploader } from "./form/file-uploader";
 export { default as Datepicker } from "./form/datepicker";
 
-export { default as Radio } from "../lib/form/radio";
+export { default as Radio } from "./form/radio-group";
 export { default as Checkbox } from "../lib/form/checkbox";
 export { default as Switch } from "../lib/form/switch";
 
