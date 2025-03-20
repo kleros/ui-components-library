@@ -29,7 +29,7 @@ function Alert({ variant, title, msg, className }: Readonly<AlertProps>) {
         className,
       )}
     >
-      <div className="h-6 w-6">
+      <div className="size-6">
         {variant === "success" && (
           <SuccessIcon className="fill-klerosUIComponentsSuccess" />
         )}

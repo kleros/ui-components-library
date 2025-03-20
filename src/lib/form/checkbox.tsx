@@ -38,13 +38,13 @@ function Checkbox({
           "absolute top-1 left-0",
           "rounded-base border-klerosUIComponentsStroke border",
           "overflow-hidden",
-          small ? "h-4 w-4" : "h-6 w-6",
+          small ? "size-4" : "size-6",
           checked && "bg-klerosUIComponentsPrimaryBlue border-none after:block",
         )}
       >
         <CheckmarkIcon
           className={clsx(
-            "absolute top-0.25 h-full w-full",
+            "absolute top-0.25 size-full",
             checked
               ? "bg-klerosUIComponentsPrimaryBlue fill-klerosUIComponentsWhiteBackground animate-bounce-in"
               : "fill-transparent",

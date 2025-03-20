@@ -31,7 +31,7 @@ function Switch({
           "bg-klerosUIComponentsStroke cursor-pointer rounded-[34px] duration-400",
           "absolute top-0 right-0 bottom-0 left-0",
           "before:absolute before:bottom-0.5 before:left-0.5 before:rounded-full before:bg-white before:duration-400",
-          small ? "before:h-3 before:w-3" : "before:h-5 before:w-5",
+          small ? "before:size-3" : "before:size-5",
           isSelected && [
             "bg-klerosUIComponentsPrimaryBlue",
             small ? "before:translate-x-4" : "before:translate-x-6",

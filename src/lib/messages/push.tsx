@@ -35,11 +35,11 @@ function Push({
         small
           ? [
               "h-12 w-[300px] px-6 py-3",
-              "[&>svg]:h-6 [&>svg]:min-h-6 [&>svg]:w-6 [&>svg]:min-w-6",
+              "[&>svg]:size-6 [&>svg]:min-h-6 [&>svg]:min-w-6",
             ]
           : [
               "h-25 w-[422px] py-4 pr-8 pl-6",
-              "[&>svg]:h-8 [&>svg]:min-h-8 [&>svg]:w-8 [&>svg]:min-w-8",
+              "[&>svg]:size-8 [&>svg]:min-h-8 [&>svg]:min-w-8",
             ],
         className,
       )}
@@ -61,9 +61,9 @@ function Push({
       {!small && (
         <Button
           onPress={() => callback()}
-          className="absolute top-6 right-6 inline-flex h-2 w-2 cursor-pointer bg-none p-0"
+          className="absolute top-6 right-6 inline-flex size-2 cursor-pointer bg-none p-0"
         >
-          <CloseIcon className="fill-klerosUIComponentsWhiteBackground h-2 min-h-2 w-2 min-w-2" />
+          <CloseIcon className="fill-klerosUIComponentsWhiteBackground size-2 min-h-2 min-w-2" />
         </Button>
       )}
     </div>

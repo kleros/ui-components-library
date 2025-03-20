@@ -65,7 +65,7 @@ function Copiable({
       >
         <Button
           onPress={isCopied ? undefined : handleCopy}
-          className="flex h-4 w-4 cursor-pointer items-center"
+          className="flex size-4 cursor-pointer items-center"
         >
           {isCopied ? (
             <Copied className="copied-icon" />

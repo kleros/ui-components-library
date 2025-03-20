@@ -50,7 +50,7 @@ function Button({
   return (
     <AriaButton
       className={cn(
-        "relative box-border h-fit w-fit",
+        "relative box-border size-fit",
         "flex flex-row items-center justify-center",
         "rounded-base hover:cursor-pointer",
         "ease-ease transition-[background] duration-(--klerosUIComponentsTransitionSpeed)",

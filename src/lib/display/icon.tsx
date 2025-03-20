@@ -20,7 +20,7 @@ function DisplayIcon({
 }: Readonly<DisplayIconProps>) {
   return (
     <Card className={cn("flex h-20 w-72 p-4", className)} {...props}>
-      <Card className={clsx("h-12 w-12", "flex items-center justify-center")}>
+      <Card className={clsx("size-12", "flex items-center justify-center")}>
         <Icon className="max--8 max-w-8" />
       </Card>
       <div

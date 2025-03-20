@@ -76,14 +76,8 @@ function RadioGroup({
                   "after:bg-klerosUIComponentsPrimaryBlue after:absolute after:hidden after:rounded-full",
                   "ease-ease after:ease-ease transition-all after:transition-all",
                   small
-                    ? [
-                        "h-4 w-4",
-                        "after:top-0.75 after:left-0.75 after:h-2 after:w-2",
-                      ]
-                    : [
-                        "h-6 w-6",
-                        "after:top-1.25 after:left-1.25 after:h-3 after:w-3",
-                      ],
+                    ? "size-4 after:top-0.75 after:left-0.75 after:size-2"
+                    : "size-6 after:top-1.25 after:left-1.25 after:size-3",
                   isSelected && [
                     "bg-klerosUIComponentsWhiteBackground border-klerosUIComponentsPrimaryBlue after:block",
                   ],
