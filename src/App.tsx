@@ -5,7 +5,6 @@ import { GlobalStyle } from "./styles/global-style";
 import { lightTheme, darkTheme } from "./styles/themes";
 import Button from "./lib/button";
 import Tabs from "./lib/pagination/tabs";
-import Card from "./lib/container/card";
 import Buttons from "./examples/buttons";
 import Pagination from "./examples/pagination";
 import Containers from "./examples/containers";
@@ -19,6 +18,7 @@ import TimelineProgress from "./examples/timeline";
 import Input from "./examples/input";
 import Tooltips from "./examples/tooltip";
 import Copiable from "./examples/copiable";
+import clsx from "clsx";
 
 const StyledDiv = styled.div`
   position: fixed;
@@ -38,29 +38,9 @@ const StyledDiv = styled.div`
     ${(props) => props.theme.klerosUIComponentsTransitionSpeed};
 `;
 
-const StyledCard = styled(Card)`
-  height: 500px;
-  width: 1000px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  gap: 24px;
-  overflow: auto;
-  flex-wrap: wrap;
-  padding: 36px 36px;
-  background: ${(props) => props.theme.klerosUIComponentsLightBackground};
-  transition: background ease
-    ${(props) => props.theme.klerosUIComponentsTransitionSpeed};
-`;
-
-const StyledTabs = styled(Tabs)`
-  width: 995px;
-`;
-
 const App = () => {
   const [theme, setTheme] = useState(lightTheme);
   const [tailwindTheme, setTailwindTheme] = useState("light");
-  const [example, setExample] = useState("buttons");
 
   // temporary
   const changeTheme = () => {
@@ -80,40 +60,97 @@ const App = () => {
       <ThemeProvider theme={theme}>
         <GlobalStyle />
         <StyledDiv>
-          <StyledTabs
+          <Tabs
+            className="w-[995px]"
+            defaultSelectedKey={"buttons"}
+            panelClassName={clsx(
+              "h-[500px] w-[1000px] bg-klerosUIComponentsLightBackground",
+              "transition-[background] ease-ease",
+              "border border-klerosUIComponentsStroke box-border",
+              "flex justify-around items-center gap-6 flex-wrap p-9",
+              "overflow-auto rounded-base shadow-sm shadow-klerosUIComponentsDefaultShadow-400",
+            )}
             items={[
-              { text: "Buttons", value: "buttons" },
-              { text: "Pagination", value: "pagination" },
-              { text: "Containers", value: "containers" },
-              { text: "Accordion", value: "accordion" },
-              { text: "Form", value: "form" },
-              { text: "Dropdowns", value: "dropdowns" },
-              { text: "Displays", value: "displays" },
-              { text: "Messages", value: "messages" },
-              { text: "Timeline", value: "timeline" },
-              { text: "Progress", value: "progress" },
-              { text: "Input", value: "input" },
-              { text: "Tooltip", value: "tooltip" },
-              { text: "Copiable", value: "copiable" },
+              {
+                text: "Buttons",
+                value: "buttons",
+                id: "buttons",
+                content: <Buttons />,
+              },
+              {
+                text: "Pagination",
+                value: "pagination",
+                id: "pagination",
+                content: <Pagination />,
+              },
+              {
+                text: "Containers",
+                value: "containers",
+                id: "containers",
+                content: <Containers />,
+              },
+              {
+                text: "Accordion",
+                value: "accordion",
+                id: "accordion",
+                content: <Accordion />,
+              },
+              {
+                text: "Form",
+                value: "form",
+                id: "content",
+                content: <Form />,
+              },
+              {
+                text: "Dropdowns",
+                value: "dropdowns",
+                id: "dropdowns",
+                content: <Dropdowns />,
+              },
+              {
+                text: "Displays",
+                value: "displays",
+                id: "displays",
+                content: <Displays />,
+              },
+              {
+                text: "Messages",
+                value: "messages",
+                id: "messages",
+                content: <Messages />,
+              },
+              {
+                text: "Timeline",
+                value: "timeline",
+                id: "timeline",
+                content: <TimelineProgress />,
+              },
+              {
+                text: "Progress",
+                value: "progress",
+                id: "progress",
+                content: <Progress />,
+              },
+              {
+                text: "Input",
+                value: "input",
+                id: "input",
+                content: <Input />,
+              },
+              {
+                text: "Tooltip",
+                value: "tooltip",
+                id: "tooltip",
+                content: <Tooltips />,
+              },
+              {
+                text: "Copiable",
+                value: "copiable",
+                id: "copiable",
+                content: <Copiable />,
+              },
             ]}
-            callback={setExample}
-            currentValue={example}
           />
-          <StyledCard>
-            {example === "buttons" && <Buttons />}
-            {example === "pagination" && <Pagination />}
-            {example === "containers" && <Containers />}
-            {example === "accordion" && <Accordion />}
-            {example === "form" && <Form />}
-            {example === "dropdowns" && <Dropdowns />}
-            {example === "displays" && <Displays />}
-            {example === "messages" && <Messages />}
-            {example === "timeline" && <TimelineProgress />}
-            {example === "progress" && <Progress />}
-            {example === "input" && <Input />}
-            {example === "tooltip" && <Tooltips />}
-            {example === "copiable" && <Copiable />}
-          </StyledCard>
           <Button
             variant="primary"
             className="mt-16"
