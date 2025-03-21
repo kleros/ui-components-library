@@ -26,12 +26,12 @@ interface TabsItem {
   /** Content to display when this tab is selected. */
   content: ReactNode;
   /** Props for Tab
-   * {@link https://react-spectrum.adobe.com/react-aria/Tabs.html#tab | TabProps}
+   * [See TabProps](https://react-spectrum.adobe.com/react-aria/Tabs.html#tab)
    */
   tabProps?: TabProps;
   /**
    * Can be used to provide separate styling for a TabPanel, apart from one passed in panelClassName parent props.
-   * {@link https://react-spectrum.adobe.com/react-aria/Tabs.html#tabpanel | TabListProps}
+   * [See TabPanelProps](https://react-spectrum.adobe.com/react-aria/Tabs.html#tabpanel)
    */
   tabPanelProps?: TabPanelProps;
 }
@@ -45,11 +45,12 @@ interface TabsProps extends Omit<AriaTabsProps, "orientation"> {
   panelClassName?: string;
   /**
    * Can be used to override default style.
-   * {@link https://react-spectrum.adobe.com/react-aria/Tabs.html#tablist | TabListProps}
+   * [See TablistProps](https://react-spectrum.adobe.com/react-aria/Tabs.html#tablist)
    */
   tabListProps?: TabListProps<TabProps>;
 }
 
+/** Tabs organize content into multiple sections and allow users to navigate between them. */
 function Tabs({
   items,
   className,
@@ -104,7 +105,7 @@ function Tabs({
               (Icon && (
                 <Icon
                   className={cn(
-                    "hover-short-transition h-4 w-4",
+                    "hover-short-transition size-4",
                     "fill-klerosUIComponentsPrimaryText mr-4",
                     id === selectedKey && "fill-klerosUIComponentsPrimaryBlue",
                     disabled && "fill-klerosUIComponentsStroke",

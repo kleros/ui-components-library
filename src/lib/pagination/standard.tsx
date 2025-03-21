@@ -14,7 +14,7 @@ const PageButton: React.FC<ButtonProps & { selected?: boolean }> = ({
   <Button
     {...props}
     className={cn(
-      "rounded-base m-1 h-8 w-8 border",
+      "rounded-base m-1 size-8 border",
       "flex items-center justify-center text-sm",
       "hover:cursor-pointer hover:disabled:cursor-default",
       selected

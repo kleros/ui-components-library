@@ -6,21 +6,26 @@ import { cn } from "../../utils";
 import { Button, type ButtonProps } from "react-aria-components";
 import clsx from "clsx";
 
-const ArrowButton: React.FC<ButtonProps> = ({ className, ...props }) => {
+const ArrowButton: React.FC<ButtonProps> = ({
+  children,
+  isDisabled,
+  className,
+  ...props
+}) => {
   return (
     <Button
       className={cn(
-        "h-6 w-6 rounded-full bg-none hover:enabled:cursor-pointer hover:disabled:cursor-default",
-        "[&>svg]:ease-ease [&>svg]:h-6 [&>svg]:w-6 [&>svg]:transition-[fill]",
+        "size-6 rounded-full bg-none hover:enabled:cursor-pointer hover:disabled:cursor-default",
+        "[&>svg]:ease-ease [&>svg]:size-6 [&>svg]:transition-[fill]",
         ":hover:enabled:[&>svg]:fill-klerosUIComponentsSecondaryBlue",
-        props.isDisabled
+        isDisabled
           ? ["[&>svg]:fill-klerosUIComponentsStroke"]
           : ["[&>svg]:fill-klerosUIComponentsPrimaryBlue"],
         className,
       )}
       {...props}
     >
-      {props.children}
+      {children}
     </Button>
   );
 };
