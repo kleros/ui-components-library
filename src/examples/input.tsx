@@ -19,20 +19,16 @@ const Input: React.FC = () => {
   return (
     <>
       <VerticalWrapper>
-        <Checkbox
-          label="Checkbox"
-          checked={checked}
-          onChange={() => setChecked((old) => !old)}
-        />
+        <Checkbox label="Checkbox" />
         <Checkbox
           label="Inverted"
-          checked={!checked}
+          isSelected={!checked}
           onChange={() => setChecked((old) => !old)}
         />
         <Checkbox
           label="One"
           small
-          checked={checked}
+          isSelected={checked}
           onChange={() => setChecked((old) => !old)}
         />
       </VerticalWrapper>
