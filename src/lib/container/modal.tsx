@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "../../utils";
 import {
-  Modal as AriaModel,
+  Modal as AriaModal,
   type ModalOverlayProps,
 } from "react-aria-components";
 
@@ -10,7 +10,7 @@ function Modal({
   ...props
 }: ModalOverlayProps & React.RefAttributes<HTMLDivElement>) {
   return (
-    <AriaModel
+    <AriaModal
       className={cn(
         "bg-klerosUIComponentsWhiteBackground h-[200px] w-[328px]",
         "rounded-base box-border",
@@ -18,7 +18,7 @@ function Modal({
       )}
     >
       {props.children}
-    </AriaModel>
+    </AriaModal>
   );
 }
 export default Modal;

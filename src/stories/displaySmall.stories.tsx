@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { IPreviewArgs } from "./utils";
 
-import SmallDisplayComponent from "../lib/display/large";
+import SmallDisplayComponent from "../lib/display/small";
 import Dai from "../assets/svgs/dai.svg";
 
 const meta = {
@@ -15,7 +15,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
-export const DisplayLarge: Story = {
+export const DisplaySmall: Story = {
   args: {
     themeUI: "dark",
     backgroundUI: "light",

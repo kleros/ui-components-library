@@ -57,6 +57,7 @@ export const Horizontal: Story = {
       { value: "primary", label: "Primary" },
       { value: "secondary", label: "Secondary" },
     ],
+    orientation: "horizontal",
     small: true,
   },
 };
