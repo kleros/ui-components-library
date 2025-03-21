@@ -54,6 +54,7 @@ function Button({
         "flex flex-row items-center justify-center",
         "rounded-base hover:cursor-pointer",
         "ease-ease transition-[background] duration-(--klerosUIComponentsTransitionSpeed)",
+        "pressed:scale-95 transform transition-transform",
 
         props.small ? "px-6 py-1.5" : "px-8 py-[11.5px]",
         isPrimary && [
