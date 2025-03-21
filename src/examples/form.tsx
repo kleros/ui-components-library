@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import FileUploader from "../lib/form/file-uploader";
-import Field from "../lib/form/field";
 import Searchbar from "../lib/form/searchbar";
-import Textarea from "../lib/form/textarea";
 import Slider from "../lib/form/slider";
 import Datepicker from "../lib/form/datepicker";
 import Telegram from "../assets/svgs/telegram.svg";
-
+import NumberField from "../lib/form/number-field";
+import TextField from "../lib/form/text-field";
+import TextArea from "../lib/form/text-area";
 const Form = () => {
   const [value, setValue] = useState(1);
   return (
@@ -22,18 +22,33 @@ const Form = () => {
           // Called when select is clicked with date as args
         }}
       />
-      <Field
-        placeholder={"eg. Escrow"}
+      <TextField
+        placeholder={"eg. Email"}
         variant="success"
         message="success msg"
+        type="email"
       />
-      <Field placeholder={"Number"} type="number" Icon={Telegram} />
-      <Field placeholder={"Number"} type="number" />
+      <NumberField
+        placeholder={"Number"}
+        variant="info"
+        message="Age is your"
+        Icon={Telegram}
+      />
+
+      <NumberField
+        placeholder={"Number"}
+        variant="warning"
+        label="Enter your age"
+        minValue={0}
+      />
+
+      <NumberField placeholder={"Number"} />
       <Searchbar />
-      <Textarea
+      <TextArea
         placeholder={"eg. longer text"}
         message={"Error msg"}
         variant="error"
+        resizeY
       />
       <FileUploader
         callback={() => {

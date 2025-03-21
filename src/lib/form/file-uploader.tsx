@@ -1,11 +1,11 @@
 import React, { useState, useRef } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import UploadIcon from "../../assets/svgs/form/upload-icon.svg";
 import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import InfoIcon from "../../assets/svgs/status-icons/info.svg";
-import { variantColor } from "./field";
+
 import {
   borderBox,
   small,
@@ -14,6 +14,15 @@ import {
   hoverShortTransitionTiming,
   hoverWhiteBackground,
 } from "../../styles/common-style";
+
+const variantColor = css<VariantProp>`
+  ${({ variant, theme }) => {
+    if (variant === "warning") return theme.klerosUIComponentsWarning;
+    if (variant === "error") return theme.klerosUIComponentsError;
+    if (variant === "success") return theme.klerosUIComponentsSuccess;
+    return theme.klerosUIComponentsSecondaryText;
+  }}
+`;
 
 type VariantProp = { variant?: "success" | "warning" | "error" | "info" };
 

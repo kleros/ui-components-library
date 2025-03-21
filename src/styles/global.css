@@ -217,4 +217,5 @@
   --ease-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 
   --shadow-default: 0px 2px 3px var(--klerosUIComponentsDefaultShadow);
+  --shadow-input: 0px 0px 6px var(--klerosUIComponentsPrimaryBlue);
 }

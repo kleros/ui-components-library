@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { borderBox } from "../../styles/common-style";
 import SearchIcon from "../../assets/svgs/form/search.svg";
-import Field from "./field";
+import Field from "./text-field";
 
 const Wrapper = styled.div`
   ${borderBox}
@@ -33,11 +33,10 @@ const StyledSearchIcon = styled(SearchIcon)`
   fill: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
 `;
 
-const Searchbar: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({
-  className,
+const Searchbar: React.FC<React.ComponentProps<typeof Field>> = ({
   ...props
 }) => (
-  <Wrapper {...{ className }}>
+  <Wrapper>
     <StyledField placeholder="Search" {...props} />
     <StyledSearchIcon />
   </Wrapper>

@@ -13,9 +13,10 @@ export { default as DisplaySmall } from "./display/small";
 export { default as DropdownSelect } from "./dropdown/select";
 export { default as DropdownCascader } from "./dropdown/cascader";
 
-export { default as Field } from "./form/field";
+export { default as NumberField } from "./form/number-field";
+export { default as TextField } from "./form/text-field";
 export { default as Searchbar } from "./form/searchbar";
-export { default as Textarea } from "./form/textarea";
+export { default as TextArea } from "./form/text-area";
 export { default as Slider } from "./form/slider";
 export { default as FileUploader } from "./form/file-uploader";
 export { default as Datepicker } from "./form/datepicker";
