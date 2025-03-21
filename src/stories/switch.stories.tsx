@@ -9,9 +9,6 @@ const meta = {
   title: "Input/Switch",
   tags: ["autodocs"],
   argTypes: {
-    isSelected: {
-      control: "boolean",
-    },
     small: {
       control: "boolean",
     },
@@ -24,7 +21,6 @@ type Story = StoryObj<typeof meta> & IPreviewArgs;
 
 export const Switch: Story = {
   args: {
-    isSelected: false,
     themeUI: "light",
     backgroundUI: "light",
     small: false,
