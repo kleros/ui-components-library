@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import FileUploader from "../lib/form/file-uploader";
 import Searchbar from "../lib/form/searchbar";
 import Slider from "../lib/form/slider";
@@ -8,7 +8,6 @@ import NumberField from "../lib/form/number-field";
 import TextField from "../lib/form/text-field";
 import TextArea from "../lib/form/text-area";
 const Form = () => {
-  const [value, setValue] = useState(1);
   return (
     <>
       <Datepicker
@@ -58,12 +57,13 @@ const Form = () => {
         msg="Some msg"
       />
       <Slider
-        callback={setValue}
-        min={1}
-        max={30}
+        callback={() => {}}
+        minValue={1}
+        maxValue={30}
         leftLabel="1 day"
         rightLabel="1 month"
-        label={`${value} days`}
+        formatter={(value) => `${value} days`}
+        defaultValue={3}
       />
     </>
   );
