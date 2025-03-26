@@ -1,130 +1,101 @@
-import React, { useState, useRef } from "react";
-import styled from "styled-components";
-import useFocusOutside from "../../../hooks/use-focus-outside";
-import { useDatepicker, START_DATE } from "@datepicker-react/hooks";
-import DatepickerContext from "./datepickerContext";
+import React from "react";
+import {
+  Button,
+  DatePicker as AriaDatePicker,
+  Dialog,
+  Label,
+  Popover,
+  type DatePickerProps as AriaDatePickerProps,
+  type DateValue,
+  FieldError,
+} from "react-aria-components";
+import CustomButton from "../../button";
+import clsx from "clsx";
 import DisplayButton from "./display-button";
-import Dropdown from "./dropdown";
-import { borderBox } from "../../../styles/common-style";
+import TimeControl from "./time-control";
+import Calendar from "./calendar";
+import { getLocalTimeZone, now } from "@internationalized/date";
+import { cn } from "../../../utils";
 
-const PositionedContainer = styled.div`
-  ${borderBox}
-  position: relative;
-`;
-
-interface IDatePicker {
-  onSelect: (date: Date) => void;
+interface DatePickerProps
+  extends Omit<
+    AriaDatePickerProps<DateValue>,
+    "granularity" | "hourCycle" | "firstDayOfWeek"
+  > {
+  /** Show time selection if true. */
   time?: boolean;
+  label?: string;
 }
 
-const DatePicker: React.FC<IDatePicker> = ({ onSelect, time }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef(null);
-  useFocusOutside(containerRef, () => setIsOpen(false));
-  const [date, setDate] = useState(new Date());
-  const [hours, setHours] = useState(date.getHours());
-  const [minutes, setMinutes] = useState(date.getMinutes());
-  const today = new Date();
-  const lastSelectableDate = new Date(today);
-  lastSelectableDate.setDate(today.getDate());
-
-  const updateDateWithTime = (selectedDate: Date) => {
-    if (selectedDate.toDateString() === lastSelectableDate.toDateString()) {
-      const now = new Date();
-      selectedDate.setHours(now.getHours(), now.getMinutes());
-      setHours(now.getHours());
-      setMinutes(now.getMinutes());
-    } else {
-      selectedDate.setHours(hours, minutes);
-    }
-    setDate(selectedDate);
-    onSelect(selectedDate);
-  };
-
-  const {
-    firstDayOfWeek,
-    activeMonths,
-    isDateHovered,
-    isFirstOrLastSelectedDate,
-    isDateBlocked,
-    isDateFocused,
-    focusedDate,
-    onDateHover,
-    onDateSelect: handleDateSelect,
-    onDateFocus,
-    goToPreviousMonths,
-    goToNextMonths,
-  } = useDatepicker({
-    startDate: date,
-    endDate: date,
-    focusedInput: START_DATE,
-    onDatesChange: (data) => {
-      if (data.startDate) {
-        updateDateWithTime(new Date(data.startDate));
-      }
-    },
-    numberOfMonths: 1,
-    minBookingDays: 1,
-    exactMinBookingDays: true,
-  });
-
-  const onTimeChange = (newHours: number, newMinutes: number) => {
-    const newDate = new Date(date);
-    newDate.setHours(newHours, newMinutes);
-    setHours(newHours);
-    setMinutes(newMinutes);
-    setDate(newDate);
-    onSelect(newDate);
-  };
-
+/** A date picker allow users to enter or select a date and time value. */
+function DatePicker({
+  label,
+  time = false,
+  minValue,
+  defaultValue = now(getLocalTimeZone()),
+  shouldCloseOnSelect = false,
+  ...props
+}: Readonly<DatePickerProps>) {
   return (
-    <DatepickerContext.Provider
-      value={{
-        focusedDate,
-        isDateFocused,
-        isDateSelected: (selectedDate) => {
-          return (
-            selectedDate.getDate() === date.getDate() &&
-            selectedDate.getMonth() === date.getMonth() &&
-            selectedDate.getFullYear() === date.getFullYear()
-          );
-        },
-        isDateHovered,
-        isDateBlocked,
-        isFirstOrLastSelectedDate,
-        onDateSelect: (selectedDate: Date) => {
-          handleDateSelect(selectedDate);
-          updateDateWithTime(selectedDate);
-        },
-        onDateFocus,
-        onDateHover,
-      }}
+    <AriaDatePicker
+      {...props}
+      {...{ shouldCloseOnSelect, minValue, defaultValue }}
+      granularity={time ? "minute" : "day"}
+      hourCycle={24}
     >
-      <PositionedContainer ref={containerRef}>
-        <DisplayButton {...{ date, time }} onClick={() => setIsOpen(!isOpen)} />
-        <Dropdown
-          {...{
-            ...activeMonths[0],
-            isOpen,
-            time,
-            firstDayOfWeek,
-            goToNextMonths,
-            goToPreviousMonths,
-            date,
-            hours,
-            minutes,
-            setHours: (newHours) => onTimeChange(newHours, minutes),
-            setMinutes: (newMinutes) => onTimeChange(hours, newMinutes),
-            onSelect: () => {
-              date.setHours(hours, minutes);
-              onSelect(date);
-              setIsOpen(false);
-            },
-          }}
-        />
-      </PositionedContainer>
-    </DatepickerContext.Provider>
+      {({ state }) => (
+        <>
+          <Label
+            className={cn(
+              "text-klerosUIComponentsPrimaryText mb-1 text-base",
+              !label && "hidden",
+            )}
+          >
+            {label ?? "Date"}
+          </Label>
+
+          <DisplayButton />
+          <FieldError className="text-klerosUIComponentsError mt-1 text-sm" />
+
+          <Popover
+            className={clsx(
+              "bg-klerosUIComponentsWhiteBackground shadow-default rounded-base",
+              "border-klerosUIComponentsStroke ease-ease border transition",
+              time ? "w-82.5 md:w-112.5" : "w-82.5",
+            )}
+          >
+            <Dialog className="flex size-full flex-wrap">
+              <Calendar />
+              {time && <TimeControl {...{ minValue }} />}
+              <div
+                className={clsx(
+                  "flex h-16 w-full items-center justify-between px-4",
+                  "border-t-klerosUIComponentsStroke border-t",
+                )}
+              >
+                <Button
+                  className={clsx(
+                    "text-klerosUIComponentsPrimaryBlue rounded-base text-sm font-semibold",
+                    "hover:text-klerosUIComponentsSecondaryBlue hover:cursor-pointer",
+                    "focus:outline-klerosUIComponentsPrimaryBlue focus:outline-offset-8",
+                  )}
+                  onPress={() => state.setValue(defaultValue)}
+                >
+                  Clear
+                </Button>
+                <CustomButton
+                  small
+                  text="Select"
+                  onPress={() => state.close()}
+                  className="focus:outline-klerosUIComponentsPrimaryBlue cursor-pointer focus:outline-offset-2"
+                />
+              </div>
+            </Dialog>
+          </Popover>
+        </>
+      )}
+    </AriaDatePicker>
   );
-};
+}
 
 export default DatePicker;

@@ -1206,6 +1206,7 @@ __metadata:
     "@eslint/compat": "npm:^1.2.7"
     "@eslint/eslintrc": "npm:^3.3.0"
     "@eslint/js": "npm:^9.21.0"
+    "@internationalized/date": "npm:^3.7.0"
     "@storybook/addon-essentials": "npm:^8.6.4"
     "@storybook/addon-interactions": "npm:^8.6.4"
     "@storybook/addon-onboarding": "npm:^8.6.4"

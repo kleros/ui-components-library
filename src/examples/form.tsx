@@ -7,20 +7,13 @@ import Telegram from "../assets/svgs/telegram.svg";
 import NumberField from "../lib/form/number-field";
 import TextField from "../lib/form/text-field";
 import TextArea from "../lib/form/text-area";
+import { getLocalTimeZone, now } from "@internationalized/date";
 const Form = () => {
   return (
     <>
-      <Datepicker
-        time
-        onSelect={() => {
-          // Called when select is clicked with date as args
-        }}
-      />
-      <Datepicker
-        onSelect={() => {
-          // Called when select is clicked with date as args
-        }}
-      />
+      <Datepicker time minValue={now(getLocalTimeZone())} />
+      <Datepicker minValue={now(getLocalTimeZone())} />
+
       <TextField
         placeholder={"eg. Email"}
         variant="success"
