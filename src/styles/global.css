@@ -197,9 +197,31 @@
     }
   }
 
+  @keyframes scaleIn {
+    0% {
+      transform: scaleY(0);
+    }
+
+    100% {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes scaleOut {
+    0% {
+      transform: scaleY(1);
+    }
+
+    100% {
+      transform: scaleY(0);
+    }
+  }
+
   --animate-fade-in: fadeIn 0.3s ease-in-out;
   --animate-fade-out: fadeOut 0.3s ease-in-out;
   --animate-bounce-in: bounceIn 0.2s ease-out;
+  --animate-scale-in: scaleIn var(--klerosUIComponentsTransitionSpeed) ease;
+  --animate-scale-out: slideOut var(--klerosUIComponentsTransitionSpeed) ease;
 
   @keyframes breathe {
     0% {
