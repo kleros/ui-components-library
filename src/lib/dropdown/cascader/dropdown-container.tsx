@@ -126,7 +126,8 @@ const DropdownContainer: React.FC<IDropdownContainer> = ({
                 className={({ isFocusVisible, level }) =>
                   cn(
                     "w-59.5",
-                    isFocusVisible && "bg-klerosUIComponentsMediumBlue",
+                    isFocusVisible &&
+                      "bg-klerosUIComponentsMediumBlue outline-none",
                     "selected:bg-klerosUIComponentsMediumBlue hover:bg-klerosUIComponentsMediumBlue",
                     // This adds border between columns
                     level !== 1 && [
