@@ -9,7 +9,7 @@ import { Button } from "../lib";
 
 const meta = {
   component: SelectComponent,
-  title: "Form/Dropdown/Select",
+  title: "Dropdown/Select",
   tags: ["autodocs"],
   argTypes: {
     smallButton: {
