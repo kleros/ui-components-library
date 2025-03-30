@@ -1,6 +1,6 @@
 import React from "react";
 import DropdownSelect from "../lib/dropdown/select";
-import Cascader from "../lib/dropdown/cascader";
+import DropdownCascader from "../lib/dropdown/cascader";
 
 const Dropdowns = () => (
   <>
@@ -16,6 +16,7 @@ const Dropdowns = () => (
         // function called when an item is clicked with it's value as argument
       }}
     />
+
     <DropdownSelect
       placeholder="Select Value"
       callback={(item) => {
@@ -66,37 +67,44 @@ const Dropdowns = () => (
         // function called when an item is clicked with it's value as argument
       }}
     />
-    <Cascader
+
+    <DropdownCascader
       placeholder={"Select Court"}
-      onSelect={() => {
-        // Called with the item value when select is clicked
+      callback={() => {
+        // Called with the item object when select is clicked
       }}
       items={[
         {
           label: "General Court",
-          value: 0,
+          id: 0,
+          itemValue: 0,
           children: [
             {
               label: "Blockchain",
-              value: 1,
+              id: 1,
+              itemValue: 1,
               children: [
                 {
                   label: "Technical",
-                  value: 2,
+                  id: 2,
+                  itemValue: 2,
                 },
                 {
                   label: "Non-technical",
-                  value: 3,
+                  id: 3,
+                  itemValue: 3,
                 },
                 {
                   label: "Other",
-                  value: 4,
+                  id: 4,
+                  itemValue: 4,
                 },
               ],
             },
             {
               label: "Marketing Services",
-              value: 5,
+              id: 5,
+              itemValue: 5,
             },
           ],
         },

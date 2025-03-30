@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled, { ThemeProvider } from "styled-components";
 import { GlobalStyle } from "./styles/global-style";
 import { lightTheme, darkTheme } from "./styles/themes";
@@ -39,9 +39,14 @@ const StyledDiv = styled.div`
 `;
 
 const App = () => {
-  const [theme, setTheme] = useState(lightTheme);
-  const [tailwindTheme, setTailwindTheme] = useState("light");
+  const [theme, setTheme] = useState(darkTheme);
+  const [tailwindTheme, setTailwindTheme] = useState("dark");
+  const [example, setExample] = useState("buttons");
 
+  useEffect(() => {
+    setTailwindTheme("dark");
+    document.documentElement.classList.add("dark");
+  }, []);
   // temporary
   const changeTheme = () => {
     if (tailwindTheme === "dark") {
