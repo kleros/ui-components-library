@@ -23,7 +23,7 @@ const SelectButton: React.FC<ISelectButton> = ({ selectedKey, callback }) => {
       className={clsx(
         "box-border px-4 py-2",
         "border-t-klerosUIComponentsStroke border-t",
-        "flex items-center justify-center md:justify-end",
+        "flex items-center justify-center lg:justify-end",
       )}
     >
       <Button

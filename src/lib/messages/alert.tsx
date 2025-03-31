@@ -43,7 +43,7 @@ function Alert({ variant, title, msg, className }: Readonly<AlertProps>) {
           <InfoIcon className="fill-klerosUIComponentsPrimaryBlue" />
         )}
       </div>
-      <div className="flex flex-col gap-2 md:gap-0">
+      <div className="flex flex-col gap-2 lg:gap-0">
         <h2
           className={clsx("text-base font-semibold", {
             "text-klerosUIComponentsSuccess": variant === "success",

@@ -61,7 +61,7 @@ function DatePicker({
             className={clsx(
               "bg-klerosUIComponentsWhiteBackground shadow-default rounded-base",
               "border-klerosUIComponentsStroke ease-ease border transition",
-              time ? "w-82.5 md:w-112.5" : "w-82.5",
+              time ? "w-82.5 lg:w-112.5" : "w-82.5",
             )}
           >
             <Dialog className="flex size-full flex-wrap">

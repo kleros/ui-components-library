@@ -1,23 +1,22 @@
 import React from "react";
-import styled from "styled-components";
 import { StepsProps } from ".";
 import Bullet from "./horizontal-bullet";
-import { borderBox } from "../../../styles/common-style";
-
-const Wrapper = styled.div`
-  ${borderBox}
-  width: 250px;
-  display: flex;
-  justify-content: center;
-  align-items: start;
-`;
+import { cn } from "../../../utils";
 
 const HorizontalSteps: React.FC<StepsProps> = ({
   items,
   currentItemIndex,
+  className,
   ...props
 }) => (
-  <Wrapper {...props}>
+  <div
+    className={cn(
+      "box-border flex w-62.5 items-start justify-center",
+      className,
+    )}
+    {...props}
+    aria-orientation="horizontal"
+  >
     {items.map((item, i) => (
       <Bullet
         {...item}
@@ -28,7 +27,7 @@ const HorizontalSteps: React.FC<StepsProps> = ({
         key={i}
       />
     ))}
-  </Wrapper>
+  </div>
 );
 
 export default HorizontalSteps;
