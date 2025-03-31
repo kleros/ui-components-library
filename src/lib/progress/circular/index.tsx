@@ -3,24 +3,27 @@ import { ProgressBar, type ProgressBarProps } from "react-aria-components";
 import clsx from "clsx";
 
 interface CircularProps
-  extends Omit<ProgressBarProps, "isIndeterminate" | "valueLabel"> {
+  extends Omit<
+    ProgressBarProps,
+    "isIndeterminate" | "valueLabel" | "formatOptions"
+  > {
   small?: boolean;
-  /** Provides the current progress value, when minValue and maxValue are not defined,
-   *  it represents the percentage value between 0-100%. */
+  /** Provides the current progress value.
+   * When minValue and maxValue are not defined, it represents the percentage value between 0-100%. */
   value: number;
   /** Whether the progress bas should animate to it's value. */
   animated?: boolean;
 }
 
 /** Circular progress shows determinate progress of an operation over time in a circular way.*/
-const Circular: React.FC<CircularProps> = ({
+function Circular({
   value,
   minValue = 0,
   maxValue = 100,
-  small,
+  small = false,
   animated = true,
   ...props
-}) => {
+}: Readonly<CircularProps>) {
   const progress = useMemo(
     () => (value / (maxValue - minValue)) * 100,
     [value, minValue, maxValue],
@@ -78,6 +81,6 @@ const Circular: React.FC<CircularProps> = ({
       </svg>
     </ProgressBar>
   );
-};
+}
 
 export default Circular;

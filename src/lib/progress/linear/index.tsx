@@ -8,18 +8,19 @@ import clsx from "clsx";
 import { cn, isUndefined } from "../../../utils";
 import HourglassIcon from "../../../assets/svgs/hourglass.svg";
 
-interface LinearProps extends Omit<ProgressBarProps, "isIndeterminate"> {
+interface LinearProps
+  extends Omit<ProgressBarProps, "isIndeterminate" | "formatOptions"> {
   timerText?: ReactNode;
-  /** Provides the current progress value, when minValue and maxValue are not defined,
-   *  it represents the percentage value between 0-100%. */
+  /** Provides the current progress value.
+   * When minValue and maxValue are not defined, it represents the percentage value between 0-100%. */
   value: number;
   /** Whether the progress bas should animate to it's value. */
   animated?: boolean;
   width: number;
 }
 
-/** Liner progress shows determinate progress of an operation over time. */
-const Linear: React.FC<LinearProps> = ({
+/** Linear progress shows determinate progress of an operation over time. */
+function Linear({
   value,
   valueLabel,
   width,
@@ -29,7 +30,7 @@ const Linear: React.FC<LinearProps> = ({
   animated = true,
   className,
   ...props
-}) => {
+}: Readonly<LinearProps>) {
   const sw = 8;
   const progress = useMemo(
     () => (value / (maxValue - minValue)) * 100,
@@ -92,6 +93,6 @@ const Linear: React.FC<LinearProps> = ({
       </div>
     </ProgressBar>
   );
-};
+}
 
 export default Linear;
