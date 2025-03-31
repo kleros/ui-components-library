@@ -18,7 +18,7 @@ interface LinearProps extends Omit<ProgressBarProps, "isIndeterminate"> {
   width: number;
 }
 
-/** Liner progress shows either determinate progress of an operation over time. */
+/** Liner progress shows determinate progress of an operation over time. */
 const Linear: React.FC<LinearProps> = ({
   value,
   valueLabel,
@@ -37,11 +37,6 @@ const Linear: React.FC<LinearProps> = ({
   );
 
   const linePath = `M ${sw / 2} ${sw / 2} h ${width - sw}`;
-  const fillWidth = useMemo(() => (progress * width) / 100, [progress, width]);
-  const fillLinePath = useMemo(
-    () => `M ${sw / 2} ${sw / 2} h ${fillWidth - sw}`,
-    [fillWidth],
-  );
 
   return (
     <ProgressBar
@@ -51,7 +46,7 @@ const Linear: React.FC<LinearProps> = ({
         className,
       )}
       {...props}
-      {...{ value, valueLabel }}
+      {...{ value, valueLabel, minValue, maxValue }}
     >
       <Label
         className={clsx(
@@ -76,9 +71,10 @@ const Linear: React.FC<LinearProps> = ({
                 "stroke-klerosUIComponentsSuccess",
                 animated && "animate-progress-fill",
               )}
-              width={fillWidth}
-              strokeDasharray={`${fillWidth}, ${width}`}
-              d={fillLinePath}
+              width={(progress * width) / 100}
+              // multiplying by a relatively large number to make sure filled part does not repeat
+              strokeDasharray={`${(progress * width) / 100}, ${width * 1000}`}
+              d={linePath}
             />
           )}
         </svg>

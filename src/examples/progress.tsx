@@ -4,11 +4,11 @@ import Circular from "../lib/progress/circular";
 
 const Progress = () => (
   <>
-    <Circular progress={0} />
-    <Circular progress={5} />
-    <Circular progress={100} />
-    <Circular progress={16} small />
-    <Circular progress={98} small animated={false} />
+    <Circular value={0} />
+    <Circular value={5} />
+    <Circular value={100} />
+    <Circular value={16} small />
+    <Circular value={98} small animated={false} />
     <Linear
       valueLabel="Deposit required = xETH of 0.01ETH"
       width={500}
