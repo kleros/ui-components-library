@@ -202,6 +202,7 @@
       opacity: 1;
     }
   }
+  --animate-fade-in: fadeIn 0.3s ease-in-out;
 
   @keyframes fadeOut {
     0% {
@@ -214,6 +215,7 @@
       opacity: 0;
     }
   }
+  --animate-fade-out: fadeOut 0.3s ease-in-out;
 
   @keyframes bounceIn {
     0% {
@@ -226,6 +228,7 @@
       transform: translateY(0);
     }
   }
+  --animate-bounce-in: bounceIn 0.2s ease-out;
 
   @keyframes scaleIn {
     0% {
@@ -236,6 +239,7 @@
       transform: scaleY(1);
     }
   }
+  --animate-scale-in: scaleIn var(--klerosUIComponentsTransitionSpeed) ease;
 
   @keyframes scaleOut {
     0% {
@@ -246,18 +250,13 @@
       transform: scaleY(0);
     }
   }
+  --animate-scale-out: slideOut var(--klerosUIComponentsTransitionSpeed) ease;
 
   @keyframes progressFill {
     0% {
       stroke-dasharray: 0 200%;
     }
   }
-
-  --animate-fade-in: fadeIn 0.3s ease-in-out;
-  --animate-fade-out: fadeOut 0.3s ease-in-out;
-  --animate-bounce-in: bounceIn 0.2s ease-out;
-  --animate-scale-in: scaleIn var(--klerosUIComponentsTransitionSpeed) ease;
-  --animate-scale-out: slideOut var(--klerosUIComponentsTransitionSpeed) ease;
   --animate-progress-fill: progressFill 1s ease-out forwards;
 
   @keyframes breathe {
@@ -272,6 +271,19 @@
     }
   }
   --animate-breathing: breathe 2s ease-out infinite normal;
+
+  @keyframes loading {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  --animate-loading: loading 2s ease-in-out infinite normal;
 
   --ease-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 

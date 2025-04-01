@@ -13,6 +13,8 @@ const Steps: React.FC<StepsProps> = ({
     <div
       className={cn("flex h-full flex-col", className)}
       aria-orientation="vertical"
+      role="list"
+      aria-label="Vertical progress steps"
     >
       <div className="flex h-auto grow flex-col">
         {items.slice(0, -1).map(({ title, subitems }, i) => (

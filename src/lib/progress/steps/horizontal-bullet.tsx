@@ -48,6 +48,9 @@ const HorizontalBullet: React.FC<HorizontalBulletProps> = ({
         paddingBottom ? { paddingBottom: `${paddingBottom}px` } : undefined
       }
       aria-label={title}
+      role="listitem"
+      aria-current={active ? "step" : undefined}
+      aria-disabled={!active && !completed ? true : undefined}
     >
       <BulletCircle {...{ active, completed, index }} />
       <div
@@ -65,6 +68,7 @@ const HorizontalBullet: React.FC<HorizontalBulletProps> = ({
               ? "text-klerosUIComponentsPrimaryText"
               : "text-klerosUIComponentsSecondaryText",
           )}
+          id={`horizontal-step-${index}-title`}
         >
           {title}
         </h2>

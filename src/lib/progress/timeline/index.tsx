@@ -1,13 +1,7 @@
 import React from "react";
-import styled from "styled-components";
 import Bullet, { SideProp, VariantProp } from "./bullet";
-import { borderBox } from "../../../styles/common-style";
-
-const Wrapper = styled.div`
-  ${borderBox}
-  display: flex;
-  flex-direction: column;
-`;
+import clsx from "clsx";
+import { cn } from "../../../utils";
 
 interface TimelineItem extends SideProp, VariantProp {
   title: string;
@@ -15,33 +9,48 @@ interface TimelineItem extends SideProp, VariantProp {
   subtitle: string;
 }
 
-const StyledBullet = styled(Bullet)`
-  position: relative;
-  transform: translateX(
-    ${({ rightSided }) => (rightSided ? "calc(50% - 8px)" : "calc(-50% + 8px)")}
-  );
-`;
-
-const LastBullet = styled(StyledBullet)`
-  height: unset;
-  flex-basis: auto;
-  flex-grow: 0;
-`;
-
 interface TimelineProps {
   items: [TimelineItem, ...TimelineItem[]];
+  className?: string;
 }
 
-const Timeline: React.FC<TimelineProps> = ({ items, ...props }) => {
+/** Timeline displays a chronological sequence with bullet points. */
+function Timeline({ items, className, ...props }: Readonly<TimelineProps>) {
   const lastItem = items[items.length - 1];
   return (
-    <Wrapper {...props}>
+    <div
+      className={cn("box-border flex flex-col", className)}
+      {...props}
+      aria-label="Timeline"
+      role="list"
+    >
       {items.slice(0, -1).map((item, i) => (
-        <StyledBullet key={i} line {...item} isLast={false} />
+        <Bullet
+          key={i}
+          line
+          {...item}
+          isLast={false}
+          className={clsx(
+            "relative",
+            item.rightSided
+              ? "translate-x-[calc(50%_-_8px)]"
+              : "translate-x-[calc(-50%_+_8px)]",
+          )}
+        />
       ))}
-      <LastBullet {...lastItem} isLast={true} />
-    </Wrapper>
+      <Bullet
+        {...lastItem}
+        isLast={true}
+        className={clsx(
+          "relative",
+          lastItem.rightSided
+            ? "translate-x-[calc(50%_-_8px)]"
+            : "translate-x-[calc(-50%_+_8px)]",
+          "h-[unset] grow-0 basis-auto",
+        )}
+      />
+    </div>
   );
-};
+}
 
 export default Timeline;

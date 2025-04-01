@@ -1,40 +1,13 @@
 import React from "react";
-import styled from "styled-components";
 import Steps from "../lib/progress/steps";
 import Timeline from "../lib/progress/timeline";
 import CustomTimeline from "../lib/progress/timeline/custom";
 import Circle from "../assets/svgs/check-circle-outline.svg";
 
-const StyledSteps = styled(Steps)`
-  height: ${(props) => (props.horizontal ? "auto" : "300px")};
-  width: ${(props) => (props.horizontal ? "500px" : "auto")};
-`;
-
-const StyledTimeline = styled(Timeline)`
-  margin: 0px 100px;
-`;
-
-const PartyContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const StyledLabel = styled.label`
-  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
-  line-height: 19px;
-`;
-
-const StyledLink = styled.a`
-  font-size: 14px;
-  color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
-  text-decoration: none;
-  line-height: 19px;
-`;
-
 const TimelineProgress = () => (
   <>
-    <StyledSteps
+    <Steps
+      className="h-[300px]"
       items={[
         { title: "Escrow Details", subitems: ["Type of Escrow", "Title"] },
         { title: "Terms", subitems: ["Deliverable", "Payment", "Deadline"] },
@@ -42,7 +15,8 @@ const TimelineProgress = () => (
       ]}
       currentItemIndex={1}
     />
-    <StyledSteps
+    <Steps
+      className="w-[500px]"
       horizontal
       items={[
         { title: "Escrow Details", subitems: ["Type of Escrow", "Title"] },
@@ -51,7 +25,8 @@ const TimelineProgress = () => (
       ]}
       currentItemIndex={1}
     />
-    <StyledTimeline
+    <Timeline
+      className="mx-25"
       items={[
         {
           title: "Pay 200 DAI",
@@ -73,16 +48,19 @@ const TimelineProgress = () => (
         {
           title: "Pay 250 DAI",
           party: (
-            <PartyContainer>
-              <StyledLabel>alice.eth -</StyledLabel>
-              <StyledLink
+            <div className="flex items-center gap-2">
+              <label className="text-klerosUIComponentsPrimaryText leading-4">
+                alice.eth -
+              </label>
+              <a
+                className="text-klerosUIComponentsPrimaryBlue text-sm"
                 href="https://docs.kleros.io/"
                 target="_blank"
                 rel="noreferrer"
               >
                 Justification
-              </StyledLink>
-            </PartyContainer>
+              </a>
+            </div>
           ),
           subtitle: "06 Jul 2023 12:00 UTC",
           variant: "#4D00B4",

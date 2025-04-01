@@ -16,6 +16,8 @@ const HorizontalSteps: React.FC<StepsProps> = ({
     )}
     {...props}
     aria-orientation="horizontal"
+    role="list"
+    aria-label="Horizontal progress steps"
   >
     {items.map((item, i) => (
       <Bullet

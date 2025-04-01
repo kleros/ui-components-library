@@ -22,7 +22,13 @@ const Bullet: React.FC<BulletProps> = ({
   line,
   className,
 }) => (
-  <div className={cn("flex w-fit grow basis-0", className)} aria-label={title}>
+  <div
+    className={cn("flex w-fit grow basis-0", className)}
+    aria-label={title}
+    role="listitem"
+    aria-current={active ? "step" : undefined}
+    aria-disabled={!active && !completed ? true : undefined}
+  >
     <BulletCircle
       index={index}
       active={active}
@@ -37,6 +43,7 @@ const Bullet: React.FC<BulletProps> = ({
             ? "text-klerosUIComponentsPrimaryText"
             : "text-klerosUIComponentsSecondaryText",
         )}
+        id={`step-${index}-title`}
       >
         {title}
       </h2>
