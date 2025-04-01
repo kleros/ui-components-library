@@ -1,8 +1,8 @@
 import React from "react";
-import Bullet, { SideProp, StateProp, VariantProp } from "./bullet";
+import Bullet, { StateProp, VariantProp } from "./bullet";
 import { cn } from "../../../utils";
 
-interface TimelineItem extends SideProp, VariantProp, StateProp {
+interface TimelineItem extends VariantProp, StateProp {
   title: string;
   party: string | React.ReactElement;
   subtitle: string;
