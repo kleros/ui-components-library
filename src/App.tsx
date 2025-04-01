@@ -41,7 +41,6 @@ const StyledDiv = styled.div`
 const App = () => {
   const [theme, setTheme] = useState(darkTheme);
   const [tailwindTheme, setTailwindTheme] = useState("dark");
-  const [example, setExample] = useState("buttons");
 
   useEffect(() => {
     setTailwindTheme("dark");

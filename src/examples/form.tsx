@@ -1,13 +1,13 @@
 import React from "react";
 import FileUploader from "../lib/form/file-uploader";
-import Searchbar from "../lib/form/searchbar";
 import Slider from "../lib/form/slider";
 import Datepicker from "../lib/form/datepicker";
 import Telegram from "../assets/svgs/telegram.svg";
 import NumberField from "../lib/form/number-field";
+import BigNumberField from "../lib/form/bignumber-field";
 import TextField from "../lib/form/text-field";
-import TextArea from "../lib/form/text-area";
 import { getLocalTimeZone, now } from "@internationalized/date";
+import BigNumber from "bignumber.js";
 const Form = () => {
   return (
     <>
@@ -34,14 +34,15 @@ const Form = () => {
         minValue={0}
       />
 
-      <NumberField placeholder={"Number"} />
-      <Searchbar />
-      <TextArea
-        placeholder={"eg. longer text"}
-        message={"Error msg"}
-        variant="error"
-        resizeY
+      <NumberField placeholder={"Number"} isDisabled />
+
+      <BigNumberField
+        placeholder={"BigNumber"}
+        label="Enter a large amount"
+        minValue="0"
+        maxValue={new BigNumber("1000000000000000000000000")}
       />
+
       <FileUploader
         callback={() => {
           // function to be called onChange with file as argument

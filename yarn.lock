@@ -1225,6 +1225,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.26.0"
     "@vitejs/plugin-react": "npm:^4.3.4"
     babel-plugin-styled-components: "npm:^2.0.2"
+    bignumber.js: "npm:^9.1.2"
     clsx: "npm:^2.1.1"
     eslint: "npm:^9.21.0"
     eslint-config-prettier: "npm:^10.1.1"
@@ -4845,6 +4846,13 @@ __metadata:
   dependencies:
     open: "npm:^8.0.4"
   checksum: 10c0/911ef25d44da75aabfd2444ce7a4294a8000ebcac73068c04a60298b0f7c7506b60421aa4cd02ac82502fb42baaff7e4892234b51e6923eded44c5a11185f2f5
+  languageName: node
+  linkType: hard
+
+"bignumber.js@npm:^9.1.2":
+  version: 9.1.2
+  resolution: "bignumber.js@npm:9.1.2"
+  checksum: 10c0/e17786545433f3110b868725c449fa9625366a6e675cd70eb39b60938d6adbd0158cb4b3ad4f306ce817165d37e63f4aa3098ba4110db1d9a3b9f66abfbaf10d
   languageName: node
   linkType: hard
 

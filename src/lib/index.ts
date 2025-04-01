@@ -14,6 +14,7 @@ export { default as DropdownSelect } from "./dropdown/select";
 export { default as DropdownCascader } from "./dropdown/cascader";
 
 export { default as NumberField } from "./form/number-field";
+export { default as BigNumberField } from "./form/bignumber-field";
 export { default as TextField } from "./form/text-field";
 export { default as Searchbar } from "./form/searchbar";
 export { default as TextArea } from "./form/text-area";
