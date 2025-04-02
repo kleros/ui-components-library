@@ -20,9 +20,7 @@
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist",
     "prepare": "husky install",
-    "preview": "vite preview",
-    "start": "vite",
-    "storybook": "storybook dev -p 6006"
+    "start": "storybook dev -p 6006"
   },
   "files": [
     "dist"
@@ -45,11 +43,9 @@
     "@types/node": "^22.13.10",
     "@types/react": "^18.0.9",
     "@types/react-dom": "^18.0.3",
-    "@types/styled-components": "^5.1.20",
     "@typescript-eslint/eslint-plugin": "^8.26.0",
     "@typescript-eslint/parser": "^8.26.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "babel-plugin-styled-components": "^2.0.2",
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-import-resolver-parcel": "^1.10.6",
@@ -66,7 +62,6 @@
     "prettier-plugin-tailwindcss": "^0.6.11",
     "process": "^0.11.10",
     "storybook": "^8.6.4",
-    "styled-components": "^5.3.3",
     "tailwindcss": "^4.0.11",
     "typescript": "^5.8.2",
     "vite": "^6.2.1",
@@ -77,13 +72,10 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-is": "^18.0.0",
-    "styled-components": "^5.3.3",
     "tailwindcss": "^4.0.11"
   },
   "dependencies": {
-    "@datepicker-react/hooks": "^2.8.4",
     "@internationalized/date": "^3.7.0",
-    "@swc/helpers": "^0.3.2",
     "@tailwindcss/vite": "^4.0.12",
     "bignumber.js": "^9.1.2",
     "clsx": "^2.1.1",
@@ -93,7 +85,6 @@
     "react-is": "^18.0.0",
     "simplebar": "^5.3.6",
     "simplebar-react": "^2.3.6",
-    "smooth-scroll-into-view-if-needed": "^1.1.33",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-react-aria-components": "^2.0.0",
     "usehooks-ts": "^2.9.1",

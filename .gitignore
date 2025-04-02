@@ -6,12 +6,9 @@
 /.pnp.*
 node_modules
 
-# parcel
-.parcel-cache
 development
 build
 dist
-parcel-bundle-reports
 
 # misc
 .eslintcache
