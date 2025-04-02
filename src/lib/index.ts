@@ -1,3 +1,4 @@
+import "../styles/global.css";
 export { default as Accordion } from "./accordion";
 export { default as CustomAccordion } from "./accordion/custom";
 

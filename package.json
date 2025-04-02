@@ -3,8 +3,10 @@
   "version": "2.20.0",
   "description": "UI components library which implements the Kleros design system.",
   "source": "src/lib/index.ts",
-  "main": "dist/index.js",
-  "types": "dist/types.d.ts",
+  "main": "dist/ui-components-library.umd.cjs",
+  "module": "dist/ui-components-library.js",
+  "types": "dist/ui-components-library.d.ts",
+  "style": "dist/ui-components-library.css",
   "isLibrary": true,
   "type": "module",
   "browserslist": "> 0.5%, last 2 versions, not dead",
@@ -94,7 +96,8 @@
     "smooth-scroll-into-view-if-needed": "^1.1.33",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-react-aria-components": "^2.0.0",
-    "usehooks-ts": "^2.9.1"
+    "usehooks-ts": "^2.9.1",
+    "vite-plugin-dts": "^4.5.3"
   },
   "lint-staged": {
     "*.js": "eslint --cache --fix",
