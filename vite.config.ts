@@ -10,6 +10,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "src/lib/index.ts"),
+      formats: ["es"],
       name: "Kleros-UI-Components",
     },
     rollupOptions: {
@@ -17,6 +18,8 @@ export default defineConfig({
       // into your library
       external: ["react", "react-dom"],
       output: {
+        dir: "dist/esm",
+        preserveModules: true,
         // Provide global variables to use in the UMD build
         // for externalized deps
         globals: {
