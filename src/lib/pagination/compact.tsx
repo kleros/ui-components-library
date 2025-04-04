@@ -53,9 +53,11 @@ function CompactPagination({
 
   return (
     <div className={cn("box-border flex items-center justify-end", className)}>
-      <small className="text-klerosUIComponentsPrimaryText text-sm">
-        {label}
-      </small>
+      {label && (
+        <small className="text-klerosUIComponentsPrimaryText text-sm">
+          {label}
+        </small>
+      )}
       <ArrowButton
         className={clsx(label && "ml-4")}
         isDisabled={minPageReached}

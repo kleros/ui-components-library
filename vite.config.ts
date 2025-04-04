@@ -32,6 +32,9 @@ export default defineConfig({
     }),
     tailwindcss(),
     react(),
-    dts({ insertTypesEntry: true }),
+    dts({
+      insertTypesEntry: true,
+      include: ["src/lib", "src/global.d.ts"],
+    }),
   ],
 });

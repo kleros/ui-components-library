@@ -67,7 +67,7 @@ function BigNumberField({
               {...inputProps}
               className={cn(
                 "hover-short-transition bg-klerosUIComponentsWhiteBackground size-full",
-                "rounded-base border-klerosUIComponentsStroke text-klerosUIComponentsPrimaryText border",
+                "rounded-base border-klerosUIComponentsStroke text-klerosUIComponentsPrimaryText border text-base",
                 "placeholder:text-klerosUIComponentsSecondaryText placeholder:opacity-50",
                 "focus:border-klerosUIComponentsPrimaryBlue focus:shadow-input focus:rounded-base focus:outline-none",
                 "focus:invalid:border-klerosUIComponentsError focus:invalid:shadow-klerosUIComponentsError",

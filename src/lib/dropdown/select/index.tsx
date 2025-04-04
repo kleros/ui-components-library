@@ -48,12 +48,17 @@ function DropdownSelect({
       className={cn("flex flex-col gap-1", className)}
       {...props}
       onSelectionChange={handleSelection}
+      aria-label={label ?? "Select"}
     >
       {({ isOpen }) => (
         <>
-          <Label className={clsx("text-klerosUIComponentsPrimaryText text-sm")}>
-            {label}
-          </Label>
+          {label && (
+            <Label
+              className={clsx("text-klerosUIComponentsPrimaryText text-sm")}
+            >
+              {label}
+            </Label>
+          )}
           {simpleButton ? (
             <SimpleButton {...{ isOpen, placeholder }} small={smallButton} />
           ) : (

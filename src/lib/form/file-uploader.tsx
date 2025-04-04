@@ -126,7 +126,7 @@ function FileUploader({
           <small
             id="dropzone-label"
             className={cn(
-              "text-klerosUIComponentsSecondaryText relative -top-0.25 text-justify",
+              "text-klerosUIComponentsSecondaryText relative -top-0.25 text-justify text-base",
               {
                 "text-klerosUIComponentsSuccess": variant === "success",
                 "text-klerosUIComponentsError": variant === "error",

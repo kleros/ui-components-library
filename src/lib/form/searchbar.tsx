@@ -13,6 +13,7 @@ import clsx from "clsx";
 
 interface SearchbarProps extends SearchFieldProps {
   label?: string;
+  placeholder?: string;
   /** Props for the input element.
    * [See InputProps](https://react-spectrum.adobe.com/react-aria/NumberField.html#input-1)
    */
@@ -21,6 +22,7 @@ interface SearchbarProps extends SearchFieldProps {
 /** A search field allows a user to enter and clear a search query. */
 function Searchbar({
   label,
+  placeholder,
   inputProps,
   className,
   ...props
@@ -34,11 +36,11 @@ function Searchbar({
       )}
       <Group className="relative box-border h-[45px] w-full">
         <Input
-          placeholder={"Search"}
+          placeholder={placeholder ?? "Search"}
           {...inputProps}
           className={cn(
             "hover-medium-blue hover-short-transition bg-klerosUIComponentsWhiteBackground size-full",
-            "rounded-base border-klerosUIComponentsStroke text-klerosUIComponentsPrimaryText border",
+            "rounded-base border-klerosUIComponentsStroke text-klerosUIComponentsPrimaryText border text-base",
             "placeholder:text-klerosUIComponentsSecondaryText placeholder:opacity-50",
             "focus:border-klerosUIComponentsPrimaryBlue focus:shadow-input focus:rounded-base focus:outline-none",
             "focus:invalid:border-klerosUIComponentsError focus:invalid:shadow-klerosUIComponentsError",

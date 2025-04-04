@@ -27,7 +27,7 @@ function DisplaySmall({
         {Icon && <Icon className="mr-2 max-h-4 max-w-4" />}
         <h2
           aria-labelledby={label}
-          className="text-klerosUIComponentsPrimaryText font-semibold"
+          className="text-klerosUIComponentsPrimaryText text-base font-semibold"
         >
           {text}
         </h2>

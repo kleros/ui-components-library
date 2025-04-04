@@ -57,7 +57,7 @@ function TextArea({
         className={cn(
           "hover-medium-blue bg-klerosUIComponentsWhiteBackground resize-none",
           "relative box-border block h-28.75 w-100 p-4",
-          "rounded-base border-klerosUIComponentsStroke text-klerosUIComponentsPrimaryText border",
+          "rounded-base border-klerosUIComponentsStroke text-klerosUIComponentsPrimaryText border text-base",
           "placeholder:text-klerosUIComponentsSecondaryText placeholder:opacity-50",
           "focus:border-klerosUIComponentsPrimaryBlue focus:shadow-input focus:rounded-base focus:outline-none",
           "focus:invalid:border-klerosUIComponentsError focus:invalid:shadow-klerosUIComponentsError",

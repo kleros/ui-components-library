@@ -83,7 +83,7 @@ function Linear({
           <div
             className={clsx(
               "mt-1.25 flex items-center justify-center",
-              "text-klerosUIComponentsError leading-4 font-semibold",
+              "text-klerosUIComponentsError text-base leading-4 font-semibold",
             )}
           >
             <HourglassIcon className="fill-klerosUIComponentsError mr-[9.75px]" />

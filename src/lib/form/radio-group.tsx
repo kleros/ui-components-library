@@ -16,7 +16,7 @@ interface RadioOption extends AriaRadioProps {
 }
 
 interface RadioGroupProps extends AriaRadioGroupProps {
-  groupLabel: string;
+  groupLabel?: string;
   small?: boolean;
   /** Items to be rendered as options.
    * [Extends AriaRadioProps](https://react-spectrum.adobe.com/react-aria/RadioGroup.html#radiogroup-1)
@@ -49,14 +49,16 @@ function RadioGroup({
         className,
       )}
     >
-      <Label
-        className={clsx(
-          "text-klerosUIComponentsSecondaryText",
-          small ? "text-sm" : "text-lg",
-        )}
-      >
-        {groupLabel}
-      </Label>
+      {groupLabel && (
+        <Label
+          className={clsx(
+            "text-klerosUIComponentsSecondaryText",
+            small ? "text-sm" : "text-lg",
+          )}
+        >
+          {groupLabel}
+        </Label>
+      )}
       {options.map((option) => (
         <AriaRadio
           key={option.value}

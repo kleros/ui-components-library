@@ -25,7 +25,7 @@ function Tag({ text, active, className, ...props }: Readonly<TagProps>) {
     >
       <p
         className={clsx(
-          "hover-short-transition text-klerosUIComponentsPrimaryBlue",
+          "hover-short-transition text-klerosUIComponentsPrimaryBlue text-base",
           !active && ["hover:text-klerosUIComponentsSecondaryBlue"],
         )}
       >

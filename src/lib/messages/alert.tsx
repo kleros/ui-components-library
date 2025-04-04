@@ -54,7 +54,7 @@ function Alert({ variant, title, msg, className }: Readonly<AlertProps>) {
         >
           {title}
         </h2>
-        <small className="text-klerosUIComponentsPrimaryText font-normal">
+        <small className="text-klerosUIComponentsPrimaryText text-sm font-normal">
           {msg}
         </small>
       </div>

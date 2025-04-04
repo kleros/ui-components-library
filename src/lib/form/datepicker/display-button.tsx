@@ -30,7 +30,7 @@ const DisplayButton: React.FC = () => {
           <DateSegment
             className={({ isPlaceholder }) =>
               cn(
-                "text-klerosUIComponentsPrimaryText cursor-pointer px-0.5",
+                "text-klerosUIComponentsPrimaryText cursor-pointer px-0.5 text-base",
                 isPlaceholder && "text-klerosUIComponentsSecondaryText",
                 "focus:text-klerosUIComponentsSecondaryBlue focus:outline-none",
                 "type-literal:px-0",

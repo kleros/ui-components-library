@@ -98,7 +98,7 @@ function Tooltip({
         />
         <small
           className={clsx(
-            "text-klerosUIComponentsPrimaryText font-thin break-words",
+            "text-klerosUIComponentsPrimaryText text-base font-thin break-words",
             small ? "text-center" : "text-left",
           )}
         >
