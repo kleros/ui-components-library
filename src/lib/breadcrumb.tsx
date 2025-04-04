@@ -45,7 +45,7 @@ function Breadcrumb({
       {items.map(({ text, value }, i) =>
         i === items.length - 1 ? (
           <Content
-            className="text-klerosUIComponentsPrimaryText font-semibold"
+            className="text-klerosUIComponentsPrimaryText text-base font-semibold"
             {...{ variant }}
             key={i}
           >

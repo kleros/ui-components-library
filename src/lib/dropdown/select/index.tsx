@@ -1,77 +1,75 @@
-import React, { useState, useRef } from "react";
-import styled, { css } from "styled-components";
-import useFocusOutside from "../../../hooks/use-focus-outside";
-import DropdownButton from "./button";
-import _DropdownContainer from "../dropdown-container";
-import ItemContainer, { IItem } from "./item-container";
+import clsx from "clsx";
+import React, { useCallback } from "react";
+import {
+  Select as AriaSelect,
+  FieldError,
+  Label,
+  type Key,
+  type SelectProps as AriaSelectProps,
+} from "react-aria-components";
+import SimpleButton from "./simple-button";
+import { IItem } from "./item";
+import DropdownButton from "./dropdown-button";
+import DropdownContainer from "./dropdown-container";
+import { cn } from "../../../utils";
 
-const Container = styled.div`
-  position: relative;
-`;
-
-const DropdownContainer = styled(_DropdownContainer)`
-  ${({ theme }) => css`
-    background: ${theme.klerosUIComponentsWhiteBackground};
-    border: 1px solid ${theme.klerosUIComponentsStroke};
-    border-radius: 3px;
-  `}
-`;
-
-interface ISelect {
+interface SelectProps extends AriaSelectProps {
   items: IItem[];
-  callback: (value: IItem["value"]) => void;
-  defaultValue?: IItem["value"];
-  placeholder?: Omit<IItem, "value">;
+  /** Callback function passes the Item object as argument. */
+  callback: (value: IItem) => void;
   simpleButton?: boolean;
+  /** When `simpleButton` is `true`, this scales down the dropdown button size. */
   smallButton?: boolean;
-  alignRight?: boolean;
+  label?: string;
 }
 
-const Select: React.FC<ISelect> = ({
+/** A select displays a collapsible list of options and allows a user to select one of them. */
+function DropdownSelect({
+  label,
+  smallButton,
+  simpleButton,
   items,
   callback,
-  simpleButton,
-  smallButton,
-  defaultValue,
   placeholder,
-  alignRight,
+  className,
   ...props
-}) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const containerRef = useRef(null);
-  useFocusOutside(containerRef, () => setIsOpen(false));
-  const [selected, setSelected] = useState(defaultValue);
-  const currentItem = items.find(({ value }) => value === selected);
-  return (
-    <Container ref={containerRef} {...props}>
-      <DropdownButton
-        {...{
-          item: currentItem
-            ? currentItem
-            : placeholder
-              ? placeholder
-              : { text: "" },
-          isOpen,
-          setIsOpen,
-          simple: simpleButton,
-          small: smallButton,
-        }}
-      />
-      <DropdownContainer {...{ isOpen, alignRight }}>
-        <ItemContainer
-          {...{ items, selected }}
-          onChange={(value: IItem["value"]) => {
-            new Promise((resolve) => resolve(callback(value)))
-              .then(() => {
-                setSelected(value);
-                setIsOpen(false);
-              })
-              .catch((error) => console.error(error));
-          }}
-        />
-      </DropdownContainer>
-    </Container>
+}: Readonly<SelectProps>) {
+  const handleSelection = useCallback(
+    (selectedKey: Key) => {
+      const selectedItem = items.find((item) => item.id === selectedKey);
+      if (selectedItem) callback(selectedItem);
+      return;
+    },
+    [items, callback],
   );
-};
 
-export default Select;
+  return (
+    <AriaSelect
+      className={cn("flex flex-col gap-1", className)}
+      {...props}
+      onSelectionChange={handleSelection}
+      aria-label={label ?? "Select"}
+    >
+      {({ isOpen }) => (
+        <>
+          {label && (
+            <Label
+              className={clsx("text-klerosUIComponentsPrimaryText text-sm")}
+            >
+              {label}
+            </Label>
+          )}
+          {simpleButton ? (
+            <SimpleButton {...{ isOpen, placeholder }} small={smallButton} />
+          ) : (
+            <DropdownButton {...{ placeholder }} />
+          )}
+          <FieldError className="text-klerosUIComponentsError text-sm" />
+          <DropdownContainer {...{ isOpen, items }} />
+        </>
+      )}
+    </AriaSelect>
+  );
+}
+
+export default DropdownSelect;

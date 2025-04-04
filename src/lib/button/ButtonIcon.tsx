@@ -12,7 +12,7 @@ const ButtonIcon: React.FC<
       <Icon
         className={cn(
           "button-svg",
-          "mr-2 h-4 w-4",
+          "mr-2 size-4",
           "fill-klerosUIComponentsWhiteBackground",
           isLoading && ["invisible"],
           isSecondary && ["fill-klerosUIComponentsPrimaryBlue"],

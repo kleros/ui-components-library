@@ -1,107 +1,73 @@
 import React from "react";
-import styled from "styled-components";
 import SuccessIcon from "../../assets/svgs/status-icons/solid-success.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/solid-error.svg";
 import SyncIcon from "../../assets/svgs/status-icons/sync.svg";
 import CloseIcon from "../../assets/svgs/status-icons/close.svg";
-import { borderBox, svg, h2, small, button } from "../../styles/common-style";
+import { cn } from "../../utils";
+import { Button } from "react-aria-components";
 
 type SmallProp = { small?: boolean };
-type VariantProp = { variant?: "success" | "error" | "sync" };
-
-const StyledSVG = styled.svg``;
-
-const Wrapper = styled.div<SmallProp>`
-  ${borderBox}
-  position: relative;
-  height: ${({ small }) => (small ? "48px" : "100px")};
-  width: ${({ small }) => (small ? "300px" : "422px")};
-  background: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
-  border-radius: 3px;
-  padding: ${({ small }) =>
-    small ? "12px 24px 12px 24px" : "16px 32px 16px 24px"};
-  display: flex;
-  align-items: center;
-
-  & ${StyledSVG} {
-    ${svg}
-    height: ${({ small }) => (small ? "24px" : "32px")};
-    width: ${({ small }) => (small ? "24px" : "32px")};
-    min-height: ${({ small }) => (small ? "24px" : "32px")};
-    min-width: ${({ small }) => (small ? "24px" : "32px")};
-    fill: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
-  }
-`;
-
-const StyledTitle = styled.h2<VariantProp>`
-  ${h2}
-  color: inherit;
-`;
-
-const StyledMessage = styled.small`
-  ${small}
-  color: inherit;
-`;
-
-const Text = styled.div`
-  margin-left: 16px;
-  color: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
-`;
-
-const CloseButton = styled.button`
-  ${button}
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  height: 8px;
-  width: 8px;
-  background: none;
-  padding: 0;
-  display: inline-flex;
-`;
-
-const StyledCloseIcon = styled(CloseIcon)`
-  ${svg}
-  height: 8px;
-  width: 8px;
-  min-height: 8px;
-  min-width: 8px;
-  fill: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
-`;
+type VariantProp = { variant: "success" | "error" | "sync" };
 
 interface PushProps extends SmallProp, VariantProp {
   title: string;
   msg?: string;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   callback: Function;
+  className?: string;
 }
 
-const Push: React.FC<PushProps> = ({
+function Push({
   variant,
   title,
   msg,
   callback,
-  small,
+  small = false,
+  className,
   ...props
-}) => (
-  <Wrapper {...{ small, ...props }}>
-    {variant === "success" && (
-      <SuccessIcon className={StyledSVG.styledComponentId} />
-    )}
-    {variant === "error" && (
-      <ErrorIcon className={StyledSVG.styledComponentId} />
-    )}
-    {variant === "sync" && <SyncIcon className={StyledSVG.styledComponentId} />}
-    <Text>
-      <StyledTitle>{title}</StyledTitle>
-      {!small && <StyledMessage>{msg}</StyledMessage>}
-    </Text>
-    {!small && (
-      <CloseButton onClick={() => callback()}>
-        <StyledCloseIcon />
-      </CloseButton>
-    )}
-  </Wrapper>
-);
+}: Readonly<PushProps>) {
+  return (
+    <div
+      className={cn(
+        "bg-klerosUIComponentsPrimaryBlue relative box-border",
+        "rounded-base flex items-center",
+        "[&>svg]:fill-klerosUIComponentsWhiteBackground",
+        small
+          ? [
+              "h-12 w-[300px] px-6 py-3",
+              "[&>svg]:size-6 [&>svg]:min-h-6 [&>svg]:min-w-6",
+            ]
+          : [
+              "h-25 w-[422px] py-4 pr-8 pl-6",
+              "[&>svg]:size-8 [&>svg]:min-h-8 [&>svg]:min-w-8",
+            ],
+        className,
+      )}
+      {...{ small, ...props }}
+    >
+      {variant === "success" && <SuccessIcon />}
+      {variant === "error" && <ErrorIcon />}
+      {variant === "sync" && <SyncIcon />}
+      <div className="ml-4">
+        <h2 className="text-klerosUIComponentsWhiteBackground text-base font-semibold">
+          {title}
+        </h2>
+        {!small && (
+          <small className="text-klerosUIComponentsWhiteBackground text-sm font-normal">
+            {msg}
+          </small>
+        )}
+      </div>
+      {!small && (
+        <Button
+          onPress={() => callback()}
+          className="absolute top-6 right-6 inline-flex size-2 cursor-pointer bg-none p-0"
+        >
+          <CloseIcon className="fill-klerosUIComponentsWhiteBackground size-2 min-h-2 min-w-2" />
+        </Button>
+      )}
+    </div>
+  );
+}
 
 export default Push;

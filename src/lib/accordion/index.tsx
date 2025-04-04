@@ -18,7 +18,7 @@ interface AccordionProps {
 const DefaultTitle: React.FC<{ item: AccordionItem }> = ({ item }) => (
   <>
     {item.icon ?? (item.Icon && <item.Icon />)}
-    <p className="w-fit text-center font-semibold">{item.title}</p>
+    <p className="w-fit text-center text-base font-semibold">{item.title}</p>
   </>
 );
 

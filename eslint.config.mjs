@@ -65,7 +65,7 @@ export default [
 
     settings: {
       react: {
-        version: "^16.12.0",
+        version: "^18.2.0",
       },
       "import/resolver": {
         node: {

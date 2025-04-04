@@ -1,171 +1,112 @@
 import React from "react";
-import styled, { css } from "styled-components";
-import { borderBox, small as smallStyle } from "../../styles/common-style";
+import { cn } from "../../utils";
+import clsx from "clsx";
+import {
+  TooltipTrigger,
+  Focusable,
+  OverlayArrow,
+  Tooltip as AriaTooltip,
+  type TooltipTriggerComponentProps,
+  type TooltipProps as AriaTooltipProps,
+  type OverlayArrowProps,
+} from "react-aria-components";
 
-export interface TooltipBaseProps {
+export interface TooltipBaseProps extends TooltipTriggerComponentProps {
   place?: "left" | "right" | "top" | "bottom";
   small?: boolean;
+  /** Props for Tooltip popup.
+   * [See Tooltip Props](https://react-spectrum.adobe.com/react-aria/Tooltip.html#tooltip-1)
+   */
+  tooltipProps?: AriaTooltipProps;
+  /** Props for Tooltip arrow.
+   * [See  OverlayArrow Props](https://react-spectrum.adobe.com/react-aria/Tooltip.html#overlayarrow)
+   */
+  overlayArrowProps?: OverlayArrowProps;
+  /** Props for children wrapper. */
+  wrapperProps?: React.HTMLAttributes<HTMLDivElement>;
 }
-
-const StyledText = styled.small``;
-
-const Tip = styled.div<TooltipBaseProps>`
-  content: "";
-  position: absolute;
-  border-width: 8px;
-  border-style: solid;
-
-  ::after {
-    content: "";
-    position: absolute;
-    border-style: solid;
-    border-width: 7px;
-  }
-
-  ${({ place, theme }) => css`
-    ${place === "top" &&
-    css`
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border-color: ${theme.klerosUIComponentsStroke} transparent transparent
-        transparent;
-
-      ::after {
-        left: -7px;
-        top: -8.5px;
-        border-color: ${theme.klerosUIComponentsLightBlue} transparent
-          transparent transparent;
-      }
-    `}
-    ${place === "right" &&
-    css`
-      top: 50%;
-      right: 100%;
-      transform: translateY(-50%);
-      border-color: transparent ${theme.klerosUIComponentsStroke} transparent
-        transparent;
-
-      ::after {
-        left: -5.5px;
-        top: -7px;
-        border-color: transparent ${theme.klerosUIComponentsLightBlue}
-          transparent transparent;
-      }
-    `}
-    ${place === "bottom" &&
-    css`
-      left: 50%;
-      bottom: 100%;
-      transform: translateX(-50%);
-      border-color: transparent transparent ${theme.klerosUIComponentsStroke}
-        transparent;
-
-      ::after {
-        left: -7px;
-        top: -5.5px;
-        border-color: transparent transparent
-          ${theme.klerosUIComponentsLightBlue} transparent;
-      }
-    `}
-    ${place === "left" &&
-    css`
-      top: 50%;
-      left: 100%;
-      transform: translateY(-50%);
-      border-color: transparent transparent transparent
-        ${theme.klerosUIComponentsStroke};
-      ::after {
-        left: -8.5px;
-        top: -7px;
-        border-color: transparent transparent transparent
-          ${theme.klerosUIComponentsLightBlue};
-      }
-    `}
-  `}
-`;
-
-const StyledTooltip = styled.span<TooltipBaseProps>`
-  ${borderBox}
-  transition: opacity 200ms ease-in, visibility 200ms ease-in;
-  ${({ place, theme, small }) => css`
-    visibility: hidden;
-    opacity: 0%;
-    position: absolute;
-    z-index: 1;
-    width: max-content;
-    max-width: 240px;
-    background: ${theme.klerosUIComponentsLightBlue};
-    border: 1px solid ${theme.klerosUIComponentsStroke};
-    border-radius: 7px;
-    padding: 13px 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    & ${StyledText} {
-      ${smallStyle}
-      font-weight: 100;
-      text-align: ${small ? "center" : "left"};
-      color: ${theme.klerosUIComponentsPrimaryText};
-    }
-
-    ${place === "top" &&
-    css`
-      bottom: calc(100% + 16px);
-      left: 50%;
-      transform: translateX(-50%);
-    `}
-    ${place === "right" &&
-    css`
-      top: 50%;
-      left: calc(100% + 16px);
-      transform: translateY(-50%);
-    `}
-    ${place === "bottom" &&
-    css`
-      top: calc(100% + 16px);
-      left: 50%;
-      transform: translateX(-50%);
-    `}
-    ${place === "left" &&
-    css`
-      top: 50%;
-      right: calc(100% + 16px);
-      transform: translateY(-50%);
-    `}
-  `}
-`;
-
-const Wrapper = styled.div`
-  position: relative;
-  display: inline-block;
-
-  &:hover ${StyledTooltip} {
-    visibility: visible;
-    opacity: 100%;
-  }
-`;
 
 interface TooltipProps extends TooltipBaseProps {
   text: string;
-  children?: React.ReactNode;
+  /** @description Applies to Tooltip container. */
+  className?: string;
 }
 
-const Tooltip: React.FC<TooltipProps> = ({
+function Tooltip({
   place = "top",
   text,
   children,
   small,
+  className,
+  delay = 0,
   ...props
-}) => (
-  <Wrapper {...props}>
-    {children}
-    <StyledTooltip {...{ small, place }} className="tooltip-container">
-      <Tip {...{ place }} />
-      <StyledText className="tooltip-text">{text}</StyledText>
-    </StyledTooltip>
-  </Wrapper>
-);
+}: TooltipProps) {
+  return (
+    <TooltipTrigger {...{ delay }} {...props}>
+      <Focusable>
+        <div {...props.wrapperProps}>{children}</div>
+      </Focusable>
+      <AriaTooltip
+        offset={props.tooltipProps?.offset ?? 8}
+        placement={place}
+        {...props.tooltipProps}
+        className={cn(
+          "bg-klerosUIComponentsLightBlue w-max max-w-60",
+          "border-klerosUIComponentsStroke box-border rounded-[7px] border",
+          "flex items-center justify-center px-4 py-[13px]",
+          "entering:animate-fade-in exiting:animate-fade-out",
+          className,
+        )}
+      >
+        <OverlayArrow
+          {...props.overlayArrowProps}
+          className={({ placement }) =>
+            cn(
+              "absolute border-8 border-solid content-['']",
+              "after:absolute after:border-7 after:border-solid after:content-['']",
+              placement === "top" && [
+                "top-full left-1/2",
+                "after:-top-[8.5px] after:-left-[7px]",
+                "border-t-klerosUIComponentsStroke after:border-t-klerosUIComponentsLightBlue",
+                "border-r-transparent border-b-transparent border-l-transparent",
+                "after:border-r-transparent after:border-b-transparent after:border-l-transparent",
+              ],
+              placement === "right" && [
+                "top-1/2 right-full",
+                "after:-top-[7px] after:-left-[5.5px]",
+                "border-r-klerosUIComponentsStroke after:border-r-klerosUIComponentsLightBlue",
+                "border-t-transparent border-b-transparent border-l-transparent",
+                "after:border-t-transparent after:border-b-transparent after:border-l-transparent",
+              ],
+              placement === "bottom" && [
+                "bottom-full left-1/2",
+                "after:-top-[5.5px] after:-left-[7px]",
+                "border-b-klerosUIComponentsStroke after:border-b-klerosUIComponentsLightBlue",
+                "border-t-transparent border-r-transparent border-l-transparent",
+                "after:border-t-transparent after:border-r-transparent after:border-l-transparent",
+              ],
+              placement === "left" && [
+                "top-1/2 left-full",
+                "after:-top-[7px] after:-left-[8.5px]",
+                "border-l-klerosUIComponentsStroke after:border-l-klerosUIComponentsLightBlue",
+                "border-t-transparent border-r-transparent border-b-transparent",
+                "after:border-t-transparent after:border-r-transparent after:border-b-transparent",
+              ],
+              props.overlayArrowProps?.className,
+            )
+          }
+        />
+        <small
+          className={clsx(
+            "text-klerosUIComponentsPrimaryText text-base font-thin break-words",
+            small ? "text-center" : "text-left",
+          )}
+        >
+          {text}
+        </small>
+      </AriaTooltip>
+    </TooltipTrigger>
+  );
+}
 
 export default Tooltip;

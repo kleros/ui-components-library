@@ -1,12 +1,17 @@
-import styled from "styled-components";
-import { borderBox } from "../../styles/common-style";
+import React from "react";
+import { cn } from "../../utils";
 
-const Box = styled.div`
-  ${borderBox}
-  background: ${({ theme }) => theme.klerosUIComponentsMediumBlue};
-  border-radius: 18px;
-  width: 328px;
-  height: 200px;
-`;
-
+function Box({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "bg-klerosUIComponentsMediumBlue h-[200px] w-[328px]",
+        "box-border rounded-[18px]",
+        className,
+      )}
+    >
+      {props.children}
+    </div>
+  );
+}
 export default Box;

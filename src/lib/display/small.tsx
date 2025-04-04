@@ -1,54 +1,39 @@
 import React from "react";
-import styled from "styled-components";
 import Card from "../container/card";
 import { DisplayIconProps } from "./icon";
-import { borderBox, svg, h2, small } from "../../styles/common-style";
+import { cn } from "../../utils";
+import { Label } from "react-aria-components";
+import clsx from "clsx";
 
-const Wrapper = styled.div`
-  ${borderBox}
-  width: 217px;
-  display: flex;
-  flex-direction: column;
-`;
-
-const StyledLabel = styled.small`
-  ${small}
-  color: ${(props) => props.theme.klerosUIComponentsPrimaryText};
-`;
-
-const StyledCard = styled(Card)`
-  height: 45px;
-  width: 100%;
-  margin-top: 16px;
-  display: flex;
-  align-items: center;
-  padding: 0px 16px;
-
-  .display-icon {
-    ${svg}
-    max-height: 16px;
-    max-width: 16px;
-    margin-right: 8px;
-  }
-`;
-
-const StyledText = styled.h2`
-  ${h2}
-`;
-
-const DisplaySmall: React.FC<DisplayIconProps> = ({
+function DisplaySmall({
   text,
   Icon,
   label,
+  className,
   ...props
-}) => (
-  <Wrapper {...props}>
-    <StyledLabel>{label}</StyledLabel>
-    <StyledCard>
-      {Icon && <Icon className="display-icon" />}
-      <StyledText>{text}</StyledText>
-    </StyledCard>
-  </Wrapper>
-);
+}: Readonly<DisplayIconProps>) {
+  return (
+    <div
+      className={cn("box-border flex w-[217px] flex-col", className)}
+      {...props}
+    >
+      <Label
+        id={label}
+        className="text-klerosUIComponentsPrimaryText text-sm break-words"
+      >
+        {label}
+      </Label>
+      <Card className={clsx("h-[45px] w-full", "mt-4 flex items-center px-4")}>
+        {Icon && <Icon className="mr-2 max-h-4 max-w-4" />}
+        <h2
+          aria-labelledby={label}
+          className="text-klerosUIComponentsPrimaryText text-base font-semibold"
+        >
+          {text}
+        </h2>
+      </Card>
+    </div>
+  );
+}
 
 export default DisplaySmall;

@@ -10,7 +10,7 @@ const ButtonText: React.FC<
     <p
       className={cn(
         "button-text",
-        "text-klerosUIComponentsWhiteBackground text-center leading-[22px] font-semibold whitespace-pre",
+        "text-klerosUIComponentsWhiteBackground text-center text-base leading-[22px] font-semibold whitespace-pre",
         isLoading && ["invisible"],
         isSecondary && ["text-klerosUIComponentsPrimaryBlue"],
         isDisabled && ["text-klerosUIComponentsStroke"],
