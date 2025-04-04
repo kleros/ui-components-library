@@ -14,6 +14,10 @@
 
 ## Introduction
 
+**[📖 Storybook](https://www.figma.com/file/b7DEUKDeHlOl4ocDTMv7UIhZ/Kleros?node-id=7515%3A9807)**
+
+**[👨‍🎨 Figma](https://www.figma.com/file/b7DEUKDeHlOl4ocDTMv7UIhZ/Kleros?node-id=7515%3A9807)**
+
 ## Usage
 
 #### Install the package
