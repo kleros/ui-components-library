@@ -21,19 +21,26 @@ const Pagination = () => {
         numPages={6}
       />
       <Tabs
+        className="w-[500px]"
+        defaultSelectedKey={"hello"}
+        panelClassName="bg-klerosUIComponentsLightBlue p-4"
         items={[
-          { text: "hello", value: 0 },
+          { text: "hello", value: 0, id: "hello", content: <p>hello</p> },
           {
             text: "Telegram",
             value: 1,
             Icon: Telegram,
+            id: "telegram",
+            content: <p>Telegram</p>,
           },
-          { text: "hello1", value: 2, disabled: true },
+          {
+            text: "disabled",
+            value: 2,
+            disabled: true,
+            id: "disabled",
+            content: <p>Disabled</p>,
+          },
         ]}
-        callback={() => {
-          // function called when a tab is clicked
-        }}
-        currentValue={0}
       />
       <Breadcrumb
         items={[

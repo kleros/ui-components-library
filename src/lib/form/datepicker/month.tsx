@@ -55,7 +55,7 @@ const Month: React.FC<IMonth> = ({ days, weekdayLabels }) => (
           <StyledGridContainer key={i}>
             <Day key={i} {...day} />
           </StyledGridContainer>
-        )
+        ),
       )}
     </StyledMonth>
   </MonthContainer>

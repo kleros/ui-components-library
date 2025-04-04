@@ -49,8 +49,8 @@ const Select: React.FC<ISelect> = ({
           item: currentItem
             ? currentItem
             : placeholder
-            ? placeholder
-            : { text: "" },
+              ? placeholder
+              : { text: "" },
           isOpen,
           setIsOpen,
           simple: simpleButton,

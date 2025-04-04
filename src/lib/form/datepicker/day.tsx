@@ -13,8 +13,8 @@ const StyledDayNumber = styled.small<{
     props.isSelected
       ? props.theme.klerosUIComponentsWhiteBackground
       : props.disabledDate
-      ? props.theme.klerosUIComponentsStroke
-      : props.theme.klerosUIComponentsSecondaryText} !important;
+        ? props.theme.klerosUIComponentsStroke
+        : props.theme.klerosUIComponentsSecondaryText} !important;
   font-weight: 600;
   cursor: ${(props) => (props.disabledDate ? "not-allowed" : "pointer")};
 `;
@@ -41,8 +41,8 @@ const StyledButton = styled.button<{
       props.isSelected
         ? props.theme.klerosUIComponentsPrimaryBlue
         : props.disabledDate
-        ? props.theme.klerosUIComponentsWhiteBackground
-        : props.theme.klerosUIComponentsSecondaryBlue};
+          ? props.theme.klerosUIComponentsWhiteBackground
+          : props.theme.klerosUIComponentsSecondaryBlue};
     & ${StyledDayNumber} {
       color: ${(props) =>
         props.disabledDate

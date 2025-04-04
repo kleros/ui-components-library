@@ -2,7 +2,7 @@ import { useLayoutEffect } from "react";
 
 export function useResizeObserver<T extends HTMLElement>(
   element: T | null,
-  callback: (target: T, entry: ResizeObserverEntry) => void
+  callback: (target: T, entry: ResizeObserverEntry) => void,
 ) {
   useLayoutEffect(() => {
     if (!element) {

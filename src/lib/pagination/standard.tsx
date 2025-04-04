@@ -1,112 +1,58 @@
 import React from "react";
-import styled from "styled-components";
 import usePagination from "../../hooks/pagination/use-pagination";
 import Arrow from "../../assets/svgs/arrows/light-left.svg";
-import { borderBox, button, svg } from "../../styles/common-style";
+import { cn } from "../../utils";
+import { Button, type ButtonProps } from "react-aria-components";
+import clsx from "clsx";
 
-const Wrapper = styled.div`
-  ${borderBox}
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const PageButton = styled.button<{ selected?: boolean }>`
-  ${button}
-  height: 32px;
-  width: 32px;
-  margin: 4px;
-  background: ${(props) =>
-    props.selected
-      ? props.theme.klerosUIComponentsLightBlue
-      : props.theme.klerosUIComponentsWhiteBackground};
-  border: 1px solid
-    ${(props) =>
-      props.selected
-        ? props.theme.klerosUIComponentsPrimaryBlue
-        : props.theme.klerosUIComponentsStroke};
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 14px;
-  color: ${(props) =>
-    props.selected
-      ? props.theme.klerosUIComponentsPrimaryBlue
-      : props.theme.klerosUIComponentsPrimaryText};
-
-  :hover:enabled {
-    background: ${(props) =>
-      props.selected
-        ? props.theme.klerosUIComponentsWhiteBackground
-        : props.theme.klerosUIComponentsLightBlue};
-    border: 1px solid
-      ${(props) =>
-        props.selected
-          ? props.theme.klerosUIComponentsPrimaryBlue
-          : props.theme.klerosUIComponentsSecondaryBlue};
-    color: ${(props) =>
-      props.selected
-        ? props.theme.klerosUIComponentsPrimaryBlue
-        : props.theme.klerosUIComponentsSecondaryBlue};
-  }
-
-  :hover:disabled {
-    cursor: default;
-  }
-`;
-
-const StyledArrow = styled.svg``;
-
-const ArrowButton = styled(PageButton)`
-  & ${StyledArrow} {
-    ${svg}
-    fill: ${(props) =>
-      props.disabled
-        ? props.theme.klerosUIComponentsStroke
-        : props.theme.klerosUIComponentsPrimaryText};
-    transition: fill ease
-      ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
-  }
-
-  :hover:enabled {
-    & ${StyledArrow} {
-      fill: ${({ theme }) => theme.klerosUIComponentsSecondaryBlue};
-    }
-  }
-`;
-
-const LeftArrow = styled(ArrowButton)`
-  & ${StyledArrow} {
-    padding-right: 1px;
-  }
-`;
-
-const RightArrow = styled(ArrowButton)`
-  & ${StyledArrow} {
-    padding-left: 1px;
-    transform: rotate(180deg);
-  }
-`;
-
+const PageButton: React.FC<ButtonProps & { selected?: boolean }> = ({
+  children,
+  selected,
+  className,
+  ...props
+}) => (
+  <Button
+    {...props}
+    className={cn(
+      "rounded-base m-1 size-8 border",
+      "flex items-center justify-center text-sm",
+      "hover:cursor-pointer hover:disabled:cursor-default",
+      selected
+        ? [
+            "bg-klerosUIComponentsLightBlue hover:enabled:bg-klerosUIComponentsWhiteBackground",
+            "border-klerosUIComponentsPrimaryBlue hover:enabled:border-klerosUIComponentsPrimaryBlue",
+            "text-klerosUIComponentsPrimaryBlue hover:enabled:text-klerosUIComponentsPrimaryBlue",
+          ]
+        : [
+            "bg-klerosUIComponentsWhiteBackground hover:enabled:bg-klerosUIComponentsLightBlue",
+            "border-klerosUIComponentsStroke hover:enabled:border-klerosUIComponentsSecondaryBlue",
+            "text-klerosUIComponentsPrimaryText hover:enabled:text-klerosUIComponentsSecondaryBlue",
+          ],
+      className,
+    )}
+  >
+    {children}
+  </Button>
+);
 interface StandardPaginationProps {
   currentPage: number;
   numPages: number;
   callback: (newPage: number) => void;
   className?: string;
+  /** Disables the number buttons, allowing only use of arrows */
   disableNumbers?: boolean;
+  /** Hides the number buttons */
   hideNumbers?: boolean;
 }
 
-const StandardPagination: React.FC<StandardPaginationProps> = ({
+function StandardPagination({
   currentPage,
   numPages,
   callback,
   disableNumbers,
   hideNumbers,
   className,
-}) => {
+}: Readonly<StandardPaginationProps>) {
   const [
     {
       incrementPage,
@@ -119,26 +65,50 @@ const StandardPagination: React.FC<StandardPaginationProps> = ({
   ] = usePagination(currentPage, numPages, callback);
 
   return (
-    <Wrapper {...{ className }}>
-      <LeftArrow disabled={minPageReached} onClick={decrementPage}>
-        <Arrow className={StyledArrow.styledComponentId} />
-      </LeftArrow>
+    <div
+      className={cn("box-border flex items-center justify-center", className)}
+    >
+      <PageButton
+        isDisabled={minPageReached}
+        onPress={decrementPage}
+        className="hover:enabled:[&>svg]:fill-klerosUIComponentsSecondaryBlue"
+      >
+        <Arrow
+          className={clsx(
+            "ease-ease pr-0.25 transition-[fill]",
+            minPageReached
+              ? ["fill-klerosUIComponentsStroke"]
+              : ["fill-klerosUIComponentsPrimaryText"],
+          )}
+        />
+      </PageButton>
       {!hideNumbers &&
         getPageRange().map((i) => (
           <PageButton
             key={i}
             selected={currentPage === i}
-            onClick={() => goToPage(i)}
-            disabled={disableNumbers}
+            onPress={() => goToPage(i)}
+            isDisabled={disableNumbers}
           >
             {i}
           </PageButton>
         ))}
-      <RightArrow disabled={maxPageReached} onClick={incrementPage}>
-        <Arrow className={StyledArrow.styledComponentId} />
-      </RightArrow>
-    </Wrapper>
+      <PageButton
+        isDisabled={maxPageReached}
+        onPress={incrementPage}
+        className="hover:enabled:[&>svg]:fill-klerosUIComponentsSecondaryBlue"
+      >
+        <Arrow
+          className={cn(
+            "ease-ease rotate-180 pl-0.25 transition-[fill]",
+            maxPageReached
+              ? ["fill-klerosUIComponentsStroke"]
+              : ["fill-klerosUIComponentsPrimaryText"],
+          )}
+        />
+      </PageButton>
+    </div>
   );
-};
+}
 
 export default StandardPagination;

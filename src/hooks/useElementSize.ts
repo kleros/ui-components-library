@@ -9,7 +9,7 @@ interface Size {
 
 export function useElementSize<T extends HTMLElement = HTMLDivElement>(): [
   (node: T | null) => void,
-  Size
+  Size,
 ] {
   // Mutable values like 'ref.current' aren't valid dependencies
   // because mutating them doesn't re-render the component.
@@ -26,15 +26,12 @@ export function useElementSize<T extends HTMLElement = HTMLDivElement>(): [
       width: ref?.offsetWidth || 0,
       height: ref?.offsetHeight || 0,
     });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref?.offsetHeight, ref?.offsetWidth]);
 
   useEventListener("resize", handleSize);
 
   useIsomorphicLayoutEffect(() => {
     handleSize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref?.offsetHeight, ref?.offsetWidth]);
 
   useResizeObserver<T>(ref, handleSize);

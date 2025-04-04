@@ -22,7 +22,7 @@ const Container = styled.div<IContainer>`
           ${mobileStyle(
             () => css`
               padding-bottom: ${paddingBottom}px;
-            `
+            `,
           )}
         `
       : ""}
@@ -87,7 +87,7 @@ const TextWrapper = styled.div<ITextWrapper>`
       > h2 {
         line-height: 19px;
       }
-    `
+    `,
   )}
 `;
 

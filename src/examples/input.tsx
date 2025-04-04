@@ -15,7 +15,7 @@ const Input: React.FC = () => {
   const [radioValue, setRadioValue] = useState("bitcoin");
 
   const changeRadioValue: React.ChangeEventHandler<HTMLInputElement> = (
-    event
+    event,
   ) => setRadioValue(event.target.value);
 
   return (

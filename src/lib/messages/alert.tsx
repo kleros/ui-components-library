@@ -84,7 +84,7 @@ const TitleAndMessage = styled.div`
   ${mobileStyle(
     () => css`
       gap: 8px;
-    `
+    `,
   )};
 `;
 

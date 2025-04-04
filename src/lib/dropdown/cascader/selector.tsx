@@ -13,7 +13,7 @@ const Wrapper = styled.div`
   ${mobileStyle(
     () => css`
       justify-content: center;
-    `
+    `,
   )}
   justify-content: end;
   align-items: center;
@@ -31,9 +31,9 @@ const Selector: React.FC<ISelector> = ({
 }) => (
   <Wrapper {...props}>
     <Button
-      onClick={() => onSelect()}
+      onPress={() => onSelect()}
       text={currentSelection ? `Select\n${currentSelection}` : "No Selection"}
-      disabled={!currentSelection}
+      isDisabled={!currentSelection}
     />
   </Wrapper>
 );

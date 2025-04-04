@@ -16,7 +16,7 @@ const Wrapper = styled.div`
       border: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
       border-top: none;
       border-bottom: none;
-    `
+    `,
   )}
 `;
 

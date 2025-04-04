@@ -18,7 +18,7 @@ const Wrapper = styled(DropdownContainer)`
   ${mobileStyle(
     () => css`
       width: 240px;
-    `
+    `,
   )}
   border-radius: 3px;
 `;
@@ -37,7 +37,7 @@ const Container = styled.div<{ path: ILayer[]; isOpen: boolean }>`
     ${mobileStyle(
       () => css`
         overflow: auto;
-      `
+      `,
     )}
   `}
 `;
@@ -72,7 +72,7 @@ const Cascader: React.FC<ICascader> = ({
 
   const label = useMemo(
     () => (value ? findLabelByValue(items, value) : undefined),
-    [items, value]
+    [items, value],
   );
 
   return (
@@ -132,7 +132,7 @@ const Cascader: React.FC<ICascader> = ({
  */
 function findLabelByValue(
   nodes: IItem[],
-  targetValue: string | number
+  targetValue: string | number,
 ): string | undefined {
   for (const node of nodes) {
     if (node.value == targetValue) {

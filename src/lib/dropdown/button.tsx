@@ -43,7 +43,7 @@ const StyledArrow = styled(({ ignoredIsOpen, ...props }) => (
 interface DropdownButtonProps {
   node: ReactNode;
   isOpen: boolean;
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   setIsOpen: Function;
 }
 

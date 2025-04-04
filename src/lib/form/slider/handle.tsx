@@ -52,7 +52,7 @@ interface HandleProps extends LabelProps, RCHandleProps {
 const Handle: React.FC<HandleProps> = ({ label, dragging, ...props }) => (
   <Wrapper>
     <Label offset={props.offset}>{label}</Label>
-    {/*eslint-disable-next-line @typescript-eslint/no-non-null-assertion*/}
+    {}
     <StyledHandle dragging={dragging!.toString()} {...props} />
   </Wrapper>
 );

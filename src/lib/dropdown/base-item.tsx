@@ -47,10 +47,6 @@ const StyledText = styled.p`
   user-select: none;
 `;
 
-const StyledDot = styled(Dot)`
-  margin-right: 8px;
-`;
-
 const CountDisplay = styled.label`
   width: 24px;
   height: 24px;
@@ -89,7 +85,7 @@ const BaseItem: React.FC<IBaseItem> = ({
     {...{ onClick, ...props }}
   >
     {icon ?? (Icon && <Icon className="item-icon" />)}
-    {dot && <StyledDot color={dot} />}
+    {dot && <Dot className="mr-2" color={dot} />}
     <StyledText>{text}</StyledText>
     {childrenCount !== undefined ? (
       <CountDisplay className="count-display">
