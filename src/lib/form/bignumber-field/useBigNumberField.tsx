@@ -86,6 +86,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     };
 
     BigNumber.config({
+      EXPONENTIAL_AT: 1e9,
       FORMAT: formatConfig,
     });
   }, [props.formatOptions]);
