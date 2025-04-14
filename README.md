@@ -79,7 +79,7 @@ function MyComponent() {
 
 ### Theme usage
 
-If you wish the use the library's tailwind theme variables in your tailwind app. You can utilize it my importing the theme file in your `global.css` file.
+If you wish the use the library's tailwind theme variables in your tailwind app. You can utilize it by importing the theme file in your `global.css` file.
 
 ```css
 @import tailwindcss @import
