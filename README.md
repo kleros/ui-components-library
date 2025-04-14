@@ -58,7 +58,7 @@ npm install @kleros/ui-components-library
 1. Import the CSS at the top level of your application:
 
 ```javascript
-import "@kleros/ui-components-library/dist/esm/ui-components-library.css";
+import "@kleros/ui-components-library/style.css";
 ```
 
 2. Import and use components in your application:
@@ -74,6 +74,27 @@ function MyComponent() {
       <Alert type="success">Operation completed successfully!</Alert>
     </div>
   );
+}
+```
+
+### Theme usage
+
+If you wish the use the library's tailwind theme variables in your tailwind app. You can utilize it my importing the theme file in your `global.css` file.
+
+```css
+@import tailwindcss @import
+  "../../../node_modules/@kleros/ui-components-library/dist/theme/theme.css";
+```
+
+You can find the available theme variables [here](src/styles/theme.css).
+If want to override or edit the defined theme variables, you can do so like this:
+
+```css
+:root {
+  --klerosUIComponentsWhiteBackground: #832323;
+}
+:root[class="dark"] {
+  --klerosUIComponentsWhiteBackground: #832323;
 }
 ```
 
