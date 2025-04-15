@@ -39,7 +39,6 @@ const Bullet: React.FC<BulletProps> = (props) => {
         className,
       )}
       aria-label={`Timeline item: ${title}`}
-      role="listitem"
       aria-current={state === "active" ? "step" : undefined}
     >
       <Spine {...{ variant, line, Icon, titleRef }} />

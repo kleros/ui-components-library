@@ -47,7 +47,7 @@ function Breadcrumb({
           <Content
             className="text-klerosUIComponentsPrimaryText text-base font-semibold"
             {...{ variant }}
-            key={i}
+            key={`${text}-${i}`}
           >
             {text}
           </Content>

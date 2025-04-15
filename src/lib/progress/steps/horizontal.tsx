@@ -16,7 +16,6 @@ const HorizontalSteps: React.FC<StepsProps> = ({
     )}
     {...props}
     aria-orientation="horizontal"
-    role="listbox"
     aria-label="Horizontal progress steps"
   >
     {items.map((item, i) => (

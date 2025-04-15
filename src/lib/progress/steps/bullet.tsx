@@ -25,7 +25,6 @@ const Bullet: React.FC<BulletProps> = ({
   <li
     className={cn("flex w-fit grow basis-0", className)}
     aria-label={title}
-    role="listitem"
     aria-current={active ? "step" : undefined}
     aria-disabled={!active && !completed ? true : undefined}
   >

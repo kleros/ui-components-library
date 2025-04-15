@@ -22,7 +22,6 @@ function Timeline({ items, className, ...props }: Readonly<TimelineProps>) {
       className={cn("box-border flex flex-col", className)}
       {...props}
       aria-label="Timeline"
-      role="list"
     >
       {items.slice(0, -1).map((item, i) => (
         <Bullet
