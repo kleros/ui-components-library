@@ -22,7 +22,7 @@ const Bullet: React.FC<BulletProps> = ({
   line,
   className,
 }) => (
-  <div
+  <li
     className={cn("flex w-fit grow basis-0", className)}
     aria-label={title}
     role="listitem"
@@ -52,7 +52,7 @@ const Bullet: React.FC<BulletProps> = ({
           {subitems.map((item, i) => (
             <small
               className="text-klerosUIComponentsSecondaryText text-xs font-normal break-words"
-              key={i}
+              key={`${item}-${i}`}
               aria-label={item}
               aria-description={`subitem ${i + 1}`}
             >
@@ -62,7 +62,7 @@ const Bullet: React.FC<BulletProps> = ({
         </div>
       )}
     </div>
-  </div>
+  </li>
 );
 
 export default Bullet;

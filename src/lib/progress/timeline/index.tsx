@@ -18,7 +18,7 @@ interface TimelineProps {
 function Timeline({ items, className, ...props }: Readonly<TimelineProps>) {
   const lastItem = items[items.length - 1];
   return (
-    <div
+    <ol
       className={cn("box-border flex flex-col", className)}
       {...props}
       aria-label="Timeline"
@@ -26,7 +26,7 @@ function Timeline({ items, className, ...props }: Readonly<TimelineProps>) {
     >
       {items.slice(0, -1).map((item, i) => (
         <Bullet
-          key={i}
+          key={`${item.title}-${i}`}
           line
           {...item}
           isLast={false}
@@ -49,7 +49,7 @@ function Timeline({ items, className, ...props }: Readonly<TimelineProps>) {
           "h-[unset] grow-0 basis-auto",
         )}
       />
-    </div>
+    </ol>
   );
 }
 

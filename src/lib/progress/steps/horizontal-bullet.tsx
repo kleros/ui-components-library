@@ -30,7 +30,7 @@ const HorizontalBullet: React.FC<HorizontalBulletProps> = ({
   const paddingBottom = height;
 
   return (
-    <div
+    <li
       className={clsx(
         "relative flex h-fit items-start justify-center",
         "lg:!pb-0",
@@ -72,19 +72,20 @@ const HorizontalBullet: React.FC<HorizontalBulletProps> = ({
         >
           {title}
         </h2>
-        {subitems &&
-          subitems.map((item, i) => (
-            <small
-              className="text-klerosUIComponentsSecondaryText text-xs font-normal break-words"
-              key={i}
-              aria-label={item}
-              aria-description={`subitem ${i + 1}`}
-            >
-              {item}
-            </small>
-          ))}
+        {subitems
+          ? subitems.map((item, i) => (
+              <small
+                className="text-klerosUIComponentsSecondaryText text-xs font-normal break-words"
+                key={`${item}-${i}`}
+                aria-label={item}
+                aria-description={`subitem ${i + 1}`}
+              >
+                {item}
+              </small>
+            ))
+          : null}
       </div>
-    </div>
+    </li>
   );
 };
 

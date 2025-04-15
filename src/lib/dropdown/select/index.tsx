@@ -38,7 +38,6 @@ function DropdownSelect({
     (selectedKey: Key) => {
       const selectedItem = items.find((item) => item.id === selectedKey);
       if (selectedItem) callback(selectedItem);
-      return;
     },
     [items, callback],
   );

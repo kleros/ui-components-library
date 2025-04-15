@@ -137,7 +137,7 @@ export const WithIcon: Story = {
   },
 };
 
-export const Success: Story = {
+export const SuccessVariant: Story = {
   args: {
     ...Default.args,
     variant: "success",
@@ -145,7 +145,7 @@ export const Success: Story = {
   },
 };
 
-export const Warning: Story = {
+export const WarningVariant: Story = {
   args: {
     ...Default.args,
     variant: "warning",
@@ -153,7 +153,7 @@ export const Warning: Story = {
   },
 };
 
-export const Error: Story = {
+export const ErrorVariant: Story = {
   args: {
     ...Default.args,
     variant: "error",
@@ -161,7 +161,7 @@ export const Error: Story = {
   },
 };
 
-export const Info: Story = {
+export const InfoVariant: Story = {
   args: {
     ...Default.args,
     variant: "info",

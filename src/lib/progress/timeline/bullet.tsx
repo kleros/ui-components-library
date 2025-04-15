@@ -28,7 +28,7 @@ const Bullet: React.FC<BulletProps> = (props) => {
   const titleRef = useRef<HTMLHeadingElement>(null);
 
   return (
-    <div
+    <li
       className={cn(
         "relative flex opacity-100",
         rightSided ? "justify-start" : "justify-end",
@@ -41,8 +41,6 @@ const Bullet: React.FC<BulletProps> = (props) => {
       aria-label={`Timeline item: ${title}`}
       role="listitem"
       aria-current={state === "active" ? "step" : undefined}
-      aria-busy={state === "loading"}
-      aria-disabled={state === "disabled"}
     >
       <Spine {...{ variant, line, Icon, titleRef }} />
       <div
@@ -115,7 +113,7 @@ const Bullet: React.FC<BulletProps> = (props) => {
           {subtitle}
         </small>
       </div>
-    </div>
+    </li>
   );
 };
 

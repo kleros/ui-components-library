@@ -79,9 +79,9 @@ export const TimelineCustomParty: Story = {
         title: "Pay 250 DAI",
         party: (
           <div className="flex items-center gap-2">
-            <label className="text-klerosUIComponentsPrimaryText leading-4">
+            <span className="text-klerosUIComponentsPrimaryText leading-4">
               alice.eth -
-            </label>
+            </span>
             <a
               className="text-klerosUIComponentsPrimaryBlue text-sm"
               href="https://docs.kleros.io/"
@@ -119,9 +119,9 @@ export const TimelineAlignment: Story = {
         title: "Pay 250 DAI",
         party: (
           <div className="flex items-center gap-2">
-            <label className="text-klerosUIComponentsPrimaryText leading-4">
+            <span className="text-klerosUIComponentsPrimaryText leading-4">
               alice.eth -
-            </label>
+            </span>
             <a
               className="text-klerosUIComponentsPrimaryBlue text-sm"
               href="https://docs.kleros.io/"

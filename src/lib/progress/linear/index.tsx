@@ -66,7 +66,7 @@ function Linear({
           strokeLinecap="round"
         >
           <path d={linePath} className="stroke-klerosUIComponentsStroke" />
-          {value && (
+          {!isUndefined(value) && (
             <path
               className={clsx(
                 "stroke-klerosUIComponentsSuccess",

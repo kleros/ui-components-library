@@ -52,7 +52,7 @@ function Breadcrumb({
             {text}
           </Content>
         ) : (
-          <React.Fragment key={i}>
+          <React.Fragment key={`${text}-${i}`}>
             <Button
               className={clsx(clickable ? "cursor-pointer" : "cursor-text")}
               onPress={() => (callback ? callback(value) : null)}

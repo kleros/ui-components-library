@@ -9,14 +9,14 @@ const HorizontalSteps: React.FC<StepsProps> = ({
   className,
   ...props
 }) => (
-  <div
+  <ol
     className={cn(
       "box-border flex w-62.5 items-start justify-center",
       className,
     )}
     {...props}
     aria-orientation="horizontal"
-    role="list"
+    role="listbox"
     aria-label="Horizontal progress steps"
   >
     {items.map((item, i) => (
@@ -26,10 +26,10 @@ const HorizontalSteps: React.FC<StepsProps> = ({
         active={i === currentItemIndex}
         last={i + 1 === items.length}
         index={i + 1}
-        key={i}
+        key={`${item.title}-${i}`}
       />
     ))}
-  </div>
+  </ol>
 );
 
 export default HorizontalSteps;

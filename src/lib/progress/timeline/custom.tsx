@@ -22,7 +22,7 @@ function CustomTimeline({
 }: Readonly<ICustomTimelineProps>) {
   const lastItem = items[items.length - 1];
   return (
-    <div
+    <ol
       className={cn("box-border flex flex-col", className)}
       {...props}
       aria-label="Timeline"
@@ -37,7 +37,7 @@ function CustomTimeline({
         {...lastItem}
         isLast={true}
       />
-    </div>
+    </ol>
   );
 }
 export default CustomTimeline;

@@ -15,7 +15,10 @@ const BulletCircle: React.FC<BulletCircleProps> = ({
   line,
   index,
 }) => (
-  <div className="flex h-full flex-col items-center justify-start">
+  <div
+    className="flex h-full flex-col items-center justify-start"
+    aria-hidden="true"
+  >
     {completed ? (
       <SuccessIcon className="fill-klerosUIComponentsPrimaryBlue size-6 basis-auto" />
     ) : (

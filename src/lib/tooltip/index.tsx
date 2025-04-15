@@ -40,7 +40,7 @@ function Tooltip({
   className,
   delay = 0,
   ...props
-}: TooltipProps) {
+}: Readonly<TooltipProps>) {
   return (
     <TooltipTrigger {...{ delay }} {...props}>
       <Focusable>

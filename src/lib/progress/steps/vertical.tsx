@@ -10,10 +10,10 @@ const Steps: React.FC<StepsProps> = ({
 }) => {
   const lastItem = items[items.length - 1];
   return (
-    <div
+    <ol
       className={cn("flex h-full flex-col", className)}
       aria-orientation="vertical"
-      role="list"
+      role="listbox"
       aria-label="Vertical progress steps"
     >
       <div className="flex h-auto grow flex-col">
@@ -24,7 +24,7 @@ const Steps: React.FC<StepsProps> = ({
             active={i === currentItemIndex}
             line={!(i + 1 === items.length)}
             index={i + 1}
-            key={i}
+            key={`${title}-${i}`}
           />
         ))}
       </div>
@@ -36,7 +36,7 @@ const Steps: React.FC<StepsProps> = ({
         index={items.length}
         className="grow-0 basis-auto"
       />
-    </div>
+    </ol>
   );
 };
 
