@@ -38,8 +38,7 @@ interface TabsItem {
 
 interface TabsProps extends Omit<AriaTabsProps, "orientation"> {
   items: TabsItem[];
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  callback?: Function;
+  callback?: (key: Key, value: TabsItem["value"]) => void;
   className?: string;
   /** ClassName to provide a common style for all TabPanels */
   panelClassName?: string;
@@ -67,7 +66,7 @@ function Tabs({
   const handleSelection = useCallback(
     (key: Key) => {
       setSelectedKey(key);
-      const selectedItem = items.find((item) => item.text === key);
+      const selectedItem = items.find((item) => item.id === key);
       if (selectedItem && callback) callback(key, selectedItem.value);
     },
     [items, callback],
