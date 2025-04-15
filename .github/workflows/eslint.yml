@@ -1,13 +1,15 @@
 name: ESLint
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 jobs:
   eslint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Install modules
-      run: yarn
-    - name: Run ESLint
-      run: yarn check-style
+      - uses: actions/checkout@v2
+      - name: Enable corepack
+        run: corepack enable
+      - name: Install modules
+        run: yarn
+      - name: Run ESLint
+        run: yarn check-style

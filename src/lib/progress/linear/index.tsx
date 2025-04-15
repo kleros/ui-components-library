@@ -1,120 +1,98 @@
-import React, { ReactNode } from "react";
-import styled, { css, keyframes } from "styled-components";
+import React, { ReactNode, useMemo } from "react";
+import {
+  Label,
+  ProgressBar,
+  type ProgressBarProps,
+} from "react-aria-components";
+import clsx from "clsx";
+import { cn, isUndefined } from "../../../utils";
 import HourglassIcon from "../../../assets/svgs/hourglass.svg";
-import { borderBox, svg, p } from "../../../styles/common-style";
 
-interface LineBaseProps {
+interface LinearProps
+  extends Omit<ProgressBarProps, "isIndeterminate" | "formatOptions"> {
+  timerText?: ReactNode;
+  /** Provides the current progress value.
+   * When minValue and maxValue are not defined, it represents the percentage value between 0-100%. */
+  value: number;
+  /** Whether the progress bas should animate to it's value. */
   animated?: boolean;
   width: number;
 }
 
-const progressAnimation = (width: number) => keyframes`
-  0% {
-    stroke-dasharray: 0 ${width};
-  }
-`;
-
-const Wrapper = styled.div`
-  ${borderBox}
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 14px;
-  color: ${({ theme }) => theme.klerosUIComponentsStroke};
-`;
-
-const StyledText = styled.p`
-  ${p}
-`;
-
-const BarTimerWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-`;
-
-const LinearChart = styled.svg<LineBaseProps>`
-  ${svg}
-  stroke: ${({ width }) => width};
-  display: block;
-  margin: 10px auto;
-`;
-
-const LineBackground = styled.path`
-  stroke: ${({ theme }) => theme.klerosUIComponentsStroke};
-`;
-
-const Line = styled.path<LineBaseProps>`
-  stroke: ${({ theme }) => theme.klerosUIComponentsSuccess};
-  ${({ animated, width }) =>
-    animated &&
-    css`
-      animation: ${progressAnimation(width)} 1s ease-out forwards;
-    `}
-`;
-
-const StyledHourglass = styled(HourglassIcon)`
-  ${svg}
-  margin-right: 9.75px;
-  fill: ${({ theme }) => theme.klerosUIComponentsError};
-`;
-
-const TimerMessage = styled.div`
-  margin-top: 5px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: ${({ theme }) => theme.klerosUIComponentsError};
-  font-weight: 600;
-  line-height: 1em;
-`;
-
-interface LinearProps extends LineBaseProps {
-  text?: string;
-  progress: number;
-  timerText?: ReactNode;
-}
-
-const Linear: React.FC<LinearProps> = ({
-  text,
-  progress,
+/** Linear progress shows determinate progress of an operation over time. */
+function Linear({
+  value,
+  valueLabel,
   width,
   timerText,
+  minValue = 0,
+  maxValue = 100,
   animated = true,
-}) => {
+  className,
+  ...props
+}: Readonly<LinearProps>) {
   const sw = 8;
+  const progress = useMemo(
+    () => (value / (maxValue - minValue)) * 100,
+    [value, minValue, maxValue],
+  );
+
   const linePath = `M ${sw / 2} ${sw / 2} h ${width - sw}`;
 
   return (
-    <Wrapper>
-      {text && <StyledText>{text}</StyledText>}
-      <BarTimerWrapper>
-        <LinearChart
-          width={width}
+    <ProgressBar
+      className={cn(
+        "box-border flex flex-col items-center",
+        "text-klerosUIComponentsStroke text-sm",
+        className,
+      )}
+      {...props}
+      {...{ value, valueLabel, minValue, maxValue }}
+    >
+      <Label
+        className={clsx(
+          "text-klerosUIComponentsPrimaryText text-base break-words",
+          isUndefined(valueLabel) && "hidden",
+        )}
+      >
+        {valueLabel ?? `Progress ${progress}`}
+      </Label>
+      <div className="flex flex-col items-start">
+        <svg
+          className={"mx-auto my-2.5 block fill-none"}
           height={sw}
-          fill="none"
           strokeWidth={sw}
+          width={width}
           strokeLinecap="round"
         >
-          <LineBackground d={linePath} />
-          {progress && (
-            <Line
-              animated={animated}
-              width={width}
-              strokeDasharray={`${(progress * width) / 100} ${width}`}
+          <path d={linePath} className="stroke-klerosUIComponentsStroke" />
+          {!isUndefined(value) && (
+            <path
+              className={clsx(
+                "stroke-klerosUIComponentsSuccess",
+                animated && "animate-progress-fill",
+              )}
+              width={(progress * width) / 100}
+              // multiplying by a relatively large number to make sure filled part does not repeat
+              strokeDasharray={`${(progress * width) / 100}, ${width * 1000}`}
               d={linePath}
             />
           )}
-        </LinearChart>
+        </svg>
         {timerText && (
-          <TimerMessage>
-            <StyledHourglass />
+          <div
+            className={clsx(
+              "mt-1.25 flex items-center justify-center",
+              "text-klerosUIComponentsError text-base leading-4 font-semibold",
+            )}
+          >
+            <HourglassIcon className="fill-klerosUIComponentsError mr-[9.75px]" />
             {timerText}
-          </TimerMessage>
+          </div>
         )}
-      </BarTimerWrapper>
-    </Wrapper>
+      </div>
+    </ProgressBar>
   );
-};
+}
 
 export default Linear;

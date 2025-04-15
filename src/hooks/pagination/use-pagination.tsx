@@ -3,7 +3,7 @@ const usePagination = (
   numPages: number,
   callback: (newPage: number) => void,
   onCloseOnLastPage?: () => void,
-  numNeighbors = 2
+  numNeighbors = 2,
 ) => {
   const incrementPage = () => {
     if (currentPage === numPages && onCloseOnLastPage) {
@@ -31,14 +31,14 @@ const usePagination = (
       1,
       currentPage -
         numNeighbors -
-        Math.max(0, numNeighbors - (numPages - currentPage))
+        Math.max(0, numNeighbors - (numPages - currentPage)),
     );
     const rightBoundary = Math.min(
       numPages,
-      currentPage + numNeighbors + Math.max(0, numNeighbors - currentPage + 1)
+      currentPage + numNeighbors + Math.max(0, numNeighbors - currentPage + 1),
     );
     return [...Array(rightBoundary - leftBoundary + 1).keys()].map(
-      (i) => i + leftBoundary
+      (i) => i + leftBoundary,
     );
   };
 

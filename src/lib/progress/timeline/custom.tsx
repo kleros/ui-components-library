@@ -1,43 +1,42 @@
 import React from "react";
-import styled from "styled-components";
-import Bullet, { SideProp, StateProp, VariantProp } from "./bullet";
-import { borderBox } from "../../../styles/common-style";
+import Bullet, { StateProp, VariantProp } from "./bullet";
+import { cn } from "../../../utils";
 
-interface TimelineItem extends SideProp, VariantProp, StateProp {
+interface TimelineItem extends VariantProp, StateProp {
   title: string;
   party: string | React.ReactElement;
   subtitle: string;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
 }
 
-const Wrapper = styled.div`
-  ${borderBox}
-  display: flex;
-  flex-direction: column;
-`;
-
-const LastBullet = styled(Bullet)`
-  height: unset;
-  flex-basis: auto;
-  flex-grow: 0;
-`;
-
 interface ICustomTimelineProps {
   items: [TimelineItem, ...TimelineItem[]];
+  className?: string;
 }
 
-const CustomTimeline: React.FC<ICustomTimelineProps> = ({
+/** Custom Timeline displays a chronological sequence with bullet points. */
+function CustomTimeline({
   items,
+  className,
   ...props
-}) => {
+}: Readonly<ICustomTimelineProps>) {
   const lastItem = items[items.length - 1];
   return (
-    <Wrapper {...props}>
+    <ol
+      className={cn("box-border flex flex-col", className)}
+      {...props}
+      aria-label="Timeline"
+    >
       {items.slice(0, -1).map((item, i) => (
         <Bullet key={i} line {...item} rightSided isLast={false} />
       ))}
-      <LastBullet rightSided {...lastItem} isLast={true} />
-    </Wrapper>
+      <Bullet
+        className="h-[unset] grow-0 basis-auto"
+        rightSided
+        {...lastItem}
+        isLast={true}
+      />
+    </ol>
   );
-};
+}
 export default CustomTimeline;

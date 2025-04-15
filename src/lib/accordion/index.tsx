@@ -1,14 +1,6 @@
 import React, { ReactNode, useState } from "react";
-import styled from "styled-components";
 import AccordionItem from "./accordion-item";
-import { p, borderBox } from "../../styles/common-style";
-
-const Wrapper = styled.div`
-  ${borderBox}
-  display: flex;
-  flex-direction: column;
-  width: 1000px;
-`;
+import { cn } from "../../utils";
 
 interface AccordionItem {
   title: string;
@@ -20,31 +12,28 @@ interface AccordionItem {
 interface AccordionProps {
   items: AccordionItem[];
   defaultExpanded?: number;
+  className?: string;
 }
-
-const AccordionTitle = styled.p`
-  ${p}
-  width: fit-content;
-  font-weight: 600;
-  text-align: center;
-  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
-`;
 
 const DefaultTitle: React.FC<{ item: AccordionItem }> = ({ item }) => (
   <>
     {item.icon ?? (item.Icon && <item.Icon />)}
-    <AccordionTitle>{item.title}</AccordionTitle>
+    <p className="w-fit text-center text-base font-semibold">{item.title}</p>
   </>
 );
 
 const Accordion: React.FC<AccordionProps> = ({
   items,
   defaultExpanded,
+  className,
   ...props
 }) => {
   const [expanded, setExpanded] = useState(defaultExpanded ?? -1);
   return (
-    <Wrapper {...props}>
+    <div
+      className={cn("box-border flex w-[1000px] flex-col", className)}
+      {...props}
+    >
       {items.map((item, index) => (
         <AccordionItem
           key={index}
@@ -55,7 +44,7 @@ const Accordion: React.FC<AccordionProps> = ({
           expanded={expanded === index}
         />
       ))}
-    </Wrapper>
+    </div>
   );
 };
 

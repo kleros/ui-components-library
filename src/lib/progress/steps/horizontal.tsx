@@ -1,23 +1,22 @@
 import React from "react";
-import styled from "styled-components";
 import { StepsProps } from ".";
 import Bullet from "./horizontal-bullet";
-import { borderBox } from "../../../styles/common-style";
-
-const Wrapper = styled.div`
-  ${borderBox}
-  width: 250px;
-  display: flex;
-  justify-content: center;
-  align-items: start;
-`;
+import { cn } from "../../../utils";
 
 const HorizontalSteps: React.FC<StepsProps> = ({
   items,
   currentItemIndex,
+  className,
   ...props
 }) => (
-  <Wrapper {...props}>
+  <ol
+    className={cn(
+      "box-border flex w-62.5 items-start justify-center",
+      className,
+    )}
+    {...props}
+    aria-label="Horizontal progress steps"
+  >
     {items.map((item, i) => (
       <Bullet
         {...item}
@@ -25,10 +24,10 @@ const HorizontalSteps: React.FC<StepsProps> = ({
         active={i === currentItemIndex}
         last={i + 1 === items.length}
         index={i + 1}
-        key={i}
+        key={`${item.title}-${i}`}
       />
     ))}
-  </Wrapper>
+  </ol>
 );
 
 export default HorizontalSteps;

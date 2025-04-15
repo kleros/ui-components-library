@@ -6,12 +6,9 @@
 /.pnp.*
 node_modules
 
-# parcel
-.parcel-cache
 development
 build
 dist
-parcel-bundle-reports
 
 # misc
 .eslintcache
@@ -26,3 +23,5 @@ parcel-bundle-reports
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+*storybook.log

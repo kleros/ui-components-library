@@ -1,16 +1,16 @@
-import styled from "styled-components";
-import { borderBox } from "../styles/common-style";
-
+import React from "react";
+import { cn } from "../utils";
 interface DotProps {
   color: string;
+  className?: string;
 }
 
-const Dot = styled.div<DotProps>`
-  ${borderBox}
-  background: ${({ color }) => color};
-  border-radius: 50%;
-  width: 8px;
-  height: 8px;
-`;
-
+function Dot({ color, className }: Readonly<DotProps>) {
+  return (
+    <div
+      style={{ background: color }}
+      className={cn("box-border size-2 rounded-full", className)}
+    />
+  );
+}
 export default Dot;

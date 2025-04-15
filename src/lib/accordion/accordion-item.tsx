@@ -1,54 +1,10 @@
 import React, { ReactNode } from "react";
-import styled from "styled-components";
 import { useElementSize } from "../../hooks/useElementSize";
 import Plus from "../../assets/svgs/accordion/plus.svg";
 import Minus from "../../assets/svgs/accordion/minus.svg";
-import {
-  svg,
-  button,
-  hoverMediumBlue,
-  hoverShortTransitionTiming,
-} from "../../styles/common-style";
 
-const StyledDiv = styled.div`
-  margin: 8px 0px;
-  .accordion-button {
-    ${button}
-    ${hoverMediumBlue}
-    ${hoverShortTransitionTiming}
-    width: 100%;
-    background-color: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
-    border: 1px solid ${({ theme }) => theme.klerosUIComponentsStroke};
-    border-radius: 3px;
-    padding: 11.5px 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .accordion-svg {
-      ${svg}
-      height: 16px;
-      width: 16px;
-      fill: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
-    }
-  }
-`;
-
-interface CollapsibleProps {
-  expanded?: boolean;
-  totalHeight: number;
-}
-
-const Collapsible = styled.div<CollapsibleProps>`
-  height: ${(props) => (props.expanded ? props.totalHeight.toString() : "0")}px;
-  overflow: ${(props) => (props.expanded ? "visible" : "hidden")};
-  transition: height ease
-    ${({ theme }) => theme.klerosUIComponentsTransitionSpeed};
-`;
-
-const Body = styled.div`
-  padding: 32px;
-`;
+import { Button } from "react-aria-components";
+import { cn } from "../../utils";
 
 interface AccordionItemProps {
   setExpanded: React.Dispatch<React.SetStateAction<number>>;
@@ -67,22 +23,35 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
 }) => {
   const [ref, { height }] = useElementSize();
   return (
-    <StyledDiv>
-      <button
-        className="accordion-button"
-        onClick={() => setExpanded(expanded ? -1 : index)}
+    <div className="my-2">
+      <Button
+        className={cn(
+          "bg-klerosUIComponentsWhiteBackground border-klerosUIComponentsStroke border",
+          "hover-medium-blue hover-short-transition hover:cursor-pointer",
+          "rounded-[3px] px-8 py-[11.5px]",
+          "flex w-full items-center justify-between",
+        )}
+        onPress={() => setExpanded(expanded ? -1 : index)}
       >
         {title}
         {expanded ? (
-          <Minus className="accordion-svg" />
+          <Minus className={cn("fill-klerosUIComponentsPrimaryText size-4")} />
         ) : (
-          <Plus className="accordion-svg" />
+          <Plus className={cn("fill-klerosUIComponentsPrimaryText size-4")} />
         )}
-      </button>
-      <Collapsible expanded={expanded} totalHeight={height}>
-        <Body ref={ref}> {body} </Body>
-      </Collapsible>
-    </StyledDiv>
+      </Button>
+      <div
+        style={{ height: expanded ? `${height.toString()}px` : 0 }}
+        className={cn(
+          expanded ? `overflow-visible` : "overflow-hidden",
+          "transition-[height] duration-(--klerosUIComponentsTransitionSpeed) ease-initial",
+        )}
+      >
+        <div className="p-8" ref={ref}>
+          {body}
+        </div>
+      </div>
+    </div>
   );
 };
 
