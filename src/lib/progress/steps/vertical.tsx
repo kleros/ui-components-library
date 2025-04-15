@@ -12,7 +12,6 @@ const Steps: React.FC<StepsProps> = ({
   return (
     <ol
       className={cn("flex h-full flex-col", className)}
-      aria-orientation="vertical"
       aria-label="Vertical progress steps"
     >
       <div className="flex h-auto grow flex-col">

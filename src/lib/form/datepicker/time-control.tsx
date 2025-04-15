@@ -14,11 +14,18 @@ const TimeControl: React.FC<ITimeControl> = ({ minValue }) => {
       aria-label="time-selection"
     >
       <header className="border-b-klerosUIComponentsStroke flex h-16 items-center justify-center border-b">
-        <h2 className="text-klerosUIComponentsPrimaryText text-base font-semibold">
+        <h2
+          className="text-klerosUIComponentsPrimaryText text-base font-semibold"
+          id="time-selection-label"
+        >
           Time
         </h2>
       </header>
-      <div role="group" className="flex grow flex-col">
+      <div
+        role="group"
+        className="flex grow flex-col"
+        aria-labelledby="time-selection-label"
+      >
         <div
           className={clsx(
             "h-16 w-full grow",
