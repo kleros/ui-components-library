@@ -1,0 +1,406 @@
+import { Meta } from "@storybook/blocks";
+
+import Github from "./assets/github.png";
+import Tutorials from "./assets/file.png";
+import AddonLibrary from "./assets/addon-library.png";
+import Cover from "./assets/cover.png";
+import Figma from "./assets/figma.png";
+
+export const RightArrow = () => (
+  <svg
+    viewBox="0 0 14 14"
+    width="8px"
+    height="14px"
+    style={{
+      marginLeft: "4px",
+      display: "inline-block",
+      shapeRendering: "inherit",
+      verticalAlign: "middle",
+      fill: "currentColor",
+      "path fill": "currentColor",
+    }}
+  >
+    <path d="m11.1 7.35-5.5 5.5a.5.5 0 0 1-.7-.7L10.04 7 4.9 1.85a.5.5 0 1 1 .7-.7l5.5 5.5c.2.2.2.5 0 .7Z" />
+  </svg>
+);
+
+<Meta title="Kleros UI Components Library" />
+
+<div className="sb-container">
+  <div className='sb-section-title'>
+    # Kleros UI Components Library
+
+    Welcome to the Kleros UI Components Library, a comprehensive collection of React components that implement the Kleros design system. This library provides a consistent and accessible user interface for Kleros applications, making it easier to build cohesive user experiences across the Kleros ecosystem.
+
+  </div>
+  <div className="sb-section">
+      <img
+        src={Cover}
+        alt="Kleros Components Library"
+      />
+
+  </div>
+</div>
+<div className="sb-container">
+  <div className='sb-section-title'>
+    # Getting Started
+
+    Learn how to install and use the Kleros UI Components Library in your projects. Follow these simple steps to integrate our components into your application.
+
+  </div>
+
+  <div className="sb-section">
+    <div className="sb-cards-container">
+      <div className="sb-card">
+        <h4 className="sb-section-item-heading">Installation</h4>
+        <p className="sb-section-item-paragraph">Install the package using your preferred package manager:</p>
+        <div className="sb-code-block">
+          <code>yarn add @kleros/ui-components-library</code>
+          <br />
+          <code>npm install @kleros/ui-components-library</code>
+        </div>
+        <a
+          href="https://github.com/kleros/ui-components-library#installation"
+          target="_blank"
+          className="sb-card-link"
+        >Installation guide<RightArrow /></a>
+      </div>
+      
+      <div className="sb-card">
+        <h4 className="sb-section-item-heading">Import CSS</h4>
+        <p className="sb-section-item-paragraph">Import the library's CSS at the top level of your application:</p>
+        <div className="sb-code-block">
+          <code>import "@kleros/ui-components-library/style.css";</code>
+        </div>
+        <a
+          href="https://github.com/kleros/ui-components-library#setup"
+          target="_blank"
+          className="sb-card-link"
+        >Setup guide<RightArrow /></a>
+      </div>
+      
+      <div className="sb-card">
+        <h4 className="sb-section-item-heading">Use Components</h4>
+        <p className="sb-section-item-paragraph">Import and use components in your application:</p>
+        <div className="sb-code-block">
+          <code>import {"{"} Button, TextField {"}"} from "@kleros/ui-components-library";</code>
+        </div>
+        <a
+          href="https://github.com/kleros/ui-components-library#setup"
+          target="_blank"
+          className="sb-card-link"
+        >Usage examples<RightArrow /></a>
+      </div>
+    </div>
+    
+    <h3 className="sb-component-heading">Component Categories</h3>
+    <div className="sb-component-grid">
+      <div className="sb-component-item">
+        <h4 className="sb-section-item-heading">Form Components</h4>
+        <p className="sb-section-item-paragraph">Text fields, checkboxes, radio buttons, date pickers, and more.</p>
+        <a
+          href="/?path=/docs/form-form--docs"
+          target="_blank"
+          className="sb-card-link"
+        >View form components<RightArrow /></a>
+      </div>
+      
+      <div className="sb-component-item">
+        <h4 className="sb-section-item-heading">Navigation Components</h4>
+        <p className="sb-section-item-paragraph">Breadcrumbs, pagination, and tabs to enhance user experience.</p>
+        <a
+          href="/?path=/docs/pagination-tabs--docs"
+          target="_blank"
+          className="sb-card-link"
+        >View navigation components<RightArrow /></a>
+      </div>
+      
+      <div className="sb-component-item">
+        <h4 className="sb-section-item-heading">Interactive Elements</h4>
+        <p className="sb-section-item-paragraph">Buttons, accordions, and dropdowns for engaging user interfaces.</p>
+        <a
+          href="/?path=/docs/button--docs"
+          target="_blank"
+          className="sb-card-link"
+        >View interactive elements<RightArrow /></a>
+      </div>
+      
+      <div className="sb-component-item">
+        <h4 className="sb-section-item-heading">Layout Components</h4>
+        <p className="sb-section-item-paragraph">Cards, boxes, and modals for structuring your application.</p>
+        <a
+          href="/?path=/docs/containers-card--docs"
+          target="_blank"
+          className="sb-card-link"
+        >View layout components<RightArrow /></a>
+      </div>
+    </div>
+  </div>
+</div>
+<div className='sb-addon'>
+  <div className='sb-addon-text'>
+    <h4>Contribute</h4>
+    <p className="sb-section-item-paragraph">Join our community and contribute to the Kleros UI Components Library.</p>
+    <a
+        href="https://github.com/kleros/ui-components-library#contributing"
+        target="_blank"
+      >How to contribute<RightArrow /></a>
+  </div>
+  <div className='sb-addon-img'>
+    <img src={AddonLibrary} alt="conti" />
+  </div>
+</div>
+
+<div className="sb-section sb-socials">
+    <div className="sb-section-item">
+      <img src={Github} alt="Github logo" className="sb-explore-image"/>
+      Explore the source code and contribute to the project.
+
+      <a
+        href="https://github.com/kleros/ui-components-library"
+        target="_blank"
+      >Star on GitHub<RightArrow /></a>
+    </div>
+    <div className="sb-section-item">
+      <img src={Tutorials} alt="A book" className="sb-explore-image"/>
+      <p>Learn more about Kleros and its ecosystem.</p>
+
+      <a
+          href="https://docs.kleros.io/"
+          target="_blank"
+        >Discover tutorials<RightArrow /></a>
+    </div>
+    <div className="sb-section-item">
+      <img src={Figma} alt="Figma" className="sb-explore-image"/>
+      <p>Learn more about Kleros Design System.</p>
+
+      <a
+          href="https://www.figma.com/design/b7DEUKDeHlOl4ocDTMv7UIhZ/Kleros?m=dev"
+          target="_blank"
+        >Explore on Figma<RightArrow /></a>
+    </div>
+
+</div>
+
+<style>
+  {`
+  .sb-container {
+    margin-bottom: 48px;
+  }
+
+  .sb-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  img {
+    object-fit: cover;
+  }
+
+  .sb-section-title {
+    margin-bottom: 32px;
+  }
+
+  .sb-section a:not(h1 a, h2 a, h3 a) {
+    font-size: 14px;
+  }
+
+  .sb-section-item, .sb-grid-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sb-section-item-heading {
+    padding-top: 20px !important;
+    padding-bottom: 5px !important;
+    margin: 0 !important;
+  }
+  
+  .sb-section-item-paragraph {
+    margin: 0;
+    padding-bottom: 10px;
+  }
+
+  /* New card styles */
+  .sb-cards-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  
+  .sb-card {
+    border: 1px solid #E6E6E6;
+    border-radius: 8px;
+    padding: 24px;
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .sb-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sb-card-link {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    color: #1EA7FD;
+    font-weight: 500;
+  }
+  
+  .sb-code-block {
+    background-color: #F8F8F8;
+    border-radius: 4px;
+    padding: 12px;
+    margin: 12px 0;
+    font-family: monospace;
+    font-size: 13px;
+    overflow-x: auto;
+    border-left: 3px solid #1EA7FD;
+  }
+  
+  .sb-component-heading {
+    font-size: 20px;
+    margin: 0 0 16px 0;
+    font-weight: 600;
+  }
+  
+  .sb-component-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  
+  .sb-component-item {
+    border: 1px solid #E6E6E6;
+    border-radius: 8px;
+    padding: 24px;
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .sb-component-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .sb-socials {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .sb-socials p {
+    margin-bottom: 10px;
+  }
+
+  .sb-explore-image {
+    max-height: 32px;
+    align-self: flex-start;
+  }
+
+  .sb-addon {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    position: relative;
+    background-color: #EEF3F8;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    background: #EEF3F8;
+    height: 180px;
+    margin-bottom: 48px;
+    overflow: hidden;
+  }
+
+  .sb-addon-text {
+    padding-left: 48px;
+    max-width: 240px;
+  }
+
+  .sb-addon-text h4 {
+    padding-top: 0px;
+  }
+
+  .sb-addon-img {
+    position: absolute;
+    left: 345px;
+    top: 0;
+    height: 100%;
+    width: 200%;
+    overflow: hidden;
+  }
+
+  .sb-addon-img img {
+    width: 650px;
+    transform: rotate(-15deg);
+    margin-left: 40px;
+    margin-top: -72px;
+    box-shadow: 0 0 1px rgba(255, 255, 255, 0);
+    backface-visibility: hidden;
+  }
+
+  @media screen and (max-width: 900px) {
+    .sb-cards-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .sb-addon-img {
+      left: 300px;
+    }
+  }
+
+  @media screen and (max-width: 600px) {
+    .sb-section {
+      flex-direction: column;
+    }
+
+    .sb-cards-container, .sb-component-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .sb-socials {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sb-addon {
+      height: 280px;
+      align-items: flex-start;
+      padding-top: 32px;
+      overflow: hidden;
+    }
+
+    .sb-addon-text {
+      padding-left: 24px;
+    }
+
+    .sb-addon-img {
+      right: 0;
+      left: 0;
+      top: 130px;
+      bottom: 0;
+      overflow: hidden;
+      height: auto;
+      width: 124%;
+    }
+
+    .sb-addon-img img {
+      width: 1200px;
+      transform: rotate(-12deg);
+      margin-left: 0;
+      margin-top: 48px;
+      margin-bottom: -40px;
+      margin-left: -24px;
+    }
+  }
+  `}
+</style>

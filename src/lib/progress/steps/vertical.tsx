@@ -1,31 +1,22 @@
 import React from "react";
-import styled from "styled-components";
 import { StepsProps } from ".";
 import Bullet from "./bullet";
+import { cn } from "../../../utils";
 
-const Wrapper = styled.div`
-  height: 100px;
-  display: flex;
-  flex-direction: column;
-`;
-
-const BulletsContainer = styled.div`
-  height: auto;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-`;
-
-const LastBullet = styled(Bullet)`
-  flex-basis: auto;
-  flex-grow: 0;
-`;
-
-const Steps: React.FC<StepsProps> = ({ items, currentItemIndex, ...props }) => {
+const Steps: React.FC<StepsProps> = ({
+  items,
+  currentItemIndex,
+  className,
+}) => {
   const lastItem = items[items.length - 1];
   return (
-    <Wrapper {...props}>
-      <BulletsContainer>
+    <div
+      className={cn("flex h-full flex-col", className)}
+      aria-orientation="vertical"
+      role="list"
+      aria-label="Vertical progress steps"
+    >
+      <div className="flex h-auto grow flex-col">
         {items.slice(0, -1).map(({ title, subitems }, i) => (
           <Bullet
             {...{ title, subitems }}
@@ -36,15 +27,16 @@ const Steps: React.FC<StepsProps> = ({ items, currentItemIndex, ...props }) => {
             key={i}
           />
         ))}
-      </BulletsContainer>
-      <LastBullet
+      </div>
+      <Bullet
         title={lastItem.title}
         subitems={lastItem.subitems}
         completed={items.length - 1 < currentItemIndex}
         active={items.length - 1 === currentItemIndex}
         index={items.length}
+        className="grow-0 basis-auto"
       />
-    </Wrapper>
+    </div>
   );
 };
 

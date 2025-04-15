@@ -35,9 +35,9 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
       >
         {title}
         {expanded ? (
-          <Minus className={cn("fill-klerosUIComponentsPrimaryText h-4 w-4")} />
+          <Minus className={cn("fill-klerosUIComponentsPrimaryText size-4")} />
         ) : (
-          <Plus className={cn("fill-klerosUIComponentsPrimaryText h-4 w-4")} />
+          <Plus className={cn("fill-klerosUIComponentsPrimaryText size-4")} />
         )}
       </Button>
       <div

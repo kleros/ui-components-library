@@ -114,7 +114,7 @@ function Tabs({
               ))}
             <span
               className={cn(
-                "text-klerosUIComponentsPrimaryText",
+                "text-klerosUIComponentsPrimaryText text-base",
                 id === selectedKey && "text-klerosUIComponentsPrimaryBlue",
                 disabled && "text-klerosUIComponentsStroke",
               )}

@@ -1,10 +1,24 @@
-import styled from "styled-components";
+import React from "react";
+import { cn } from "../../utils";
+import {
+  Modal as AriaModal,
+  type ModalOverlayProps,
+} from "react-aria-components";
 
-const Modal = styled.div`
-  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
-  border-radius: 3px;
-  width: 328px;
-  height: 200px;
-`;
-
+function Modal({
+  className,
+  ...props
+}: ModalOverlayProps & React.RefAttributes<HTMLDivElement>) {
+  return (
+    <AriaModal
+      className={cn(
+        "bg-klerosUIComponentsWhiteBackground h-[200px] w-[328px]",
+        "rounded-base box-border",
+        className,
+      )}
+    >
+      {props.children}
+    </AriaModal>
+  );
+}
 export default Modal;

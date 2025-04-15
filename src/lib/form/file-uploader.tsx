@@ -1,157 +1,145 @@
-import React, { useState, useRef } from "react";
-import styled from "styled-components";
+import React, { useState } from "react";
 import UploadIcon from "../../assets/svgs/form/upload-icon.svg";
 import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import InfoIcon from "../../assets/svgs/status-icons/info.svg";
-import { variantColor } from "./field";
+
+import { cn } from "../../utils";
 import {
-  borderBox,
-  small,
-  svg,
-  button,
-  hoverShortTransitionTiming,
-  hoverWhiteBackground,
-} from "../../styles/common-style";
+  FileTrigger,
+  DropZone,
+  type FileTriggerProps,
+  type FileDropItem,
+  Button,
+} from "react-aria-components";
+import clsx from "clsx";
 
-type VariantProp = { variant?: "success" | "warning" | "error" | "info" };
-
-const Wrapper = styled.div`
-  ${borderBox}
-  width: 200px;
-  height: 64px;
-`;
-
-const DropZone = styled.button`
-  ${button}
-  ${hoverWhiteBackground}
-  ${hoverShortTransitionTiming}
-  height: 100%;
-  width: 100%;
-  background-color: ${({ theme }) => theme.klerosUIComponentsMediumBlue};
-  border: 1px dashed ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
-  border-radius: 3px;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  font-size: 14px;
-  color: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
-`;
-
-const StyledUploadIcon = styled(UploadIcon)`
-  ${svg}
-  height: 24px;
-  width: 24px;
-  fill: ${({ theme }) => theme.klerosUIComponentsPrimaryBlue};
-`;
-
-const FileInput = styled.input`
-  display: none;
-`;
-
-const StyledSmall = styled.small`
-  ${small}
-  position: relative;
-  top: -1px;
-  text-align: justify;
-  color: ${variantColor};
-`;
-
-const StyledSVG = styled.svg``;
-
-const Message = styled.div<VariantProp>`
-  margin-top: 16px;
-  display: flex;
-  align-items: flex-start;
-
-  & ${StyledSVG} {
-    ${svg}
-    min-width: 16px;
-    max-width: 16px;
-    margin-right: 8px;
-    fill: ${variantColor};
-  }
-`;
-
-interface FileUploaderProps extends VariantProp {
+interface FileUploaderProps {
+  /** Callback function that passes the selected file as argument. */
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   callback: Function;
   msg?: string;
-  info?: boolean;
+  variant?: "success" | "warning" | "error" | "info";
+  acceptedFileTypes?: FileTriggerProps["acceptedFileTypes"];
+  fileTriggerProps?: Omit<FileTriggerProps, "acceptedFileTypes | onSelect">;
+  /** Whether the drop target is disabled. If true, the drop target will not accept any drops.   */
+  isDisabled?: boolean;
   className?: string;
 }
 
-const FileUploader: React.FC<FileUploaderProps> = ({
+/** Allows to upload a file by either dropping it on the dropzone or
+ * accessing the file system. */
+function FileUploader({
   callback,
   msg,
   variant,
   className,
-  ...props
-}) => {
-  const fileInputRef = useRef<any>(); //! type
+  acceptedFileTypes,
+  fileTriggerProps,
+  isDisabled = false,
+}: Readonly<FileUploaderProps>) {
   const [fileSelected, setFileSelected] = useState<File>();
 
-  const handleDragEnter = (event: React.DragEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
-  const handleDragLeave = (event: React.DragEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
-  const handleDragOver = (event: React.DragEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
-  const handleDrop = (event: React.DragEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    fileInputRef.current.files = event.dataTransfer?.files;
-    setFileSelected(event.dataTransfer?.files[0]);
-    callback(event.dataTransfer?.files[0]);
-  };
-
   return (
-    <Wrapper {...{ className }}>
+    <div className={cn("box-border h-fit w-50", className)}>
       <DropZone
-        onClick={() => fileInputRef?.current.click()}
-        onDrop={(e) => handleDrop(e)}
-        onDragOver={(e) => handleDragOver(e)}
-        onDragEnter={(e) => handleDragEnter(e)}
-        onDragLeave={(e) => handleDragLeave(e)}
-      >
-        {fileSelected ? fileSelected.name : <StyledUploadIcon />}
-      </DropZone>
-      <FileInput
-        ref={fileInputRef}
-        type="file"
-        onChange={(event) => {
-          setFileSelected(event.target.files![0]);
-
-          callback(event.target.files![0]);
+        aria-labelledby="dropzone-label"
+        {...{ isDisabled }}
+        className={clsx(
+          "hover-white-background hover-short-transition bg-klerosUIComponentsMediumBlue h-16",
+          "rounded-base border-klerosUIComponentsPrimaryBlue size-full border border-dashed",
+        )}
+        // filter what files the drop accepts
+        getDropOperation={(types) => {
+          if (acceptedFileTypes) {
+            for (const type of acceptedFileTypes) {
+              if (types.has(type)) return "copy";
+              else continue;
+            }
+            return "cancel";
+          }
+          return "copy";
         }}
-        {...props}
-      />
-      <Message {...{ variant }}>
-        {variant === "success" && (
-          <SuccessIcon className={StyledSVG.styledComponentId} />
-        )}
-        {variant === "warning" && (
-          <WarningIcon className={StyledSVG.styledComponentId} />
-        )}
-        {variant === "error" && (
-          <ErrorIcon className={StyledSVG.styledComponentId} />
-        )}
-        {variant === "info" && (
-          <InfoIcon className={StyledSVG.styledComponentId} />
-        )}
-        <StyledSmall {...{ variant }}>{msg}</StyledSmall>
-      </Message>
-    </Wrapper>
+        onDrop={async (e) => {
+          // filter the files in case multiple files are dropped.
+          // selects the first matching file in that case.
+          const item = e.items.find((item) =>
+            item.kind === "file" && acceptedFileTypes
+              ? acceptedFileTypes.includes(item.type)
+              : true,
+          ) as FileDropItem;
+
+          if (item) {
+            const file = await item.getFile();
+            setFileSelected(file);
+            callback(file);
+          }
+        }}
+      >
+        <FileTrigger
+          acceptedFileTypes={acceptedFileTypes}
+          {...fileTriggerProps}
+          onSelect={(e) => {
+            if (e) {
+              const file = e[0];
+              setFileSelected(file);
+              callback(file);
+            }
+          }}
+        >
+          <Button
+            className={clsx(
+              "box-border size-full cursor-pointer bg-transparent px-2",
+              "flex items-center justify-center",
+            )}
+          >
+            {fileSelected ? (
+              <small
+                className={clsx(
+                  "w-full overflow-hidden",
+                  "text-klerosUIComponentsPrimaryBlue text-center text-sm text-wrap",
+                )}
+              >
+                {fileSelected.name}
+              </small>
+            ) : (
+              <UploadIcon className="fill-klerosUIComponentsPrimaryBlue size-6" />
+            )}
+          </Button>
+        </FileTrigger>
+      </DropZone>
+      {msg && (
+        <div className="mt-4 flex items-start">
+          {variant === "success" && (
+            <SuccessIcon className="fill-klerosUIComponentsSuccess mr-2 max-w-4 min-w-4" />
+          )}
+          {variant === "warning" && (
+            <WarningIcon className="fill-klerosUIComponentsWarning mr-2 max-w-4 min-w-4" />
+          )}
+          {variant === "error" && (
+            <ErrorIcon className="fill-klerosUIComponentsError mr-2 max-w-4 min-w-4" />
+          )}
+          {variant === "info" && (
+            <InfoIcon className="fill-klerosUIComponentsPrimaryBlue mr-2 max-w-4 min-w-4" />
+          )}
+          <small
+            id="dropzone-label"
+            className={cn(
+              "text-klerosUIComponentsSecondaryText relative -top-0.25 text-justify text-base",
+              {
+                "text-klerosUIComponentsSuccess": variant === "success",
+                "text-klerosUIComponentsError": variant === "error",
+                "text-klerosUIComponentsWarning": variant === "warning",
+              },
+            )}
+          >
+            {msg}
+          </small>
+        </div>
+      )}
+    </div>
   );
-};
+}
 
 export default FileUploader;

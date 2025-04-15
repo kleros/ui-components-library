@@ -1,116 +1,65 @@
 import React from "react";
-import styled, { css } from "styled-components";
-import { mobileStyle, svg } from "../../styles/common-style";
 import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import WarningIcon from "../../assets/svgs/status-icons/warning.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
 import InfoIcon from "../../assets/svgs/status-icons/info.svg";
+import { cn } from "../../utils";
+import clsx from "clsx";
 
 type VariantProp = { variant: "success" | "warning" | "error" | "info" };
-
-const variantColor = css<VariantProp>`
-  ${({ theme, variant }) => {
-    switch (variant) {
-      case "success":
-        return css`
-          color: ${theme.klerosUIComponentsSuccess};
-        `;
-      case "warning":
-        return css`
-          color: ${theme.klerosUIComponentsWarning};
-        `;
-      case "error":
-        return css`
-          color: ${theme.klerosUIComponentsError};
-        `;
-      case "info":
-      default:
-        return css`
-          color: ${theme.klerosUIComponentsPrimaryBlue};
-        `;
-    }
-  }}
-`;
-
-const borderColor = ({
-  theme,
-  variant,
-}: {
-  theme: any;
-  variant: VariantProp["variant"];
-}) => {
-  const colors = {
-    success: theme.klerosUIComponentsSuccess,
-    warning: theme.klerosUIComponentsWarning,
-    error: theme.klerosUIComponentsError,
-    info: theme.klerosUIComponentsPrimaryBlue,
-  };
-  return colors[variant];
-};
-
-const Wrapper = styled.div<VariantProp>`
-  display: grid;
-  grid-template-columns: 24px auto;
-  gap: 16px;
-  align-items: center;
-  background: ${({ theme }) => theme.klerosUIComponentsWhiteBackground};
-  border: 1px solid ${({ theme, variant }) => borderColor({ theme, variant })};
-  border-radius: 3px;
-  padding: 16px 24px 20px 24px;
-`;
-
-const IconWrapper = styled.div<VariantProp>`
-  ${variantColor}
-  height: 24px;
-  width: 24px;
-  svg {
-    ${svg}
-    fill: currentColor;
-  }
-`;
-
-const StyledTitle = styled.h2<VariantProp>`
-  ${variantColor}
-  font-size: 16px;
-  margin: 0;
-  font-weight: 600;
-  line-height: 24px;
-`;
-
-const TitleAndMessage = styled.div`
-  display: flex;
-  flex-direction: column;
-
-  ${mobileStyle(
-    () => css`
-      gap: 8px;
-    `,
-  )};
-`;
-
-const StyledMessage = styled.small`
-  color: ${({ theme }) => theme.klerosUIComponentsPrimaryText};
-  font-weight: 400;
-`;
 
 interface AlertProps extends VariantProp {
   title: string;
   msg: string;
+  className?: string;
 }
 
-const Alert: React.FC<AlertProps> = ({ variant, title, msg }) => (
-  <Wrapper variant={variant}>
-    <IconWrapper variant={variant}>
-      {variant === "success" && <SuccessIcon />}
-      {variant === "warning" && <WarningIcon />}
-      {variant === "error" && <ErrorIcon />}
-      {variant === "info" && <InfoIcon />}
-    </IconWrapper>
-    <TitleAndMessage>
-      <StyledTitle variant={variant}>{title}</StyledTitle>
-      <StyledMessage>{msg}</StyledMessage>
-    </TitleAndMessage>
-  </Wrapper>
-);
+function Alert({ variant, title, msg, className }: Readonly<AlertProps>) {
+  return (
+    <div
+      className={cn(
+        "bg-klerosUIComponentsWhiteBackground rounded-base border",
+        "grid grid-cols-[24px_auto] items-center gap-4 px-6 pt-4 pb-5",
+        {
+          "border-klerosUIComponentsSuccess": variant === "success",
+          "border-klerosUIComponentsError": variant === "error",
+          "border-klerosUIComponentsPrimaryBlue": variant === "info",
+          "border-klerosUIComponentsWarning": variant === "warning",
+        },
+        className,
+      )}
+    >
+      <div className="size-6">
+        {variant === "success" && (
+          <SuccessIcon className="fill-klerosUIComponentsSuccess" />
+        )}
+        {variant === "warning" && (
+          <WarningIcon className="fill-klerosUIComponentsWarning" />
+        )}
+        {variant === "error" && (
+          <ErrorIcon className="fill-klerosUIComponentsError" />
+        )}
+        {variant === "info" && (
+          <InfoIcon className="fill-klerosUIComponentsPrimaryBlue" />
+        )}
+      </div>
+      <div className="flex flex-col gap-2 lg:gap-0">
+        <h2
+          className={clsx("text-base font-semibold", {
+            "text-klerosUIComponentsSuccess": variant === "success",
+            "text-klerosUIComponentsError": variant === "error",
+            "text-klerosUIComponentsPrimaryBlue": variant === "info",
+            "text-klerosUIComponentsWarning": variant === "warning",
+          })}
+        >
+          {title}
+        </h2>
+        <small className="text-klerosUIComponentsPrimaryText text-sm font-normal">
+          {msg}
+        </small>
+      </div>
+    </div>
+  );
+}
 
 export default Alert;

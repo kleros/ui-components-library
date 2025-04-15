@@ -1,3 +1,4 @@
+import "../styles/global.css";
 export { default as Accordion } from "./accordion";
 export { default as CustomAccordion } from "./accordion/custom";
 
@@ -13,14 +14,16 @@ export { default as DisplaySmall } from "./display/small";
 export { default as DropdownSelect } from "./dropdown/select";
 export { default as DropdownCascader } from "./dropdown/cascader";
 
-export { default as Field } from "./form/field";
+export { default as NumberField } from "./form/number-field";
+export { default as BigNumberField } from "./form/bignumber-field";
+export { default as TextField } from "./form/text-field";
 export { default as Searchbar } from "./form/searchbar";
-export { default as Textarea } from "./form/textarea";
+export { default as TextArea } from "./form/text-area";
 export { default as Slider } from "./form/slider";
 export { default as FileUploader } from "./form/file-uploader";
 export { default as Datepicker } from "./form/datepicker";
 
-export { default as Radio } from "../lib/form/radio";
+export { default as Radio } from "./form/radio-group";
 export { default as Checkbox } from "../lib/form/checkbox";
 export { default as Switch } from "../lib/form/switch";
 
@@ -45,5 +48,3 @@ export { default as Tooltip } from "../lib/tooltip";
 export { default as ScrollbarContainer } from "../lib/scrollbar";
 
 export { default as Copiable } from "../lib/copiable";
-
-export { lightTheme, darkTheme, veaTheme } from "../styles/themes";

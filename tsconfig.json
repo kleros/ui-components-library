@@ -33,6 +33,7 @@
     "dist",
     "commitlint.config.cjs",
     "eslint.config.mjs",
-    "vite.config.ts"
+    "vite.config.ts",
+    "vite.config.theme.ts"
   ]
 }

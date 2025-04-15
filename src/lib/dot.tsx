@@ -9,7 +9,7 @@ function Dot({ color, className }: Readonly<DotProps>) {
   return (
     <div
       style={{ background: color }}
-      className={cn("box-border h-2 w-2 rounded-full", className)}
+      className={cn("box-border size-2 rounded-full", className)}
     />
   );
 }
