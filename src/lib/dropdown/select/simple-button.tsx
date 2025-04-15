@@ -43,7 +43,7 @@ const SimpleButton: React.FC<ISimpleButton> = ({
               </SelectValue>
             </small>
           ) : (
-            <h1
+            <span
               className={cn(
                 "hover-short-transition",
                 "text-klerosUIComponentsPrimaryBlue text-2xl font-semibold",
@@ -56,7 +56,7 @@ const SimpleButton: React.FC<ISimpleButton> = ({
                   isPlaceholder ? placeholder : selectedText
                 }
               </SelectValue>
-            </h1>
+            </span>
           )}
           <Arrow
             className={cn(

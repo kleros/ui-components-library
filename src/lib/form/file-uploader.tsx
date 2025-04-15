@@ -17,8 +17,7 @@ import clsx from "clsx";
 
 interface FileUploaderProps {
   /** Callback function that passes the selected file as argument. */
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  callback: Function;
+  callback: (file: File) => void;
   msg?: string;
   variant?: "success" | "warning" | "error" | "info";
   acceptedFileTypes?: FileTriggerProps["acceptedFileTypes"];

@@ -7,7 +7,7 @@ import InfoIcon from "../../assets/svgs/status-icons/info.svg";
 import {
   type InputProps,
   Label,
-  TextArea as AriaTextAria,
+  TextArea as AriaTextArea,
   TextField,
   type TextFieldProps,
   type TextAreaProps as AriaTextAreaProps,
@@ -51,7 +51,7 @@ function TextArea({
           {label}
         </Label>
       )}
-      <AriaTextAria
+      <AriaTextArea
         placeholder={placeholder}
         {...props.inputProps}
         className={cn(

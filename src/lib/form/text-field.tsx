@@ -83,6 +83,7 @@ function TextField({
               "border-l-klerosUIComponentsStroke rounded-r-base border-l",
               "flex items-center justify-center",
             )}
+            aria-hidden="true"
           >
             <Icon className="size-6" />
           </div>

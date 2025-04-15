@@ -59,8 +59,8 @@ function DatePicker({
 
           <Popover
             className={clsx(
-              "bg-klerosUIComponentsWhiteBackground shadow-default rounded-base",
-              "border-klerosUIComponentsStroke ease-ease border transition",
+              "bg-klerosUIComponentsWhiteBackground shadow-default rounded-base overflow-y-scroll",
+              "border-klerosUIComponentsStroke ease-ease scrollbar border transition",
               time ? "w-82.5 lg:w-112.5" : "w-82.5",
             )}
           >
