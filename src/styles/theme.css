@@ -34,7 +34,7 @@
     --klerosUIComponentsBaseRadius: 3px;
   }
 
-  :root[class="dark"] {
+  :root.dark {
     --klerosUIComponentsName: dark;
     --klerosUIComponentsPrimaryPurple: #7e1bd4;
     --klerosUIComponentsSecondaryPurple: #b45fff;
