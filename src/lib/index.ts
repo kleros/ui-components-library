@@ -6,6 +6,7 @@ export { default as Button } from "./button";
 
 export { default as Card } from "./container/card";
 export { default as Box } from "./container/box";
+export { default as Modal } from "./container/modal";
 
 export { default as DisplayLarge } from "./display/large";
 export { default as DisplayIcon } from "./display/icon";
