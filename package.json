@@ -3,10 +3,10 @@
   "version": "3.1.2",
   "description": "UI components library which implements the Kleros design system.",
   "source": "./src/lib/index.ts",
-  "main": "./dist/esm/ui-components-library.js",
-  "module": "./dist/esm/ui-components-library.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./dist/ui-components-library.d.ts",
-  "style": "./dist/esm/ui-components-library.css",
+  "style": "./dist/assets/index.css",
   "isLibrary": true,
   "type": "module",
   "browserslist": "> 0.5%, last 2 versions, not dead",
@@ -15,15 +15,17 @@
   "license": "MIT",
   "exports": {
     ".": {
-      "import": "./dist/esm/ui-components-library.js",
+      "import": "./dist/index.js",
       "types": "./dist/ui-components-library.d.ts"
     },
-    "./style.css": "./dist/esm/ui-components-library.css",
-    "./theme.css": "./dist/theme/theme.css"
+    "./style.css": "./dist/assets/index.css",
+    "./theme.css": "./dist/assets/theme.css"
   },
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
-    "build:theme": "vite build --config vite.config.theme.js",
-    "build": "vite build && yarn build:theme",
+    "build": "vite build",
     "build-storybook": "storybook build",
     "check-style": "eslint 'src/**/*.{ts,tsx}'",
     "check-types": "tsc --noEmit",
@@ -49,6 +51,7 @@
     "@storybook/react-vite": "^8.6.4",
     "@storybook/test": "^8.6.4",
     "@tailwindcss/postcss": "^4.0.11",
+    "@tailwindcss/vite": "^4.1.4",
     "@types/node": "^22.13.10",
     "@types/react": "^18.0.9",
     "@types/react-dom": "^18.0.3",
@@ -64,6 +67,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-security": "^3.0.1",
     "eslint-plugin-storybook": "^0.11.4",
+    "glob": "^11.0.1",
     "globals": "^16.0.0",
     "husky": "^7.0.0",
     "lint-staged": "^12.1.2",
@@ -74,6 +78,8 @@
     "tailwindcss": "^4.0.11",
     "typescript": "^5.8.2",
     "vite": "^6.2.1",
+    "vite-plugin-dts": "^4.5.3",
+    "vite-plugin-lib-inject-css": "^2.2.2",
     "vite-plugin-svgr": "^4.3.0"
   },
   "peerDependencies": {
@@ -85,7 +91,6 @@
   },
   "dependencies": {
     "@internationalized/date": "^3.7.0",
-    "@tailwindcss/vite": "^4.0.12",
     "bignumber.js": "^9.1.2",
     "clsx": "^2.1.1",
     "react": "^18.0.0",
@@ -96,8 +101,7 @@
     "simplebar-react": "^2.3.6",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-react-aria-components": "^2.0.0",
-    "usehooks-ts": "^2.9.1",
-    "vite-plugin-dts": "^4.5.3"
+    "usehooks-ts": "^2.9.1"
   },
   "lint-staged": {
     "*.js": "eslint --cache --fix",

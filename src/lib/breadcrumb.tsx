@@ -4,7 +4,7 @@ import { Button } from "react-aria-components";
 import { clsx } from "clsx";
 
 interface BreadcrumbProps {
-  items: { text: string; value: any }[];
+  items: { text: React.ReactNode; value: any }[];
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   callback?: Function;
   clickable?: boolean;
