@@ -85,7 +85,7 @@ function DraggableList({
       }}
       className={cn(
         "bg-klerosUIComponentsLightBackground rounded-base border-klerosUIComponentsStroke border",
-        "py-4",
+        "w-95.5 py-4",
         "[&_div]:data-drop-target:outline-klerosUIComponentsPrimaryBlue [&_div]:data-drop-target:outline",
         className,
       )}
@@ -95,7 +95,7 @@ function DraggableList({
           textValue={item.name}
           className={({ isHovered, isDragging, isSelected }) =>
             cn(
-              "h-11.25 w-95.5 cursor-pointer border-l-3 border-l-transparent",
+              "h-11.25 w-full cursor-pointer border-l-3 border-l-transparent",
               "flex items-center gap-4 px-4",
               "focus-visible:outline-klerosUIComponentsPrimaryBlue focus-visible:outline",
               (isHovered || isSelected) && "bg-klerosUIComponentsMediumBlue",
