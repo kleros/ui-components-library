@@ -49,3 +49,5 @@ export { default as Tooltip } from "../lib/tooltip";
 export { default as ScrollbarContainer } from "../lib/scrollbar";
 
 export { default as Copiable } from "../lib/copiable";
+
+export { default as DraggableList } from "../lib/draggable-list";

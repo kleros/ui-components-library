@@ -83,7 +83,7 @@ If you wish the use the library's tailwind theme variables in your tailwind app.
 
 ```css
 @import tailwindcss @import
-  "../../../node_modules/@kleros/ui-components-library/dist/theme/theme.css";
+  "../../../node_modules/@kleros/ui-components-library/dist/assets/theme.css";
 ```
 
 You can find the available theme variables [here](src/styles/theme.css).
