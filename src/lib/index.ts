@@ -15,6 +15,7 @@ export { default as DisplaySmall } from "./display/small";
 export { default as DropdownSelect } from "./dropdown/select";
 export { default as DropdownCascader } from "./dropdown/cascader";
 
+export { default as Form } from "./form/index";
 export { default as NumberField } from "./form/number-field";
 export { default as BigNumberField } from "./form/bignumber-field";
 export { default as TextField } from "./form/text-field";
