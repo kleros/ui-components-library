@@ -9,6 +9,14 @@ const meta = {
   component: DraggableList,
   title: "Draggable List",
   tags: ["autodocs"],
+  argTypes: {
+    dragDisabled: {
+      control: "boolean",
+    },
+    deletionDisabled: {
+      control: "boolean",
+    },
+  },
 } satisfies Meta<typeof DraggableList>;
 
 export default meta;
@@ -27,6 +35,22 @@ export const Default: Story = {
   },
   render: (args) => {
     return <DraggableList {...args} />;
+  },
+};
+
+/** Drag operations can be disabled with `dragDisabled ` */
+export const DragDisabled: Story = {
+  args: {
+    ...Default.args,
+    dragDisabled: true,
+  },
+};
+
+/** Delete operation can be disabled with `deletionDisabled ` */
+export const DeletionDisabled: Story = {
+  args: {
+    ...Default.args,
+    deletionDisabled: true,
   },
 };
 
