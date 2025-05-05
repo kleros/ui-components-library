@@ -15,6 +15,8 @@ interface BigNumberFieldComponentProps extends BigNumberFieldProps {
   message?: string;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   className?: string;
+  /** The name of the input element, used when submitting an HTML form.*/
+  name?: string;
 }
 
 /** A number field that handles big numbers.
@@ -29,6 +31,7 @@ function BigNumberField({
   isDisabled,
   id: propId,
   isReadOnly,
+  name,
   ...props
 }: Readonly<BigNumberFieldComponentProps>) {
   // Generate an ID if one is not provided
@@ -65,6 +68,7 @@ function BigNumberField({
           <>
             <Input
               {...inputProps}
+              name={name}
               className={cn(
                 "hover-short-transition bg-klerosUIComponentsWhiteBackground size-full",
                 "rounded-base border-klerosUIComponentsStroke text-klerosUIComponentsPrimaryText border text-base",

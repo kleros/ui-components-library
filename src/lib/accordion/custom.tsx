@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from "react";
 import AccordionItem from "./accordion-item";
-import { cn } from "../../utils";
+import { cn, isUndefined } from "../../utils";
 
 interface AccordionItem {
   title: ReactNode;
@@ -10,14 +10,18 @@ interface AccordionItem {
 interface AccordionProps {
   items: AccordionItem[];
   className?: string;
+  defaultExpanded?: number;
 }
 
 const CustomAccordion: React.FC<AccordionProps> = ({
   items,
   className,
+  defaultExpanded,
   ...props
 }) => {
-  const [expanded, setExpanded] = useState(-1);
+  const [expanded, setExpanded] = useState(
+    !isUndefined(defaultExpanded) ? defaultExpanded : -1,
+  );
   return (
     <div
       className={cn("box-border flex w-[1000px] flex-col", className)}

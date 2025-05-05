@@ -566,7 +566,6 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     type: "button" as const,
     "aria-label": "Increment",
     "aria-controls": id,
-    slot: "increment",
     isDisabled: !canIncrement(),
     onPress: increment,
   });
@@ -576,7 +575,6 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     type: "button" as const,
     "aria-label": "Decrement",
     "aria-controls": id,
-    slot: "decrement",
     isDisabled: !canDecrement(),
     onPress: decrement,
   });
