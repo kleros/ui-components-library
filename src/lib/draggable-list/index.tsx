@@ -30,6 +30,10 @@ interface IDraggableList
     | "onSelectionChange"
   > {
   items: ListItem[];
+  /** Flag to disable drag operations in list. */
+  dragDisabled?: boolean;
+  /** Flag to disable delete operations in list. */
+  deletionDisabled?: boolean;
   /** Returns the updated list after a delete or move operation. */
   updateCallback?: (updatedItems: ListItem[]) => void;
   /** Returns the selected item. */
@@ -45,6 +49,8 @@ function DraggableList({
   selectionCallback,
   className,
   renderDragPreview,
+  dragDisabled = false,
+  deletionDisabled = false,
   ...props
 }: Readonly<IDraggableList>) {
   const list = useListData({
@@ -76,7 +82,7 @@ function DraggableList({
       aria-label={props["aria-label"] ?? "Reorderable list"}
       selectionMode="single"
       items={list.items}
-      dragAndDropHooks={dragAndDropHooks}
+      dragAndDropHooks={dragDisabled ? undefined : dragAndDropHooks}
       onSelectionChange={(keys) => {
         const keyArr = Array.from(keys);
         const selectedItem = list.getItem(keyArr[0]);
@@ -106,11 +112,13 @@ function DraggableList({
         >
           {({ isHovered }) => (
             <>
-              <DragAndDropIcon className="size-4 cursor-grab" />
+              {dragDisabled ? null : (
+                <DragAndDropIcon className="size-4 cursor-grab" />
+              )}
               <span className="text-klerosUIComponentsPrimaryText flex-1 text-base">
                 {item.name}
               </span>
-              {isHovered ? (
+              {isHovered && !deletionDisabled ? (
                 <Button
                   className={"cursor-pointer hover:scale-105"}
                   onPress={() => {
