@@ -101,6 +101,7 @@ function DraggableList({
       {items.map((item) => {
         return (
           <ListBoxItem
+            id={item.id}
             key={item.id}
             textValue={item.name}
             className={({ isHovered, isDragging, isSelected }) =>
