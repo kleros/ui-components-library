@@ -43,6 +43,7 @@ export const Labelled: Story = {
   },
 };
 
+/** Make a field required. Optionally you can choose to show the validation error and customize their style. */
 export const Required: Story = {
   args: {
     ...Default.args,
@@ -54,7 +55,26 @@ export const Required: Story = {
         e.preventDefault();
       }}
     >
-      <SearchbarComponent {...args} />
+      <SearchbarComponent
+        {...args}
+        showFieldError
+        placeholder="Try searching 'Dogs'"
+        validate={(value) => (value.trim() === "Dogs" ? "Why not cats?" : null)}
+        fieldErrorProps={{
+          children: ({ validationErrors }) => (
+            <ul>
+              {validationErrors.map((error) => (
+                <li
+                  key={error}
+                  className="text-klerosUIComponentsError text-sm"
+                >
+                  {error}
+                </li>
+              ))}
+            </ul>
+          ),
+        }}
+      />
       <Button
         variant="primary"
         type="submit"

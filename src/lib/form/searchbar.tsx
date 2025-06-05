@@ -1,6 +1,8 @@
 import React from "react";
 import SearchIcon from "../../assets/svgs/form/search.svg";
 import {
+  FieldError,
+  type FieldErrorProps,
   Group,
   Input,
   type InputProps,
@@ -18,6 +20,14 @@ interface SearchbarProps extends SearchFieldProps {
    * [See InputProps](https://react-spectrum.adobe.com/react-aria/NumberField.html#input-1)
    */
   inputProps?: InputProps;
+  /** Flag to enable field errors, alternative to `message`
+   * This will show the validation errors from browser, or custom error in case `validate` is setup on Field.
+   */
+  showFieldError?: boolean;
+  /** Props for FieldError in case `showFieldError` is true.
+   * [See FieldErrorProps](https://react-spectrum.adobe.com/react-aria/SearchField.html#fielderror)
+   */
+  fieldErrorProps?: FieldErrorProps;
 }
 /** A search field allows a user to enter and clear a search query. */
 function Searchbar({
@@ -25,6 +35,8 @@ function Searchbar({
   placeholder,
   inputProps,
   className,
+  showFieldError,
+  fieldErrorProps,
   ...props
 }: Readonly<SearchbarProps>) {
   return (
@@ -57,6 +69,17 @@ function Searchbar({
           )}
         />
       </Group>
+      {showFieldError && (
+        <FieldError
+          {...fieldErrorProps}
+          className={cn(
+            "text-klerosUIComponentsError mt-1 text-sm break-words",
+            fieldErrorProps?.className,
+          )}
+        >
+          {fieldErrorProps?.children}
+        </FieldError>
+      )}
     </SearchField>
   );
 }

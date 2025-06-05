@@ -15,6 +15,8 @@ import {
   type NumberFieldProps as AriaNumberFieldProps,
   Label,
   Text,
+  type FieldErrorProps,
+  FieldError,
 } from "react-aria-components";
 import { cn } from "../../utils";
 import clsx from "clsx";
@@ -29,6 +31,14 @@ interface NumberFieldProps extends AriaNumberFieldProps {
    */
   inputProps?: InputProps;
   label?: string;
+  /** Flag to enable field errors, alternative to `message`
+   * This will show the validation errors from browser, or custom error in case `validate` is setup on Field.
+   */
+  showFieldError?: boolean;
+  /** Props for FieldError in case `showFieldError` is true.
+   * [See FieldErrorProps](https://react-spectrum.adobe.com/react-aria/NumberField.html#fielderror)
+   */
+  fieldErrorProps?: FieldErrorProps;
 }
 
 /** A number field allows a user to enter a number, and increment or decrement the value using stepper buttons. */
@@ -41,6 +51,8 @@ function NumberField({
   label,
   isDisabled,
   inputProps,
+  showFieldError,
+  fieldErrorProps,
   ...props
 }: Readonly<NumberFieldProps>) {
   return (
@@ -169,6 +181,18 @@ function NumberField({
           )}
           {message}
         </Text>
+      )}
+
+      {showFieldError && (
+        <FieldError
+          {...fieldErrorProps}
+          className={cn(
+            "text-klerosUIComponentsError mt-1 text-sm break-words",
+            fieldErrorProps?.className,
+          )}
+        >
+          {fieldErrorProps?.children}
+        </FieldError>
       )}
     </AriaNumberField>
   );
