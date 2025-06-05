@@ -14,6 +14,7 @@ interface ModalProps
   /** classname that applies to the modal overlay. */
   modalOverlayClassname?: ModalOverlayProps["className"];
   children?: DialogProps["children"];
+  ariaLabel?: string;
 }
 
 /** A modal is an overlay element which blocks interaction with elements outside it. */
@@ -21,6 +22,7 @@ function Modal({
   className,
   modalOverlayClassname,
   children,
+  ariaLabel,
   ...props
 }: Readonly<ModalProps>) {
   return (
@@ -36,6 +38,7 @@ function Modal({
     >
       <AriaModal {...props}>
         <Dialog
+          aria-label={ariaLabel ?? "Modal"}
           className={cn(
             "bg-klerosUIComponentsWhiteBackground h-[200px] w-[328px] outline-none",
             "rounded-base box-border",
