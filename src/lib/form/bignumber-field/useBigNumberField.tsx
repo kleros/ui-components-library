@@ -7,6 +7,7 @@ import React, {
   FocusEvent,
   useRef,
   useCallback,
+  useId,
 } from "react";
 import BigNumber from "bignumber.js";
 
@@ -105,9 +106,13 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     isDisabled,
     isReadOnly,
     isWheelDisabled,
-    id,
+    id: propId,
     formatOptions,
   } = props;
+
+  // Generate an ID if one is not provided
+  const generatedId = useId();
+  const id = propId || generatedId;
 
   const formatBigNumber = useCallback(
     (value: BigNumber) =>
@@ -517,7 +522,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
 
   // prevent page scrolling when scrolling inside input
   useEffect(() => {
-    const input = document.getElementById("BigNumberField");
+    const input = document.getElementById(id);
 
     const preventScroll = (e: globalThis.WheelEvent) => {
       if (input && document.activeElement === input) {
@@ -531,11 +536,11 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     return () => {
       input?.removeEventListener("wheel", preventScroll);
     };
-  }, []);
+  }, [id]);
 
   // Handle wheel events
   const handleWheel = (e: WheelEvent<HTMLInputElement>) => {
-    const input = document.getElementById("BigNumberField");
+    const input = document.getElementById(id);
     if (
       isDisabled ||
       isReadOnly ||
