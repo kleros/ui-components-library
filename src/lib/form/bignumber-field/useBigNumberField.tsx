@@ -6,6 +6,7 @@ import React, {
   ChangeEvent,
   FocusEvent,
   useRef,
+  useCallback,
 } from "react";
 import BigNumber from "bignumber.js";
 
@@ -87,18 +88,12 @@ const DEFAULT_FORMAT = {
 };
 
 export function useBigNumberField(props: BigNumberFieldProps) {
-  // Configure BigNumber format
+  // Configure BigNumber exponential
   useEffect(() => {
-    const formatConfig = {
-      ...DEFAULT_FORMAT,
-      ...props.formatOptions,
-    };
-
     BigNumber.config({
       EXPONENTIAL_AT: 1e9,
-      FORMAT: formatConfig,
     });
-  }, [props.formatOptions]);
+  }, []);
 
   const {
     value,
@@ -111,7 +106,14 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     isReadOnly,
     isWheelDisabled,
     id,
+    formatOptions,
   } = props;
+
+  const formatBigNumber = useCallback(
+    (value: BigNumber) =>
+      value.toFormat({ ...DEFAULT_FORMAT, ...formatOptions }),
+    [formatOptions],
+  );
 
   const stepBig = new BigNumber(step.toString()).abs();
   const minBig =
@@ -122,10 +124,10 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   // State for the input value
   const [inputValue, setInputValue] = useState<string>(() => {
     if (value !== undefined) {
-      return new BigNumber(value.toString()).toFormat();
+      return formatBigNumber(new BigNumber(value.toString()));
     }
     if (defaultValue !== undefined) {
-      return new BigNumber(defaultValue.toString()).toFormat();
+      return formatBigNumber(new BigNumber(defaultValue.toString()));
     }
     return "";
   });
@@ -180,7 +182,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
 
     if (numberValue !== null && !isFormatted) {
       formatTimerRef.current = window.setTimeout(() => {
-        setInputValue(numberValue.toFormat());
+        setInputValue(formatBigNumber(numberValue));
         setIsFormatted(true);
         formatTimerRef.current = null;
       }, 3000);
@@ -192,7 +194,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
         formatTimerRef.current = null;
       }
     };
-  }, [numberValue, isFormatted]);
+  }, [numberValue, isFormatted, formatBigNumber]);
 
   // Check if increment/decrement buttons should be disabled
   const canIncrement = (): boolean => {
@@ -427,7 +429,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   const handleBlur = () => {
     if (numberValue !== null) {
       // Format the number using BigNumber.toFormat
-      setInputValue(numberValue.toFormat());
+      setInputValue(formatBigNumber(numberValue));
       setIsFormatted(true);
     } else if (inputValue !== "" && inputValue !== "-") {
       setInputValue("");
