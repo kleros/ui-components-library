@@ -1132,6 +1132,7 @@ __metadata:
     "@storybook/test": "npm:^8.6.4"
     "@tailwindcss/postcss": "npm:^4.0.11"
     "@tailwindcss/vite": "npm:^4.1.4"
+    "@types/lodash": "npm:^4"
     "@types/node": "npm:^22.13.10"
     "@types/react": "npm:^18.0.9"
     "@types/react-dom": "npm:^18.0.3"
@@ -1153,6 +1154,7 @@ __metadata:
     globals: "npm:^16.0.0"
     husky: "npm:^7.0.0"
     lint-staged: "npm:^12.1.2"
+    lodash: "npm:^4.17.21"
     prettier: "npm:^3.5.3"
     prettier-plugin-tailwindcss: "npm:^0.6.11"
     process: "npm:^0.11.10"
@@ -4169,6 +4171,13 @@ __metadata:
   version: 0.0.29
   resolution: "@types/json5@npm:0.0.29"
   checksum: 10c0/6bf5337bc447b706bb5b4431d37686aa2ea6d07cfd6f79cc31de80170d6ff9b1c7384a9c0ccbc45b3f512bae9e9f75c2e12109806a15331dc94e8a8db6dbb4ac
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:^4":
+  version: 4.17.17
+  resolution: "@types/lodash@npm:4.17.17"
+  checksum: 10c0/8e75df02a15f04d4322c5a503e4efd0e7a92470570ce80f17e9f11ce2b1f1a7c994009c9bcff39f07e0f9ffd8ccaff09b3598997c404b801abd5a7eee5a639dc
   languageName: node
   linkType: hard
 

@@ -1,5 +1,4 @@
-import React, { useEffect } from "react";
-import { useListData } from "react-stately";
+import React from "react";
 import {
   Button,
   ListBox,
@@ -13,12 +12,8 @@ import { cn } from "../../utils";
 import DragAndDropIcon from "../../assets/svgs/drag-and-drop.svg";
 import Trash from "../../assets/svgs/trash.svg";
 import clsx from "clsx";
+import { ListItem, useList } from "./useList";
 
-type ListItem = {
-  id: string | number;
-  name: string;
-  value: any;
-};
 interface IDraggableList
   extends Omit<
     ListBoxProps<ListBoxItemProps>,
@@ -53,24 +48,26 @@ function DraggableList({
   deletionDisabled = false,
   ...props
 }: Readonly<IDraggableList>) {
-  const list = useListData({
+  const {
+    items: list,
+    moveAfter,
+    moveBefore,
+    remove,
+    getItem,
+  } = useList({
     initialItems: items,
+    onChange: updateCallback,
   });
-
-  useEffect(() => {
-    if (!updateCallback) return;
-    updateCallback(list.items);
-  }, [list, updateCallback, items]);
 
   const { dragAndDropHooks } = useDragAndDrop({
     getItems: (keys) =>
-      [...keys].map((key) => ({ "text/plain": list.getItem(key)!.name })),
+      [...keys].map((key) => ({ "text/plain": getItem(key)!.name })),
     getAllowedDropOperations: () => ["move"],
     onReorder(e) {
       if (e.target.dropPosition === "before") {
-        list.moveBefore(e.target.key, e.keys);
+        moveBefore(e.target.key, e.keys);
       } else if (e.target.dropPosition === "after") {
-        list.moveAfter(e.target.key, e.keys);
+        moveAfter(e.target.key, e.keys);
       }
     },
     renderDragPreview,
@@ -81,11 +78,11 @@ function DraggableList({
       {...props}
       aria-label={props["aria-label"] ?? "Reorderable list"}
       selectionMode="single"
-      items={list.items}
+      items={list}
       dragAndDropHooks={dragDisabled ? undefined : dragAndDropHooks}
       onSelectionChange={(keys) => {
         const keyArr = Array.from(keys);
-        const selectedItem = list.getItem(keyArr[0]);
+        const selectedItem = getItem(keyArr[0]);
 
         if (selectionCallback && selectedItem) selectionCallback(selectedItem);
       }}
@@ -96,50 +93,54 @@ function DraggableList({
         className,
       )}
     >
-      {(item) => (
-        <ListBoxItem
-          textValue={item.name}
-          className={({ isHovered, isDragging, isSelected }) =>
-            cn(
-              "h-11.25 w-full cursor-pointer border-l-3 border-l-transparent",
-              "flex items-center gap-4 px-4",
-              "focus-visible:outline-klerosUIComponentsPrimaryBlue focus-visible:outline",
-              (isHovered || isSelected) && "bg-klerosUIComponentsMediumBlue",
-              isSelected && "border-l-klerosUIComponentsPrimaryBlue",
-              isDragging && "cursor-grabbing opacity-60",
-            )
-          }
-        >
-          {({ isHovered }) => (
-            <>
-              {dragDisabled ? null : (
-                <DragAndDropIcon className="size-4 cursor-grab" />
-              )}
-              <span className="text-klerosUIComponentsPrimaryText flex-1 text-base">
-                {item.name}
-              </span>
-              {isHovered && !deletionDisabled ? (
-                <Button
-                  className={"cursor-pointer hover:scale-105"}
-                  onPress={() => {
-                    list.remove(item.id);
-                  }}
-                >
-                  {({ isHovered: isButtonHovered }) => (
-                    <Trash
-                      className={clsx(
-                        "ease-ease size-4 transition",
-                        isButtonHovered &&
-                          "[&_path]:fill-klerosUIComponentsPrimaryBlue",
-                      )}
-                    />
-                  )}
-                </Button>
-              ) : null}
-            </>
-          )}
-        </ListBoxItem>
-      )}
+      {list.map((item) => {
+        return (
+          <ListBoxItem
+            id={item.id}
+            key={item.id}
+            textValue={item.name}
+            className={({ isHovered, isDragging, isSelected }) =>
+              cn(
+                "h-11.25 w-full cursor-pointer border-l-3 border-l-transparent",
+                "flex items-center gap-4 px-4",
+                "focus-visible:outline-klerosUIComponentsPrimaryBlue focus-visible:outline",
+                (isHovered || isSelected) && "bg-klerosUIComponentsMediumBlue",
+                isSelected && "border-l-klerosUIComponentsPrimaryBlue",
+                isDragging && "cursor-grabbing opacity-60",
+              )
+            }
+          >
+            {({ isHovered, isSelected }) => (
+              <>
+                {dragDisabled ? null : (
+                  <DragAndDropIcon className="size-4 cursor-grab" />
+                )}
+                <span className="text-klerosUIComponentsPrimaryText flex-1 text-base">
+                  {item.name}
+                </span>
+                {(isHovered || isSelected) && !deletionDisabled ? (
+                  <Button
+                    className={"cursor-pointer hover:scale-105"}
+                    onPress={() => {
+                      remove(item.id);
+                    }}
+                  >
+                    {({ isHovered: isButtonHovered }) => (
+                      <Trash
+                        className={clsx(
+                          "ease-ease size-4 transition",
+                          (isButtonHovered || isSelected) &&
+                            "[&_path]:fill-klerosUIComponentsPrimaryBlue",
+                        )}
+                      />
+                    )}
+                  </Button>
+                ) : null}
+              </>
+            )}
+          </ListBoxItem>
+        );
+      })}
     </ListBox>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useId } from "react";
+import React from "react";
 import SuccessIcon from "../../../assets/svgs/status-icons/success.svg";
 import WarningIcon from "../../../assets/svgs/status-icons/warning.svg";
 import ErrorIcon from "../../../assets/svgs/status-icons/error.svg";
@@ -29,15 +29,10 @@ function BigNumberField({
   placeholder,
   label,
   isDisabled,
-  id: propId,
   isReadOnly,
   name,
   ...props
 }: Readonly<BigNumberFieldComponentProps>) {
-  // Generate an ID if one is not provided
-  const generatedId = useId();
-  const id = propId || generatedId;
-
   // Use our custom hook to get all the props and state
   const {
     inputProps,
@@ -47,7 +42,8 @@ function BigNumberField({
     groupProps,
     descriptionProps,
     errorMessageProps,
-  } = useBigNumberField({ id, isDisabled, placeholder, isReadOnly, ...props });
+    validationResult,
+  } = useBigNumberField({ isDisabled, placeholder, isReadOnly, ...props });
 
   return (
     <div className={cn("flex w-[278px] flex-col", className)}>
@@ -68,6 +64,7 @@ function BigNumberField({
           <>
             <Input
               {...inputProps}
+              aria-errormessage={`BigNumberFieldError-${inputProps.id}`}
               name={name}
               className={cn(
                 "hover-short-transition bg-klerosUIComponentsWhiteBackground size-full",
@@ -83,6 +80,7 @@ function BigNumberField({
                   "border-klerosUIComponentsError": variant === "error",
                   "border-klerosUIComponentsSuccess": variant === "success",
                 },
+                "invalid:border-klerosUIComponentsError",
                 inputProps?.className,
               )}
             />
@@ -180,6 +178,18 @@ function BigNumberField({
           )}
           {message}
         </div>
+      )}
+      {props.showFieldError && validationResult.isInvalid && (
+        <span
+          id={`BigNumberFieldError-${inputProps.id}`}
+          aria-label={validationResult.validationError}
+          className={cn(
+            "text-klerosUIComponentsError mt-1 text-sm break-words",
+            props.fieldErrorClassName,
+          )}
+        >
+          {validationResult.validationError}
+        </span>
       )}
     </div>
   );

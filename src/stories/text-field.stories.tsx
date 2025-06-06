@@ -77,6 +77,7 @@ export const WithDescription: Story = {
   },
 };
 
+/** Make a field required. Optionally you can choose to show the validation error and customize their style. */
 export const Required: Story = {
   args: {
     ...Default.args,
@@ -88,7 +89,25 @@ export const Required: Story = {
         e.preventDefault();
       }}
     >
-      <TextFieldComponent {...args} />
+      <TextFieldComponent
+        {...args}
+        showFieldError
+        validate={(value) => (value === "admin" ? "Nice try!" : null)}
+        fieldErrorProps={{
+          children: ({ validationErrors }) => (
+            <ul>
+              {validationErrors.map((error) => (
+                <li
+                  key={error}
+                  className="text-klerosUIComponentsError text-sm"
+                >
+                  {error}
+                </li>
+              ))}
+            </ul>
+          ),
+        }}
+      />
       <Button
         variant="primary"
         type="submit"

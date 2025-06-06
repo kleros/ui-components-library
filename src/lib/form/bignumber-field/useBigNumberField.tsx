@@ -6,6 +6,8 @@ import React, {
   ChangeEvent,
   FocusEvent,
   useRef,
+  useCallback,
+  useId,
 } from "react";
 import BigNumber from "bignumber.js";
 
@@ -63,6 +65,15 @@ export interface BigNumberFieldProps {
   formatOptions?: FormatOptions;
   /** Additional props for the input element. */
   inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  /** A function that returns an error message if a given value is invalid.
+   * Return a string to denote invalid.*/
+  validate?: (value: BigNumber | null) => true | null | undefined | string;
+  /** Flag to enable field errors, alternative to `message`
+   * This will show the validation errors from browser, or custom error in case `validate` is setup on Field.
+   */
+  showFieldError?: boolean;
+  /** ClassName for field error message. */
+  fieldErrorClassName?: string;
 }
 
 // Default format configuration
@@ -78,18 +89,12 @@ const DEFAULT_FORMAT = {
 };
 
 export function useBigNumberField(props: BigNumberFieldProps) {
-  // Configure BigNumber format
+  // Configure BigNumber exponential
   useEffect(() => {
-    const formatConfig = {
-      ...DEFAULT_FORMAT,
-      ...props.formatOptions,
-    };
-
     BigNumber.config({
       EXPONENTIAL_AT: 1e9,
-      FORMAT: formatConfig,
     });
-  }, [props.formatOptions]);
+  }, []);
 
   const {
     value,
@@ -101,8 +106,19 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     isDisabled,
     isReadOnly,
     isWheelDisabled,
-    id,
+    id: propId,
+    formatOptions,
   } = props;
+
+  // Generate an ID if one is not provided
+  const generatedId = useId();
+  const id = propId || generatedId;
+
+  const formatBigNumber = useCallback(
+    (value: BigNumber) =>
+      value.toFormat({ ...DEFAULT_FORMAT, ...formatOptions }),
+    [formatOptions],
+  );
 
   const stepBig = new BigNumber(step.toString()).abs();
   const minBig =
@@ -113,16 +129,22 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   // State for the input value
   const [inputValue, setInputValue] = useState<string>(() => {
     if (value !== undefined) {
-      return new BigNumber(value.toString()).toFormat();
+      return formatBigNumber(new BigNumber(value.toString()));
     }
     if (defaultValue !== undefined) {
-      return new BigNumber(defaultValue.toString()).toFormat();
+      return formatBigNumber(new BigNumber(defaultValue.toString()));
     }
     return "";
   });
 
   // State to track if the input is currently formatted
   const [isFormatted, setIsFormatted] = useState<boolean>(false);
+
+  // State to track input's validation
+  const [validationResult, setValidationResult] = useState<{
+    isInvalid: boolean;
+    validationError?: string;
+  }>({ isInvalid: false });
 
   // State for the numeric value
   const [numberValue, setNumberValue] = useState<BigNumber | null>(() => {
@@ -165,7 +187,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
 
     if (numberValue !== null && !isFormatted) {
       formatTimerRef.current = window.setTimeout(() => {
-        setInputValue(numberValue.toFormat());
+        setInputValue(formatBigNumber(numberValue));
         setIsFormatted(true);
         formatTimerRef.current = null;
       }, 3000);
@@ -177,7 +199,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
         formatTimerRef.current = null;
       }
     };
-  }, [numberValue, isFormatted]);
+  }, [numberValue, isFormatted, formatBigNumber]);
 
   // Check if increment/decrement buttons should be disabled
   const canIncrement = (): boolean => {
@@ -231,6 +253,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     setInputValue(newValue.toString());
     setIsFormatted(false);
     onChange?.(newValue);
+    setValidationResult(getValidationResult(newValue));
   };
 
   const decrement = () => {
@@ -252,6 +275,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     setInputValue(newValue.toString());
     setIsFormatted(false);
     onChange?.(newValue);
+    setValidationResult(getValidationResult(newValue));
   };
 
   // Helper function to escape special characters in regex
@@ -410,11 +434,13 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   const handleBlur = () => {
     if (numberValue !== null) {
       // Format the number using BigNumber.toFormat
-      setInputValue(numberValue.toFormat());
+      setInputValue(formatBigNumber(numberValue));
       setIsFormatted(true);
     } else if (inputValue !== "" && inputValue !== "-") {
       setInputValue("");
     }
+
+    setValidationResult(getValidationResult());
   };
 
   // Handle keyboard events
@@ -494,9 +520,35 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     e.preventDefault();
   };
 
+  // prevent page scrolling when scrolling inside input
+  useEffect(() => {
+    const input = document.getElementById(id);
+
+    const preventScroll = (e: globalThis.WheelEvent) => {
+      if (input && document.activeElement === input) {
+        // Stop page scroll
+        e.preventDefault();
+      }
+    };
+
+    input?.addEventListener("wheel", preventScroll, { passive: false });
+
+    return () => {
+      input?.removeEventListener("wheel", preventScroll);
+    };
+  }, [id]);
+
   // Handle wheel events
   const handleWheel = (e: WheelEvent<HTMLInputElement>) => {
-    if (isDisabled || isReadOnly || isWheelDisabled) return;
+    const input = document.getElementById(id);
+    if (
+      isDisabled ||
+      isReadOnly ||
+      isWheelDisabled ||
+      // only scroll if input is in focus
+      document.activeElement !== input
+    )
+      return;
 
     // If on a trackpad, users can scroll in both X and Y at once, check the magnitude of the change
     // if it's mostly in the X direction, then just return, the user probably doesn't mean to inc/dec
@@ -552,6 +604,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
       readOnly: isReadOnly,
       required: props.isRequired,
       placeholder: props.placeholder,
+      "aria-invalid": validationResult?.isInvalid,
       ...getAriaAttributes(),
       ...props.inputProps,
     });
@@ -560,6 +613,32 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   const getLabelProps = () => ({
     htmlFor: id,
   });
+
+  // Field Error Render props
+  const getValidationResult = (value?: BigNumber) => {
+    const fieldErrorProps = {
+      isInvalid: false,
+      validationError: "",
+    };
+
+    if (
+      props.isRequired &&
+      (value ? value.toString() : inputValue).trim() === ""
+    ) {
+      fieldErrorProps.isInvalid = true;
+      fieldErrorProps.validationError = "Please fill out this field.";
+    }
+
+    const validate = props.validate;
+    if (validate) {
+      const result = validate(value ?? numberValue);
+      if (typeof result === "string") {
+        fieldErrorProps.isInvalid = true;
+        fieldErrorProps.validationError = result;
+      }
+    }
+    return fieldErrorProps;
+  };
 
   // Increment button props
   const getIncrementButtonProps = () => ({
@@ -603,6 +682,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     groupProps: getGroupProps(),
     descriptionProps: getDescriptionProps(),
     errorMessageProps: getErrorMessageProps(),
+    validationResult,
     inputValue,
     numberValue,
     canIncrement: canIncrement(),

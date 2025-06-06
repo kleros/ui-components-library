@@ -12,6 +12,8 @@ import {
   type TextFieldProps,
   type TextAreaProps as AriaTextAreaProps,
   Text,
+  type FieldErrorProps,
+  FieldError,
 } from "react-aria-components";
 import { cn } from "../../utils";
 
@@ -28,6 +30,14 @@ interface TextAreaProps extends TextFieldProps {
   resizeX?: boolean;
   /** Allow resizing along y-axis */
   resizeY?: boolean;
+  /** Flag to enable field errors, alternative to `message`
+   * This will show the validation errors from browser, or custom error in case `validate` is setup on Field.
+   */
+  showFieldError?: boolean;
+  /** Props for FieldError in case `showFieldError` is true.
+   * [See FieldErrorProps](https://react-spectrum.adobe.com/react-aria/TextField.html#fielderror)
+   */
+  fieldErrorProps?: FieldErrorProps;
 }
 
 /** TextArea components supports multiline input and can be configured to resize. */
@@ -39,6 +49,8 @@ function TextArea({
   placeholder,
   resizeX = false,
   resizeY = false,
+  showFieldError,
+  fieldErrorProps,
   ...props
 }: Readonly<TextAreaProps>) {
   return (
@@ -100,6 +112,17 @@ function TextArea({
           )}
           {message}
         </Text>
+      )}
+      {showFieldError && (
+        <FieldError
+          {...fieldErrorProps}
+          className={cn(
+            "text-klerosUIComponentsError mt-1 text-sm break-words",
+            fieldErrorProps?.className,
+          )}
+        >
+          {fieldErrorProps?.children}
+        </FieldError>
       )}
     </TextField>
   );

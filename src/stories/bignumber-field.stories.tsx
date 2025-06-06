@@ -1,8 +1,10 @@
+import React from "react";
 import { Meta, StoryObj } from "@storybook/react";
 import BigNumberField from "../lib/form/bignumber-field";
 import Telegram from "../assets/svgs/telegram.svg";
 import BigNumber from "bignumber.js";
 import { IPreviewArgs } from "./utils";
+import { Button, Form } from "../lib";
 
 const meta: Meta<typeof BigNumberField> = {
   title: "Form/BigNumberField",
@@ -182,4 +184,34 @@ export const ReadOnly: Story = {
     isReadOnly: true,
     defaultValue: "42",
   },
+};
+
+/** Make a field required. Optionally you can choose to show the validation error and customize their style. */
+export const Required: Story = {
+  args: {
+    ...Default.args,
+    isRequired: true,
+  },
+  render: (args) => (
+    <Form
+      onSubmit={(e) => {
+        e.preventDefault();
+      }}
+    >
+      <BigNumberField
+        {...args}
+        placeholder="Enter '0'"
+        showFieldError
+        validate={(value) => (value?.eq(0) ? "Zero not allowed" : null)}
+      />
+      <Button
+        variant="primary"
+        type="submit"
+        aria-pressed="true"
+        text="Click me!"
+        small
+        className="mt-4"
+      />
+    </Form>
+  ),
 };
