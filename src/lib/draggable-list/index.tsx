@@ -98,7 +98,7 @@ function DraggableList({
         className,
       )}
     >
-      {items.map((item) => {
+      {list.map((item) => {
         return (
           <ListBoxItem
             id={item.id}
@@ -123,7 +123,7 @@ function DraggableList({
                 <span className="text-klerosUIComponentsPrimaryText flex-1 text-base">
                   {item.name}
                 </span>
-                {isHovered && !deletionDisabled ? (
+                {(isHovered || isSelected) && !deletionDisabled ? (
                   <Button
                     className={"cursor-pointer hover:scale-105"}
                     onPress={() => {
