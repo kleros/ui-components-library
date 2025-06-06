@@ -513,9 +513,35 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     e.preventDefault();
   };
 
+  // prevent page scrolling when scrolling inside input
+  useEffect(() => {
+    const input = document.getElementById("BigNumberField");
+
+    const preventScroll = (e: globalThis.WheelEvent) => {
+      if (input && document.activeElement === input) {
+        // Stop page scroll
+        e.preventDefault();
+      }
+    };
+
+    input?.addEventListener("wheel", preventScroll, { passive: false });
+
+    return () => {
+      input?.removeEventListener("wheel", preventScroll);
+    };
+  }, []);
+
   // Handle wheel events
   const handleWheel = (e: WheelEvent<HTMLInputElement>) => {
-    if (isDisabled || isReadOnly || isWheelDisabled) return;
+    const input = document.getElementById("BigNumberField");
+    if (
+      isDisabled ||
+      isReadOnly ||
+      isWheelDisabled ||
+      // only scroll if input is in focus
+      document.activeElement !== input
+    )
+      return;
 
     // If on a trackpad, users can scroll in both X and Y at once, check the magnitude of the change
     // if it's mostly in the X direction, then just return, the user probably doesn't mean to inc/dec
