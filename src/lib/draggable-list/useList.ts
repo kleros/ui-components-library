@@ -17,21 +17,14 @@ interface UseListOptions {
 export function useList({ initialItems, onChange }: UseListOptions) {
   const [items, setItems] = useState<ListItem[]>(initialItems);
 
+  // track updates to initialItems
   useEffect(() => {
-    // preventing callback loop, we cannot rely on useEffect dependency since that does not utilize deep comparison
-    if (_.isEqual(initialItems, items)) return;
-
-    setItems(initialItems);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setItems((prevItems) => {
+      // preventing callback loop
+      if (_.isEqual(initialItems, prevItems)) return prevItems;
+      return initialItems;
+    });
   }, [initialItems]);
-
-  const updateItems = useCallback(
-    (newItems: ListItem[]) => {
-      setItems(newItems);
-      onChange?.(newItems);
-    },
-    [onChange],
-  );
 
   const itemsMap = useMemo(() => {
     const map = new Map<Key, ListItem>();
@@ -45,46 +38,59 @@ export function useList({ initialItems, onChange }: UseListOptions) {
 
   const remove = useCallback(
     (key: Key) => {
-      updateItems(items.filter((item) => key !== item.id));
+      // updateItems(items.filter((item) => key !== item.id));
+      setItems((prevItems) => {
+        const newItems = prevItems.filter((item) => key !== item.id);
+        onChange?.(newItems);
+        return newItems;
+      });
     },
-    [items, updateItems],
+    [onChange],
   );
 
   const moveBefore = useCallback(
     (targetKey: Key, keys: Iterable<Key>) => {
-      const key = Array.from(keys)[0];
-      if (key === targetKey) return;
+      setItems((prevItems) => {
+        const key = Array.from(keys)[0];
+        if (key === targetKey) return prevItems;
 
-      const indexFrom = items.findIndex((item) => item.id === key);
-      const indexTo = items.findIndex((item) => item.id === targetKey);
-      if (indexFrom === -1 || indexTo === -1) return;
+        const indexFrom = prevItems.findIndex((item) => item.id === key);
+        const indexTo = prevItems.findIndex((item) => item.id === targetKey);
+        if (indexFrom === -1 || indexTo === -1) return prevItems;
 
-      const reordered = [...items];
-      const [movedItem] = reordered.splice(indexFrom, 1);
-      reordered.splice(indexTo, 0, movedItem);
-      updateItems(reordered);
+        const reordered = [...prevItems];
+        const [movedItem] = reordered.splice(indexFrom, 1);
+        reordered.splice(indexTo, 0, movedItem);
+        onChange?.(reordered);
+
+        return reordered;
+      });
     },
-    [items, updateItems],
+    [onChange],
   );
 
   const moveAfter = useCallback(
     (targetKey: Key, keys: Iterable<Key>) => {
-      const key = Array.from(keys)[0];
-      if (key === targetKey) return;
+      setItems((prevItems) => {
+        const key = Array.from(keys)[0];
+        if (key === targetKey) return prevItems;
 
-      const indexFrom = items.findIndex((item) => item.id === key);
-      const indexTo = items.findIndex((item) => item.id === targetKey);
-      if (indexFrom === -1 || indexTo === -1) return;
+        const indexFrom = prevItems.findIndex((item) => item.id === key);
+        const indexTo = prevItems.findIndex((item) => item.id === targetKey);
+        if (indexFrom === -1 || indexTo === -1) return prevItems;
 
-      const reordered = [...items];
-      const [movedItem] = reordered.splice(indexFrom, 1);
+        const reordered = [...prevItems];
+        const [movedItem] = reordered.splice(indexFrom, 1);
 
-      // Adjust if removing item before target index
-      const insertIndex = indexFrom < indexTo ? indexTo : indexTo + 1;
-      reordered.splice(insertIndex, 0, movedItem);
-      updateItems(reordered);
+        // Adjust if removing item before target index
+        const insertIndex = indexFrom < indexTo ? indexTo : indexTo + 1;
+        reordered.splice(insertIndex, 0, movedItem);
+        onChange?.(reordered);
+
+        return reordered;
+      });
     },
-    [items, updateItems],
+    [onChange],
   );
 
   return {

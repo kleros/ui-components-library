@@ -12,13 +12,8 @@ import { cn } from "../../utils";
 import DragAndDropIcon from "../../assets/svgs/drag-and-drop.svg";
 import Trash from "../../assets/svgs/trash.svg";
 import clsx from "clsx";
-import { useList } from "./useList";
+import { ListItem, useList } from "./useList";
 
-type ListItem = {
-  id: string | number;
-  name: string;
-  value: any;
-};
 interface IDraggableList
   extends Omit<
     ListBoxProps<ListBoxItemProps>,

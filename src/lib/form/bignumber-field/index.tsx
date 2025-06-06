@@ -64,7 +64,7 @@ function BigNumberField({
           <>
             <Input
               {...inputProps}
-              aria-errormessage="BigNumberFieldError"
+              aria-errormessage={`BigNumberFieldError-${inputProps.id}`}
               name={name}
               className={cn(
                 "hover-short-transition bg-klerosUIComponentsWhiteBackground size-full",
@@ -181,7 +181,7 @@ function BigNumberField({
       )}
       {props.showFieldError && validationResult.isInvalid && (
         <span
-          id="BigNumberFieldError"
+          id={`BigNumberFieldError-${inputProps.id}`}
           aria-label={validationResult.validationError}
           className={cn(
             "text-klerosUIComponentsError mt-1 text-sm break-words",

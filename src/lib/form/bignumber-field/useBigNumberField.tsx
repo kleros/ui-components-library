@@ -632,7 +632,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     const validate = props.validate;
     if (validate) {
       const result = validate(value ?? numberValue);
-      if (typeof result === `string`) {
+      if (typeof result === "string") {
         fieldErrorProps.isInvalid = true;
         fieldErrorProps.validationError = result;
       }

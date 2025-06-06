@@ -5,6 +5,7 @@ import { IPreviewArgs } from "./utils";
 
 import DraggableList from "../lib/draggable-list";
 import { Button } from "../lib";
+import { ListItem } from "../lib/draggable-list/useList";
 
 const meta = {
   component: DraggableList,
@@ -35,7 +36,7 @@ export const Default: Story = {
     ],
   },
   render: function Render(args) {
-    const [items, setItems] = useState([
+    const [items, setItems] = useState<ListItem[]>([
       { id: 1, name: "Illustrator", value: "" },
       { id: 2, name: "Premiere", value: "" },
       { id: 3, name: "Acrobat", value: "" },
@@ -49,7 +50,11 @@ export const Default: Story = {
     };
     return (
       <div>
-        <DraggableList {...args} items={items} />
+        <DraggableList
+          {...args}
+          items={items}
+          updateCallback={(items) => setItems(items)}
+        />
         <Button onPress={addItem} text="Add Item" className="mt-4" />
       </div>
     );
