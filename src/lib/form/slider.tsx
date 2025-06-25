@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "../../utils";
+import { cn, isUndefined } from "../../utils";
 import {
   Slider as AriaSlider,
   Label,
@@ -17,6 +17,13 @@ interface SliderProps
   formatter?: (value: number) => string;
   /** Callback function that provides the selected value as an argument. */
   callback: (value: number) => void;
+  /** Override default theme of Slider */
+  theme?: {
+    sliderColor: string;
+    trackColor: string;
+    thumbColor: string;
+    labelColor: string;
+  };
 }
 
 /** Slider allows a user to select a value within a range. */
@@ -25,8 +32,10 @@ function Slider({
   rightLabel,
   formatter,
   callback,
+  theme,
   ...props
 }: Readonly<SliderProps>) {
+  const { sliderColor, thumbColor, labelColor, trackColor } = theme ?? {};
   return (
     <AriaSlider
       className={cn("mt-4 box-border w-125")}
@@ -39,37 +48,57 @@ function Slider({
             <Label className="hidden">{state.getThumbValue(0)}</Label>
             {/* track */}
             <div
+              id="slider-track"
               className={cn(
-                "bg-klerosUIComponentsStroke absolute top-1/2 -translate-y-1/2",
+                "absolute top-1/2 -translate-y-1/2",
                 "h-2 w-full cursor-pointer rounded-[30px]",
                 isDisabled && "cursor-default",
               )}
+              style={{
+                backgroundColor:
+                  trackColor ?? "var(--klerosUIComponentsStroke)",
+              }}
             />
             {/* fill */}
             <div
+              id="slider-fill"
               className={cn(
-                "bg-klerosUIComponentsPrimaryBlue absolute top-1/2 h-2 -translate-y-1/2",
+                "absolute top-1/2 h-2 -translate-y-1/2",
                 "cursor-pointer rounded-[30px]",
                 isDisabled &&
                   "bg-klerosUIComponentsSecondaryText cursor-default",
               )}
-              style={{ width: state.getThumbPercent(0) * 100 + "%" }}
+              style={{
+                width: state.getThumbPercent(0) * 100 + "%",
+                backgroundColor:
+                  sliderColor ?? "var(--klerosUIComponentsPrimaryBlue)",
+              }}
             />
             <SliderThumb
+              id="slider-thumb"
               className={cn(
                 "dragging:bg-klerosUIComponentsLightBlue bg-klerosUIComponentsWhiteBackground relative top-1/2 size-6",
-                "border-klerosUIComponentsPrimaryBlue rounded-full border-3 border-solid",
-                "dragging:shadow-input cursor-pointer outline-hidden transition",
+                "rounded-full border-3 border-solid",
+                "cursor-pointer outline-hidden transition",
                 isDisabled &&
                   "border-klerosUIComponentsSecondaryText cursor-default",
+                isUndefined(thumbColor) && "dragging:shadow-input",
               )}
+              style={{
+                borderColor:
+                  thumbColor ?? "var(--klerosUIComponentsPrimaryBlue)",
+              }}
             >
               <Label
+                id="slider-label"
                 className={cn(
                   "absolute -top-7 left-1/2 w-max -translate-x-1/2",
-                  "text-klerosUIComponentsPrimaryBlue text-sm",
+                  "text-sm",
                   isDisabled && "hidden",
                 )}
+                style={{
+                  color: labelColor ?? "var(--klerosUIComponentsPrimaryBlue)",
+                }}
               >
                 {formatter ? (
                   formatter(state.getThumbValue(0))
@@ -84,6 +113,7 @@ function Slider({
       <div className="mt-2 flex w-full items-center justify-between">
         {leftLabel && (
           <Label
+            id="slider-left-label"
             className="text-klerosUIComponentsPrimaryText text-sm break-words"
             aria-label="min-label"
           >
@@ -92,6 +122,7 @@ function Slider({
         )}
         {rightLabel && (
           <Label
+            id="slider-right-label"
             className="text-klerosUIComponentsPrimaryText text-sm break-words"
             aria-label="max-label"
           >
