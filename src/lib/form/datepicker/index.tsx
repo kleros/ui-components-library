@@ -61,15 +61,20 @@ function DatePicker({
 
           <Popover
             className={clsx(
-              "bg-klerosUIComponentsWhiteBackground shadow-default rounded-base overflow-y-scroll",
+              "bg-klerosUIComponentsWhiteBackground shadow-default rounded-base overflow-scroll",
               "border-klerosUIComponentsStroke ease-ease scrollbar border transition",
               time ? "w-82.5 lg:w-112.5" : "w-82.5",
               popoverClassName,
             )}
           >
             <Dialog className="flex size-full flex-wrap">
-              <Calendar />
-              {time && <TimeControl {...{ minValue }} />}
+              <div
+                className={clsx("flex", time ? "w-82.5 lg:w-112.5" : "w-82.5")}
+              >
+                <Calendar />
+                {time && <TimeControl {...{ minValue }} />}
+              </div>
+
               <div
                 className={clsx(
                   "flex h-16 w-full items-center justify-between px-4",
