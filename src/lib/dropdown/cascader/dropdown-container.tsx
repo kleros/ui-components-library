@@ -19,6 +19,7 @@ interface IDropdownContainer
     "disabledKeys" | "defaultSelectedKey" | "items" | "callback"
   > {
   isOpen?: boolean;
+  className?: string;
 }
 
 const DropdownContainer: React.FC<IDropdownContainer> = ({
@@ -27,6 +28,7 @@ const DropdownContainer: React.FC<IDropdownContainer> = ({
   disabledKeys,
   defaultSelectedKey,
   callback,
+  className,
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const [selectedKey, setSelectedKey] = useState<Key | null>(
@@ -78,17 +80,19 @@ const DropdownContainer: React.FC<IDropdownContainer> = ({
 
   return (
     <Popover
-      className={clsx(
+      className={cn(
         "bg-klerosUIComponentsWhiteBackground rounded-base border-klerosUIComponentsStroke box-border border",
         "shadow-default focus-visible:outline-klerosUIComponentsPrimaryBlue overflow-hidden",
         "w-60 origin-top transform transition lg:w-max lg:max-w-6xl",
         isOpen
           ? "entering:animate-scale-in scale-y-100"
           : "exiting:animate-scale-out scale-y-0",
+        className,
       )}
     >
       <Dialog aria-label="dropdown-dialog">
         <Tree
+          id="dropdown-tree"
           ref={gridRef}
           autoFocus="first"
           items={items}

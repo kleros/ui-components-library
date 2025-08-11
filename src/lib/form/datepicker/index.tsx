@@ -25,6 +25,7 @@ interface DatePickerProps
   /** Show time selection if true. */
   time?: boolean;
   label?: string;
+  popoverClassName?: string;
 }
 
 /** A date picker allow users to enter or select a date and time value. */
@@ -34,6 +35,7 @@ function DatePicker({
   minValue,
   defaultValue = now(getLocalTimeZone()),
   shouldCloseOnSelect = false,
+  popoverClassName,
   ...props
 }: Readonly<DatePickerProps>) {
   return (
@@ -62,6 +64,7 @@ function DatePicker({
               "bg-klerosUIComponentsWhiteBackground shadow-default rounded-base overflow-y-scroll",
               "border-klerosUIComponentsStroke ease-ease scrollbar border transition",
               time ? "w-82.5 lg:w-112.5" : "w-82.5",
+              popoverClassName,
             )}
           >
             <Dialog className="flex size-full flex-wrap">
