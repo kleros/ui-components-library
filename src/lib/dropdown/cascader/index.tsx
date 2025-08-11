@@ -16,6 +16,7 @@ export interface IDropdownCascader extends AriaSelectProps {
   /** Callback function passes the Item object as argument. */
   callback: (item: IItem) => void;
   label?: string;
+  dropdownClassName?: string;
 }
 
 /** A Dropdown Cascader provides users with a way to navigate nested hierarchical information,
@@ -29,6 +30,7 @@ function DropdownCascader({
   disabledKeys,
   selectedKey,
   defaultSelectedKey,
+  dropdownClassName,
   ...props
 }: Readonly<IDropdownCascader>) {
   return (
@@ -56,6 +58,7 @@ function DropdownCascader({
               defaultSelectedKey: selectedKey ?? defaultSelectedKey,
               disabledKeys,
               callback,
+              className: dropdownClassName,
             }}
           />
         </>

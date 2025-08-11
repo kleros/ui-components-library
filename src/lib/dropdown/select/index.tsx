@@ -21,6 +21,7 @@ interface SelectProps extends AriaSelectProps {
   /** When `simpleButton` is `true`, this scales down the dropdown button size. */
   smallButton?: boolean;
   label?: string;
+  dropdownClassName?: string;
 }
 
 /** A select displays a collapsible list of options and allows a user to select one of them. */
@@ -32,6 +33,7 @@ function DropdownSelect({
   callback,
   placeholder,
   className,
+  dropdownClassName,
   ...props
 }: Readonly<SelectProps>) {
   const handleSelection = useCallback(
@@ -64,7 +66,9 @@ function DropdownSelect({
             <DropdownButton {...{ placeholder }} />
           )}
           <FieldError className="text-klerosUIComponentsError text-sm" />
-          <DropdownContainer {...{ isOpen, items }} />
+          <DropdownContainer
+            {...{ isOpen, items, className: dropdownClassName }}
+          />
         </>
       )}
     </AriaSelect>

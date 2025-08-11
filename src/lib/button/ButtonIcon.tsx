@@ -6,9 +6,17 @@ const ButtonIcon: React.FC<
   Pick<ButtonProps, "Icon" | "icon" | "isDisabled" | "isLoading" | "variant">
 > = ({ Icon, icon, isDisabled, isLoading, variant }) => {
   const isSecondary = variant === "secondary";
-  return (
-    icon ??
-    (Icon && (
+  return icon ? (
+    isLoading ? (
+      <span
+        className={cn("button-svg", "mr-2 size-4", "invisible")}
+        aria-hidden
+      />
+    ) : (
+      icon
+    )
+  ) : (
+    Icon && (
       <Icon
         className={cn(
           "button-svg",
@@ -19,7 +27,7 @@ const ButtonIcon: React.FC<
           isDisabled && ["fill-klerosUIComponentsStroke"],
         )}
       />
-    ))
+    )
   );
 };
 export default ButtonIcon;

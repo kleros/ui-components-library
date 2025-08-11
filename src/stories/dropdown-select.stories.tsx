@@ -6,6 +6,7 @@ import { IPreviewArgs } from "./utils";
 import SelectComponent from "../lib/dropdown/select";
 import { Form } from "react-aria-components";
 import { Button } from "../lib";
+import Telegram from "../assets/svgs/telegram.svg";
 
 const meta = {
   component: SelectComponent,
@@ -108,4 +109,45 @@ export const RequiredSelect: Story = {
       />
     </Form>
   ),
+};
+
+export const CustomItemIcon: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    items: [
+      {
+        text: "hello 1",
+        itemValue: 1,
+        id: 1,
+        icon: <Telegram className="mr-2 size-4 fill-white" />,
+      },
+      {
+        text: "hello 2",
+        itemValue: 2,
+        id: 2,
+        icon: <Telegram className="mr-2 size-4 fill-white" />,
+      },
+      {
+        text: "hello 3",
+        itemValue: 3,
+        id: 3,
+        icon: <Telegram className="mr-2 size-4 fill-white" />,
+      },
+      {
+        text: "hello 4",
+        itemValue: 4,
+        id: 4,
+        icon: <Telegram className="mr-2 size-4 fill-white" />,
+      },
+      {
+        text: "hello 5",
+        itemValue: 5,
+        id: 5,
+        icon: <Telegram className="mr-2 size-4 fill-white" />,
+      },
+    ],
+    placeholder: "Select a value",
+    callback: () => {},
+  },
 };
