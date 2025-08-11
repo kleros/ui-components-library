@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import UploadIcon from "../../assets/svgs/form/upload-icon.svg";
 import SuccessIcon from "../../assets/svgs/status-icons/success.svg";
 import ErrorIcon from "../../assets/svgs/status-icons/error.svg";
@@ -48,6 +48,10 @@ function FileUploader({
     selectedFile,
   );
 
+  useEffect(() => {
+    setFileSelected(selectedFile);
+  }, [selectedFile]);
+
   return (
     <div className={cn("box-border h-fit w-50", className)}>
       <DropZone
@@ -81,7 +85,8 @@ function FileUploader({
             const file = await item.getFile();
             const validated = validationFunction?.(file) ?? true;
             if (!validated) return;
-            setFileSelected(file);
+            if (selectedFile === undefined) setFileSelected(file);
+
             callback(file);
           }
         }}
@@ -94,7 +99,7 @@ function FileUploader({
               const file = e[0];
               const validated = validationFunction?.(file) ?? true;
               if (!validated) return;
-              setFileSelected(file);
+              if (selectedFile === undefined) setFileSelected(file);
               callback(file);
             }
           }}

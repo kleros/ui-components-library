@@ -44,7 +44,10 @@ function Tooltip({
   return (
     <TooltipTrigger {...{ delay }} {...props}>
       <Focusable>
-        <div {...props.wrapperProps} role="button">
+        <div
+          {...props.wrapperProps}
+          role={props?.wrapperProps?.role ?? "button"}
+        >
           {children}
         </div>
       </Focusable>
