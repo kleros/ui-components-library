@@ -30,9 +30,7 @@ const DropdownContainer: React.FC<{
             "cols-[repeat(auto-fill,_minmax(0,_45px))] grid grow py-4",
           )}
         >
-          <Collection items={items}>
-            {(item) => <Item className="listbox-item" {...item} />}
-          </Collection>
+          <Collection items={items}>{(item) => <Item {...item} />}</Collection>
         </ListBox>
       </Scrollbar>
     </Popover>
