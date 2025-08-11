@@ -64,3 +64,35 @@ export const FileUploaderWithAcceptedTypes: Story = {
     variant: "info",
   },
 };
+
+export const FileUploaderWithCustomValidation: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    className: "w-[500px]",
+    callback: () => {},
+    acceptedFileTypes: ["image/png"],
+    msg: "This will not accept any file and invalidate",
+    variant: "info",
+    validationFunction: () => {
+      return false;
+    },
+  },
+};
+
+export const FileUploaderWithControlledBehaviour: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    className: "w-[500px]",
+    callback: () => {},
+    acceptedFileTypes: ["image/png"],
+    msg: "This will show test.txt selected by default",
+    variant: "info",
+    selectedFile: new File(
+      ["hello world"], // file contents
+      "test.txt", // file name
+      { type: "text/plain" }, // MIME type
+    ),
+  },
+};

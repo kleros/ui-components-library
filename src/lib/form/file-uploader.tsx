@@ -25,6 +25,10 @@ interface FileUploaderProps {
   /** Whether the drop target is disabled. If true, the drop target will not accept any drops.   */
   isDisabled?: boolean;
   className?: string;
+  /** Provide a custom validation function, returning false invalidates the file */
+  validationFunction?: (file?: File) => boolean;
+  /** Provide File for controlled behaviour */
+  selectedFile?: File;
 }
 
 /** Allows to upload a file by either dropping it on the dropzone or
@@ -37,8 +41,12 @@ function FileUploader({
   acceptedFileTypes,
   fileTriggerProps,
   isDisabled = false,
+  validationFunction,
+  selectedFile,
 }: Readonly<FileUploaderProps>) {
-  const [fileSelected, setFileSelected] = useState<File>();
+  const [fileSelected, setFileSelected] = useState<File | undefined>(
+    selectedFile,
+  );
 
   return (
     <div className={cn("box-border h-fit w-50", className)}>
@@ -71,6 +79,8 @@ function FileUploader({
 
           if (item) {
             const file = await item.getFile();
+            const validated = validationFunction?.(file) ?? true;
+            if (!validated) return;
             setFileSelected(file);
             callback(file);
           }
@@ -82,6 +92,8 @@ function FileUploader({
           onSelect={(e) => {
             if (e) {
               const file = e[0];
+              const validated = validationFunction?.(file) ?? true;
+              if (!validated) return;
               setFileSelected(file);
               callback(file);
             }
@@ -109,7 +121,7 @@ function FileUploader({
         </FileTrigger>
       </DropZone>
       {msg && (
-        <div className="mt-4 flex items-start">
+        <div className="mt-4 flex items-center">
           {variant === "success" && (
             <SuccessIcon className="fill-klerosUIComponentsSuccess mr-2 max-w-4 min-w-4" />
           )}
