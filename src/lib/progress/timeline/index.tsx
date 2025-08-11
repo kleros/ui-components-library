@@ -10,7 +10,7 @@ export interface TimelineItem extends SideProp, VariantProp {
 }
 
 export interface TimelineProps {
-  items: [TimelineItem, ...TimelineItem[]];
+  items: TimelineItem[];
   className?: string;
 }
 
