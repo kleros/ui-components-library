@@ -44,7 +44,9 @@ function Tooltip({
   return (
     <TooltipTrigger {...{ delay }} {...props}>
       <Focusable>
-        <div {...props.wrapperProps}>{children}</div>
+        <div {...props.wrapperProps} role="button">
+          {children}
+        </div>
       </Focusable>
       <AriaTooltip
         offset={props.tooltipProps?.offset ?? 8}
