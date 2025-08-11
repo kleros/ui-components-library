@@ -17,6 +17,8 @@ interface BigNumberFieldComponentProps extends BigNumberFieldProps {
   className?: string;
   /** The name of the input element, used when submitting an HTML form.*/
   name?: string;
+  inputRef?: React.Ref<HTMLInputElement>;
+  buttonRef?: React.Ref<HTMLButtonElement>;
 }
 
 /** A number field that handles big numbers.
@@ -31,6 +33,8 @@ function BigNumberField({
   isDisabled,
   isReadOnly,
   name,
+  inputRef,
+  buttonRef,
   ...props
 }: Readonly<BigNumberFieldComponentProps>) {
   // Use our custom hook to get all the props and state
@@ -44,7 +48,6 @@ function BigNumberField({
     errorMessageProps,
     validationResult,
   } = useBigNumberField({ isDisabled, placeholder, isReadOnly, ...props });
-
   return (
     <div className={cn("flex w-[278px] flex-col", className)}>
       {label && (
@@ -64,6 +67,7 @@ function BigNumberField({
           <>
             <Input
               {...inputProps}
+              ref={inputRef}
               aria-errormessage={`BigNumberFieldError-${inputProps.id}`}
               name={name}
               className={cn(
@@ -98,6 +102,7 @@ function BigNumberField({
             >
               <Button
                 {...incrementButtonProps}
+                ref={buttonRef}
                 excludeFromTabOrder
                 className={clsx(
                   "rounded-base hover:bg-klerosUIComponentsStroke size-3.5 cursor-pointer border-none bg-transparent",
