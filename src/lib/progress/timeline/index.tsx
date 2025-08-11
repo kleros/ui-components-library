@@ -3,13 +3,13 @@ import Bullet, { SideProp, VariantProp } from "./bullet";
 import clsx from "clsx";
 import { cn } from "../../../utils";
 
-interface TimelineItem extends SideProp, VariantProp {
+export interface TimelineItem extends SideProp, VariantProp {
   title: string;
   party: string;
   subtitle: string;
 }
 
-interface TimelineProps {
+export interface TimelineProps {
   items: [TimelineItem, ...TimelineItem[]];
   className?: string;
 }
