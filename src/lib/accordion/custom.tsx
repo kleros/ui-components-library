@@ -35,7 +35,7 @@ export interface CustomAccordionProps {
    * expandButton={({ expanded, toggle }) => (
    *   <Button onPress={toggle}>
    *     {expanded ? <ChevronUp /> : <ChevronDown />}
-   *   <Button>
+   *   </Button>
    * )}
    * ```
    */
@@ -56,7 +56,7 @@ function CustomAccordion({
   ...props
 }: Readonly<CustomAccordionProps>) {
   const [expanded, setExpanded] = useState(
-    !isUndefined(defaultExpanded) ? defaultExpanded : -1,
+    isUndefined(defaultExpanded) ? -1 : defaultExpanded,
   );
   return (
     <div

@@ -44,7 +44,7 @@ function Accordion({
   ...props
 }: Readonly<AccordionProps>) {
   const [expanded, setExpanded] = useState(
-    !isUndefined(defaultExpanded) ? defaultExpanded : -1,
+    isUndefined(defaultExpanded) ? -1 : defaultExpanded,
   );
   return (
     <div

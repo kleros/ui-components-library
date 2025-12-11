@@ -135,11 +135,11 @@ export const ItemExpandButton: Story = {
         ),
       },
     ],
-    expandButton: (expanded) => {
+    expandButton: ({ expanded, toggle }) => {
       return expanded ? (
-        <Button text="Close" variant="secondary" />
+        <Button text="Close" variant="secondary" onPress={toggle} />
       ) : (
-        <Button text="Expand" />
+        <Button text="Expand" onPress={toggle} />
       );
     },
     themeUI: "dark",

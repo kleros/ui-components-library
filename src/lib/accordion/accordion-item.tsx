@@ -57,24 +57,19 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   setExpanded,
 }) => {
   const [ref, { height }] = useElementSize();
-  const ExpandButton = useMemo(
-    () =>
-      expandButton ? (
-        expandButton({
-          expanded,
-          toggle: () => setExpanded(expanded ? -1 : index),
-        })
-      ) : expanded ? (
-        <Minus
-          className={cn("fill-klerosUIComponentsPrimaryText size-4 shrink-0")}
-        />
-      ) : (
-        <Plus
-          className={cn("fill-klerosUIComponentsPrimaryText size-4 shrink-0")}
-        />
-      ),
-    [expanded, expandButton, index, setExpanded],
-  );
+  const ExpandButton = useMemo(() => {
+    if (expandButton) {
+      return expandButton({
+        expanded,
+        toggle: () => setExpanded(expanded ? -1 : index),
+      });
+    }
+    const IconComponent = expanded ? Minus : Plus;
+    return (
+      <IconComponent className="fill-klerosUIComponentsPrimaryText size-4 shrink-0" />
+    );
+  }, [expanded, expandButton, index, setExpanded]);
+
   return (
     <div className="my-2">
       <Button
