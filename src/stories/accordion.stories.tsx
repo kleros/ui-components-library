@@ -3,19 +3,19 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { IPreviewArgs } from "./utils";
 
-import Accordion from "../lib/accordion/index";
+import AccordionComponent from "../lib/accordion/index";
 
 const meta = {
-  component: Accordion,
+  component: AccordionComponent,
   title: "Accordion",
   tags: ["autodocs"],
-} satisfies Meta<typeof Accordion>;
+} satisfies Meta<typeof AccordionComponent>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
-export const DarkTheme: Story = {
+export const Accordion: Story = {
   args: {
     className: "max-w-[80dvw]",
 
