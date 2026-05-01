@@ -25,3 +25,6 @@ yarn-debug.log*
 yarn-error.log*
 
 *storybook.log
+
+# yarn pack output (local-test artifact)
+*.tgz

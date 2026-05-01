@@ -1,6 +1,6 @@
 {
   "name": "@kleros/ui-components-library",
-  "version": "3.7.0",
+  "version": "3.8.0",
   "description": "UI components library which implements the Kleros design system.",
   "source": "./src/lib/index.ts",
   "main": "./dist/index.js",
@@ -91,6 +91,7 @@
     "tailwindcss": "^4.0.11"
   },
   "dependencies": {
+    "@cyntler/react-doc-viewer": "^1.17.0",
     "@internationalized/date": "^3.7.0",
     "bignumber.js": "^9.1.2",
     "clsx": "^2.1.1",
@@ -99,6 +100,7 @@
     "react-aria-components": "^1.7.1",
     "react-dom": "^18.0.0",
     "react-is": "^18.0.0",
+    "react-markdown": "^9.0.1",
     "simplebar": "^5.3.6",
     "simplebar-react": "^2.3.6",
     "tailwind-merge": "^3.0.2",
