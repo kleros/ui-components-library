@@ -14,12 +14,19 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
+const SAMPLE_FILES_BASE =
+  "https://cdn.jsdelivr.net/gh/cyntler/react-doc-viewer@v1.17.0/src/exampleFiles";
+
+const PDF_URL = `${SAMPLE_FILES_BASE}/pdf-multiple-pages-file.pdf`;
+
+const IMAGE_URL = `${SAMPLE_FILES_BASE}/png-image.png`;
+
 export const FileViewer: Story = {
   args: {
     themeUI: "light",
     backgroundUI: "light",
     className: "w-[800px]",
-    url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    url: PDF_URL,
   },
 };
 
@@ -28,8 +35,6 @@ export const Image: Story = {
     themeUI: "light",
     backgroundUI: "light",
     className: "w-[800px]",
-    url:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/" +
-      "PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png",
+    url: IMAGE_URL,
   },
 };

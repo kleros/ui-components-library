@@ -2,12 +2,12 @@ import React, { useMemo } from "react";
 import DocViewer, {
   DocViewerRenderers,
   type IConfig,
+  type ITheme,
 } from "@cyntler/react-doc-viewer";
 
 import { cn } from "../../utils";
 import MarkdownDocRenderer from "./markdown-viewer";
 import "@cyntler/react-doc-viewer/dist/index.css";
-import "./styles.css";
 
 interface FileViewerProps {
   /** URL of the file to display. Supports URLs, blob URLs, data URIs, and IPFS URIs. */
@@ -32,10 +32,18 @@ const defaultConfig: IConfig = {
   pdfVerticalScrollByDefault: true,
 };
 
+const docTheme: ITheme = {
+  primary: "var(--klerosUIComponentsWhiteBackground)",
+  secondary: "var(--klerosUIComponentsLightBackground)",
+  tertiary: "var(--klerosUIComponentsLightBackground)",
+  textPrimary: "var(--klerosUIComponentsPrimaryText)",
+  textSecondary: "var(--klerosUIComponentsSecondaryText)",
+  textTertiary: "var(--klerosUIComponentsSecondaryText)",
+};
+
 /**
- * In-app viewer for policies, evidence attachments, and arbitrary file-URI
- * links. Supports PDFs, images, markdown, plaintext, and common document
- * formats via `@cyntler/react-doc-viewer`.
+ * Displays a file from a URL inside the application. Supports PDFs, images,
+ * markdown, plaintext, and common document formats.
  */
 function FileViewer({
   url,
@@ -59,7 +67,7 @@ function FileViewer({
     <div
       className={cn(
         "bg-klerosUIComponentsWhiteBackground shadow-default",
-        "max-h-[80vh] overflow-auto rounded-[3px]",
+        "rounded-base max-h-[80vh] overflow-auto",
         className,
       )}
     >
@@ -67,7 +75,15 @@ function FileViewer({
         documents={docs}
         pluginRenderers={pluginRenderers}
         config={mergedConfig}
-        className="kleros-file-viewer-doc"
+        theme={docTheme}
+        className={cn(
+          "!bg-klerosUIComponentsWhiteBackground",
+          "[&_#pdf-controls]:!z-[3]",
+          "[&_#pdf-controls_svg_path]:!fill-klerosUIComponentsPrimaryText",
+          "[&_#pdf-controls_svg_polygon]:!fill-klerosUIComponentsPrimaryText",
+          "[&_#image-renderer]:!bg-klerosUIComponentsWhiteBackground",
+          "[&_[class*='--loading']]:text-klerosUIComponentsSecondaryText",
+        )}
       />
     </div>
   );
