@@ -19,11 +19,20 @@ const MarkdownDocRenderer: DocRenderer = ({
   if (fileData instanceof ArrayBuffer) {
     text = new TextDecoder("utf-8").decode(fileData);
   } else if (fileData.startsWith("data:")) {
-    const [, payload = ""] = fileData.split(",", 2);
+    // RFC 2397: `data:[<mediatype>][;base64],<payload>` — the payload is
+    // base64 only when `;base64` is the last parameter before the comma;
+    // otherwise it's percent-encoded. Dispatching on `atob` success would
+    // mis-decode payloads that happen to be valid base64 by coincidence
+    // (e.g. the literal string "test" atob's into garbage bytes).
+    const commaIdx = fileData.indexOf(",");
+    const header =
+      commaIdx === -1 ? "" : fileData.slice("data:".length, commaIdx);
+    const payload = commaIdx === -1 ? "" : fileData.slice(commaIdx + 1);
+    const isBase64 = header.toLowerCase().endsWith(";base64");
     try {
-      text = decodeBase64Utf8(payload);
+      text = isBase64 ? decodeBase64Utf8(payload) : decodeURIComponent(payload);
     } catch {
-      text = decodeURIComponent(payload);
+      text = "";
     }
   } else {
     text = fileData;
