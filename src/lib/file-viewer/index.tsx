@@ -9,6 +9,7 @@ import DocViewer, {
 import { cn } from "../../utils";
 import MarkdownDocRenderer from "./markdown-viewer";
 import "@cyntler/react-doc-viewer/dist/index.css";
+import "./file-viewer.css";
 
 interface FileViewerProps {
   /** URL of the file to display. Supports https:, http:, blob:, and data: URIs. */
@@ -235,6 +236,11 @@ function FileViewer({
             "[&_#pdf-controls_svg_path]:!fill-klerosUIComponentsPrimaryText",
             "[&_#pdf-controls_svg_polygon]:!fill-klerosUIComponentsPrimaryText",
             "[&_#image-renderer]:!bg-klerosUIComponentsWhiteBackground",
+            "[&_#image-renderer]:!h-auto",
+            "[&_#image-renderer]:!flex-none",
+            "[&_#image-renderer]:!p-6",
+            "[&_#image-img]:!max-w-full",
+            "[&_#image-img]:!max-h-[80vh]",
             "[&_[class*='--loading']]:text-klerosUIComponentsSecondaryText",
           )}
         />
