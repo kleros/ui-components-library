@@ -239,7 +239,6 @@ function FileViewer({
             "[&_#image-renderer]:!h-auto",
             "[&_#image-renderer]:!flex-none",
             "[&_#image-renderer]:!px-6",
-            "[&_#image-renderer]:!py-2",
             "[&_#image-img]:!max-w-full",
             "[&_#image-img]:!max-h-[80vh]",
             "[&_[class*='--loading']]:text-klerosUIComponentsSecondaryText",
