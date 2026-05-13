@@ -229,6 +229,9 @@ function FileViewer({
           className={cn(
             "!bg-klerosUIComponentsWhiteBackground",
             "[&_#pdf-controls]:!z-[3]",
+            "[&_#pdf-controls]:!bg-klerosUIComponentsPrimaryPurple/15",
+            "dark:[&_#pdf-controls]:!bg-klerosUIComponentsLightBackground/50",
+            "[&_#pdf-controls]:!backdrop-saturate-150",
             "[&_#pdf-controls_svg_path]:!fill-klerosUIComponentsPrimaryText",
             "[&_#pdf-controls_svg_polygon]:!fill-klerosUIComponentsPrimaryText",
             "[&_#image-renderer]:!bg-klerosUIComponentsWhiteBackground",
