@@ -21,6 +21,19 @@ const PDF_URL = `${SAMPLE_FILES_BASE}/pdf-multiple-pages-file.pdf`;
 
 const IMAGE_URL = `${SAMPLE_FILES_BASE}/png-image.png`;
 
+// A real-world malicious-style SVG: `onload` script + external `<image>` to
+// exfiltrate. When rendered via `<img>` (our SvgDocRenderer), the browser
+// disables both — so this displays as an inert red square. If it ever leaks
+// to a top-frame navigation, the alert fires.
+const SVG_DATA_URL =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' onload=\"alert('xss')\">" +
+      "<rect width='100' height='100' fill='red'/>" +
+      "<image href='https://evil.example/exfil' width='1' height='1'/>" +
+      "</svg>",
+  );
+
 export const FileViewer: Story = {
   args: {
     themeUI: "light",
@@ -95,6 +108,19 @@ export const DataUrlSvgBlocked: Story = {
     backgroundUI: "light",
     className: "w-[800px]",
     url: "data:image/svg+xml,<svg onload=alert(1) xmlns='http://www.w3.org/2000/svg'/>",
+  },
+};
+
+// Same URL, but the consumer opts `image/svg+xml` past the blocklist.
+// Renders via `<img>` (secure static mode) — `onload` does not fire and
+// `<image href>` to external origins is dropped.
+export const DataUrlSvgAllowed: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: SVG_DATA_URL,
+    allowedDataMimes: ["image/svg+xml"],
   },
 };
 

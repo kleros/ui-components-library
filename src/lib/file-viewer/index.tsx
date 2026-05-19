@@ -8,8 +8,8 @@ import DocViewer, {
 
 import { cn } from "../../utils";
 import MarkdownDocRenderer from "./markdown-viewer";
+import SvgDocRenderer from "./svg-viewer";
 import "@cyntler/react-doc-viewer/dist/index.css";
-import "./file-viewer.css";
 
 interface FileViewerProps {
   /** URL of the file to display. Supports https:, http:, blob:, and data: URIs. */
@@ -20,6 +20,19 @@ interface FileViewerProps {
   config?: IConfig;
   /** Class applied to the outer wrapper. */
   className?: string;
+  /**
+   * Opt-in allowlist of `data:` URI MIME types that bypass the script-execution
+   * gate. By default the viewer rejects `data:` URLs whose MIME can execute
+   * code on top-frame navigation: `text/html`, `application/xhtml+xml`,
+   * `application/xml`, `text/xml`, `image/svg+xml`.
+   *
+   * Pass entries here only when the URL source is trusted. `image/svg+xml`
+   * is rendered through `<img>` (W3C secure static mode — scripts and
+   * external references are disabled by the browser) so opting it in stays
+   * safe; the other entries lose the defense-in-depth gate against the
+   * fallback "open in new tab" link.
+   */
+  allowedDataMimes?: readonly string[];
 }
 
 const SAFE_URL_SCHEMES = new Set(["http:", "https:", "blob:", "data:"]);
@@ -44,8 +57,14 @@ const UNSAFE_DATA_MIMES = new Set([
  * Returns true if `raw` is a relative URL or uses an allowlisted scheme.
  * Blocks `javascript:`, `vbscript:`, `file:`, `about:`, and anything else
  * that could execute code or escape sandboxing when clicked.
+ *
+ * `allowedDataMimes` is a consumer-supplied override for the default
+ * `UNSAFE_DATA_MIMES` blocklist — entries here pass even if blocklisted.
  */
-const isSafeUrl = (raw: string): boolean => {
+const isSafeUrl = (
+  raw: string,
+  allowedDataMimes: ReadonlySet<string>,
+): boolean => {
   if (typeof raw !== "string" || raw.length === 0) return false;
   let parsed: URL;
   try {
@@ -71,51 +90,10 @@ const isSafeUrl = (raw: string): boolean => {
     } catch {
       return false;
     }
+    if (allowedDataMimes.has(mime)) return true;
     if (UNSAFE_DATA_MIMES.has(mime)) return false;
   }
   return true;
-};
-
-type PdfjsLib = {
-  version?: string;
-  GlobalWorkerOptions?: { workerSrc?: string };
-};
-
-const getPdfjs = (): PdfjsLib | undefined =>
-  typeof globalThis === "undefined"
-    ? undefined
-    : (globalThis as unknown as { pdfjsLib?: PdfjsLib }).pdfjsLib;
-
-const buildDefaultPdfWorkerSrc = (): string => {
-  // doc-viewer bundles its own pdfjs and assigns it to globalThis.pdfjsLib at
-  // module init; reading the version from there guarantees the worker we load
-  // matches the runtime pdfjs (mismatched versions throw "incompatible worker").
-  // Fallback constant is the version doc-viewer@1.17.x ships with.
-  const version = getPdfjs()?.version ?? "4.3.136";
-  return `https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
-};
-
-const setPdfWorkerSrc = (src: string): void => {
-  const lib = getPdfjs();
-  if (lib?.GlobalWorkerOptions && lib.GlobalWorkerOptions.workerSrc !== src) {
-    lib.GlobalWorkerOptions.workerSrc = src;
-  }
-};
-
-// Module init: doc-viewer's module top-level code points workerSrc at
-// unpkg.com. Override it immediately so no unpkg request ever fires (the
-// worker is only fetched when a PDF is rendered, which is always after this).
-setPdfWorkerSrc(buildDefaultPdfWorkerSrc());
-
-/**
- * Override the PDF.js worker URL globally. Call once at app startup if you
- * want to self-host the worker (e.g. under strict CSP) instead of using the
- * default version-pinned jsDelivr URL. The worker is a process-wide singleton
- * on `globalThis.pdfjsLib.GlobalWorkerOptions` — there is no per-instance
- * configuration.
- */
-export const configurePdfWorker = (src: string): void => {
-  setPdfWorkerSrc(src);
 };
 
 const defaultConfig: IConfig = {
@@ -142,8 +120,8 @@ const docTheme: ITheme = {
 const UnsupportedUrlMessage = ({ url }: { url: string }) => (
   <div
     className={cn(
-      "text-klerosUIComponentsSecondaryText",
-      "flex flex-col gap-2 p-6 text-sm",
+      "text-klerosUIComponentsSecondaryText text-sm",
+      "flex flex-col gap-2 p-6",
     )}
   >
     <p>Unable to display this file.</p>
@@ -160,8 +138,8 @@ const NoRendererFallback = ({
 }) => (
   <div
     className={cn(
-      "text-klerosUIComponentsPrimaryText",
-      "flex flex-col items-start gap-3 p-6 text-sm",
+      "text-klerosUIComponentsPrimaryText text-sm",
+      "flex flex-col items-start gap-3 p-6",
     )}
   >
     <p>This file type can&apos;t be previewed.</p>
@@ -190,13 +168,18 @@ function FileViewer({
   fileName,
   config,
   className,
+  allowedDataMimes,
 }: Readonly<FileViewerProps>) {
-  const safe = isSafeUrl(url);
+  const allowedDataMimesSet = useMemo(
+    () => new Set((allowedDataMimes ?? []).map((m) => m.toLowerCase())),
+    [allowedDataMimes],
+  );
+  const safe = isSafeUrl(url, allowedDataMimesSet);
 
   const docs = useMemo(() => [{ uri: url, fileName }], [url, fileName]);
 
   const pluginRenderers = useMemo(
-    () => [...DocViewerRenderers, MarkdownDocRenderer],
+    () => [...DocViewerRenderers, MarkdownDocRenderer, SvgDocRenderer],
     [],
   );
 
@@ -239,6 +222,19 @@ function FileViewer({
             "[&_#image-renderer]:!h-auto",
             "[&_#image-renderer]:!flex-none",
             "[&_#image-renderer]:!px-6",
+            // Transparency checkerboard. The gradient is inlined in the
+            // arbitrary property (rather than a theme token) so the inner
+            // `var(--klerosUIComponentsImageCheckerColor)` resolves at this
+            // element's cascade — consumers can override that single variable
+            // anywhere up the tree and the color propagates. A theme-token
+            // wrapper would bake the inner var() at `:root` and the override
+            // would silently no-op for descendants. Full arbitrary-property
+            // syntax (not `bg-*` shortcut) so `tailwind-merge` recognizes this
+            // as background-image and doesn't collide with the bg-color above.
+            // eslint-disable-next-line max-len
+            "[&_#image-renderer]:![background-image:linear-gradient(45deg,var(--klerosUIComponentsImageCheckerColor)_25%,transparent_25%),linear-gradient(-45deg,var(--klerosUIComponentsImageCheckerColor)_25%,transparent_25%),linear-gradient(45deg,transparent_75%,var(--klerosUIComponentsImageCheckerColor)_75%),linear-gradient(-45deg,transparent_75%,var(--klerosUIComponentsImageCheckerColor)_75%)]",
+            "[&_#image-renderer]:![background-size:20px_20px]",
+            "[&_#image-renderer]:![background-position:0_0,0_10px,10px_-10px,-10px_0px]",
             "[&_#image-img]:!max-w-full",
             "[&_#image-img]:!max-h-[80vh]",
             "[&_[class*='--loading']]:text-klerosUIComponentsSecondaryText",
