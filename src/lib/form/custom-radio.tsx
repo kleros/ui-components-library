@@ -10,9 +10,8 @@ import {
   type RadioRenderProps,
 } from "react-aria-components";
 import { cn } from "../../utils";
-import { RadioIndicator } from "./radio-indicator";
 
-export { RadioIndicator };
+export { RadioIndicator } from "./radio-indicator";
 
 interface CustomRadioItemProps extends Omit<AriaRadioProps, "className"> {
   className?: string;

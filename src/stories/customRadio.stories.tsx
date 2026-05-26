@@ -1,11 +1,13 @@
 import React, { Fragment, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
+import type { RadioRenderProps } from "react-aria-components";
 
 import { IPreviewArgs } from "./utils";
 
 import CustomRadio, {
   CustomRadioItem,
   RadioIndicator,
+  type CustomRadioOption,
 } from "../lib/form/custom-radio";
 import Card from "../lib/container/card";
 import TextField from "../lib/form/text-field";
@@ -21,11 +23,40 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
-/** `items` API — the simplest case. Each option is a full card with the indicator on
- *  the right; the whole card is the click target (it is the radio's `<label>`). Because
- *  the card is the target, the focus ring and selected emphasis go on the card (driven by
- *  the render props), not on the small circle — so `RadioIndicator` gets `focusRing={false}`
- *  to avoid a double ring. This mirrors react-aria's own card-radio example. */
+/** A full-card option with the indicator on the right; the whole card is the click target
+ *  (it is the radio's `<label>`). Because the card is the target, the focus ring and selected
+ *  emphasis go on the card (driven by the render props), not on the small circle — so
+ *  `RadioIndicator` gets `focusRing={false}` to avoid a double ring. Defined at module scope
+ *  (not inside the story's `render`) so it keeps a stable identity across renders. */
+const CreationMethodCard = ({
+  title,
+  ...rp
+}: RadioRenderProps & { title: string }) => (
+  <Card
+    hover
+    className={cn(
+      "flex h-fit w-[420px] items-center gap-4 p-4",
+      rp.isSelected && "border-klerosUIComponentsPrimaryBlue",
+      rp.isFocusVisible &&
+        "ring-klerosUIComponentsPrimaryBlue ring-2 ring-offset-2",
+    )}
+  >
+    <span className="text-klerosUIComponentsPrimaryText grow text-base">
+      {title}
+    </span>
+    <RadioIndicator {...rp} focusRing={false} />
+  </Card>
+);
+
+const CREATION_METHOD_ITEMS: CustomRadioOption[] = [
+  { value: "scratch", title: "Create a case from scratch" },
+  { value: "duplicate", title: "Duplicate an existing case" },
+].map(({ value, title }) => ({
+  value,
+  content: (rp) => <CreationMethodCard title={title} {...rp} />,
+}));
+
+/** `items` API — the simplest case. This mirrors react-aria's own card-radio example. */
 export const Cards: Story = {
   args: { themeUI: "dark", backgroundUI: "light" },
   render: function Render() {
@@ -35,28 +66,7 @@ export const Cards: Story = {
         aria-label="Creation method"
         value={value}
         onChange={setValue}
-        items={[
-          { value: "scratch", title: "Create a case from scratch" },
-          { value: "duplicate", title: "Duplicate an existing case" },
-        ].map(({ value: v, title }) => ({
-          value: v,
-          content: (rp) => (
-            <Card
-              hover
-              className={cn(
-                "flex h-fit w-[420px] items-center gap-4 p-4",
-                rp.isSelected && "border-klerosUIComponentsPrimaryBlue",
-                rp.isFocusVisible &&
-                  "ring-klerosUIComponentsPrimaryBlue ring-2 ring-offset-2",
-              )}
-            >
-              <span className="text-klerosUIComponentsPrimaryText grow text-base">
-                {title}
-              </span>
-              <RadioIndicator {...rp} focusRing={false} />
-            </Card>
-          ),
-        }))}
+        items={CREATION_METHOD_ITEMS}
       />
     );
   },
