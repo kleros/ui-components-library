@@ -26,6 +26,11 @@ export { default as FileUploader } from "./form/file-uploader";
 export { default as Datepicker } from "./form/datepicker";
 
 export { default as Radio } from "./form/radio-group";
+export {
+  default as CustomRadio,
+  CustomRadioItem,
+  RadioIndicator,
+} from "./form/custom-radio";
 export { default as Checkbox } from "../lib/form/checkbox";
 export { default as Switch } from "../lib/form/switch";
 
