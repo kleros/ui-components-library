@@ -57,3 +57,5 @@ export { default as ScrollbarContainer } from "../lib/scrollbar";
 export { default as Copiable } from "../lib/copiable";
 
 export { default as DraggableList } from "../lib/draggable-list";
+
+export { default as FileViewer } from "../lib/file-viewer";
