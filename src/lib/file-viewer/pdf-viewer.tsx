@@ -21,6 +21,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 4;
 
+const clampZoom = (z: number): number =>
+  Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
+
 interface PdfViewerProps extends FileRendererProps {
   defaultZoom?: number;
   zoomJump?: number;
@@ -60,12 +63,12 @@ const PdfViewer = ({
   zoomJump = 0.2,
 }: PdfViewerProps) => {
   const [numPages, setNumPages] = useState(0);
-  const [zoom, setZoom] = useState(defaultZoom);
+  // Clamp the initial zoom too: a misconfigured `pdfDefaultZoom` (e.g. 0 or 10)
+  // would otherwise render out of bounds until the first manual zoom.
+  const [zoom, setZoom] = useState(() => clampZoom(defaultZoom));
 
   const changeZoom = (delta: number) =>
-    setZoom((z) =>
-      Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(z + delta).toFixed(2))),
-    );
+    setZoom((z) => clampZoom(+(z + delta).toFixed(2)));
 
   return (
     <div className="relative flex flex-col">

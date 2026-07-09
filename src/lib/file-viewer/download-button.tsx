@@ -118,7 +118,12 @@ const DownloadButton = ({
   return (
     <a
       href={href}
-      download={fileName}
+      // Keep `download` present even without a `fileName`: React drops the
+      // attribute when the value is `undefined`, and without it the
+      // same-origin/blob/data branches (which rely on the native attribute)
+      // fall through to `target="_blank"` and open the file inline instead of
+      // downloading it. `download=""` lets the browser derive the name.
+      download={fileName ?? ""}
       target="_blank"
       rel="noopener noreferrer"
       onClick={handleClick}

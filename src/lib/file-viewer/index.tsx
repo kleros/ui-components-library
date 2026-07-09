@@ -137,7 +137,7 @@ const NoRendererFallback = ({ uri, fileName }: FileRendererProps) => (
 
 /**
  * Displays a file from a URL inside the application. Supports PDFs, images
- * (incl. SVG), markdown, plaintext, and CSV.
+ * (incl. SVG), markdown, plaintext, CSV, and video.
  *
  * Security: rejects `javascript:`, `vbscript:`, `file:`, and other unlisted
  * schemes up front so a hostile `url` can't deliver code execution through a
