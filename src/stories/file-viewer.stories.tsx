@@ -22,7 +22,7 @@ const PDF_URL = `${SAMPLE_FILES_BASE}/pdf-multiple-pages-file.pdf`;
 const IMAGE_URL = `${SAMPLE_FILES_BASE}/png-image.png`;
 
 // A real-world malicious-style SVG: `onload` script + external `<image>` to
-// exfiltrate. When rendered via `<img>` (our SvgDocRenderer), the browser
+// exfiltrate. When rendered via `<img>` (our SvgViewer), the browser
 // disables both — so this displays as an inert red square. If it ever leaks
 // to a top-frame navigation, the alert fires.
 const SVG_DATA_URL =

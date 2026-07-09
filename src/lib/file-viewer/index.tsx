@@ -1,23 +1,30 @@
-import React, { useMemo } from "react";
-import DocViewer, {
-  DocViewerRenderers,
-  type IConfig,
-  type ITheme,
-  type IDocument,
-} from "@cyntler/react-doc-viewer";
+import React, { lazy, Suspense, useMemo } from "react";
 
 import { cn } from "../../utils";
-import MarkdownDocRenderer from "./markdown-viewer";
-import SvgDocRenderer from "./svg-viewer";
-import "@cyntler/react-doc-viewer/dist/index.css";
+import { useFileType } from "./use-file-type";
+import { ViewerMessage } from "./status";
+import ImageViewer from "./image-viewer";
+import SvgViewer from "./svg-viewer";
+import TextViewer from "./text-viewer";
+import VideoViewer from "./video-viewer";
+import DownloadButton from "./download-button";
+import type { FileKind, FileRendererProps, FileViewerConfig } from "./types";
+
+// Heavy renderers are code-split so a consumer only downloads a format's
+// dependencies when a file of that type is actually opened: pdf.js (~2 MB) for
+// PDFs, react-markdown for Markdown, papaparse for CSV. The image, SVG, and
+// text renderers are tiny and stay in the main chunk.
+const PdfViewer = lazy(() => import("./pdf-viewer"));
+const MarkdownViewer = lazy(() => import("./markdown-viewer"));
+const CsvViewer = lazy(() => import("./csv-viewer"));
 
 interface FileViewerProps {
   /** URL of the file to display. Supports https:, http:, blob:, and data: URIs. */
   url: string;
   /** Optional file name override (used for download). Useful when the URL path lacks a meaningful filename. */
   fileName?: string;
-  /** Override the DocViewer config. Merged shallowly over the defaults. */
-  config?: IConfig;
+  /** Viewer configuration (PDF zoom defaults, no-renderer override). */
+  config?: FileViewerConfig;
   /** Class applied to the outer wrapper. */
   className?: string;
   /**
@@ -96,27 +103,6 @@ const isSafeUrl = (
   return true;
 };
 
-const defaultConfig: IConfig = {
-  header: {
-    disableHeader: true,
-    disableFileName: true,
-  },
-  pdfZoom: {
-    defaultZoom: 0.8,
-    zoomJump: 0.1,
-  },
-  pdfVerticalScrollByDefault: true,
-};
-
-const docTheme: ITheme = {
-  primary: "var(--klerosUIComponentsWhiteBackground)",
-  secondary: "var(--klerosUIComponentsLightBackground)",
-  tertiary: "var(--klerosUIComponentsLightBackground)",
-  textPrimary: "var(--klerosUIComponentsPrimaryText)",
-  textSecondary: "var(--klerosUIComponentsSecondaryText)",
-  textTertiary: "var(--klerosUIComponentsSecondaryText)",
-};
-
 const UnsupportedUrlMessage = ({ url }: { url: string }) => (
   <div
     className={cn(
@@ -129,13 +115,7 @@ const UnsupportedUrlMessage = ({ url }: { url: string }) => (
   </div>
 );
 
-const NoRendererFallback = ({
-  document,
-  fileName,
-}: {
-  document: IDocument | undefined;
-  fileName: string;
-}) => (
+const NoRendererFallback = ({ uri, fileName }: FileRendererProps) => (
   <div
     className={cn(
       "text-klerosUIComponentsPrimaryText text-sm",
@@ -145,7 +125,7 @@ const NoRendererFallback = ({
     <p>This file type can&apos;t be previewed.</p>
     <a
       className="text-klerosUIComponentsPrimaryBlue underline"
-      href={document?.uri ?? ""}
+      href={uri}
       download={fileName}
       rel="noopener noreferrer"
       target="_blank"
@@ -156,12 +136,14 @@ const NoRendererFallback = ({
 );
 
 /**
- * Displays a file from a URL inside the application. Supports PDFs, images,
- * markdown, plaintext, and common document formats.
+ * Displays a file from a URL inside the application. Supports PDFs, images
+ * (incl. SVG), markdown, plaintext, and CSV.
  *
  * Security: rejects `javascript:`, `vbscript:`, `file:`, and other unlisted
- * schemes up front so a hostile `url` can't deliver code execution through
- * the underlying viewer or its fallback download link.
+ * schemes up front so a hostile `url` can't deliver code execution through a
+ * renderer or the fallback download link. Text-based content is rendered as
+ * escaped React children (never `dangerouslySetInnerHTML`) and SVG is loaded
+ * through `<img>` secure-static mode.
  */
 function FileViewer({
   url,
@@ -176,73 +158,52 @@ function FileViewer({
   );
   const safe = isSafeUrl(url, allowedDataMimesSet);
 
-  const docs = useMemo(() => [{ uri: url, fileName }], [url, fileName]);
+  const { kind } = useFileType(url, safe);
 
-  const pluginRenderers = useMemo(
-    () => [...DocViewerRenderers, MarkdownDocRenderer, SvgDocRenderer],
-    [],
-  );
+  const Override = config?.noRenderer?.overrideComponent ?? NoRendererFallback;
 
-  const mergedConfig = useMemo<IConfig>(
-    () => ({
-      ...defaultConfig,
-      ...config,
-      noRenderer: {
-        ...config?.noRenderer,
-        overrideComponent:
-          config?.noRenderer?.overrideComponent ?? NoRendererFallback,
-      },
-    }),
-    [config],
-  );
+  const renderers: Record<Exclude<FileKind, "unsupported">, React.ReactNode> = {
+    pdf: (
+      <PdfViewer
+        uri={url}
+        fileName={fileName}
+        defaultZoom={config?.pdfDefaultZoom}
+        zoomJump={config?.pdfZoomJump}
+      />
+    ),
+    image: <ImageViewer uri={url} fileName={fileName} />,
+    svg: <SvgViewer uri={url} fileName={fileName} />,
+    markdown: <MarkdownViewer uri={url} fileName={fileName} />,
+    text: <TextViewer uri={url} fileName={fileName} />,
+    csv: <CsvViewer uri={url} fileName={fileName} />,
+    video: <VideoViewer uri={url} fileName={fileName} />,
+  };
+
+  let body: React.ReactNode;
+  if (!safe) {
+    body = <UnsupportedUrlMessage url={url} />;
+  } else if (kind === null) {
+    body = <ViewerMessage>Loading…</ViewerMessage>;
+  } else if (kind === "unsupported") {
+    body = <Override uri={url} fileName={fileName} />;
+  } else {
+    body = renderers[kind];
+  }
 
   return (
     <div
       className={cn(
         "bg-klerosUIComponentsWhiteBackground shadow-default",
-        "rounded-base max-h-[80vh] overflow-auto",
+        "rounded-base relative overflow-hidden",
         className,
       )}
     >
-      {safe ? (
-        <DocViewer
-          documents={docs}
-          pluginRenderers={pluginRenderers}
-          config={mergedConfig}
-          theme={docTheme}
-          className={cn(
-            "!bg-klerosUIComponentsWhiteBackground",
-            "[&_#pdf-controls]:!z-[3]",
-            "[&_#pdf-controls]:!bg-klerosUIComponentsPrimaryPurple/15",
-            "dark:[&_#pdf-controls]:!bg-klerosUIComponentsLightBackground/50",
-            "[&_#pdf-controls]:!backdrop-saturate-150",
-            "[&_#pdf-controls_svg_path]:!fill-klerosUIComponentsPrimaryText",
-            "[&_#pdf-controls_svg_polygon]:!fill-klerosUIComponentsPrimaryText",
-            "[&_#image-renderer]:!bg-klerosUIComponentsWhiteBackground",
-            "[&_#image-renderer]:!h-auto",
-            "[&_#image-renderer]:!flex-none",
-            "[&_#image-renderer]:!px-6",
-            // Transparency checkerboard. The gradient is inlined in the
-            // arbitrary property (rather than a theme token) so the inner
-            // `var(--klerosUIComponentsImageCheckerColor)` resolves at this
-            // element's cascade — consumers can override that single variable
-            // anywhere up the tree and the color propagates. A theme-token
-            // wrapper would bake the inner var() at `:root` and the override
-            // would silently no-op for descendants. Full arbitrary-property
-            // syntax (not `bg-*` shortcut) so `tailwind-merge` recognizes this
-            // as background-image and doesn't collide with the bg-color above.
-            // eslint-disable-next-line max-len
-            "[&_#image-renderer]:![background-image:linear-gradient(45deg,var(--klerosUIComponentsImageCheckerColor)_25%,transparent_25%),linear-gradient(-45deg,var(--klerosUIComponentsImageCheckerColor)_25%,transparent_25%),linear-gradient(45deg,transparent_75%,var(--klerosUIComponentsImageCheckerColor)_75%),linear-gradient(-45deg,transparent_75%,var(--klerosUIComponentsImageCheckerColor)_75%)]",
-            "[&_#image-renderer]:![background-size:20px_20px]",
-            "[&_#image-renderer]:![background-position:0_0,0_10px,10px_-10px,-10px_0px]",
-            "[&_#image-img]:!max-w-full",
-            "[&_#image-img]:!max-h-[80vh]",
-            "[&_[class*='--loading']]:text-klerosUIComponentsSecondaryText",
-          )}
-        />
-      ) : (
-        <UnsupportedUrlMessage url={url} />
-      )}
+      {safe && <DownloadButton url={url} fileName={fileName} />}
+      <div className="max-h-[80vh] overflow-auto">
+        <Suspense fallback={<ViewerMessage>Loading…</ViewerMessage>}>
+          {body}
+        </Suspense>
+      </div>
     </div>
   );
 }
