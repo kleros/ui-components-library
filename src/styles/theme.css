@@ -15,6 +15,7 @@
 
     --klerosUIComponentsWhiteBackground: #ffffff;
     --klerosUIComponentsLightBackground: #fafbfc;
+    --klerosUIComponentsImageCheckerColor: #e0e0e0;
 
     --klerosUIComponentsDefaultShadow: #00000002;
     --klerosUIComponentsHoveredShadow: #00000002;
@@ -51,6 +52,7 @@
 
     --klerosUIComponentsWhiteBackground: #220050;
     --klerosUIComponentsLightBackground: #1b003f;
+    --klerosUIComponentsImageCheckerColor: #2c0d63;
 
     --klerosUIComponentsDefaultShadow: #00000000;
     --klerosUIComponentsHoveredShadow: #42498f80;
