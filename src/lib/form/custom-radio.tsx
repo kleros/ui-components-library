@@ -10,8 +10,9 @@ import {
   type RadioRenderProps,
 } from "react-aria-components";
 import { cn } from "../../utils";
+import { RadioIndicator } from "./radio-indicator";
 
-export { RadioIndicator } from "./radio-indicator";
+export { RadioIndicator };
 
 interface CustomRadioItemProps extends Omit<AriaRadioProps, "className"> {
   className?: string;
@@ -53,6 +54,11 @@ export interface CustomRadioProps
   /** Convenience API for simple option lists. For per-row adornments or content
    *  interleaved between options, use `children` (compose `<CustomRadioItem>`s) instead. */
   items?: CustomRadioOption[];
+  /** Render a `<RadioIndicator>` before each `items` option, so it shows the same
+   *  selected/hovered/pressed/disabled states as `Radio` (default `true`). Set `false` when
+   *  the option `content` places its own indicator (e.g. a card with the circle on the
+   *  right). Ignored by the `children` API, where you place the indicator yourself. */
+  indicator?: boolean;
   children?: ReactNode;
   /** Group label rendered above the options. */
   groupLabel?: string;
@@ -64,8 +70,10 @@ export interface CustomRadioProps
 
 /** A radio group whose options render arbitrary content (cards, tooltip-wrapped labels, ...)
  *  while keeping react-aria's `RadioGroup` semantics (single-select, roving tab-index,
- *  keyboard navigation, `role="radiogroup"`). Pass `items` for simple lists, or `children`
- *  (compose `<CustomRadioItem>`s, with adornments/fields as siblings) for richer layouts.
+ *  keyboard navigation, `role="radiogroup"`). Pass `items` for simple lists — each option
+ *  gets a state-driven `<RadioIndicator>` unless you opt out with `indicator={false}` — or
+ *  `children` (compose `<CustomRadioItem>`s, with adornments/fields as siblings) for richer
+ *  layouts.
  *  For the plain label-only case, use `Radio` (the `options`-based group) instead.
  *  [Extends AriaRadioGroupProps](https://react-spectrum.adobe.com/react-aria/RadioGroup.html#radiogroup-1) */
 function CustomRadio({
@@ -73,6 +81,7 @@ function CustomRadio({
   className,
   fieldErrorProps,
   items,
+  indicator = true,
   children,
   ...props
 }: Readonly<CustomRadioProps>) {
@@ -95,9 +104,17 @@ function CustomRadio({
           <CustomRadioItem
             key={String(item.value)}
             {...item}
-            className={itemClassName}
+            className={cn(
+              indicator && "flex items-center gap-2",
+              itemClassName,
+            )}
           >
-            {content}
+            {(renderProps) => (
+              <>
+                {indicator && <RadioIndicator {...renderProps} />}
+                {typeof content === "function" ? content(renderProps) : content}
+              </>
+            )}
           </CustomRadioItem>
         ))}
       <FieldError
