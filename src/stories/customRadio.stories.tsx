@@ -56,30 +56,7 @@ const CREATION_METHOD_ITEMS: CustomRadioOption[] = [
   content: (rp) => <CreationMethodCard title={title} {...rp} />,
 }));
 
-/** `items` API — the simplest case. Each option gets a `RadioIndicator` driven by its
- *  render props, so selected/hovered/pressed/disabled read the same as `Radio`. */
-export const Items: Story = {
-  args: { themeUI: "dark", backgroundUI: "light" },
-  render: function Render() {
-    const [value, setValue] = useState("all");
-    return (
-      <CustomRadio
-        aria-label="Eligibility"
-        groupLabel="Eligibility"
-        value={value}
-        onChange={setValue}
-        items={[
-          { value: "all", content: "All jurors in the court" },
-          { value: "gated", content: "Jurors owning a specific ERC-20" },
-          { value: "none", content: "Nobody", isDisabled: true },
-        ]}
-      />
-    );
-  },
-};
-
-/** `items` with `indicator={false}` — the option content owns the circle, so the group
- *  must not render a second one. This mirrors react-aria's own card-radio example. */
+/** `items` API — the simplest case. This mirrors react-aria's own card-radio example. */
 export const Cards: Story = {
   args: { themeUI: "dark", backgroundUI: "light" },
   render: function Render() {
@@ -89,7 +66,6 @@ export const Cards: Story = {
         aria-label="Creation method"
         value={value}
         onChange={setValue}
-        indicator={false}
         items={CREATION_METHOD_ITEMS}
       />
     );
