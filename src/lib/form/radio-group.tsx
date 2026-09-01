@@ -10,6 +10,7 @@ import {
 } from "react-aria-components";
 import { cn } from "../../utils";
 import clsx from "clsx";
+import { RadioIndicator } from "./radio-indicator";
 
 interface RadioOption extends AriaRadioProps {
   label: string;
@@ -70,29 +71,12 @@ function RadioGroup({
             option.className,
           )}
         >
-          {({ isSelected, isHovered, isDisabled, isPressed }) => (
+          {(renderProps) => (
             <>
-              <span
-                className={cn(
-                  "border-klerosUIComponentsStroke absolute top-1 left-0 rounded-full border",
-                  "after:bg-klerosUIComponentsPrimaryBlue after:absolute after:hidden after:rounded-full",
-                  "ease-ease after:ease-ease transition-all after:transition-all",
-                  small
-                    ? "size-4 after:top-0.75 after:left-0.75 after:size-2"
-                    : "size-6 after:top-1.25 after:left-1.25 after:size-3",
-                  isSelected && [
-                    "bg-klerosUIComponentsWhiteBackground border-klerosUIComponentsPrimaryBlue after:block",
-                  ],
-                  isHovered && [
-                    "border-klerosUIComponentsSecondaryBlue bg-klerosUIComponentsLightBlue",
-                  ],
-                  isPressed && [
-                    "border-klerosUIComponentsSecondaryBlue after:bg-klerosUIComponentsSecondaryBlue",
-                  ],
-                  isDisabled && [
-                    "border-klerosUIComponentsStroke after:hidden",
-                  ],
-                )}
+              <RadioIndicator
+                {...renderProps}
+                small={small}
+                className="absolute top-1 left-0"
               />
               {option.label}
             </>
