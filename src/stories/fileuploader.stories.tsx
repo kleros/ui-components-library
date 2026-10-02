@@ -43,12 +43,14 @@ const getUploadButton = (canvasElement: HTMLElement) =>
 /** Drag events dispatched on the upload button bubble to the drop zone. */
 const getDropZone = getUploadButton;
 
-/** Simulates dropping `file` on the drop zone with native drag events. */
-const dropFile = async (zone: HTMLElement, file: File) => {
+/** Simulates dragging `file` over the drop zone with native drag events and
+ * then dropping it (or leaving again when `drop` is false). */
+const dragFile = async (zone: HTMLElement, file: File, drop: boolean) => {
   const dataTransfer = new DataTransfer();
   dataTransfer.items.add(file);
-  // react-aria derives the allowed drop operations from effectAllowed
-  dataTransfer.effectAllowed = "all";
+  // react-aria derives the allowed drop operations from effectAllowed, which
+  // is read-only ("none") on a constructed DataTransfer outside of dragstart
+  Object.defineProperty(dataTransfer, "effectAllowed", { value: "all" });
   const rect = zone.getBoundingClientRect();
   const init = {
     bubbles: true,
@@ -66,11 +68,22 @@ const dropFile = async (zone: HTMLElement, file: File) => {
   try {
     zone.dispatchEvent(new DragEvent("dragenter", init));
     zone.dispatchEvent(new DragEvent("dragover", init));
-    zone.dispatchEvent(new DragEvent("drop", init));
+    if (drop) zone.dispatchEvent(new DragEvent("drop", init));
+    else {
+      // let React render the drop target state, which is only set for drags
+      // the zone accepts
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      const isDropTarget = !!zone.closest("[data-drop-target]");
+      zone.dispatchEvent(new DragEvent("dragleave", init));
+      return isDropTarget;
+    }
   } finally {
     getAsEntry.mockRestore();
   }
+  return true;
 };
+
+const dropFile = (zone: HTMLElement, file: File) => dragFile(zone, file, true);
 
 export const FileUploader: Story = {
   args: {
@@ -153,6 +166,13 @@ export const FileUploaderWithAcceptedTypes: Story = {
   play: async ({ canvasElement, args }) => {
     const input = getInput(canvasElement);
     await expect(input).toHaveAttribute("accept", "image/png");
+    // only accepted types turn the zone into a drop target
+    await expect(await dragFile(getDropZone(canvasElement), txt(), false)).toBe(
+      false,
+    );
+    await expect(await dragFile(getDropZone(canvasElement), png(), false)).toBe(
+      true,
+    );
     // dropping a non-accepted type is ignored
     await dropFile(getDropZone(canvasElement), txt());
     await expect(args.callback).not.toHaveBeenCalled();
