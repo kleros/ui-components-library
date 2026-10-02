@@ -48,6 +48,10 @@ const preview: Preview = {
   },
   parameters: {
     layout: "centered",
+    a11y: {
+      // Fail story tests (Vitest addon-test integration) on any axe violation.
+      test: "error",
+    },
   },
 };
 

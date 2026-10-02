@@ -1,5 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
@@ -11,6 +12,9 @@ const meta = {
   component: TextAreaFieldComponent,
   title: "Form/TextArea",
   tags: ["autodocs"],
+  args: {
+    onChange: fn(),
+  },
   argTypes: {
     variant: {
       options: ["success", "warning", "error", "info"],
@@ -51,6 +55,16 @@ export const Default: Story = {
     className: "w-[500px]",
     placeholder: "Enter description",
   },
+  play: async ({ canvasElement, args }) => {
+    const textarea = within(canvasElement).getByRole("textbox");
+    await expect(textarea.tagName).toBe("TEXTAREA");
+    await expect(textarea).toHaveAttribute("placeholder", "Enter description");
+    await userEvent.type(textarea, "Line 1{Enter}Line 2");
+    await expect(textarea).toHaveValue("Line 1\nLine 2");
+    await expect(args.onChange).toHaveBeenLastCalledWith("Line 1\nLine 2");
+    // not resizable by default
+    await expect(textarea).not.toHaveClass("resize", "resize-x", "resize-y");
+  },
 };
 
 export const Variant: Story = {
@@ -58,12 +72,23 @@ export const Variant: Story = {
     ...Default.args,
     variant: "success",
   },
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByRole("textbox")).toHaveClass(
+      "border-klerosUIComponentsSuccess",
+    );
+  },
 };
 
 export const Labelled: Story = {
   args: {
     ...Default.args,
     label: "Description",
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const textarea = canvas.getByRole("textbox", { name: "Description" });
+    await userEvent.click(canvas.getByText("Description"));
+    await expect(textarea).toHaveFocus();
   },
 };
 
@@ -74,6 +99,13 @@ export const Resizable: Story = {
     message: "Your auto-biography",
     resizeX: true,
     resizeY: true,
+  },
+  play: async ({ canvasElement }) => {
+    const textarea = within(canvasElement).getByRole("textbox", {
+      name: "Description",
+    });
+    await expect(textarea).toHaveClass("resize");
+    await expect(textarea).toHaveAccessibleDescription("Your auto-biography");
   },
 };
 
@@ -118,4 +150,71 @@ export const Required: Story = {
       />
     </Form>
   ),
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    const textarea = canvas.getByRole("textbox");
+    const submit = canvas.getByRole("button", { name: "Click me!" });
+    await expect(textarea).toBeRequired();
+
+    await step("empty required field is invalid on submit", async () => {
+      await userEvent.click(submit);
+      await waitFor(() =>
+        expect(textarea).toHaveAttribute("aria-invalid", "true"),
+      );
+    });
+
+    await step("custom validation message is shown", async () => {
+      await userEvent.type(textarea, "admin");
+      await userEvent.click(submit);
+      await expect(await canvas.findByText("Nice try!")).toBeVisible();
+    });
+
+    await step("valid input clears the error", async () => {
+      await userEvent.type(textarea, "istrator");
+      await userEvent.click(submit);
+      await waitFor(() =>
+        expect(canvas.queryByText("Nice try!")).not.toBeInTheDocument(),
+      );
+      await expect(textarea).not.toHaveAttribute("aria-invalid");
+    });
+  },
+};
+
+export const Disabled: Story = {
+  args: {
+    ...Default.args,
+    label: "Description",
+    defaultValue: "Read me",
+    isDisabled: true,
+  },
+  play: async ({ canvasElement, args }) => {
+    const textarea = within(canvasElement).getByRole("textbox", {
+      name: "Description",
+    });
+    await expect(textarea).toBeDisabled();
+    await userEvent.type(textarea, "more");
+    await expect(textarea).toHaveValue("Read me");
+    await expect(args.onChange).not.toHaveBeenCalled();
+  },
+};
+
+export const ErrorMessage: Story = {
+  args: {
+    ...Default.args,
+    label: "Description",
+    variant: "error",
+    message: "Description is too short.",
+    isInvalid: true,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const textarea = canvas.getByRole("textbox", { name: "Description" });
+    await expect(textarea).toHaveAttribute("aria-invalid", "true");
+    await expect(textarea).toHaveClass("border-klerosUIComponentsError");
+    const message = canvas.getByText("Description is too short.");
+    await expect(message).toHaveClass("text-klerosUIComponentsError");
+    await expect(message.querySelector("svg")).toHaveClass(
+      "fill-klerosUIComponentsError",
+    );
+  },
 };

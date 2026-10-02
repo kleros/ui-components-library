@@ -34,6 +34,7 @@
     "commitlint.config.cjs",
     "eslint.config.mjs",
     "vite.config.ts",
+    "vitest.config.ts",
     "vite.config.theme.ts"
   ]
 }

@@ -1,5 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
@@ -11,6 +12,11 @@ const meta = {
   component: SearchbarComponent,
   title: "Form/Searchbar",
   tags: ["autodocs"],
+  args: {
+    onChange: fn(),
+    onSubmit: fn(),
+    onClear: fn(),
+  },
   argTypes: {
     isRequired: {
       control: "boolean",
@@ -34,12 +40,32 @@ export const Default: Story = {
     backgroundUI: "light",
     className: "w-[500px]",
   },
+  play: async ({ canvasElement, args }) => {
+    const input = within(canvasElement).getByRole("searchbox");
+    await expect(input).toHaveAttribute("placeholder", "Search");
+    await userEvent.type(input, "cats");
+    await expect(input).toHaveValue("cats");
+    await expect(args.onChange).toHaveBeenLastCalledWith("cats");
+    await userEvent.keyboard("{Enter}");
+    await expect(args.onSubmit).toHaveBeenCalledWith("cats");
+    // Escape clears the field
+    await userEvent.keyboard("{Escape}");
+    await expect(input).toHaveValue("");
+    await expect(args.onClear).toHaveBeenCalledTimes(1);
+    await expect(args.onChange).toHaveBeenLastCalledWith("");
+  },
 };
 
 export const Labelled: Story = {
   args: {
     ...Default.args,
     label: "Search registry",
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("searchbox", { name: "Search registry" });
+    await userEvent.click(canvas.getByText("Search registry"));
+    await expect(input).toHaveFocus();
   },
 };
 
@@ -85,4 +111,52 @@ export const Required: Story = {
       />
     </Form>
   ),
+  play: async ({ canvasElement, args, step }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("searchbox");
+    const submit = canvas.getByRole("button", { name: "Click me!" });
+    await expect(input).toHaveAttribute("placeholder", "Try searching 'Dogs'");
+
+    await step("empty required field is invalid on submit", async () => {
+      await userEvent.click(submit);
+      await waitFor(() =>
+        expect(input).toHaveAttribute("aria-invalid", "true"),
+      );
+    });
+
+    await step("custom validation message is shown", async () => {
+      await userEvent.type(input, "Dogs");
+      await userEvent.click(submit);
+      await expect(await canvas.findByText("Why not cats?")).toBeVisible();
+      await expect(input).toHaveAttribute("aria-invalid", "true");
+    });
+
+    await step("valid input clears the error", async () => {
+      await userEvent.clear(input);
+      await userEvent.type(input, "Cats");
+      await userEvent.click(submit);
+      await waitFor(() =>
+        expect(canvas.queryByText("Why not cats?")).not.toBeInTheDocument(),
+      );
+      await expect(input).not.toHaveAttribute("aria-invalid");
+      await expect(args.onChange).toHaveBeenLastCalledWith("Cats");
+    });
+  },
+};
+
+export const Disabled: Story = {
+  args: {
+    ...Default.args,
+    label: "Search registry",
+    isDisabled: true,
+  },
+  play: async ({ canvasElement, args }) => {
+    const input = within(canvasElement).getByRole("searchbox", {
+      name: "Search registry",
+    });
+    await expect(input).toBeDisabled();
+    await userEvent.type(input, "cats");
+    await expect(input).toHaveValue("");
+    await expect(args.onChange).not.toHaveBeenCalled();
+  },
 };

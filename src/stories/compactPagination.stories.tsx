@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect, fn, userEvent, within } from "@storybook/test";
 
-import { IPreviewArgs } from "./utils";
+import { IPreviewArgs, disableA11yRules } from "./utils";
 
 import Pagination from "../lib/pagination/compact";
 import React, { useState } from "react";
@@ -9,6 +10,9 @@ const meta = {
   component: Pagination,
   title: "Pagination/Compact Pagination",
   tags: ["autodocs"],
+  // Pre-existing component issue: the arrow buttons are icon-only and the
+  // component offers no way to give them an accessible name.
+  parameters: disableA11yRules("button-name"),
   argTypes: {
     numPages: {
       control: "number",
@@ -32,7 +36,7 @@ export const CompactPagination: Story = {
     backgroundUI: "light",
     numPages: 6,
     currentPage: 0,
-    callback: () => {},
+    callback: fn(),
     className: "w-full",
     label: "Label:",
   },
@@ -43,9 +47,57 @@ export const CompactPagination: Story = {
       <Pagination
         {...args}
         currentPage={currentPage}
-        callback={setCurrentPage}
+        callback={(page) => {
+          setCurrentPage(page);
+          args.callback(page);
+        }}
       />
     );
+  },
+  play: async ({ canvasElement, args, step }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText("Label:")).toBeVisible();
+    const [previous, next] = canvas.getAllByRole("button");
+
+    // NOTE: the arrow buttons are only *styled* as disabled at the limits (the
+    // component does not forward `isDisabled`), so presses are clamped by
+    // `usePagination` instead of being blocked.
+    await step("on the first page 'previous' is styled disabled", async () => {
+      await expect(previous).toHaveClass(
+        "[&>svg]:fill-klerosUIComponentsStroke",
+      );
+      await expect(next).toHaveClass(
+        "[&>svg]:fill-klerosUIComponentsPrimaryBlue",
+      );
+      await userEvent.click(previous);
+      await expect(args.callback).toHaveBeenLastCalledWith(1);
+    });
+
+    await step("'next' advances one page at a time", async () => {
+      await userEvent.click(next);
+      await expect(args.callback).toHaveBeenLastCalledWith(2);
+      await expect(previous).toHaveClass(
+        "[&>svg]:fill-klerosUIComponentsPrimaryBlue",
+      );
+      for (let i = 0; i < 4; i++) await userEvent.click(next);
+      await expect(args.callback).toHaveBeenLastCalledWith(6);
+      await expect(args.callback).toHaveBeenCalledTimes(6);
+    });
+
+    await step("on the last page 'next' cannot go further", async () => {
+      await expect(next).toHaveClass("[&>svg]:fill-klerosUIComponentsStroke");
+      await userEvent.click(next);
+      await expect(args.callback).toHaveBeenLastCalledWith(6);
+    });
+
+    await step("'previous' works with the keyboard", async () => {
+      previous.focus();
+      await userEvent.keyboard("{Enter}");
+      await expect(args.callback).toHaveBeenLastCalledWith(5);
+      await expect(next).toHaveClass(
+        "[&>svg]:fill-klerosUIComponentsPrimaryBlue",
+      );
+    });
   },
 };
 
@@ -55,7 +107,8 @@ export const CompactPaginationWithCloseCallback: Story = {
     backgroundUI: "light",
     numPages: 6,
     currentPage: 0,
-    callback: () => {},
+    callback: fn(),
+    onCloseOnLastPage: fn(),
     className: "w-full",
     label: "Shows close button in end.",
   },
@@ -66,9 +119,28 @@ export const CompactPaginationWithCloseCallback: Story = {
       <Pagination
         {...args}
         currentPage={currentPage}
-        callback={setCurrentPage}
-        onCloseOnLastPage={() => {}}
+        callback={(page) => {
+          setCurrentPage(page);
+          args.callback(page);
+        }}
       />
     );
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const next = canvas.getAllByRole("button")[1];
+    for (let i = 0; i < 5; i++) await userEvent.click(next);
+    await expect(args.callback).toHaveBeenLastCalledWith(6);
+    await expect(args.onCloseOnLastPage).not.toHaveBeenCalled();
+
+    // on the last page the "next" arrow is replaced by a close button
+    const close = canvas.getAllByRole("button")[1];
+    await expect(close.querySelector("svg")).toHaveClass(
+      "fill-klerosUIComponentsPrimaryBlue",
+    );
+    await expect(close.querySelector("svg")).not.toHaveClass("rotate-180");
+    await userEvent.click(close);
+    await expect(args.onCloseOnLastPage).toHaveBeenCalledTimes(1);
+    await expect(args.callback).toHaveBeenCalledTimes(5);
   },
 };

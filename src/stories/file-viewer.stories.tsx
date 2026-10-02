@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect, waitFor, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
@@ -13,6 +14,21 @@ const meta = {
 export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
+
+/** Asserts the URL was rejected before reaching the underlying viewer. */
+const expectBlocked: Story["play"] = async ({ canvasElement, args }) => {
+  const canvas = within(canvasElement);
+  await expect(canvas.getByText("Unable to display this file.")).toBeVisible();
+  await expect(canvas.getByText(args.url)).toBeVisible();
+  // neither the viewer nor the fallback link is rendered
+  await expect(canvasElement.querySelector("#react-doc-viewer")).toBeNull();
+  await expect(canvas.queryByRole("link")).not.toBeInTheDocument();
+  await expect(canvasElement.querySelector("iframe, img, object")).toBeNull();
+};
+
+/** These stories load remote sample files, so they are excluded from the
+ * (offline-safe) story tests. */
+const NETWORK_TAGS = ["!test"];
 
 const SAMPLE_FILES_BASE =
   "https://cdn.jsdelivr.net/gh/cyntler/react-doc-viewer@v1.17.0/src/exampleFiles";
@@ -41,6 +57,7 @@ export const FileViewer: Story = {
     className: "w-[800px]",
     url: PDF_URL,
   },
+  tags: NETWORK_TAGS,
 };
 
 export const Image: Story = {
@@ -50,6 +67,7 @@ export const Image: Story = {
     className: "w-[800px]",
     url: IMAGE_URL,
   },
+  tags: NETWORK_TAGS,
 };
 
 export const JavascriptUrlBlocked: Story = {
@@ -59,6 +77,7 @@ export const JavascriptUrlBlocked: Story = {
     className: "w-[800px]",
     url: "javascript:alert('xss')",
   },
+  play: expectBlocked,
 };
 
 export const VbscriptUrlBlocked: Story = {
@@ -68,6 +87,7 @@ export const VbscriptUrlBlocked: Story = {
     className: "w-[800px]",
     url: "vbscript:msgbox(1)",
   },
+  play: expectBlocked,
 };
 
 export const UnsupportedScheme: Story = {
@@ -77,6 +97,7 @@ export const UnsupportedScheme: Story = {
     className: "w-[800px]",
     url: "file:///etc/passwd",
   },
+  play: expectBlocked,
 };
 
 export const UnsupportedFileType: Story = {
@@ -91,6 +112,7 @@ export const UnsupportedFileType: Story = {
     url: "https://cdn.jsdelivr.net/gh/kleros/ui-components-library@main/package.json",
     fileName: "package.json",
   },
+  tags: NETWORK_TAGS,
 };
 
 export const DataUrlHtmlBlocked: Story = {
@@ -100,6 +122,7 @@ export const DataUrlHtmlBlocked: Story = {
     className: "w-[800px]",
     url: "data:text/html,<script>alert('xss')</script>",
   },
+  play: expectBlocked,
 };
 
 export const DataUrlSvgBlocked: Story = {
@@ -109,6 +132,7 @@ export const DataUrlSvgBlocked: Story = {
     className: "w-[800px]",
     url: "data:image/svg+xml,<svg onload=alert(1) xmlns='http://www.w3.org/2000/svg'/>",
   },
+  play: expectBlocked,
 };
 
 // Same URL, but the consumer opts `image/svg+xml` past the blocklist.
@@ -122,6 +146,20 @@ export const DataUrlSvgAllowed: Story = {
     url: SVG_DATA_URL,
     allowedDataMimes: ["image/svg+xml"],
   },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    // opted-in SVG data URLs are rendered through <img> (secure static mode)
+    await waitFor(() =>
+      expect(canvasElement.querySelector("#image-img")).toBeInTheDocument(),
+    );
+    const img = canvasElement.querySelector("#image-img") as HTMLImageElement;
+    await expect(img.tagName).toBe("IMG");
+    await expect(img).toHaveAttribute("src", args.url);
+    await expect(canvasElement.querySelector("iframe, object")).toBeNull();
+    await expect(
+      canvas.queryByText("Unable to display this file."),
+    ).not.toBeInTheDocument();
+  },
 };
 
 export const DataUrlXhtmlBlocked: Story = {
@@ -131,6 +169,7 @@ export const DataUrlXhtmlBlocked: Story = {
     className: "w-[800px]",
     url: "data:application/xhtml+xml,<html xmlns='http://www.w3.org/1999/xhtml'><script>alert(1)</script></html>",
   },
+  play: expectBlocked,
 };
 
 export const DataUrlXmlBlocked: Story = {
@@ -140,6 +179,7 @@ export const DataUrlXmlBlocked: Story = {
     className: "w-[800px]",
     url: "data:application/xml,<?xml-stylesheet type='text/xsl' href='data:text/xsl,evil'?><root/>",
   },
+  play: expectBlocked,
 };
 
 export const DataUrlPercentEncodedMimeBlocked: Story = {
@@ -152,5 +192,35 @@ export const DataUrlPercentEncodedMimeBlocked: Story = {
     // already safe at the browser level. Our gate still blocks it as
     // defense-in-depth against legacy or non-conforming runtimes.
     url: "data:text%2Fhtml,<script>alert('xss')</script>",
+  },
+  play: expectBlocked,
+};
+
+/** Relative URLs resolve against the page origin and are allowed. The file is
+ * a local fixture (served through Storybook `staticDirs`), so the rendered
+ * result is deterministic. */
+export const RelativeUrl: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: "/fixtures/sample.txt",
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvas.queryByText("Unable to display this file."),
+    ).not.toBeInTheDocument();
+    // handed over to the document viewer, which fetches and renders the file
+    await expect(
+      canvasElement.querySelector("#react-doc-viewer"),
+    ).toBeInTheDocument();
+    await expect(
+      await canvas.findByText(
+        "Kleros file viewer fixture.",
+        {},
+        { timeout: 5000 },
+      ),
+    ).toBeVisible();
   },
 };
