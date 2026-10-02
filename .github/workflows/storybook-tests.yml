@@ -24,7 +24,7 @@ jobs:
           persist-credentials: false
 
       # corepack must be enabled before setup-node so its yarn cache lookup
-      # uses the repo's Yarn 4, and again after for the installed Node 20.
+      # uses the repo's Yarn 4 (packageManager field).
       - name: Enable corepack
         run: corepack enable
 
@@ -33,9 +33,6 @@ jobs:
         with:
           node-version: 20
           cache: yarn
-
-      - name: Enable corepack for Node 20
-        run: corepack enable
 
       - name: Install dependencies
         run: yarn install --immutable
