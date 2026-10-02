@@ -1,0 +1,54 @@
+name: Chromatic
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Read-only token: the job only needs to check out code. Chromatic reports
+# its results through its own GitHub app checks, not via GITHUB_TOKEN.
+permissions:
+  contents: read
+
+concurrency:
+  group: chromatic-${{ github.event.pull_request.number || github.ref }}
+  # Cancel superseded PR runs; let every main build finish so baselines advance.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  chromatic:
+    name: Visual regression tests
+    # Secrets are not available to PRs from forks (or Dependabot), so skip
+    # instead of failing. Never switch this to `pull_request_target`: that
+    # would run untrusted PR code with access to CHROMATIC_PROJECT_TOKEN.
+    if: >-
+      github.event_name == 'push' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          # Full history is required by TurboSnap (onlyChanged) to find the
+          # baseline commit and compute the changed files.
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+      - name: Enable corepack
+        run: corepack enable
+      - name: Install modules
+        run: yarn install --immutable
+      - name: Publish to Chromatic
+        uses: chromaui/action@db3ceb5efb0cd7447d63c2d8cce7da732ce89322 # v18.10.1
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          buildScriptName: build-storybook
+          # TurboSnap: only snapshot stories affected by the changed files.
+          onlyChanged: true
+          # Visual changes are reviewed in Chromatic (the "UI Tests" check),
+          # so they must not fail this job.
+          exitZeroOnChanges: true
+          # Builds on main become the new baselines.
+          autoAcceptChanges: main
