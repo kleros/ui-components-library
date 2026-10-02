@@ -9,9 +9,6 @@ const meta = {
   component: PushComponent,
   title: "Message/Push",
   tags: ["autodocs"],
-  // Pre-existing component issue: the close button only contains an icon and
-  // the component offers no way to give it an accessible name.
-  parameters: disableA11yRules("button-name"),
   args: {
     callback: fn(),
   },
@@ -27,7 +24,12 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
+/** Pre-existing component issue: the close button (not rendered when `small`)
+ * only contains an icon and cannot be given an accessible name. */
+const ICON_ONLY_CLOSE_BUTTON = disableA11yRules("button-name");
+
 export const Push: Story = {
+  parameters: ICON_ONLY_CLOSE_BUTTON,
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -71,6 +73,7 @@ export const SmallPush: Story = {
 };
 
 export const ErrorPush: Story = {
+  parameters: ICON_ONLY_CLOSE_BUTTON,
   args: {
     ...Push.args,
     variant: "error",

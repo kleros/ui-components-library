@@ -9,9 +9,6 @@ const meta = {
   component: TagComponent,
   title: "Display/Tag",
   tags: ["autodocs"],
-  // Pre-existing design issue: the tag text (primary blue on the medium blue
-  // background) is below the WCAG AA contrast ratio.
-  parameters: disableA11yRules("color-contrast"),
   args: {
     onPress: fn(),
   },
@@ -26,7 +23,12 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
+/** Pre-existing design issue: enabled tag text (primary blue on the medium
+ * blue background) is below the WCAG AA contrast ratio. */
+const TAG_CONTRAST = disableA11yRules("color-contrast");
+
 export const Tag: Story = {
+  parameters: TAG_CONTRAST,
   args: {
     active: false,
     themeUI: "light",
@@ -47,6 +49,7 @@ export const Tag: Story = {
 };
 
 export const ActiveTag: Story = {
+  parameters: TAG_CONTRAST,
   args: {
     active: true,
     themeUI: "light",

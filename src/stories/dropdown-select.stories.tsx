@@ -2,7 +2,7 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs } from "./utils";
+import { IPreviewArgs, waitForAnimations } from "./utils";
 
 import SelectComponent from "../lib/dropdown/select";
 import { Form } from "react-aria-components";
@@ -303,5 +303,29 @@ export const CustomItemIcon: Story = {
     await expect(args.callback).toHaveBeenCalledWith(
       expect.objectContaining({ id: 1, itemValue: 1 }),
     );
+  },
+};
+
+/** The listbox left open, so its (portaled) options are covered by the a11y check. */
+export const OpenSelect: Story = {
+  args: {
+    ...Select.args,
+    defaultSelectedKey: 2,
+    disabledKeys: [4],
+    defaultOpen: true,
+  },
+  play: async ({ canvasElement }) => {
+    const listbox = await body.findByRole("listbox");
+    // the rest of the page is aria-hidden while the popover is open
+    await expect(
+      within(canvasElement).getByRole("button", { hidden: true }),
+    ).toHaveAttribute("aria-expanded", "true");
+    await expect(
+      within(listbox).getByRole("option", { name: "hello 2" }),
+    ).toHaveAttribute("aria-selected", "true");
+    await expect(
+      within(listbox).getByRole("option", { name: "hello 4" }),
+    ).toHaveAttribute("aria-disabled", "true");
+    await waitForAnimations(document.body);
   },
 };

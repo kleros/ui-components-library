@@ -1,15 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs } from "./utils";
+import { IPreviewArgs, disableA11yRules, waitForAnimations } from "./utils";
 
 import DatepickerComponent from "../lib/form/datepicker";
 import {
-  getLocalTimeZone,
-  now,
   parseZonedDateTime,
   type ZonedDateTime,
 } from "@internationalized/date";
+
+/** Fixed date so stories and their tests are deterministic. */
+const FIXED_DATE = parseZonedDateTime("2025-01-15T10:30[UTC]");
 
 const meta = {
   component: DatepickerComponent,
@@ -41,6 +42,9 @@ const openCalendar = async (canvasElement: HTMLElement) => {
   return dialog;
 };
 
+const waitForClose = () =>
+  waitFor(() => expect(body.queryByRole("dialog")).not.toBeInTheDocument());
+
 /** Text of the date segment of the given type in `container`. */
 const segment = (container: HTMLElement, type: string) =>
   container.querySelector(`[data-type="${type}"]`)?.textContent;
@@ -57,25 +61,25 @@ const lastValue = (onChange: unknown) => {
 const navButton = (dialog: HTMLElement, slot: "previous" | "next") =>
   dialog.querySelector(`button[slot="${slot}"]`) as HTMLButtonElement;
 
-const FIXED_DATE = parseZonedDateTime("2024-03-15T10:30[UTC]");
-
 export const Datepicker: Story = {
   args: {
     themeUI: "dark",
     backgroundUI: "light",
     className: "w-full",
+    defaultValue: FIXED_DATE,
   },
   play: async ({ canvasElement }) => {
-    const today = now(getLocalTimeZone());
-    // defaults to today, with day granularity
-    await expect(segment(canvasElement, "day")).toBe(String(today.day));
-    await expect(segment(canvasElement, "year")).toBe(String(today.year));
+    // day granularity: no time segments
+    await expect(segment(canvasElement, "month")).toBe("1");
+    await expect(segment(canvasElement, "day")).toBe("15");
+    await expect(segment(canvasElement, "year")).toBe("2025");
     await expect(segment(canvasElement, "hour")).toBeUndefined();
 
     const dialog = await openCalendar(canvasElement);
     const grid = within(dialog).getByRole("grid");
-    const selected = grid.querySelector('[aria-selected="true"]');
-    await expect(selected).toHaveTextContent(String(today.day));
+    await expect(
+      grid.querySelector('[aria-selected="true"]'),
+    ).toHaveTextContent("15");
     // no time controls without `time`
     await expect(
       within(dialog).queryByRole("button", { name: "hour-increment" }),
@@ -83,9 +87,7 @@ export const Datepicker: Story = {
 
     // Escape dismisses the popover
     await userEvent.keyboard("{Escape}");
-    await waitFor(() =>
-      expect(body.queryByRole("dialog")).not.toBeInTheDocument(),
-    );
+    await waitForClose();
   },
 };
 
@@ -95,10 +97,11 @@ export const DatepickerWithTime: Story = {
     backgroundUI: "light",
     className: "w-full",
     time: true,
+    defaultValue: FIXED_DATE,
   },
   play: async ({ canvasElement }) => {
-    await expect(segment(canvasElement, "hour")).toBeDefined();
-    await expect(segment(canvasElement, "minute")).toBeDefined();
+    await expect(segment(canvasElement, "hour")).toBe("10");
+    await expect(segment(canvasElement, "minute")).toBe("30");
     const dialog = await openCalendar(canvasElement);
     await expect(within(dialog).getByText("Time")).toBeVisible();
     await expect(
@@ -107,9 +110,7 @@ export const DatepickerWithTime: Story = {
     await userEvent.click(
       within(dialog).getByRole("button", { name: "Select" }),
     );
-    await waitFor(() =>
-      expect(body.queryByRole("dialog")).not.toBeInTheDocument(),
-    );
+    await waitForClose();
   },
 };
 
@@ -120,22 +121,32 @@ export const DatepickerWithMinDate: Story = {
     backgroundUI: "light",
     className: "w-full",
     time: true,
-    minValue: now(getLocalTimeZone()),
+    defaultValue: FIXED_DATE,
+    minValue: FIXED_DATE,
   },
   play: async ({ canvasElement }) => {
     const dialog = await openCalendar(canvasElement);
+    const calendar = within(dialog);
     const previous = navButton(dialog, "previous");
     const next = navButton(dialog, "next");
     // cannot navigate to months before the minimum date
     await expect(previous).toBeDisabled();
     await expect(next).toBeEnabled();
+    // days before the minimum are unavailable
+    await expect(
+      calendar.getByRole("button", { name: /January 14, 2025/ }),
+    ).toHaveAttribute("aria-disabled", "true");
+    await expect(
+      calendar.getByRole("button", { name: /January 16, 2025/ }),
+    ).not.toHaveAttribute("aria-disabled");
     await userEvent.click(next);
     await expect(previous).toBeEnabled();
     await userEvent.keyboard("{Escape}");
+    await waitForClose();
   },
 };
 
-/** Uncontrolled picker with a fixed `defaultValue`. */
+/** Uncontrolled picker with a label and a fixed `defaultValue`. */
 export const WithDefaultValue: Story = {
   args: {
     themeUI: "dark",
@@ -146,19 +157,19 @@ export const WithDefaultValue: Story = {
   play: async ({ canvasElement, args, step }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByText("Deadline")).toBeVisible();
-    await expect(segment(canvasElement, "month")).toBe("3");
     await expect(segment(canvasElement, "day")).toBe("15");
-    await expect(segment(canvasElement, "year")).toBe("2024");
 
     const dialog = await openCalendar(canvasElement);
     const calendar = within(dialog);
-    await expect(calendar.getByRole("heading")).toHaveTextContent("March 2024");
+    await expect(calendar.getByRole("heading")).toHaveTextContent(
+      "January 2025",
+    );
 
     await step("picking a day updates the value", async () => {
       await userEvent.click(
-        calendar.getByRole("button", { name: /March 20, 2024/ }),
+        calendar.getByRole("button", { name: /January 20, 2025/ }),
       );
-      await expect(lastValue(args.onChange)).toMatch(/^2024-03-20/);
+      await expect(lastValue(args.onChange)).toMatch(/^2025-01-20/);
       await expect(segment(canvasElement, "day")).toBe("20");
       // the popover stays open (shouldCloseOnSelect is false by default)
       await expect(dialog).toBeInTheDocument();
@@ -166,27 +177,25 @@ export const WithDefaultValue: Story = {
 
     await step("keyboard navigation in the grid", async () => {
       await userEvent.keyboard("{ArrowRight}{Enter}");
-      await expect(lastValue(args.onChange)).toMatch(/^2024-03-21/);
+      await expect(lastValue(args.onChange)).toMatch(/^2025-01-21/);
     });
 
     await step("month navigation", async () => {
       await userEvent.click(navButton(dialog, "next"));
       await expect(calendar.getByRole("heading")).toHaveTextContent(
-        "April 2024",
+        "February 2025",
       );
     });
 
     await step("Clear resets to the default value", async () => {
       await userEvent.click(calendar.getByRole("button", { name: "Clear" }));
       await expect(segment(canvasElement, "day")).toBe("15");
-      await expect(lastValue(args.onChange)).toMatch(/^2024-03-15/);
+      await expect(lastValue(args.onChange)).toMatch(/^2025-01-15/);
     });
 
     await step("Select closes the popover", async () => {
       await userEvent.click(calendar.getByRole("button", { name: "Select" }));
-      await waitFor(() =>
-        expect(body.queryByRole("dialog")).not.toBeInTheDocument(),
-      );
+      await waitForClose();
     });
   },
 };
@@ -205,20 +214,68 @@ export const WithDefaultValueAndTime: Story = {
     await userEvent.click(
       dialog.getByRole("button", { name: "hour-increment" }),
     );
-    await expect(lastValue(args.onChange)).toMatch(/^2024-03-15T11:30/);
+    await expect(lastValue(args.onChange)).toMatch(/^2025-01-15T11:30/);
     await userEvent.click(
       dialog.getByRole("button", { name: "minute-decrement" }),
     );
-    await expect(lastValue(args.onChange)).toMatch(/^2024-03-15T11:29/);
+    await expect(lastValue(args.onChange)).toMatch(/^2025-01-15T11:29/);
     await userEvent.click(
       dialog.getByRole("button", { name: "hour-decrement" }),
     );
     await userEvent.click(
       dialog.getByRole("button", { name: "minute-increment" }),
     );
-    await expect(lastValue(args.onChange)).toMatch(/^2024-03-15T10:30/);
+    await expect(lastValue(args.onChange)).toMatch(/^2025-01-15T10:30/);
     await expect(segment(canvasElement, "hour")).toBe("10");
     await userEvent.keyboard("{Escape}");
+    await waitForClose();
+  },
+};
+
+/** The calendar popover left open, so its content is covered by the a11y check. */
+export const OpenCalendar: Story = {
+  args: {
+    ...WithDefaultValue.args,
+    defaultOpen: true,
+  },
+  play: async () => {
+    const dialog = await body.findByRole("dialog");
+    await expect(within(dialog).getByRole("grid")).toBeInTheDocument();
+    await expect(
+      within(dialog)
+        .getByRole("button", { name: /January 15, 2025/ })
+        .closest('[role="gridcell"]'),
+    ).toHaveAttribute("aria-selected", "true");
+    await waitForAnimations(document.body);
+  },
+};
+
+/** Open popover with the time controls, also covered by the a11y check. */
+export const OpenCalendarWithTime: Story = {
+  // Pre-existing component issue: the calendar and the time control each
+  // render a <header> (banner landmark) inside the popover, so the document
+  // ends up with duplicate, unlabeled banner landmarks.
+  parameters: disableA11yRules(
+    "landmark-no-duplicate-banner",
+    "landmark-unique",
+  ),
+  args: {
+    ...WithDefaultValue.args,
+    time: true,
+    defaultOpen: true,
+  },
+  play: async () => {
+    const dialog = await body.findByRole("dialog");
+    await expect(within(dialog).getByRole("grid")).toBeInTheDocument();
+    await expect(
+      within(dialog)
+        .getByRole("button", { name: /January 15, 2025/ })
+        .closest('[role="gridcell"]'),
+    ).toHaveAttribute("aria-selected", "true");
+    await expect(
+      within(dialog).getByRole("button", { name: "hour-increment" }),
+    ).toBeVisible();
+    await waitForAnimations(document.body);
   },
 };
 
@@ -240,7 +297,7 @@ export const Invalid: Story = {
   args: {
     ...WithDefaultValue.args,
     validate: (value) =>
-      value && value.year < 2025 ? "The deadline has passed." : null,
+      value && value.year < 2026 ? "The deadline has passed." : null,
     validationBehavior: "aria",
   },
   play: async ({ canvasElement }) => {

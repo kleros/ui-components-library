@@ -12,10 +12,6 @@ const meta = {
   component: DraggableList,
   title: "Draggable List",
   tags: ["autodocs"],
-  // Pre-existing component issues: the delete button shown on the selected /
-  // hovered item is icon-only (no accessible name) and is nested inside the
-  // focusable `option` element.
-  parameters: disableA11yRules("button-name", "nested-interactive"),
   args: {
     updateCallback: fn(),
     selectionCallback: fn(),
@@ -39,6 +35,14 @@ const getOptions = (canvasElement: HTMLElement) =>
     within(canvasElement).getByRole("listbox", { name: "Reorderable list" }),
   ).getAllByRole("option");
 
+/** Pre-existing component issues, hit when a play ends with an item selected:
+ * the delete button is icon-only (no accessible name) and is nested inside the
+ * focusable `option` element. */
+const DELETE_BUTTON_A11Y = disableA11yRules(
+  "button-name",
+  "nested-interactive",
+);
+
 const names = (options: HTMLElement[]) =>
   options.map((option) => option.textContent);
 
@@ -52,13 +56,9 @@ export const Default: Story = {
       { id: 3, name: "Acrobat", value: "" },
     ],
   },
-  // Pre-existing design issue: the primary Button in the light theme (white
-  // on #009aff) has a 2.97:1 contrast ratio, below WCAG AA.
-  parameters: disableA11yRules(
-    "button-name",
-    "nested-interactive",
-    "color-contrast",
-  ),
+  // Pre-existing design issue: the primary "Add Item" Button in the light
+  // theme (white on #009aff) has a 2.97:1 contrast ratio, below WCAG AA.
+  parameters: disableA11yRules("color-contrast"),
   render: function Render(args) {
     const [items, setItems] = useState<ListItem[]>([
       { id: 1, name: "Illustrator", value: "" },
@@ -111,7 +111,9 @@ export const Default: Story = {
           name: "Premiere",
           value: "",
         });
-        await expect(within(premiere).getByRole("button")).toBeInTheDocument();
+        await expect(
+          await within(premiere).findByRole("button"),
+        ).toBeInTheDocument();
       },
     );
 
@@ -157,6 +159,7 @@ export const Default: Story = {
 
 /** Drag operations can be disabled with `dragDisabled ` */
 export const DragDisabled: Story = {
+  parameters: DELETE_BUTTON_A11Y,
   args: {
     ...Default.args,
     dragDisabled: true,
@@ -169,7 +172,9 @@ export const DragDisabled: Story = {
     // items are still selectable and deletable
     await userEvent.click(options[0]);
     await expect(options[0]).toHaveAttribute("aria-selected", "true");
-    await expect(within(options[0]).getByRole("button")).toBeInTheDocument();
+    await expect(
+      await within(options[0]).findByRole("button"),
+    ).toBeInTheDocument();
   },
 };
 
@@ -195,6 +200,7 @@ export const DeletionDisabled: Story = {
 };
 
 export const CustomDragPreview: Story = {
+  parameters: DELETE_BUTTON_A11Y,
   args: {
     themeUI: "light",
     backgroundUI: "light",

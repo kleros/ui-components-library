@@ -9,9 +9,6 @@ const meta = {
   component: FileUploaderComponent,
   title: "Form/File Uploader",
   tags: ["autodocs"],
-  // Pre-existing component issue: until a file is selected, the upload button
-  // only contains an icon and has no accessible name.
-  parameters: disableA11yRules("button-name"),
   args: {
     callback: fn(),
   },
@@ -29,6 +26,11 @@ const meta = {
 export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
+
+/** Pre-existing component issue, hit by stories that end without a selected
+ * file: the upload button then only contains an icon and has no accessible
+ * name. */
+const ICON_ONLY_UPLOAD_BUTTON = disableA11yRules("button-name");
 
 const png = () => new File(["png"], "picture.png", { type: "image/png" });
 const txt = () => new File(["hello"], "notes.txt", { type: "text/plain" });
@@ -117,6 +119,7 @@ export const FileUploader: Story = {
 };
 
 export const FileUploaderWithMessage: Story = {
+  parameters: ICON_ONLY_UPLOAD_BUTTON,
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -138,6 +141,7 @@ export const FileUploaderWithMessage: Story = {
   },
 };
 export const FileUploaderVariant: Story = {
+  parameters: ICON_ONLY_UPLOAD_BUTTON,
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -187,6 +191,7 @@ export const FileUploaderWithAcceptedTypes: Story = {
 };
 
 export const FileUploaderWithCustomValidation: Story = {
+  parameters: ICON_ONLY_UPLOAD_BUTTON,
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -237,6 +242,7 @@ export const FileUploaderWithControlledBehaviour: Story = {
 };
 
 export const DisabledFileUploader: Story = {
+  parameters: ICON_ONLY_UPLOAD_BUTTON,
   args: {
     themeUI: "dark",
     backgroundUI: "light",

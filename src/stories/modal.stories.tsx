@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import React, { useState } from "react";
-import { IPreviewArgs } from "./utils";
+import { IPreviewArgs, waitForAnimations } from "./utils";
 
 import ModalComponent from "../lib/container/modal";
 import { Button } from "../lib";
@@ -116,5 +116,29 @@ export const NonDismissable: Story = {
     await userEvent.keyboard("{Escape}");
     await waitForClose();
     await expect(args.onOpenChange).toHaveBeenCalledWith(false);
+  },
+};
+
+/** A modal left open, so its (portaled) content is covered by the a11y check. */
+export const OpenModal: Story = {
+  args: {
+    ...Modal.args,
+    isOpen: true,
+    ariaLabel: "Open modal",
+    children: (
+      <div className="flex size-full items-center justify-center">
+        <p className="text-klerosUIComponentsPrimaryText font-semibold">
+          I am an open Modal.
+        </p>
+      </div>
+    ),
+  },
+  render: (args) => <ModalComponent {...args} />,
+  play: async ({ args }) => {
+    const dialog = await body.findByRole("dialog", { name: "Open modal" });
+    await waitForAnimations(document.body);
+    await expect(within(dialog).getByText("I am an open Modal.")).toBeVisible();
+    await waitFor(() => expect(dialog).toHaveFocus());
+    await expect(args.onOpenChange).not.toHaveBeenCalled();
   },
 };
