@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
@@ -23,5 +24,15 @@ export const DisplayIcon: Story = {
     text: "247",
     label: "Disputes",
     Icon: Balance,
+  },
+  play: async ({ canvasElement }) => {
+    // the value is labelled by the `label` text
+    const heading = within(canvasElement).getByRole("heading", {
+      level: 1,
+      name: "Disputes",
+    });
+    await expect(heading).toHaveTextContent("247");
+    // the icon is rendered inside its own card
+    await expect(canvasElement.querySelector(".size-12 svg")).toBeTruthy();
   },
 };
