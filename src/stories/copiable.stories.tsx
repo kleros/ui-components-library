@@ -1,3 +1,4 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, spyOn, userEvent, waitFor, within } from "@storybook/test";
 
@@ -63,7 +64,11 @@ export const Copiable: Story = {
     backgroundUI: "light",
     iconPlacement: "right",
     copiableContent: "I can be copied!",
-    children: "I can be copied!",
+    children: (
+      <span className="text-klerosUIComponentsPrimaryText">
+        I can be copied!
+      </span>
+    ),
     info: "Copy this text.",
   },
   play: async ({ canvasElement, step }) => {
@@ -85,7 +90,9 @@ export const Copiable: Story = {
       await waitFor(() =>
         expect(button.querySelector(".copied-icon")).toBeInTheDocument(),
       );
-      // pressing closes the tooltip; hovering again shows the new text
+      // pressing closes the tooltip; leaving and hovering again shows the
+      // new text
+      await userEvent.unhover(button);
       await expect(
         await hoverToReveal(userEvent, button, () => body.getByRole("tooltip")),
       ).toHaveTextContent("Copied!");
@@ -114,7 +121,11 @@ export const LeftAlignedCopiable: Story = {
     backgroundUI: "light",
     iconPlacement: "left",
     copiableContent: "I can be copied!",
-    children: "I can be copied!",
+    children: (
+      <span className="text-klerosUIComponentsPrimaryText">
+        I can be copied!
+      </span>
+    ),
     info: "Copy this text",
   },
   play: async ({ canvasElement }) => {
@@ -141,7 +152,9 @@ export const DefaultInfo: Story = {
     themeUI: "light",
     backgroundUI: "light",
     copiableContent: "0xdeadbeef",
-    children: "0xdead…beef",
+    children: (
+      <span className="text-klerosUIComponentsPrimaryText">0xdead…beef</span>
+    ),
   },
   play: async ({ canvasElement }) => {
     const button = getCopyButton(canvasElement);

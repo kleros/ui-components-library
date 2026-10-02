@@ -4,7 +4,13 @@ import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import BigNumberField from "../lib/form/bignumber-field";
 import Telegram from "../assets/svgs/telegram.svg";
 import BigNumber from "bignumber.js";
-import { IPreviewArgs, disableA11yRules, hoverToReveal } from "./utils";
+import {
+  IPreviewArgs,
+  disableA11yRules,
+  expectHoverRevealsNothing,
+  expectRevealedOnEachHover,
+  hoverToReveal,
+} from "./utils";
 import { Button, Form } from "../lib";
 
 const meta: Meta<typeof BigNumberField> = {
@@ -282,6 +288,11 @@ export const WithStep: Story = {
     );
     await expect(input).toHaveValue("10");
     await expect(lastChange(args.onChange)).toBe("10");
+    // leaving hides the steppers and every new hover reveals them again
+    await expectRevealedOnEachHover(userEvent, input, () =>
+      canvas.getByRole("button", { name: "Increment" }),
+    );
+    await userEvent.unhover(input);
   },
 };
 
@@ -383,6 +394,10 @@ export const Disabled: Story = {
     // the field is skipped in the tab order
     await userEvent.tab();
     await expect(input).not.toHaveFocus();
+    // stepper buttons are not revealed on hover while disabled
+    await expectHoverRevealsNothing(userEvent, input.parentElement!, () =>
+      canvas.queryByRole("button", { name: "Increment" }),
+    );
   },
 };
 

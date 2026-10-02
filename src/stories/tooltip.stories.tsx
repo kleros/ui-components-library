@@ -5,6 +5,7 @@ import { expect, userEvent, waitFor, within } from "@storybook/test";
 import {
   IPreviewArgs,
   disableA11yRules,
+  hoverForTooltip,
   mouseHover,
   waitForAnimations,
 } from "./utils";
@@ -74,10 +75,9 @@ export const Tooltip: Story = {
     await expect(body.queryByRole("tooltip")).not.toBeInTheDocument();
 
     await step("hovering shows the tooltip", async () => {
-      // the default `delay` is 0: a single hover opens the tooltip right away
-      // (well under the 1s bound, which still leaves room for a loaded CI)
-      await mouseHover(userEvent, trigger);
-      const tooltip = await body.findByRole("tooltip", {}, { timeout: 1000 });
+      // the default `delay` is 0: one hover opens the tooltip within
+      // HOVER_REVEAL_TIMEOUT_MS
+      const tooltip = await hoverForTooltip(userEvent, trigger);
       await expect(tooltip).toHaveTextContent("Tooltip Text");
       await expect(trigger).toHaveAttribute("aria-describedby", tooltip.id);
     });

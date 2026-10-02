@@ -2,7 +2,12 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs, hoverToReveal } from "./utils";
+import {
+  IPreviewArgs,
+  expectHoverRevealsNothing,
+  expectRevealedOnEachHover,
+  hoverToReveal,
+} from "./utils";
 
 import NumberFieldComponent from "../lib/form/number-field";
 import Telegram from "../assets/svgs/telegram.svg";
@@ -55,7 +60,31 @@ export const Default: Story = {
     const input = canvas.getByRole("textbox");
     await expect(input).toHaveAttribute("placeholder", "Enter Number");
 
+    // first pointer interaction of the story: a single hover must reveal the
+    // stepper buttons
+    await step("stepper buttons appear on hover", async () => {
+      const increase = await hoverToReveal(userEvent, input, () =>
+        canvas.getByRole("button", { name: /Increase/ }),
+      );
+      // from an empty field the first step lands on 0, then +1
+      await userEvent.click(increase);
+      await expect(args.onChange).toHaveBeenLastCalledWith(0);
+      await userEvent.click(increase);
+      await expect(args.onChange).toHaveBeenLastCalledWith(1);
+      await expect(input).toHaveValue("1");
+      await userEvent.click(canvas.getByRole("button", { name: /Decrease/ }));
+      await expect(args.onChange).toHaveBeenLastCalledWith(0);
+      // leaving hides the steppers and every new hover reveals them again
+      await expectRevealedOnEachHover(userEvent, input, () =>
+        canvas.getByRole("button", { name: /Increase/ }),
+      );
+      await userEvent.clear(input);
+      await userEvent.tab();
+      await userEvent.unhover(input);
+    });
+
     await step("typed values are committed on blur", async () => {
+      (args.onChange as ReturnType<typeof fn>).mockClear();
       await userEvent.type(input, "42");
       await expect(args.onChange).not.toHaveBeenCalled();
       await userEvent.tab();
@@ -75,17 +104,6 @@ export const Default: Story = {
       await expect(args.onChange).toHaveBeenLastCalledWith(43);
       await userEvent.keyboard("{ArrowDown}{ArrowDown}");
       await expect(args.onChange).toHaveBeenLastCalledWith(41);
-    });
-
-    await step("stepper buttons appear on hover", async () => {
-      const increase = await hoverToReveal(userEvent, input, () =>
-        canvas.getByRole("button", { name: /Increase/ }),
-      );
-      await userEvent.click(increase);
-      await expect(args.onChange).toHaveBeenLastCalledWith(42);
-      await userEvent.click(canvas.getByRole("button", { name: /Decrease/ }));
-      await expect(args.onChange).toHaveBeenLastCalledWith(41);
-      await userEvent.unhover(input);
     });
   },
 };
@@ -236,13 +254,13 @@ export const WithMinMax: Story = {
     const canvas = within(canvasElement);
     const input = canvas.getByRole("textbox", { name: "Rating" });
     await expect(input).toHaveValue("10");
+    // the steppers are rendered (hidden until hover) with their disabled
+    // state; hover-to-reveal itself is covered by the Default story
     await expect(
-      await hoverToReveal(userEvent, input, () =>
-        canvas.getByRole("button", { name: /Increase/ }),
-      ),
+      canvas.getByRole("button", { name: /Increase/, hidden: true }),
     ).toBeDisabled();
     await expect(
-      canvas.getByRole("button", { name: /Decrease/ }),
+      canvas.getByRole("button", { name: /Decrease/, hidden: true }),
     ).toBeEnabled();
 
     await userEvent.clear(input);
@@ -274,7 +292,8 @@ export const Disabled: Story = {
     await expect(input).toHaveValue("30");
     await expect(args.onChange).not.toHaveBeenCalled();
     // steppers are not shown on hover when disabled
-    await userEvent.hover(input);
-    await expect(input.nextElementSibling).toHaveClass("hidden");
+    await expectHoverRevealsNothing(userEvent, input.parentElement!, () =>
+      canvas.queryByRole("button", { name: /Increase/ }),
+    );
   },
 };

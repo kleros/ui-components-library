@@ -53,40 +53,36 @@ export const waitForAnimations = async (element: Element) => {
 };
 
 /**
- * Hovers `target` and waits for `query()` to find the element revealed by the
- * hover (e.g. stepper buttons only rendered while a field is hovered). If the
- * hover was missed (possible under heavy CPU load) it is re-dispatched. The
+ * Upper bound for hover-revealed UI to appear. The library's hover feedback
+ * (stepper buttons, tooltips with the default `delay` of 0) is immediate, so
+ * anything slower than this is treated as a regression. The bound only leaves
+ * slack for rendering on a loaded CI machine; keep it below any delay that
+ * should fail the tests.
+ */
+export const HOVER_REVEAL_TIMEOUT_MS = 1000;
+
+/**
+ * Hovers `target` once and waits for `query()` to find the element revealed by
+ * the hover (e.g. stepper buttons only rendered while a field is hovered). The
  * element may still be fading in; it is returned as soon as it is rendered.
  */
 export const hoverToReveal = async <T extends HTMLElement>(
-  user: {
-    hover: (el: Element) => Promise<void>;
-    unhover: (el: Element) => Promise<void>;
-  },
+  user: { hover: (el: Element) => Promise<void> },
   target: Element,
   query: () => T,
-  attempts = 4,
 ): Promise<T> => {
-  for (let attempt = 1; ; attempt++) {
-    await user.hover(target);
-    try {
-      return await waitFor(query, { timeout: 1500 });
-    } catch (error) {
-      if (attempt >= attempts) throw error;
-      await user.unhover(target);
-    }
-  }
+  await user.hover(target);
+  return waitFor(query, { timeout: HOVER_REVEAL_TIMEOUT_MS });
 };
 
 /**
  * Hovers `trigger` as a mouse user and returns the tooltip it opens (portaled
- * into document.body). Retries the hover like `hoverToReveal`.
+ * into document.body) within `HOVER_REVEAL_TIMEOUT_MS`.
  */
 export const hoverForTooltip = async (
   user: {
     click: (el: Element) => Promise<void>;
     hover: (el: Element) => Promise<void>;
-    unhover: (el: Element) => Promise<void>;
   },
   trigger: Element,
 ) => {
@@ -95,4 +91,54 @@ export const hoverForTooltip = async (
   return hoverToReveal(user, trigger, () =>
     within(document.body).getByRole("tooltip"),
   );
+};
+
+/**
+ * Hovers `target` and asserts that hover-only UI stays hidden: after giving
+ * React a moment to render a (wrong) hover state, `query()` must find nothing.
+ */
+export const expectHoverRevealsNothing = async (
+  user: {
+    hover: (el: Element) => Promise<void>;
+    unhover: (el: Element) => Promise<void>;
+  },
+  target: Element,
+  query: () => HTMLElement | null,
+) => {
+  await user.hover(target);
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  await expect(query()).toBeNull();
+  await user.unhover(target);
+};
+
+/**
+ * Asserts hover-only UI follows the pointer: leaving `target` hides what
+ * `query()` finds, and a fresh hover reveals it again. Repeating the cycle
+ * also catches hover state that only works every other time.
+ */
+export const expectRevealedOnEachHover = async (
+  user: {
+    hover: (el: Element) => Promise<void>;
+    unhover: (el: Element) => Promise<void>;
+  },
+  target: Element,
+  query: () => HTMLElement,
+  times = 2,
+) => {
+  for (let i = 0; i < times; i++) {
+    await user.unhover(target);
+    await waitFor(
+      () => {
+        let revealed = true;
+        try {
+          query();
+        } catch {
+          revealed = false;
+        }
+        if (revealed) throw new Error("still revealed after unhover");
+      },
+      { timeout: HOVER_REVEAL_TIMEOUT_MS },
+    );
+    await hoverToReveal(user, target, query);
+  }
 };
