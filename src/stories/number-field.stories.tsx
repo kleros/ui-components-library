@@ -2,7 +2,7 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs } from "./utils";
+import { IPreviewArgs, hoverToReveal } from "./utils";
 
 import NumberFieldComponent from "../lib/form/number-field";
 import Telegram from "../assets/svgs/telegram.svg";
@@ -78,8 +78,9 @@ export const Default: Story = {
     });
 
     await step("stepper buttons appear on hover", async () => {
-      await userEvent.hover(input);
-      const increase = canvas.getByRole("button", { name: /Increase/ });
+      const increase = await hoverToReveal(userEvent, input, () =>
+        canvas.getByRole("button", { name: /Increase/ }),
+      );
       await userEvent.click(increase);
       await expect(args.onChange).toHaveBeenLastCalledWith(42);
       await userEvent.click(canvas.getByRole("button", { name: /Decrease/ }));
@@ -235,9 +236,10 @@ export const WithMinMax: Story = {
     const canvas = within(canvasElement);
     const input = canvas.getByRole("textbox", { name: "Rating" });
     await expect(input).toHaveValue("10");
-    await userEvent.hover(input);
     await expect(
-      canvas.getByRole("button", { name: /Increase/ }),
+      await hoverToReveal(userEvent, input, () =>
+        canvas.getByRole("button", { name: /Increase/ }),
+      ),
     ).toBeDisabled();
     await expect(
       canvas.getByRole("button", { name: /Decrease/ }),

@@ -1,7 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, spyOn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules, mouseHover } from "./utils";
+import {
+  IPreviewArgs,
+  disableA11yRules,
+  hoverForTooltip,
+  hoverToReveal,
+  waitForAnimations,
+} from "./utils";
 
 import CopiableComponent from "../lib/copiable";
 
@@ -37,6 +43,13 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
+const waitForTooltipHidden = () =>
+  waitFor(() =>
+    expect(
+      within(document.body).queryByRole("tooltip"),
+    ).not.toBeInTheDocument(),
+  );
+
 /** The real copy button (the inner one, wrapped by the tooltip trigger). */
 const getCopyButton = (canvasElement: HTMLElement) =>
   canvasElement.querySelector("button") as HTMLButtonElement;
@@ -60,8 +73,7 @@ export const Copiable: Story = {
     await expect(button.querySelector(".copy-icon")).toBeInTheDocument();
 
     await step("hovering shows the info tooltip", async () => {
-      await mouseHover(userEvent, button);
-      const tooltip = await body.findByRole("tooltip");
+      const tooltip = await hoverForTooltip(userEvent, button);
       await expect(tooltip).toHaveTextContent("Copy this text.");
     });
 
@@ -74,11 +86,9 @@ export const Copiable: Story = {
         expect(button.querySelector(".copied-icon")).toBeInTheDocument(),
       );
       // pressing closes the tooltip; hovering again shows the new text
-      await userEvent.unhover(button);
-      await userEvent.hover(button);
-      await expect(await body.findByRole("tooltip")).toHaveTextContent(
-        "Copied!",
-      );
+      await expect(
+        await hoverToReveal(userEvent, button, () => body.getByRole("tooltip")),
+      ).toHaveTextContent("Copied!");
     });
 
     await step("clicking again while 'Copied!' does nothing", async () => {
@@ -93,6 +103,8 @@ export const Copiable: Story = {
       );
     });
     await userEvent.unhover(button);
+    // let the tooltip finish fading out before the axe check runs
+    await waitForTooltipHidden();
   },
 };
 
@@ -117,6 +129,9 @@ export const LeftAlignedCopiable: Story = {
     await waitFor(() =>
       expect(button.querySelector(".copied-icon")).toBeInTheDocument(),
     );
+    // keyboard focus keeps the "Copied!" tooltip open: let its fade-in finish
+    // so the axe check sees the final, opaque tooltip
+    await waitForAnimations(document.body);
   },
 };
 
@@ -130,14 +145,15 @@ export const DefaultInfo: Story = {
   },
   play: async ({ canvasElement }) => {
     const button = getCopyButton(canvasElement);
-    await mouseHover(userEvent, button);
-    await expect(
-      await within(document.body).findByRole("tooltip"),
-    ).toHaveTextContent(/^Copy$/);
+    await expect(await hoverForTooltip(userEvent, button)).toHaveTextContent(
+      /^Copy$/,
+    );
     await userEvent.click(button);
     await expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
       "0xdeadbeef",
     );
     await userEvent.unhover(button);
+    // let the tooltip finish fading out before the axe check runs
+    await waitForTooltipHidden();
   },
 };

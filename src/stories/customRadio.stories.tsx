@@ -165,7 +165,7 @@ export const Composition: Story = {
     // selecting the gated option reveals its sibling field
     await userEvent.click(gated);
     await expect(gated).toBeChecked();
-    const field = canvas.getByRole("textbox", { name: "Token address" });
+    const field = await canvas.findByRole("textbox", { name: "Token address" });
     await userEvent.type(field, "0x1234");
     await expect(field).toHaveValue("0x1234");
     // typing in the field does not change the selection

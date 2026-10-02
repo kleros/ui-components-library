@@ -2,7 +2,12 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules, mouseHover } from "./utils";
+import {
+  IPreviewArgs,
+  disableA11yRules,
+  mouseHover,
+  waitForAnimations,
+} from "./utils";
 
 import TooltipComponent from "../lib/tooltip";
 import Tag from "../lib/tag";
@@ -69,8 +74,10 @@ export const Tooltip: Story = {
     await expect(body.queryByRole("tooltip")).not.toBeInTheDocument();
 
     await step("hovering shows the tooltip", async () => {
+      // the default `delay` is 0: a single hover opens the tooltip right away
+      // (well under the 1s bound, which still leaves room for a loaded CI)
       await mouseHover(userEvent, trigger);
-      const tooltip = await body.findByRole("tooltip");
+      const tooltip = await body.findByRole("tooltip", {}, { timeout: 1000 });
       await expect(tooltip).toHaveTextContent("Tooltip Text");
       await expect(trigger).toHaveAttribute("aria-describedby", tooltip.id);
     });
@@ -112,6 +119,8 @@ export const OpenTooltip: Story = {
     // ...and it stays open when the pointer leaves
     await userEvent.unhover(getTrigger(canvasElement));
     await expect(body.getByRole("tooltip")).toBeInTheDocument();
+    // left open: the axe check covers the tooltip once it is fully shown
+    await waitForAnimations(document.body);
   },
 };
 
@@ -128,6 +137,7 @@ export const BottomPlacement: Story = {
     await expect(within(tooltip).getByText("Below the trigger")).toHaveClass(
       "text-center",
     );
+    await waitForAnimations(document.body);
   },
 };
 
