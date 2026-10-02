@@ -52,6 +52,10 @@ jobs:
           buildScriptName: build-storybook
           # TurboSnap: only snapshot stories affected by the changed files.
           onlyChanged: true
+          # Story fixtures are served through staticDirs, outside the Vite
+          # module graph, so TurboSnap cannot trace them: re-snapshot all
+          # stories when any of them change.
+          externals: "src/stories/fixtures/**"
           # Visual changes are reviewed in Chromatic (the "UI Tests" check),
           # so they must not fail this job.
           exitZeroOnChanges: true

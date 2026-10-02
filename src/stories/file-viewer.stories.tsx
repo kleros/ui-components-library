@@ -211,7 +211,7 @@ export const RelativeUrl: Story = {
     themeUI: "light",
     backgroundUI: "light",
     className: "w-[800px]",
-    url: "/fixtures/sample.txt",
+    url: "./fixtures/sample.txt",
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
