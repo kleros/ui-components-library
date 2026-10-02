@@ -2,6 +2,9 @@ import type { StorybookConfig } from "@storybook/react-vite";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
+  // Small local files used by stories (e.g. the file viewer), so Storybook,
+  // story tests and Chromatic render the same deterministic content.
+  staticDirs: [{ from: "../src/stories/fixtures", to: "/fixtures" }],
   addons: [
     "@storybook/addon-essentials",
     "@storybook/addon-onboarding",

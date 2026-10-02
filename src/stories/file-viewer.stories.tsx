@@ -196,22 +196,31 @@ export const DataUrlPercentEncodedMimeBlocked: Story = {
   play: expectBlocked,
 };
 
-/** Relative URLs resolve against the page origin and are allowed. */
+/** Relative URLs resolve against the page origin and are allowed. The file is
+ * a local fixture (served through Storybook `staticDirs`), so the rendered
+ * result is deterministic. */
 export const RelativeUrl: Story = {
   args: {
     themeUI: "light",
     backgroundUI: "light",
     className: "w-[800px]",
-    url: "./sample.txt",
+    url: "/fixtures/sample.txt",
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(
       canvas.queryByText("Unable to display this file."),
     ).not.toBeInTheDocument();
-    // handed over to the document viewer
+    // handed over to the document viewer, which fetches and renders the file
     await expect(
       canvasElement.querySelector("#react-doc-viewer"),
     ).toBeInTheDocument();
+    await expect(
+      await canvas.findByText(
+        "Kleros file viewer fixture.",
+        {},
+        { timeout: 5000 },
+      ),
+    ).toBeVisible();
   },
 };
