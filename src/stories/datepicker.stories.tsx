@@ -18,6 +18,7 @@ const meta = {
   tags: ["autodocs"],
   args: {
     onChange: fn(),
+    defaultValue: FIXED_DATE,
   },
   argTypes: {
     time: {

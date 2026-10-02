@@ -33,3 +33,6 @@ yarn-error.log*
 coverage
 reports
 .stryker-tmp
+
+# storybook build output (also used by Chromatic)
+storybook-static

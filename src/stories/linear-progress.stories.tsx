@@ -9,6 +9,12 @@ const meta = {
   component: LinearComponent,
   title: "Progress/Linear",
   tags: ["autodocs"],
+  parameters: {
+    // Chromatic pauses CSS animations at their first frame by default, which
+    // for the `progressFill` entry animation is an empty bar. Capture the end
+    // state instead.
+    chromatic: { pauseAnimationAtEnd: true },
+  },
   argTypes: {
     value: {
       control: "number",

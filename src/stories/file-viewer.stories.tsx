@@ -37,6 +37,10 @@ const PDF_URL = `${SAMPLE_FILES_BASE}/pdf-multiple-pages-file.pdf`;
 
 const IMAGE_URL = `${SAMPLE_FILES_BASE}/png-image.png`;
 
+// Stories that load remote CDN content can't produce a stable visual
+// snapshot (third-party availability, pdf.js canvas rendering, `@main` URL).
+const REMOTE_CONTENT = { chromatic: { disableSnapshot: true } };
+
 // A real-world malicious-style SVG: `onload` script + external `<image>` to
 // exfiltrate. When rendered via `<img>` (our SvgDocRenderer), the browser
 // disables both — so this displays as an inert red square. If it ever leaks
@@ -51,6 +55,7 @@ const SVG_DATA_URL =
   );
 
 export const FileViewer: Story = {
+  parameters: REMOTE_CONTENT,
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -61,6 +66,7 @@ export const FileViewer: Story = {
 };
 
 export const Image: Story = {
+  parameters: REMOTE_CONTENT,
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -101,6 +107,7 @@ export const UnsupportedScheme: Story = {
 };
 
 export const UnsupportedFileType: Story = {
+  parameters: REMOTE_CONTENT,
   args: {
     themeUI: "light",
     backgroundUI: "light",
