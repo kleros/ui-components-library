@@ -12,6 +12,10 @@
   ],
   "coverageAnalysis": "perTest",
   "reporters": ["clear-text", "progress", "html"],
-  "thresholds": { "high": 90, "low": 80, "break": null },
+  "thresholds": {
+    "high": 95,
+    "low": 90,
+    "break": 90
+  },
   "tempDirName": ".stryker-tmp"
 }

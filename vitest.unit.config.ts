@@ -6,7 +6,12 @@ export default defineProject({
   test: {
     name: "unit",
     environment: "jsdom",
-    include: ["src/utils/**/*.test.{ts,tsx}", "src/hooks/**/*.test.{ts,tsx}"],
+    setupFiles: ["./src/test/setup.ts"],
+    include: [
+      "src/utils/**/*.test.{ts,tsx}",
+      "src/hooks/**/*.test.{ts,tsx}",
+      "src/test/**/*.test.{ts,tsx}",
+    ],
     exclude: ["**/node_modules/**", "**/*.stories.*"],
     restoreMocks: true,
     unstubGlobals: true,
