@@ -34,6 +34,11 @@
     "commitlint.config.cjs",
     "eslint.config.mjs",
     "vite.config.ts",
+    "vitest.config.ts",
+    "vitest.unit.config.ts",
+    "coverage",
+    "reports",
+    ".stryker-tmp",
     "vite.config.theme.ts"
   ]
 }
