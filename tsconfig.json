@@ -39,6 +39,7 @@
     "coverage",
     "reports",
     ".stryker-tmp",
+    "storybook-static",
     "vite.config.theme.ts"
   ]
 }
