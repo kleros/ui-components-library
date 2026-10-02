@@ -37,6 +37,14 @@ export default defineConfig({
           setupFiles: ["./.storybook/vitest.setup.ts"],
         },
       },
+      "./vitest.unit.config.ts",
     ],
+    coverage: {
+      provider: "v8",
+      include: ["src/utils/**", "src/hooks/**"],
+      exclude: ["**/*.test.{ts,tsx}"],
+      reporter: ["text", "html"],
+      reportsDirectory: "coverage",
+    },
   },
 });

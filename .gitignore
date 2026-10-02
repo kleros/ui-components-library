@@ -28,3 +28,8 @@ yarn-error.log*
 
 # "yarn pack" output
 *.tgz
+
+# test / mutation testing output
+coverage
+reports
+.stryker-tmp
