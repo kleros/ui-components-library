@@ -11,9 +11,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: chromatic-${{ github.event.pull_request.number || github.ref }}
-  # Cancel superseded PR runs; let every main build finish so baselines advance.
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # PR runs share a group per PR, so a new push cancels the superseded run.
+  # Push runs on main are grouped per commit SHA, so they never cancel (or
+  # displace a pending) earlier main run and every baseline gets built.
+  group: chromatic-${{ github.event_name == 'push' && github.sha || github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   chromatic:
@@ -33,11 +35,14 @@ jobs:
           # baseline commit and compute the changed files.
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: 22
+      # corepack must be enabled before setup-node so `cache: yarn` resolves
+      # Yarn 4 (from packageManager) rather than the runner's Yarn 1.
       - name: Enable corepack
         run: corepack enable
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 20
+          cache: yarn
       - name: Install modules
         run: yarn install --immutable
       - name: Publish to Chromatic

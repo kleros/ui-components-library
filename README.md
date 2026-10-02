@@ -182,11 +182,12 @@ Every story is snapshotted by [Chromatic](https://www.chromatic.com/) and compar
 
 - The progress stories use `chromatic: { pauseAnimationAtEnd: true }`, because the first frame of the fill animation is an empty bar.
 - The Datepicker stories pass a fixed `defaultValue` and `minValue`, because the component defaults to "now".
+- The File Viewer stories that load remote content from a CDN (`FileViewer`, `Image` and `UnsupportedFileType`) are excluded with `chromatic: { disableSnapshot: true }`. Their snapshots would depend on third-party availability and on pdf.js rendering, so Chromatic doesn't cover them.
 
 **Running locally**:
 
 ```bash
-npx chromatic --project-token=<CHROMATIC_PROJECT_TOKEN> --only-changed
+yarn dlx chromatic --project-token=<CHROMATIC_PROJECT_TOKEN> --only-changed
 ```
 
 ## Package Publication
