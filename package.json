@@ -31,7 +31,8 @@
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist",
     "prepare": "husky install",
-    "start": "storybook dev -p 6006"
+    "start": "storybook dev -p 6006",
+    "test:stories": "vitest run --project=storybook"
   },
   "files": [
     "dist"
@@ -43,10 +44,11 @@
     "@eslint/compat": "^1.2.7",
     "@eslint/eslintrc": "^3.3.0",
     "@eslint/js": "^9.21.0",
+    "@storybook/addon-a11y": "8.6.4",
     "@storybook/addon-essentials": "^8.6.4",
-    "@storybook/addon-interactions": "^8.6.4",
     "@storybook/addon-onboarding": "^8.6.4",
     "@storybook/blocks": "^8.6.4",
+    "@storybook/experimental-addon-test": "8.6.4",
     "@storybook/react": "^8.6.4",
     "@storybook/react-vite": "^8.6.4",
     "@storybook/test": "^8.6.4",
@@ -59,6 +61,7 @@
     "@typescript-eslint/eslint-plugin": "^8.26.0",
     "@typescript-eslint/parser": "^8.26.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/browser": "^3.2.4",
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-import-resolver-parcel": "^1.10.6",
@@ -72,6 +75,7 @@
     "globals": "^16.0.0",
     "husky": "^7.0.0",
     "lint-staged": "^12.1.2",
+    "playwright": "1.56.1",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "process": "^0.11.10",
@@ -81,7 +85,8 @@
     "vite": "^6.2.1",
     "vite-plugin-dts": "^4.5.3",
     "vite-plugin-lib-inject-css": "^2.2.2",
-    "vite-plugin-svgr": "^4.3.0"
+    "vite-plugin-svgr": "^4.3.0",
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
     "@tailwindcss/postcss": "^4.0.11",
