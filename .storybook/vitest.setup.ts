@@ -19,6 +19,10 @@ beforeAll(project.beforeAll);
 // hover-revealed stepper buttons appearing), which react-aria reads as the
 // pointer leaving the hovered element. Drop those events so hover state only
 // follows the simulated pointer.
+// WARNING: this also drops events from *real* browser input. A future story
+// test driving the real mouse (e.g. `userEvent` from `@vitest/browser/context`)
+// would have its hover/move events silently swallowed; remove or scope this
+// filter before adding such a test.
 for (const type of [
   "pointerover",
   "pointerout",

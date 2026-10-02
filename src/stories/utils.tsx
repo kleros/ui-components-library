@@ -142,3 +142,21 @@ export const expectRevealedOnEachHover = async (
     await hoverToReveal(user, target, query);
   }
 };
+
+/**
+ * Timeout for waiting until a tooltip has closed. Closing involves the
+ * tooltip's close delay (500ms by default) plus its fade-out animation, so the
+ * default 1s `waitFor` timeout leaves little slack on a loaded machine. Hide
+ * timing is not under test, hence the generous bound.
+ */
+export const TOOLTIP_HIDE_TIMEOUT_MS = 2500;
+
+/** Waits until no tooltip is rendered anymore (closed and faded out). */
+export const waitForTooltipHidden = () =>
+  waitFor(
+    () =>
+      expect(
+        within(document.body).queryByRole("tooltip"),
+      ).not.toBeInTheDocument(),
+    { timeout: TOOLTIP_HIDE_TIMEOUT_MS },
+  );

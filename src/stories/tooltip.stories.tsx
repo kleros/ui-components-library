@@ -1,6 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, userEvent, waitFor, within } from "@storybook/test";
+import { expect, userEvent, within } from "@storybook/test";
 
 import {
   IPreviewArgs,
@@ -8,6 +8,7 @@ import {
   hoverForTooltip,
   mouseHover,
   waitForAnimations,
+  waitForTooltipHidden,
 } from "./utils";
 
 import TooltipComponent from "../lib/tooltip";
@@ -60,8 +61,7 @@ const body = within(document.body);
 const getTrigger = (canvasElement: HTMLElement) =>
   canvasElement.querySelector('[role="button"][tabindex]') as HTMLElement;
 
-const waitForHidden = () =>
-  waitFor(() => expect(body.queryByRole("tooltip")).not.toBeInTheDocument());
+const waitForHidden = waitForTooltipHidden;
 
 export const Tooltip: Story = {
   args: {

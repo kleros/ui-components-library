@@ -8,6 +8,7 @@ import {
   hoverForTooltip,
   hoverToReveal,
   waitForAnimations,
+  waitForTooltipHidden,
 } from "./utils";
 
 import CopiableComponent from "../lib/copiable";
@@ -43,13 +44,6 @@ const meta = {
 export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
-
-const waitForTooltipHidden = () =>
-  waitFor(() =>
-    expect(
-      within(document.body).queryByRole("tooltip"),
-    ).not.toBeInTheDocument(),
-  );
 
 /** The real copy button (the inner one, wrapped by the tooltip trigger). */
 const getCopyButton = (canvasElement: HTMLElement) =>
