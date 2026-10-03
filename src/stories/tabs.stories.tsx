@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import React from "react";
-import { expect, fn, userEvent, within } from "@storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import { IPreviewArgs, disableA11yRules } from "./utils";
 
 import TabsComponent from "../lib/pagination/tabs";
@@ -51,12 +51,19 @@ export const Tabs: Story = {
   play: async ({ canvasElement, args, step }) => {
     const canvas = within(canvasElement);
     const tablist = canvas.getByRole("tablist");
-    const discord = within(tablist).getByRole("tab", { name: "Discord" });
+    // Tabs are rendered after the tablist mounts (a tick later in the
+    // production build Chromatic runs), so wait for the first one.
+    const discord = await within(tablist).findByRole("tab", {
+      name: "Discord",
+    });
     const telegram = within(tablist).getByRole("tab", { name: "Telegram" });
     const disabled = within(tablist).getByRole("tab", { name: "Disabled" });
 
     await step("defaultSelectedKey selects the first panel", async () => {
-      await expect(discord).toHaveAttribute("aria-selected", "true");
+      // the initial selection is also applied a tick after mount
+      await waitFor(() =>
+        expect(discord).toHaveAttribute("aria-selected", "true"),
+      );
       await expect(canvas.getByRole("tabpanel")).toHaveTextContent("Discord");
       await expect(discord).toHaveClass(
         "border-b-klerosUIComponentsPrimaryBlue",

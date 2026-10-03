@@ -43,6 +43,14 @@ const DELETE_BUTTON_A11Y = disableA11yRules(
   "nested-interactive",
 );
 
+/** react-aria renders collection items after the list itself mounts (in the
+ * production Storybook build that Chromatic runs, a tick later than in dev),
+ * so plays must wait for the items before querying them synchronously. */
+const findOptions = (canvasElement: HTMLElement) =>
+  within(
+    within(canvasElement).getByRole("listbox", { name: "Reorderable list" }),
+  ).findAllByRole("option");
+
 const names = (options: HTMLElement[]) =>
   options.map((option) => option.textContent);
 
@@ -93,7 +101,7 @@ export const Default: Story = {
   },
   play: async ({ canvasElement, args, step }) => {
     const canvas = within(canvasElement);
-    await expect(names(getOptions(canvasElement))).toEqual([
+    await expect(names(await findOptions(canvasElement))).toEqual([
       "Illustrator",
       "Premiere",
       "Acrobat",
@@ -165,7 +173,7 @@ export const DragDisabled: Story = {
     dragDisabled: true,
   },
   play: async ({ canvasElement }) => {
-    const options = getOptions(canvasElement);
+    const options = await findOptions(canvasElement);
     // no drag handle icon is rendered
     for (const option of options)
       await expect(option.querySelector(".cursor-grab")).toBeNull();
@@ -185,7 +193,7 @@ export const DeletionDisabled: Story = {
     deletionDisabled: true,
   },
   play: async ({ canvasElement, args }) => {
-    const options = getOptions(canvasElement);
+    const options = await findOptions(canvasElement);
     await expect(options[0].querySelector(".cursor-grab")).toBeInTheDocument();
     await userEvent.click(options[1]);
     await expect(options[1]).toHaveAttribute("aria-selected", "true");
@@ -221,7 +229,7 @@ export const CustomDragPreview: Story = {
     return <DraggableList {...args} />;
   },
   play: async ({ canvasElement, args }) => {
-    const options = getOptions(canvasElement);
+    const options = await findOptions(canvasElement);
     await expect(names(options)).toEqual([
       "Illustrator",
       "Premiere",
@@ -247,7 +255,7 @@ export const KeyboardReorder: Story = {
   ...Default,
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
-    const acrobat = canvas.getByRole("option", { name: "Acrobat" });
+    const acrobat = await canvas.findByRole("option", { name: "Acrobat" });
     acrobat.focus();
     await userEvent.keyboard("{Enter}");
     // drop targets are announced as options between the items
