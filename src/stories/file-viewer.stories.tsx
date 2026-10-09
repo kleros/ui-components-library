@@ -343,7 +343,7 @@ const IMAGE_URL = "./fixtures/sample.png";
 // no-renderer fallback is rendered.
 const UNSUPPORTED_URL = "./fixtures/sample.json";
 
-// pdf.js canvas output is not pixel-stable across runs.
+// Chromatic skips these stories; the README lists them with the reasons.
 const NO_SNAPSHOT = { chromatic: { disableSnapshot: true } };
 
 // A real-world malicious-style SVG: `onload` script + external `<image>` to
@@ -360,6 +360,7 @@ const SVG_DATA_URL =
   );
 
 export const FileViewer: Story = {
+  // pdf.js canvas output is not pixel-stable across runs.
   parameters: {
     ...NO_SNAPSHOT,
     ...a11yExceptions(
@@ -418,17 +419,13 @@ export const FileViewer: Story = {
 };
 
 export const Image: Story = {
-  // react-doc-viewer's <img> has no alt attribute.
-  parameters: {
-    ...NO_SNAPSHOT,
-    ...a11yExceptions({
-      rule: "image-alt",
-      selector: "#image-img",
-      reason:
-        "Dependency defect: react-doc-viewer's image renderer sets no alt attribute.",
-      source: "src/lib/file-viewer/index.tsx:208",
-    }),
-  },
+  parameters: a11yExceptions({
+    rule: "image-alt",
+    selector: "#image-img",
+    reason:
+      "Dependency defect: react-doc-viewer's image renderer sets no alt attribute.",
+    source: "src/lib/file-viewer/index.tsx:208",
+  }),
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -474,8 +471,18 @@ export const UnsupportedScheme: Story = {
   play: expectBlocked,
 };
 
+export const AboutUrlBlocked: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: "about:blank",
+  },
+  play: expectBlocked,
+};
+
 export const UnsupportedFileType: Story = {
-  parameters: { ...NO_SNAPSHOT, ...a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT) },
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -911,7 +918,8 @@ export const MaliciousMarkdownFile: Story = {
 
 /** A markdown image pointing off-origin must not be requested or rendered. */
 export const MaliciousMarkdownRemoteImage: Story = {
-  // Excluded: the markdown viewer requests off-origin images (parked library issue).
+  // Excluded: the markdown viewer requests off-origin images. Parked as
+  // 2026-10-09-ui-components-library-markdown-offorigin-images.
   tags: ["!test"],
   parameters: NO_SNAPSHOT,
   args: {
