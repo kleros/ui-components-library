@@ -124,6 +124,27 @@ describe("storybook directory argument", () => {
   });
 });
 
+test("fails on a built Storybook with no stories", () => {
+  const parent = mkdtempSync(path.join(tmpdir(), "plays-checker-empty-"));
+  try {
+    const dir = path.join(parent, "empty");
+    mkdirSync(dir);
+    writeFileSync(
+      path.join(dir, "index.json"),
+      JSON.stringify({ v: 5, entries: {} }),
+    );
+    writeFileSync(path.join(dir, "iframe.html"), "");
+    const run = spawnSync("node", [checker, "empty"], {
+      cwd: parent,
+      encoding: "utf8",
+    });
+    assert.equal(run.status, 1, run.stdout);
+    assert.match(run.stderr, /No stories/);
+  } finally {
+    rmSync(parent, { recursive: true });
+  }
+});
+
 // `${id} [${theme}]` -> the failure events the checker must report, exactly.
 const EXPECTED = {
   "checker-fixtures--play-throws [light]": [

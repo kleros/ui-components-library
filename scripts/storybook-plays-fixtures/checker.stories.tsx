@@ -11,6 +11,13 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+export const TrustedEventFilterInstalled: Story = {
+  play: () => {
+    if (!(window as { __trustedEventFilter?: boolean }).__trustedEventFilter)
+      throw new Error("fixture: trusted-event filter not loaded");
+  },
+};
+
 export const Passes: Story = {
   play: () => {},
 };

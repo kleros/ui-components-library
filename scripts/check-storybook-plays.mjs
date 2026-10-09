@@ -171,6 +171,10 @@ const main = async () => {
   const stories = Object.values(index.entries).filter(
     (entry) => entry.type === "story",
   );
+  if (stories.length === 0) {
+    console.error(`No stories in ${path.join(root, "index.json")}`);
+    process.exit(1);
+  }
   const workers = Math.min(MAX_WORKERS, availableParallelism());
 
   const server = await serve(root);
