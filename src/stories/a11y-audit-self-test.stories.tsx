@@ -160,3 +160,24 @@ export const ProjectBeforeEachForgetsEarlierMatches: Story = {
     }
   },
 };
+
+export const ExceptionMatchedInOneThemeIsStale: Story = {
+  play: async () => {
+    if (!isStoryTest) return;
+    const exception = exceptionOn(PRESENT);
+    const context = { parameters: a11yExceptions(exception) };
+    // axe skips hidden elements, so the button violates in light only.
+    const hiddenInDark = document.createElement("style");
+    hiddenInDark.textContent = `.dark .${PRESENT} { display: none; }`;
+    document.head.append(hiddenInDark);
+    const fixture = unnamedButton();
+    try {
+      await auditA11y(context, "light only");
+      await expect(staleA11yExceptions(context)).toEqual([exception]);
+    } finally {
+      fixture.remove();
+      hiddenInDark.remove();
+      resetA11yAudit();
+    }
+  },
+};
