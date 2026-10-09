@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,6 +9,21 @@ const dirname =
   typeof __dirname !== "undefined"
     ? __dirname
     : path.dirname(fileURLToPath(import.meta.url));
+
+const { dependencies } = JSON.parse(
+  readFileSync(path.join(dirname, "package.json"), "utf8"),
+) as { dependencies: Record<string, string> };
+
+// Vite skips its import scan on a warm cache, so a dependency first imported
+// by a new test file re-optimizes and reloads mid-run unless it is listed here.
+const browserDeps = {
+  include: [
+    ...Object.keys(dependencies),
+    "@storybook/test",
+    "@testing-library/react",
+    "axe-core",
+  ],
+};
 
 // Vitest projects. Each project is self-contained so other projects (e.g. a
 // jsdom `unit` project) can be added alongside `storybook` without coupling.
@@ -21,11 +37,7 @@ export default defineConfig({
           // Runs every story (and its play function) as a test.
           storybookTest({ configDir: path.join(dirname, ".storybook") }),
         ],
-        // Pre-bundle the test-only dependencies up front so Vite does not
-        // re-optimize (and reload) in the middle of a run.
-        optimizeDeps: {
-          include: ["@storybook/test", "axe-core"],
-        },
+        optimizeDeps: browserDeps,
         test: {
           name: "storybook",
           browser: {
@@ -41,15 +53,7 @@ export default defineConfig({
       },
       {
         extends: "./vite.config.ts",
-        // Same reason as above: deps first imported by these tests (the file
-        // viewer's) otherwise trigger a mid-run re-optimize and a second React.
-        optimizeDeps: {
-          include: [
-            "@testing-library/react",
-            "@cyntler/react-doc-viewer",
-            "react-markdown",
-          ],
-        },
+        optimizeDeps: browserDeps,
         test: {
           name: "storybook-native",
           // Real Playwright input; the trusted-event filter in
