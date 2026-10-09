@@ -59,6 +59,10 @@ export const a11yExceptions = (...exceptions: A11yException[]) => {
       throw new Error(
         `a11y exception "${exception.rule}" needs a selector and a reason`,
       );
+    if (exception.themes?.length === 0)
+      throw new Error(
+        `a11y exception "${exception.rule}" has empty themes: list at least one theme, or omit themes for both`,
+      );
   }
   return {
     a11y: {

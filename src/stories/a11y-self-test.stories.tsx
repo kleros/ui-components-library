@@ -146,6 +146,16 @@ export const ExceptionNeedsSelectorAndReason: Story = {
   }),
 };
 
+export const ExceptionNeedsATheme: Story = {
+  play: storyRunnerOnly(async () => {
+    await expect(
+      await errorOf(() =>
+        a11yExceptions(unnamedButtonException({ themes: [] })),
+      ),
+    ).toContain('a11y exception "button-name" has empty themes');
+  }),
+};
+
 export const UnmatchedExceptionIsStale: Story = {
   play: storyRunnerOnly(async () => {
     const context = { parameters: a11yExceptions(unnamedButtonException()) };
