@@ -10,6 +10,8 @@ jobs:
       - name: Enable corepack
         run: corepack enable
       - name: Install modules
-        run: yarn
+        run: yarn install --immutable
+        env:
+          YARN_ENABLE_SCRIPTS: false
       - name: Run TypeScriptCompiler
         run: yarn check-types
