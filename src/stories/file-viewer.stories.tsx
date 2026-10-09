@@ -944,6 +944,51 @@ export const ImageSrcObserverRejectsRemote: Story = {
   },
 };
 
+/** `srcset` set on a detached lazy image is recorded when it is set. */
+export const ImageSrcsetObserverRejectsRemote: Story = {
+  args: observerProbeArgs,
+  play: async () => {
+    const url = `${UNREACHABLE}/image-srcset-probe.png`;
+    const image = document.createElement("img");
+    image.loading = "lazy";
+    image.srcset = `${url} 2x`;
+    const error = await expectOnlyLocalRequests().catch((e: Error) => e);
+    observed.requests = [];
+    await expect(error).toEqual(new Error(`Non-local requests: ${url}`));
+  },
+};
+
+/** `src` set on a detached media element is recorded when it is set. With
+ * `preload="none"` nothing is requested. */
+export const MediaSrcObserverRejectsRemote: Story = {
+  args: observerProbeArgs,
+  play: async () => {
+    const url = `${UNREACHABLE}/media-probe.mp3`;
+    const audio = document.createElement("audio");
+    audio.preload = "none";
+    audio.src = url;
+    const error = await expectOnlyLocalRequests().catch((e: Error) => e);
+    observed.requests = [];
+    await expect(error).toEqual(new Error(`Non-local requests: ${url}`));
+  },
+};
+
+/** `imageSrcset` set on a detached preload link is recorded when it is set.
+ * A link outside the document never loads. */
+export const LinkImageSrcsetObserverRejectsRemote: Story = {
+  args: observerProbeArgs,
+  play: async () => {
+    const url = `${UNREACHABLE}/link-srcset-probe.png`;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "image";
+    link.imageSrcset = `${url} 2x`;
+    const error = await expectOnlyLocalRequests().catch((e: Error) => e);
+    observed.requests = [];
+    await expect(error).toEqual(new Error(`Non-local requests: ${url}`));
+  },
+};
+
 /** The meta `afterEach` fails a story that changed the page URL. */
 export const AfterEachRejectsNavigation: Story = {
   args: observerProbeArgs,

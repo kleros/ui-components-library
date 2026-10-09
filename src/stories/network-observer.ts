@@ -252,7 +252,9 @@ export const scannedUrls = (root: ParentNode): string[] =>
     }),
   );
 
-/** Non-local URLs in resource timing, fetch/XHR and loading elements. */
+/** Non-local URLs in resource timing, fetch/XHR and loading elements. A load
+ * made without a hooked setter or `setAttribute`, such as `new Audio(url)` or
+ * an `<img>` in detached `innerHTML`, is seen only once it completes. */
 export const remoteRequests = (): string[] => {
   const loaded = performance
     .getEntriesByType("resource")
