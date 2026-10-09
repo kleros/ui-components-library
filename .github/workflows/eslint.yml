@@ -4,12 +4,11 @@ on:
     branches: [main]
 jobs:
   eslint:
-    # PRs only from org members, collaborators and the listed team members whose
-    # org membership is private (GitHub reports them as CONTRIBUTOR).
+    # PRs only from branches in this repo, which needs write access: fork PRs
+    # from outside contributors skip CI.
     if: >-
       github.event_name != 'pull_request' ||
-      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association) ||
-      contains(fromJSON('["alcercu"]'), github.event.pull_request.user.login)
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
