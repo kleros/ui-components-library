@@ -43,3 +43,6 @@ jobs:
 
       - name: Run story tests
         run: yarn test:stories
+
+      - name: Run native input tests
+        run: yarn test:native

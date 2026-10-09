@@ -33,6 +33,7 @@
     "prepare": "husky install",
     "start": "storybook dev -p 6006",
     "test:stories": "vitest run --project=storybook",
+    "test:native": "vitest run --project=storybook-native",
     "test:unit": "vitest run --project=unit",
     "test:unit:coverage": "vitest run --project=unit --coverage",
     "test:mutation": "stryker run"

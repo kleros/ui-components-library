@@ -37,6 +37,24 @@ export default defineConfig({
           setupFiles: ["./.storybook/vitest.setup.ts"],
         },
       },
+      {
+        extends: "./vite.config.ts",
+        test: {
+          name: "storybook-native",
+          // Real Playwright input; the trusted-event filter in
+          // .storybook/vitest.setup.ts is not installed here.
+          include: ["src/native/**/*.native.test.tsx"],
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: "playwright",
+            instances: [{ browser: "chromium" }],
+          },
+          setupFiles: ["./src/test/setup.ts", "./src/native/setup.ts"],
+          // Runs after the other projects instead of beside them.
+          sequence: { groupOrder: 1 },
+        },
+      },
       "./vitest.unit.config.ts",
     ],
     coverage: {
