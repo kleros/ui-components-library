@@ -1,6 +1,13 @@
 import React from "react";
 import { Meta, StoryObj } from "@storybook/react";
-import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
+import {
+  expect,
+  fireEvent,
+  fn,
+  userEvent,
+  waitFor,
+  within,
+} from "@storybook/test";
 import BigNumberField from "../lib/form/bignumber-field";
 import Telegram from "../assets/svgs/telegram.svg";
 import BigNumber from "bignumber.js";
@@ -73,6 +80,9 @@ const lastChange = (onChange: unknown) => {
   const calls = (onChange as ReturnType<typeof fn>).mock.calls;
   return (calls[calls.length - 1]?.[0] as BigNumber | undefined)?.toString();
 };
+
+const callCount = (onChange: unknown) =>
+  (onChange as ReturnType<typeof fn>).mock.calls.length;
 
 export const Default: Story = {
   args: {
@@ -394,6 +404,9 @@ export const Disabled: Story = {
     // the field is skipped in the tab order
     await userEvent.tab();
     await expect(input).not.toHaveFocus();
+    fireEvent.wheel(input, { deltaY: 100 });
+    await expect(input).toHaveValue("");
+    await expect(args.onChange).not.toHaveBeenCalled();
     // stepper buttons are not revealed on hover while disabled
     await expectHoverRevealsNothing(userEvent, input.parentElement!, () =>
       canvas.queryByRole("button", { name: "Increment" }),
@@ -414,6 +427,9 @@ export const ReadOnly: Story = {
     await expect(input).toHaveAttribute("readonly");
     await expect(input).toHaveAttribute("aria-readonly", "true");
     await userEvent.type(input, "1{ArrowUp}");
+    await expect(input).toHaveValue("42");
+    fireEvent.wheel(input, { deltaY: 100 });
+    fireEvent.wheel(input, { deltaY: -100 });
     await expect(input).toHaveValue("42");
     await expect(args.onChange).not.toHaveBeenCalled();
   },
@@ -479,6 +495,291 @@ export const Required: Story = {
         expect(canvas.queryByText("Zero not allowed")).not.toBeInTheDocument(),
       );
       await expect(input).toHaveAttribute("aria-invalid", "false");
+    });
+  },
+};
+
+const ControlledHarness = (
+  props: React.ComponentProps<typeof BigNumberField>,
+) => {
+  const [value, setValue] = React.useState<string | BigNumber>("10");
+  return (
+    <div>
+      <BigNumberField
+        {...props}
+        value={value}
+        onChange={(v) => {
+          setValue(v);
+          props.onChange?.(v);
+        }}
+      />
+      <Button
+        variant="primary"
+        small
+        text="Set string"
+        onPress={() => setValue("1234.5")}
+      />
+      <Button
+        variant="primary"
+        small
+        text="Set BigNumber"
+        onPress={() => setValue(new BigNumber("-3.25"))}
+      />
+    </div>
+  );
+};
+
+export const ControlledValue: Story = {
+  args: { ...Default.args, label: "Amount" },
+  render: (args) => <ControlledHarness {...args} />,
+  play: async ({ canvasElement, args, step }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    await expect(input).toHaveAttribute("aria-valuenow", "10");
+
+    await step("a parent string value replaces the display", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Set string" }));
+      await waitFor(() => expect(input).toHaveValue("1234.5"));
+      await expect(input).toHaveAttribute("aria-valuenow", "1234.5");
+      await expect(input).toHaveAttribute("aria-valuetext", "1234.5");
+    });
+
+    await step("a parent BigNumber value replaces the display", async () => {
+      await userEvent.click(
+        canvas.getByRole("button", { name: "Set BigNumber" }),
+      );
+      await waitFor(() => expect(input).toHaveValue("-3.25"));
+      await expect(input).toHaveAttribute("aria-valuenow", "-3.25");
+    });
+
+    await step("parent updates do not call onChange", async () => {
+      await expect(args.onChange).not.toHaveBeenCalled();
+    });
+
+    await step("user edits call onChange and flow back", async () => {
+      await userEvent.click(input);
+      await userEvent.keyboard("{ArrowUp}");
+      await expect(input).toHaveValue("-2.25");
+      await expect(input).toHaveAttribute("aria-valuenow", "-2.25");
+      await expect(lastChange(args.onChange)).toBe("-2.25");
+      await expect(callCount(args.onChange)).toBe(1);
+    });
+  },
+};
+
+export const FractionalStep: Story = {
+  args: {
+    ...Default.args,
+    label: "Amount",
+    step: "0.1",
+    defaultValue: "0.1",
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    await userEvent.click(input);
+    // exact decimal arithmetic: 0.1 + 0.1 + 0.1 is 0.3, not 0.30000000000000004
+    await userEvent.keyboard("{ArrowUp}{ArrowUp}");
+    await expect(input).toHaveValue("0.3");
+    await expect(input).toHaveAttribute("aria-valuenow", "0.3");
+    await expect(lastChange(args.onChange)).toBe("0.3");
+    await userEvent.keyboard("{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}");
+    await expect(input).toHaveValue("-0.1");
+    await expect(lastChange(args.onChange)).toBe("-0.1");
+  },
+};
+
+export const NegativeStep: Story = {
+  args: { ...Default.args, label: "Amount", step: "-0.5" },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    await userEvent.click(input);
+    // the sign of the step is ignored, so ArrowUp still increments
+    await userEvent.keyboard("{ArrowUp}");
+    await expect(input).toHaveValue("0.5");
+    await userEvent.keyboard("{ArrowDown}{ArrowDown}{ArrowDown}");
+    await expect(input).toHaveValue("-1");
+    await expect(lastChange(args.onChange)).toBe("-1");
+    await userEvent.keyboard("{ArrowUp}");
+    await expect(input).toHaveValue("-0.5");
+    await expect(lastChange(args.onChange)).toBe("-0.5");
+  },
+};
+
+export const FractionalStepButtons: Story = {
+  args: {
+    ...Default.args,
+    label: "Amount",
+    step: "0.25",
+    minValue: "0",
+    maxValue: "0.5",
+    defaultValue: "0.25",
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    const increment = await hoverToReveal(userEvent, input, () =>
+      canvas.getByRole("button", { name: "Increment" }),
+    );
+    const decrement = canvas.getByRole("button", { name: "Decrement" });
+    await userEvent.click(increment);
+    await expect(input).toHaveValue("0.5");
+    await expect(increment).toBeDisabled();
+    await userEvent.click(decrement);
+    await userEvent.click(decrement);
+    await expect(input).toHaveValue("0");
+    await expect(decrement).toBeDisabled();
+    await expect(lastChange(args.onChange)).toBe("0");
+  },
+};
+
+export const WheelEnabled: Story = {
+  args: { ...Default.args, label: "Amount", defaultValue: "5" },
+  play: async ({ canvasElement, args, step }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    await userEvent.click(input);
+
+    await step("scrolling down increments and up decrements", async () => {
+      // fireEvent returns false when the event was cancelled
+      await expect(fireEvent.wheel(input, { deltaY: 100 })).toBe(false);
+      await expect(input).toHaveValue("6");
+      await expect(lastChange(args.onChange)).toBe("6");
+      fireEvent.wheel(input, { deltaY: -100 });
+      fireEvent.wheel(input, { deltaY: -100 });
+      await expect(input).toHaveValue("4");
+      await expect(lastChange(args.onChange)).toBe("4");
+    });
+
+    await step("a mostly vertical scroll with some X still steps", async () => {
+      fireEvent.wheel(input, { deltaX: 10, deltaY: 100 });
+      await expect(input).toHaveValue("5");
+    });
+
+    await step("horizontal-dominant or zero scroll is ignored", async () => {
+      const calls = callCount(args.onChange);
+      fireEvent.wheel(input, { deltaX: 100, deltaY: 50 });
+      fireEvent.wheel(input, { deltaX: 50, deltaY: 50 });
+      fireEvent.wheel(input, { deltaX: 0, deltaY: 0 });
+      await expect(input).toHaveValue("5");
+      await expect(callCount(args.onChange)).toBe(calls);
+    });
+
+    await step("an unfocused field ignores the wheel", async () => {
+      await userEvent.tab();
+      await expect(input).not.toHaveFocus();
+      const calls = callCount(args.onChange);
+      await expect(fireEvent.wheel(input, { deltaY: 100 })).toBe(true);
+      await expect(input).toHaveValue("5");
+      await expect(callCount(args.onChange)).toBe(calls);
+    });
+  },
+};
+
+export const WheelDisabled: Story = {
+  args: {
+    ...Default.args,
+    label: "Amount",
+    isWheelDisabled: true,
+    defaultValue: "5",
+  },
+  play: async ({ canvasElement, args }) => {
+    const input = within(canvasElement).getByRole("spinbutton");
+    await userEvent.click(input);
+    await expect(input).toHaveFocus();
+    fireEvent.wheel(input, { deltaY: 100 });
+    fireEvent.wheel(input, { deltaY: -100 });
+    await expect(input).toHaveValue("5");
+    await expect(args.onChange).not.toHaveBeenCalled();
+    // the keyboard still steps
+    await userEvent.keyboard("{ArrowUp}");
+    await expect(input).toHaveValue("6");
+  },
+};
+
+export const LowerBoundTyping: Story = {
+  args: {
+    ...Default.args,
+    label: "Amount",
+    minValue: "-10",
+    maxValue: "10",
+  },
+  play: async ({ canvasElement, args }) => {
+    const input = within(canvasElement).getByRole("spinbutton");
+    await expect(input).toHaveAttribute("aria-valuemin", "-10");
+    await userEvent.type(input, "-5");
+    await expect(input).toHaveValue("-5");
+    await expect(lastChange(args.onChange)).toBe("-5");
+    // a second digit takes the value below the lower bound
+    await userEvent.type(input, "0");
+    await expect(input).toHaveValue("-10");
+    await expect(input).toHaveAttribute("aria-valuenow", "-10");
+    await expect(lastChange(args.onChange)).toBe("-10");
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(input).toHaveValue("-10");
+    await userEvent.keyboard("{ArrowUp}");
+    await expect(input).toHaveValue("-9");
+  },
+};
+
+const BoundsHarness = (props: React.ComponentProps<typeof BigNumberField>) => {
+  const [bounds, setBounds] = React.useState({ min: "0", max: "10" });
+  return (
+    <div>
+      <BigNumberField {...props} minValue={bounds.min} maxValue={bounds.max} />
+      <Button
+        variant="primary"
+        small
+        text="Max 5"
+        onPress={() => setBounds({ min: "0", max: "5" })}
+      />
+      <Button
+        variant="primary"
+        small
+        text="Range 3 to 7"
+        onPress={() => setBounds({ min: "3", max: "7" })}
+      />
+    </div>
+  );
+};
+
+export const ChangingBounds: Story = {
+  args: { ...Default.args, label: "Amount", defaultValue: "4" },
+  render: (args) => <BoundsHarness {...args} />,
+  play: async ({ canvasElement, args, step }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    await expect(input).toHaveAttribute("aria-valuemax", "10");
+
+    await step("a lowered max applies to stepping and buttons", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Max 5" }));
+      await waitFor(() => expect(input).toHaveAttribute("aria-valuemax", "5"));
+      await userEvent.click(input);
+      await userEvent.keyboard("{ArrowUp}{ArrowUp}");
+      await expect(input).toHaveValue("5");
+      await expect(lastChange(args.onChange)).toBe("5");
+      const increment = await hoverToReveal(userEvent, input, () =>
+        canvas.getByRole("button", { name: "Increment" }),
+      );
+      await expect(increment).toBeDisabled();
+    });
+
+    await step("a raised min and max apply to Home and End", async () => {
+      await userEvent.click(
+        canvas.getByRole("button", { name: "Range 3 to 7" }),
+      );
+      await waitFor(() => expect(input).toHaveAttribute("aria-valuemin", "3"));
+      await expect(input).toHaveAttribute("aria-valuemax", "7");
+      await userEvent.click(input);
+      await userEvent.keyboard("{Home}");
+      await expect(input).toHaveValue("3");
+      await expect(lastChange(args.onChange)).toBe("3");
+      await userEvent.keyboard("{ArrowDown}");
+      await expect(input).toHaveValue("3");
+      await userEvent.keyboard("{End}");
+      await expect(input).toHaveValue("7");
+      await expect(lastChange(args.onChange)).toBe("7");
     });
   },
 };
