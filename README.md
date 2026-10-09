@@ -184,7 +184,6 @@ Every story is snapshotted by [Chromatic](https://www.chromatic.com/) and compar
 - The Datepicker stories pass a fixed `defaultValue` and `minValue`, because the component defaults to "now".
 - The File Viewer stories load local fixtures from `src/stories/fixtures`, and the pdf.js worker is served from react-doc-viewer's own copy (mapped to `/pdfjs` in `.storybook/main.ts`), so nothing is fetched from a CDN. Some are excluded with `chromatic: { disableSnapshot: true }`:
   - `FileViewer`, because pdf.js canvas output is not pixel-stable across runs.
-  - `MaliciousMarkdownRemoteImage`, because the markdown viewer requests its off-origin image. It is also left out of the story tests.
   - `FailedResponseServerError`, `FailedResponseNotFound` and `DocumentSwitching`. Their snapshots haven't been checked for determinism yet.
 - The `Internal/A11y Self Test` stories test the accessibility audit in `src/stories/a11y.ts` and render nothing, so they are excluded too and hidden from the sidebar and docs.
 
