@@ -46,3 +46,10 @@ jobs:
 
       - name: Run native input tests
         run: yarn test:native
+
+      # Plays as Chromatic runs them: built Storybook, no Vitest act() wrapper.
+      - name: Build Storybook
+        run: yarn build-storybook
+
+      - name: Run story plays outside Vitest
+        run: yarn test:storybook-plays
