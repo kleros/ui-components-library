@@ -14,14 +14,16 @@ const useMountCounter = () => {
   }, []);
 };
 
+// Both tests start from zero and leave hooks mounted, so without cleanup
+// whichever runs second fails.
 describe("test isolation", () => {
-  it("mounts a hook and leaves it mounted at the end of the test", () => {
-    renderHook(() => useMountCounter());
-    renderHook(() => useMountCounter());
-    expect(mounted).toBe(2);
-  });
-
-  it("starts the next test with every previous hook unmounted", () => {
-    expect(mounted).toBe(0);
-  });
+  it.each(["a", "b"])(
+    "starts with no hooks mounted and leaves two mounted (%s)",
+    () => {
+      expect(mounted).toBe(0);
+      renderHook(() => useMountCounter());
+      renderHook(() => useMountCounter());
+      expect(mounted).toBe(2);
+    },
+  );
 });
