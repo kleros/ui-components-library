@@ -1,9 +1,11 @@
+import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, spyOn, userEvent, waitFor, within } from "@storybook/test";
 
 import { IPreviewArgs, disableA11yRules } from "./utils";
 
 import FileUploaderComponent from "../lib/form/file-uploader";
+import Button from "../lib/button";
 
 const meta = {
   component: FileUploaderComponent,
@@ -238,6 +240,52 @@ export const FileUploaderWithControlledBehaviour: Story = {
       expect.objectContaining({ name: "picture.png" }),
     );
     await expect(button).toHaveTextContent("test.txt");
+  },
+};
+
+export const FileUploaderWithParentDrivenSelection: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    className: "w-[500px]",
+  },
+  render: function Render(args) {
+    const [file, setFile] = useState<File>(
+      () => new File(["first"], "first.txt", { type: "text/plain" }),
+    );
+    return (
+      <div>
+        <FileUploaderComponent {...args} selectedFile={file} />
+        <Button
+          small
+          variant="secondary"
+          text="Replace"
+          onPress={() =>
+            setFile(new File(["second"], "second.txt", { type: "text/plain" }))
+          }
+        />
+      </div>
+    );
+  },
+  play: async ({ canvasElement, args, step }) => {
+    const canvas = within(canvasElement);
+    const uploadButton = getUploadButton(canvasElement);
+    await expect(uploadButton).toHaveTextContent("first.txt");
+
+    await step("parent replaces the selected file", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Replace" }));
+      await waitFor(() => expect(uploadButton).toHaveTextContent("second.txt"));
+      await expect(args.callback).not.toHaveBeenCalled();
+    });
+
+    await step("user selection still reports the file", async () => {
+      await userEvent.upload(getInput(canvasElement), png());
+      await expect(args.callback).toHaveBeenCalledTimes(1);
+      await expect(args.callback).toHaveBeenLastCalledWith(
+        expect.objectContaining({ name: "picture.png" }),
+      );
+      await expect(uploadButton).toHaveTextContent("second.txt");
+    });
   },
 };
 
