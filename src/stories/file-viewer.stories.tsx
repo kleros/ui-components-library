@@ -1,14 +1,141 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, waitFor, within } from "@storybook/test";
+import { expect, userEvent, waitFor, within } from "@storybook/test";
+import React, { useState } from "react";
 
-import { IPreviewArgs } from "./utils";
+import { IPreviewArgs, disableA11yRules } from "./utils";
 
 import FileViewerComponent from "../lib/file-viewer";
+
+/** Side effects recorded during a story, and controlled fetch responses. */
+const observed = {
+  dialogs: [] as string[],
+  opened: [] as string[],
+  requests: [] as string[],
+  unloads: 0,
+  /** Controlled `fetch` outcomes by request URL suffix. */
+  stubs: new Map<string, () => Promise<Response>>(),
+};
+
+/** Same-origin, `blob:` and `data:` URLs never leave this machine. */
+const isLocalRequest = (raw: string): boolean => {
+  try {
+    const { origin, protocol } = new URL(raw, window.location.href);
+    return (
+      origin === window.location.origin ||
+      protocol === "blob:" ||
+      protocol === "data:"
+    );
+  } catch {
+    return false;
+  }
+};
+
+/** Records dialogs, `window.open`, page unloads and fetch/XHR targets until
+ * the story ends, then restores the originals. */
+const startObservers = () => {
+  observed.dialogs = [];
+  observed.opened = [];
+  observed.requests = [];
+  observed.unloads = 0;
+  observed.stubs.clear();
+
+  const originals = {
+    alert: window.alert,
+    confirm: window.confirm,
+    prompt: window.prompt,
+    open: window.open,
+    fetch: window.fetch,
+    xhrOpen: XMLHttpRequest.prototype.open,
+  };
+  window.alert = (message?: unknown) => {
+    observed.dialogs.push(`alert:${String(message)}`);
+  };
+  window.confirm = (message?: string) => {
+    observed.dialogs.push(`confirm:${String(message)}`);
+    return false;
+  };
+  window.prompt = (message?: string) => {
+    observed.dialogs.push(`prompt:${String(message)}`);
+    return null;
+  };
+  window.open = (url?: string | URL) => {
+    observed.opened.push(String(url));
+    return null;
+  };
+  window.fetch = (input, init) => {
+    const url = input instanceof Request ? input.url : String(input);
+    observed.requests.push(url);
+    for (const [suffix, respond] of observed.stubs) {
+      if (url.endsWith(suffix)) return respond();
+    }
+    return originals.fetch.call(window, input, init);
+  };
+  XMLHttpRequest.prototype.open = function (
+    this: XMLHttpRequest,
+    method: string,
+    url: string | URL,
+    ...rest: [boolean?, string?, string?]
+  ) {
+    observed.requests.push(String(url));
+    return (originals.xhrOpen as (...args: unknown[]) => void).call(
+      this,
+      method,
+      url,
+      ...rest,
+    );
+  };
+  const onBeforeUnload = () => {
+    observed.unloads += 1;
+  };
+  window.addEventListener("beforeunload", onBeforeUnload);
+  const startHref = window.location.href;
+
+  return () => {
+    window.alert = originals.alert;
+    window.confirm = originals.confirm;
+    window.prompt = originals.prompt;
+    window.open = originals.open;
+    window.fetch = originals.fetch;
+    XMLHttpRequest.prototype.open = originals.xhrOpen;
+    window.removeEventListener("beforeunload", onBeforeUnload);
+    if (window.location.href !== startHref) {
+      throw new Error(`Story navigated away to ${window.location.href}`);
+    }
+  };
+};
+
+/** Fails on any non-local URL in resource timing, fetch/XHR or a loading
+ * element's attributes, and on any dialog, `window.open` or unload. */
+const expectOnlyLocalRequests = async () => {
+  const loaded = performance
+    .getEntriesByType("resource")
+    .map((entry) => entry.name);
+  const pending = Array.from(
+    document.querySelectorAll(
+      "img, embed, object, iframe, source, video, audio, script[src], link[href]",
+    ),
+  ).flatMap((el) =>
+    ["src", "data", "href", "poster"].flatMap((attr) => {
+      const value = el.getAttribute(attr);
+      return value ? [value] : [];
+    }),
+  );
+  const remote = [...loaded, ...observed.requests, ...pending].filter(
+    (url) => !isLocalRequest(url),
+  );
+  if (remote.length > 0) {
+    throw new Error(`Non-local requests: ${remote.join(", ")}`);
+  }
+  await expect(observed.dialogs).toEqual([]);
+  await expect(observed.opened).toEqual([]);
+  await expect(observed.unloads).toBe(0);
+};
 
 const meta = {
   component: FileViewerComponent,
   title: "File Viewer",
   tags: ["autodocs"],
+  beforeEach: startObservers,
 } satisfies Meta<typeof FileViewerComponent>;
 
 export default meta;
@@ -24,22 +151,19 @@ const expectBlocked: Story["play"] = async ({ canvasElement, args }) => {
   await expect(canvasElement.querySelector("#react-doc-viewer")).toBeNull();
   await expect(canvas.queryByRole("link")).not.toBeInTheDocument();
   await expect(canvasElement.querySelector("iframe, img, object")).toBeNull();
+  await expectOnlyLocalRequests();
 };
 
-/** These stories load remote sample files, so they are excluded from the
- * (offline-safe) story tests. */
-const NETWORK_TAGS = ["!test"];
+const PDF_URL = "./fixtures/sample.pdf";
 
-const SAMPLE_FILES_BASE =
-  "https://cdn.jsdelivr.net/gh/cyntler/react-doc-viewer@v1.17.0/src/exampleFiles";
+const IMAGE_URL = "./fixtures/sample.png";
 
-const PDF_URL = `${SAMPLE_FILES_BASE}/pdf-multiple-pages-file.pdf`;
+// `application/json`: a MIME no doc-viewer renderer claims, so the
+// no-renderer fallback is rendered.
+const UNSUPPORTED_URL = "./fixtures/sample.json";
 
-const IMAGE_URL = `${SAMPLE_FILES_BASE}/png-image.png`;
-
-// Stories that load remote CDN content can't produce a stable visual
-// snapshot (third-party availability, pdf.js canvas rendering, `@main` URL).
-const REMOTE_CONTENT = { chromatic: { disableSnapshot: true } };
+// pdf.js canvas output is not pixel-stable across runs.
+const NO_SNAPSHOT = { chromatic: { disableSnapshot: true } };
 
 // A real-world malicious-style SVG: `onload` script + external `<image>` to
 // exfiltrate. When rendered via `<img>` (our SvgDocRenderer), the browser
@@ -55,25 +179,62 @@ const SVG_DATA_URL =
   );
 
 export const FileViewer: Story = {
-  parameters: REMOTE_CONTENT,
+  // react-doc-viewer's PDF controls: icon-only zoom buttons without an
+  // accessible name, and a grey page counter below contrast.
+  parameters: {
+    ...NO_SNAPSHOT,
+    ...disableA11yRules("button-name", "color-contrast"),
+  },
   args: {
     themeUI: "light",
     backgroundUI: "light",
     className: "w-[800px]",
     url: PDF_URL,
   },
-  tags: NETWORK_TAGS,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvasElement.querySelector("#react-doc-viewer"),
+    ).toBeInTheDocument();
+    // pdf.js renders each page to a canvas once the file has been fetched
+    await waitFor(
+      () =>
+        expect(
+          canvasElement.querySelectorAll("canvas").length,
+        ).toBeGreaterThanOrEqual(1),
+      { timeout: 10000 },
+    );
+    await expect(
+      canvas.queryByText("Unable to display this file."),
+    ).not.toBeInTheDocument();
+    await expect(
+      canvas.queryByText("This file type can't be previewed."),
+    ).not.toBeInTheDocument();
+    await expectOnlyLocalRequests();
+  },
 };
 
 export const Image: Story = {
-  parameters: REMOTE_CONTENT,
+  // react-doc-viewer's <img> has no alt attribute.
+  parameters: { ...NO_SNAPSHOT, ...disableA11yRules("image-alt") },
   args: {
     themeUI: "light",
     backgroundUI: "light",
     className: "w-[800px]",
     url: IMAGE_URL,
   },
-  tags: NETWORK_TAGS,
+  play: async ({ canvasElement }) => {
+    const img = await waitFor(() => {
+      const el = canvasElement.querySelector("#image-img");
+      expect(el).toBeInTheDocument();
+      return el as HTMLImageElement;
+    });
+    await expect(img.tagName).toBe("IMG");
+    await waitFor(() => expect(img.naturalWidth).toBeGreaterThan(0));
+    // doc-viewer fetches the file and renders it from a data URI
+    await expect(img.getAttribute("src")).toMatch(/^data:image\/png;base64,/);
+    await expectOnlyLocalRequests();
+  },
 };
 
 export const JavascriptUrlBlocked: Story = {
@@ -107,19 +268,30 @@ export const UnsupportedScheme: Story = {
 };
 
 export const UnsupportedFileType: Story = {
-  parameters: REMOTE_CONTENT,
+  // The fallback link uses PrimaryBlue on white (2.97:1), a component colour
+  // choice that cannot be fixed from the story.
+  parameters: { ...NO_SNAPSHOT, ...disableA11yRules("color-contrast") },
   args: {
     themeUI: "light",
     backgroundUI: "light",
     className: "w-[800px]",
-    // jsDelivr serves package.json with permissive CORS and `application/json`,
-    // a MIME no doc-viewer renderer claims — reliably hits the no-renderer
-    // fallback. A `.zip` URL from a non-CORS host would error during prefetch
-    // and leave doc-viewer spinning forever (no error state for failed fetches).
-    url: "https://cdn.jsdelivr.net/gh/kleros/ui-components-library@main/package.json",
-    fileName: "package.json",
+    url: UNSUPPORTED_URL,
+    fileName: "sample.json",
   },
-  tags: NETWORK_TAGS,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      await canvas.findByText("This file type can't be previewed."),
+    ).toBeVisible();
+    const link = canvas.getByRole("link", { name: "Open in a new tab" });
+    await expect(link).toHaveAttribute("download", "sample.json");
+    await expect(link.getAttribute("href")).toContain("fixtures/sample.json");
+    await expect(link).toHaveAttribute("target", "_blank");
+    const rel = (link.getAttribute("rel") ?? "").split(/\s+/);
+    await expect(rel).toContain("noopener");
+    await expect(rel).toContain("noreferrer");
+    await expectOnlyLocalRequests();
+  },
 };
 
 export const DataUrlHtmlBlocked: Story = {
@@ -166,6 +338,9 @@ export const DataUrlSvgAllowed: Story = {
     await expect(
       canvas.queryByText("Unable to display this file."),
     ).not.toBeInTheDocument();
+    // the external <image> in the SVG is never fetched and onload never runs
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await expectOnlyLocalRequests();
   },
 };
 
@@ -346,5 +521,239 @@ export const RelativeUrl: Story = {
         { timeout: 5000 },
       ),
     ).toBeVisible();
+    await expectOnlyLocalRequests();
+  },
+};
+
+const failedResponseStory = (
+  fileName: string,
+  respond: () => Promise<Response>,
+): Story => ({
+  parameters: NO_SNAPSHOT,
+  beforeEach: () => {
+    observed.stubs.set(fileName, respond);
+  },
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: `./fixtures/${fileName}`,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(observed.requests.length).toBeGreaterThan(0), {
+      timeout: 5000,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    // the failed document never renders as content
+    await expect(canvasElement.querySelector("canvas, img")).toBeNull();
+    await expect(
+      canvas.queryByText("Kleros file viewer fixture."),
+    ).not.toBeInTheDocument();
+    await expectOnlyLocalRequests();
+  },
+});
+
+/** The server answers 500 for a PDF. */
+export const FailedResponseServerError = failedResponseStory(
+  "broken.pdf",
+  async () => new Response("boom", { status: 500, statusText: "Server Error" }),
+);
+
+/** The server answers 404 for an image. */
+export const FailedResponseNotFound = failedResponseStory(
+  "missing.png",
+  async () =>
+    new Response("not found", { status: 404, statusText: "Not Found" }),
+);
+
+const LOAD = { timeout: 5000 };
+
+const SWITCH_DOCS = [
+  { label: "Text", url: "./fixtures/sample.txt" },
+  { label: "Image", url: "./fixtures/sample.png" },
+  { label: "Unsupported", url: UNSUPPORTED_URL },
+  { label: "Blocked", url: "javascript:alert('xss')" },
+  { label: "Markdown", url: "./fixtures/malicious-markdown.txt" },
+];
+
+const SwitchableViewer = (
+  args: React.ComponentProps<typeof FileViewerComponent>,
+) => {
+  const [url, setUrl] = useState(args.url);
+  return (
+    <div>
+      <div className="flex gap-2 pb-2">
+        {SWITCH_DOCS.map((doc) => (
+          <button key={doc.label} type="button" onClick={() => setUrl(doc.url)}>
+            {doc.label}
+          </button>
+        ))}
+      </div>
+      <FileViewerComponent {...args} url={url} />
+    </div>
+  );
+};
+
+/** Switching `url` on a mounted viewer replaces the previous document. */
+export const DocumentSwitching: Story = {
+  parameters: {
+    ...NO_SNAPSHOT,
+    ...disableA11yRules("color-contrast", "image-alt"),
+  },
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: SWITCH_DOCS[0].url,
+  },
+  render: (args) => <SwitchableViewer {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const viewer = () => canvasElement.querySelector("#react-doc-viewer");
+
+    await expect(
+      await canvas.findByText("Kleros file viewer fixture.", {}, LOAD),
+    ).toBeVisible();
+
+    await userEvent.click(canvas.getByRole("button", { name: "Image" }));
+    await waitFor(() => {
+      const img = canvasElement.querySelector("#image-img");
+      expect(img).toBeInTheDocument();
+      expect((img as HTMLImageElement).naturalWidth).toBeGreaterThan(0);
+    });
+    await expect(
+      canvas.queryByText("Kleros file viewer fixture."),
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(canvas.getByRole("button", { name: "Unsupported" }));
+    await expect(
+      await canvas.findByText("This file type can't be previewed.", {}, LOAD),
+    ).toBeVisible();
+    await expect(canvasElement.querySelector("#image-img")).toBeNull();
+
+    await userEvent.click(canvas.getByRole("button", { name: "Blocked" }));
+    await expect(
+      await canvas.findByText("Unable to display this file."),
+    ).toBeVisible();
+    await expect(viewer()).toBeNull();
+    await expect(canvas.queryByRole("link")).not.toBeInTheDocument();
+
+    await userEvent.click(canvas.getByRole("button", { name: "Text" }));
+    await expect(
+      await canvas.findByText("Kleros file viewer fixture.", {}, LOAD),
+    ).toBeVisible();
+    await expect(
+      canvas.queryByText("Unable to display this file."),
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(canvas.getByRole("button", { name: "Markdown" }));
+    await expect(
+      await canvas.findByText("Malicious markdown fixture", {}, LOAD),
+    ).toBeVisible();
+    await expect(
+      canvas.queryByText("Kleros file viewer fixture."),
+    ).not.toBeInTheDocument();
+    await expectOnlyLocalRequests();
+  },
+};
+
+/** An SVG with `onload`, `<script>` and external references, served from
+ * localhost. It is shown through `<img>`, so nothing runs or is fetched. */
+export const MaliciousSvgFile: Story = {
+  parameters: disableA11yRules("image-alt"),
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: "./fixtures/malicious.svg",
+    fileName: "malicious.svg",
+  },
+  play: async ({ canvasElement }) => {
+    const img = await waitFor(() => {
+      const el = canvasElement.querySelector("#image-img");
+      expect(el).toBeInTheDocument();
+      return el as HTMLImageElement;
+    });
+    await waitFor(() => expect(img.complete).toBe(true));
+    await expect(
+      canvasElement.querySelector("iframe, object, embed, script"),
+    ).toBeNull();
+    await expect(canvasElement.querySelectorAll("img")).toHaveLength(1);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await expectOnlyLocalRequests();
+  },
+};
+
+/** Markdown with `<script>`, event-handler HTML, a `javascript:` link and an
+ * iframe. None of it may execute or reach the network. */
+export const MaliciousMarkdownFile: Story = {
+  parameters: disableA11yRules("color-contrast"),
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: "./fixtures/malicious-markdown.txt",
+    fileName: "malicious-markdown.txt",
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      await canvas.findByText("Malicious markdown fixture"),
+    ).toBeVisible();
+    await expect(
+      canvasElement.querySelector("script, iframe, embed, object, [onerror]"),
+    ).toBeNull();
+    const hrefs = Array.from(
+      canvasElement.querySelectorAll("#md-renderer a"),
+    ).map((a) => a.getAttribute("href") ?? "");
+    await expect(hrefs.length).toBeGreaterThan(0);
+    for (const href of hrefs)
+      await expect(href).not.toMatch(/^\s*javascript:/i);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await expectOnlyLocalRequests();
+  },
+};
+
+/** A markdown image pointing off-origin must not be requested or rendered. */
+export const MaliciousMarkdownRemoteImage: Story = {
+  // Excluded: the markdown viewer requests off-origin images (parked library issue).
+  tags: ["!test"],
+  parameters: disableA11yRules("color-contrast", "image-alt"),
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: "./fixtures/malicious-markdown-image.txt",
+    fileName: "malicious-markdown-image.txt",
+  },
+  play: async ({ canvasElement }) => {
+    await expect(
+      await within(canvasElement).findByText(
+        "Malicious markdown image fixture",
+        {},
+        LOAD,
+      ),
+    ).toBeVisible();
+    await expect(canvasElement.querySelector("img")).toBeNull();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await expectOnlyLocalRequests();
+  },
+};
+
+/** The observer itself: anything off-origin must be classified as remote. */
+export const RequestObserverRejectsRemote: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: "./fixtures/sample.txt",
+  },
+  play: async () => {
+    await expect(isLocalRequest("./fixtures/sample.txt")).toBe(true);
+    await expect(isLocalRequest(`${window.location.origin}/x`)).toBe(true);
+    await expect(isLocalRequest("https://evil.example/exfil")).toBe(false);
+    await expect(isLocalRequest("//evil.example/exfil")).toBe(false);
+    await expect(isLocalRequest("http://localhost.evil.example/")).toBe(false);
   },
 };

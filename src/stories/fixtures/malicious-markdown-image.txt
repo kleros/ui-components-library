@@ -1,0 +1,3 @@
+# Malicious markdown image fixture
+
+![tracking pixel](https://evil.example/pixel.png)

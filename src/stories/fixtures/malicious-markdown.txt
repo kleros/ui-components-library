@@ -1,0 +1,9 @@
+# Malicious markdown fixture
+
+<script>alert('xss-md-script')</script>
+
+<img src="x" onerror="alert('xss-md-onerror')">
+
+[click me](javascript:alert('xss-md-link'))
+
+<iframe src="https://evil.example/frame"></iframe>
