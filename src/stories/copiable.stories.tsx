@@ -1,6 +1,13 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, spyOn, userEvent, waitFor, within } from "@storybook/test";
+import {
+  expect,
+  mocked,
+  spyOn,
+  userEvent,
+  waitFor,
+  within,
+} from "@storybook/test";
 
 import {
   IPreviewArgs,
@@ -170,6 +177,62 @@ export const DefaultInfo: Story = {
       () => expect(button.querySelector(".copy-icon")).toBeInTheDocument(),
       { timeout: 3000 },
     );
+    await userEvent.unhover(button);
+    // let the tooltip finish fading out before the axe check runs
+    await waitForTooltipHidden();
+  },
+};
+
+/** A rejected clipboard write shows no success state; a retry then copies. */
+export const RejectedWriteRetry: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    copiableContent: "retry me",
+    children: (
+      <span className="text-klerosUIComponentsPrimaryText">retry me</span>
+    ),
+    info: "Copy this text.",
+  },
+  beforeEach: () => {
+    mocked(navigator.clipboard.writeText).mockRejectedValueOnce(
+      new DOMException("denied", "NotAllowedError"),
+    );
+  },
+  play: async ({ canvasElement, step }) => {
+    const button = getCopyButton(canvasElement);
+    const writeText = mocked(navigator.clipboard.writeText);
+
+    await step("a rejected write keeps the normal icon", async () => {
+      await userEvent.click(button);
+      await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+      // the rejection handler runs on a microtask after the call
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      await expect(
+        button.querySelector(".copied-icon"),
+      ).not.toBeInTheDocument();
+      await expect(button.querySelector(".copy-icon")).toBeInTheDocument();
+      await expect(await hoverForTooltip(userEvent, button)).toHaveTextContent(
+        "Copy this text.",
+      );
+      await userEvent.unhover(button);
+    });
+
+    await step("a retry copies the payload and shows success", async () => {
+      await userEvent.click(button);
+      await waitFor(() => expect(writeText).toHaveBeenCalledTimes(2));
+      await expect(writeText).toHaveBeenNthCalledWith(2, "retry me");
+      await waitFor(() =>
+        expect(button.querySelector(".copied-icon")).toBeInTheDocument(),
+      );
+    });
+
+    await step("the copied state resets after 2 seconds", async () => {
+      await waitFor(
+        () => expect(button.querySelector(".copy-icon")).toBeInTheDocument(),
+        { timeout: 3000 },
+      );
+    });
     await userEvent.unhover(button);
     // let the tooltip finish fading out before the axe check runs
     await waitForTooltipHidden();
