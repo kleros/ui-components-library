@@ -4,10 +4,23 @@ import { expect, within } from "@storybook/test";
 import { IPreviewArgs } from "./utils";
 
 import AlertComponent from "../lib/messages/alert";
+import { a11yExceptions } from "./a11y";
+import {
+  PRIMARY_BLUE_TEXT_LIGHT,
+  SUCCESS_TEXT_LIGHT,
+  WARNING_TEXT_LIGHT,
+  ERROR_TEXT_LIGHT,
+} from "./a11y-defects";
 
 const meta = {
   component: AlertComponent,
   title: "Message/Alert",
+  parameters: a11yExceptions(
+    PRIMARY_BLUE_TEXT_LIGHT,
+    SUCCESS_TEXT_LIGHT,
+    WARNING_TEXT_LIGHT,
+    ERROR_TEXT_LIGHT,
+  ),
   tags: ["autodocs"],
   argTypes: {
     variant: {

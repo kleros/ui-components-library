@@ -1,18 +1,20 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
 
 import TimelineComponent from "../lib/progress/timeline";
+import { a11yExceptions } from "./a11y";
+import {
+  SECONDARY_TEXT_LIGHT,
+  PARTY_VARIANT_COLOUR_DARK,
+} from "./a11y-defects";
 
 const meta = {
   component: TimelineComponent,
   title: "Progress/Timeline",
   tags: ["autodocs"],
-  // Pre-existing design issue: the party text is colored with the item's
-  // arbitrary `variant` color (e.g. #ca2314 on the light background), which
-  // does not meet the WCAG AA contrast ratio.
-  parameters: disableA11yRules("color-contrast"),
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, PARTY_VARIANT_COLOUR_DARK),
 } satisfies Meta<typeof TimelineComponent>;
 
 export default meta;

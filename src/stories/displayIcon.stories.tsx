@@ -5,10 +5,13 @@ import { IPreviewArgs } from "./utils";
 
 import IconDisplayComponent from "../lib/display/icon";
 import Balance from "../assets/svgs/balance.svg";
+import { a11yExceptions } from "./a11y";
+import { SECONDARY_TEXT_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: IconDisplayComponent,
   title: "Display/DisplayIcon",
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   tags: ["autodocs"],
 } satisfies Meta<typeof IconDisplayComponent>;
 

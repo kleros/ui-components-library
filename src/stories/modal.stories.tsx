@@ -5,10 +5,13 @@ import { IPreviewArgs, waitForAnimations } from "./utils";
 
 import ModalComponent from "../lib/container/modal";
 import { Button } from "../lib";
+import { a11yExceptions, auditA11y } from "./a11y";
+import { WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: ModalComponent,
   title: "Containers/Modal",
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   tags: ["autodocs"],
   args: {
     onOpenChange: fn(),
@@ -61,11 +64,12 @@ export const Modal: Story = {
       </div>
     );
   },
-  play: async ({ canvasElement, args, step }) => {
+  play: async ({ canvasElement, args, step, ...context }) => {
     const trigger = within(canvasElement).getByRole("button", {
       name: "Press me!",
     });
     await expect(body.queryByRole("dialog")).not.toBeInTheDocument();
+    await auditA11y(context, "resting");
 
     await step("opens in a portal and traps focus", async () => {
       await userEvent.click(trigger);
@@ -76,6 +80,7 @@ export const Modal: Story = {
       await waitFor(() => expect(dialog).toHaveFocus());
       // the rest of the page is hidden from assistive technology
       await expect(trigger.closest("[aria-hidden='true']")).not.toBeNull();
+      await auditA11y(context, "open");
     });
 
     await step("Escape closes the modal", async () => {

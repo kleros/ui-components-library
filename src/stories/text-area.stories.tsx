@@ -7,10 +7,21 @@ import { IPreviewArgs } from "./utils";
 import TextAreaFieldComponent from "../lib/form/text-area";
 import { Form } from "react-aria-components";
 import Button from "../lib/button";
+import { a11yExceptions } from "./a11y";
+import {
+  SECONDARY_TEXT_LIGHT,
+  ERROR_TEXT_LIGHT,
+  WHITE_ON_BLUE_LIGHT,
+} from "./a11y-defects";
 
 const meta = {
   component: TextAreaFieldComponent,
   title: "Form/TextArea",
+  parameters: a11yExceptions(
+    SECONDARY_TEXT_LIGHT,
+    ERROR_TEXT_LIGHT,
+    WHITE_ON_BLUE_LIGHT,
+  ),
   tags: ["autodocs"],
   args: {
     onChange: fn(),

@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
 
 import DraggableList from "../lib/draggable-list";
 import { Button } from "../lib";
 import { ListItem, useList } from "../lib/draggable-list/useList";
+import { a11yExceptions } from "./a11y";
+import { WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: DraggableList,
@@ -35,12 +37,21 @@ const getOptions = (canvasElement: HTMLElement) =>
     within(canvasElement).getByRole("listbox", { name: "Reorderable list" }),
   ).getAllByRole("option");
 
-/** Pre-existing component issues, hit when a play ends with an item selected:
- * the delete button is icon-only (no accessible name) and is nested inside the
- * focusable `option` element. */
-const DELETE_BUTTON_A11Y = disableA11yRules(
-  "button-name",
-  "nested-interactive",
+const DELETE_BUTTON_A11Y = a11yExceptions(
+  {
+    rule: "button-name",
+    selector: '[role="option"] button',
+    reason:
+      "Library defect: the delete button is icon-only and has no accessible name.",
+    source: "src/lib/draggable-list/index.tsx:122",
+  },
+  {
+    rule: "nested-interactive",
+    selector: '[role="option"]',
+    reason:
+      "Library defect: the delete button is rendered inside the focusable option.",
+    source: "src/lib/draggable-list/index.tsx:98",
+  },
 );
 
 /** react-aria renders collection items after the list itself mounts (in the
@@ -64,9 +75,7 @@ export const Default: Story = {
       { id: 3, name: "Acrobat", value: "" },
     ],
   },
-  // Pre-existing design issue: the primary "Add Item" Button in the light
-  // theme (white on #009aff) has a 2.97:1 contrast ratio, below WCAG AA.
-  parameters: disableA11yRules("color-contrast"),
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   render: function Render(args) {
     const [items, setItems] = useState<ListItem[]>([
       { id: 1, name: "Illustrator", value: "" },
@@ -310,7 +319,10 @@ function ListHarness({
     listApi = api;
   });
   return (
-    <ul aria-label="useList harness">
+    <ul
+      aria-label="useList harness"
+      className="text-klerosUIComponentsPrimaryText"
+    >
       {api.items.map((item) => (
         <li key={item.id}>{item.name}</li>
       ))}
@@ -327,7 +339,7 @@ const namesOf = (...ids: number[]) => ids.map((id) => `Item ${id}`);
 
 const hookStory = (play: NonNullable<Story["play"]>): Story => ({
   args: { ...Default.args },
-  parameters: disableA11yRules("color-contrast"),
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   render: function Render(args) {
     const [mount, setMount] = useState(0);
     return (

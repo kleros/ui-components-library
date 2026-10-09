@@ -2,10 +2,12 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
 
 import FormComponent from "../lib/form";
 import { Button, TextField } from "../lib";
+import { a11yExceptions } from "./a11y";
+import { SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: FormComponent,
@@ -26,9 +28,7 @@ export const Form: Story = {
     backgroundUI: "light",
     className: "flex flex-col gap-4",
   },
-  // Pre-existing design issue: the primary Button in the light theme (white
-  // on #009aff) has a 2.97:1 contrast ratio, below WCAG AA.
-  parameters: disableA11yRules("color-contrast"),
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
   beforeEach: () => {
     submitted.mockClear();
   },

@@ -5,10 +5,13 @@ import { IPreviewArgs } from "./utils";
 
 import LargeDisplayComponent from "../lib/display/large";
 import Dai from "../assets/svgs/dai.svg";
+import { a11yExceptions } from "./a11y";
+import { SECONDARY_TEXT_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: LargeDisplayComponent,
   title: "Display/DisplayLarge",
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   tags: ["autodocs"],
 } satisfies Meta<typeof LargeDisplayComponent>;
 

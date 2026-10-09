@@ -2,18 +2,28 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, userEvent, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
 
 import CustomAccordion from "../lib/accordion/custom";
 import Button from "../lib/button/index";
+import { a11yExceptions } from "./a11y";
+import { PRIMARY_BLUE_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: CustomAccordion,
   title: "CustomAccordion",
   tags: ["autodocs"],
-  // Pre-existing component issue: custom `expandButton`s are rendered inside
-  // the item's header, which is itself a button (nested interactive controls).
-  parameters: disableA11yRules("nested-interactive"),
+  parameters: a11yExceptions(
+    {
+      rule: "nested-interactive",
+      selector: "#expand-button",
+      reason:
+        "Library defect: a custom `expandButton` is rendered inside the item's header button.",
+      source: "src/lib/accordion/accordion-item.tsx:75",
+    },
+    PRIMARY_BLUE_TEXT_LIGHT,
+    WHITE_ON_BLUE_LIGHT,
+  ),
 } satisfies Meta<typeof CustomAccordion>;
 
 export default meta;

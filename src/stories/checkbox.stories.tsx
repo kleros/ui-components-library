@@ -6,10 +6,13 @@ import { IPreviewArgs } from "./utils";
 
 import CheckboxComponent from "../lib/form/checkbox";
 import Button from "../lib/button";
+import { a11yExceptions, auditA11y } from "./a11y";
+import { PRIMARY_BLUE_TEXT_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: CheckboxComponent,
   title: "Input/Checkbox",
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   tags: ["autodocs"],
   args: {
     onChange: fn(),
@@ -83,12 +86,13 @@ export const Disabled: Story = {
     label: "Disabled checkbox",
     isDisabled: true,
   },
-  play: async ({ canvasElement, args }) => {
+  play: async ({ canvasElement, args, ...context }) => {
     const canvas = within(canvasElement);
     const checkbox = canvas.getByRole("checkbox", {
       name: "Disabled checkbox",
     });
     await expect(checkbox).toBeDisabled();
+    await auditA11y(context, "disabled");
     await userEvent.click(canvas.getByText("Disabled checkbox"));
     await expect(checkbox).not.toBeChecked();
     await expect(args.onChange).not.toHaveBeenCalled();

@@ -4,12 +4,15 @@ import { expect, within } from "@storybook/test";
 import { IPreviewArgs } from "./utils";
 
 import LinearComponent from "../lib/progress/linear";
+import { a11yExceptions } from "./a11y";
+import { ERROR_TEXT_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: LinearComponent,
   title: "Progress/Linear",
   tags: ["autodocs"],
   parameters: {
+    ...a11yExceptions(ERROR_TEXT_LIGHT),
     // Chromatic pauses CSS animations at their first frame by default, which
     // for the `progressFill` entry animation is an empty bar. Capture the end
     // state instead.

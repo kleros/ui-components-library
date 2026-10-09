@@ -4,7 +4,6 @@ import { expect, userEvent, within } from "@storybook/test";
 
 import {
   IPreviewArgs,
-  disableA11yRules,
   hoverForTooltip,
   mouseHover,
   waitForAnimations,
@@ -13,15 +12,17 @@ import {
 
 import TooltipComponent from "../lib/tooltip";
 import Tag from "../lib/tag";
+import { a11yExceptions, auditA11y } from "./a11y";
+import {
+  TOOLTIP_TRIGGER_NESTED,
+  PRIMARY_BLUE_TEXT_LIGHT,
+} from "./a11y-defects";
 
 const meta = {
   component: TooltipComponent,
   title: "Tooltip",
   tags: ["autodocs"],
-  // Pre-existing component issues: the trigger wrapper is a focusable
-  // `role="button"` div around the (interactive) children, and the Tag used as
-  // child has primary blue text on medium blue, below WCAG AA contrast.
-  parameters: disableA11yRules("nested-interactive", "color-contrast"),
+  parameters: a11yExceptions(TOOLTIP_TRIGGER_NESTED, PRIMARY_BLUE_TEXT_LIGHT),
   argTypes: {
     place: {
       options: ["top", "right", "bottom", "left"],
@@ -70,9 +71,10 @@ export const Tooltip: Story = {
     children: <Tag active text="Hover me, I'm a tag" />,
     text: "Tooltip Text",
   },
-  play: async ({ canvasElement, step }) => {
+  play: async ({ canvasElement, step, ...context }) => {
     const trigger = getTrigger(canvasElement);
     await expect(body.queryByRole("tooltip")).not.toBeInTheDocument();
+    await auditA11y(context, "resting");
 
     await step("hovering shows the tooltip", async () => {
       // react-aria opens tooltips instantly for 500 ms after another one
@@ -83,6 +85,7 @@ export const Tooltip: Story = {
       const tooltip = await hoverForTooltip(userEvent, trigger);
       await expect(tooltip).toHaveTextContent("Tooltip Text");
       await expect(trigger).toHaveAttribute("aria-describedby", tooltip.id);
+      await auditA11y(context, "open");
     });
 
     await step("moving the pointer away hides it", async () => {

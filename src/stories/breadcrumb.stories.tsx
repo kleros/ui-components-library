@@ -4,10 +4,13 @@ import { expect, fn, userEvent, within } from "@storybook/test";
 import { IPreviewArgs } from "./utils";
 
 import BreadcrumbComponent from "../lib/breadcrumb";
+import { a11yExceptions } from "./a11y";
+import { PRIMARY_BLUE_TEXT_LIGHT, SECONDARY_TEXT_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: BreadcrumbComponent,
   title: "Pagination/Breadcrumb",
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT, SECONDARY_TEXT_LIGHT),
   tags: ["autodocs"],
   args: {
     callback: fn(),

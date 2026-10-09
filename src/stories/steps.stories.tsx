@@ -1,17 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
 
 import StepComponent from "../lib/progress/steps";
+import { a11yExceptions } from "./a11y";
+import { SECONDARY_TEXT_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: StepComponent,
   title: "Progress/Steps",
   tags: ["autodocs"],
-  // Pre-existing design issue: inactive step titles/numbers use the
-  // secondary text / stroke colors, below the WCAG AA contrast ratio.
-  parameters: disableA11yRules("color-contrast"),
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   argTypes: {
     horizontal: {
       control: "boolean",
@@ -78,9 +78,22 @@ export const VerticalOrientation: Story = {
     horizontal: false,
     className: "h-[300px] w-auto",
   },
-  // Pre-existing component issue: the vertical variant wraps all but the last
-  // <li> in a <div> inside the <ol> (invalid list structure).
-  parameters: disableA11yRules("color-contrast", "list", "listitem"),
+  parameters: a11yExceptions(
+    {
+      rule: "list",
+      selector: 'ol[aria-label="Vertical progress steps"]',
+      reason:
+        "Library defect: the vertical steps <ol> has a <div> child wrapping all but the last <li>.",
+      source: "src/lib/progress/steps/vertical.tsx:17",
+    },
+    {
+      rule: "listitem",
+      selector: "ol > div > li",
+      reason:
+        "Library defect: those <li>s sit in the <div>, not directly in the <ol>.",
+      source: "src/lib/progress/steps/vertical.tsx:17",
+    },
+  ),
   play: async ({ canvasElement }) => {
     const list = within(canvasElement).getByRole("list", {
       name: "Vertical progress steps",

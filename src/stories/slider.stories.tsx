@@ -4,10 +4,13 @@ import { expect, fn, userEvent, within } from "@storybook/test";
 import { IPreviewArgs } from "./utils";
 
 import SliderComponent from "../lib/form/slider";
+import { a11yExceptions } from "./a11y";
+import { SLIDER_LABEL_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: SliderComponent,
   title: "Form/Slider",
+  parameters: a11yExceptions(SLIDER_LABEL_LIGHT),
   tags: ["autodocs"],
   args: {
     callback: fn(),

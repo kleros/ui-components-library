@@ -1,13 +1,20 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules, waitForAnimations } from "./utils";
+import { IPreviewArgs, waitForAnimations } from "./utils";
 
 import DatepickerComponent from "../lib/form/datepicker";
 import {
   parseZonedDateTime,
   type ZonedDateTime,
 } from "@internationalized/date";
+import { a11yExceptions, auditA11y } from "./a11y";
+import {
+  SECONDARY_TEXT_LIGHT,
+  PRIMARY_BLUE_TEXT_LIGHT,
+  WHITE_ON_BLUE_LIGHT,
+  FOCUSED_DATE_SEGMENT_LIGHT,
+} from "./a11y-defects";
 
 /** Fixed date so stories and their tests are deterministic. */
 const FIXED_DATE = parseZonedDateTime("2025-01-15T10:30[UTC]");
@@ -15,6 +22,12 @@ const FIXED_DATE = parseZonedDateTime("2025-01-15T10:30[UTC]");
 const meta = {
   component: DatepickerComponent,
   title: "Form/Datepicker",
+  parameters: a11yExceptions(
+    SECONDARY_TEXT_LIGHT,
+    PRIMARY_BLUE_TEXT_LIGHT,
+    WHITE_ON_BLUE_LIGHT,
+    FOCUSED_DATE_SEGMENT_LIGHT,
+  ),
   tags: ["autodocs"],
   args: {
     onChange: fn(),
@@ -69,12 +82,13 @@ export const Datepicker: Story = {
     className: "w-full",
     defaultValue: FIXED_DATE,
   },
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, ...context }) => {
     // day granularity: no time segments
     await expect(segment(canvasElement, "month")).toBe("1");
     await expect(segment(canvasElement, "day")).toBe("15");
     await expect(segment(canvasElement, "year")).toBe("2025");
     await expect(segment(canvasElement, "hour")).toBeUndefined();
+    await auditA11y(context, "resting");
 
     const dialog = await openCalendar(canvasElement);
     const grid = within(dialog).getByRole("grid");
@@ -85,6 +99,7 @@ export const Datepicker: Story = {
     await expect(
       within(dialog).queryByRole("button", { name: "hour-increment" }),
     ).not.toBeInTheDocument();
+    await auditA11y(context, "open");
 
     // Escape dismisses the popover
     await userEvent.keyboard("{Escape}");
@@ -253,12 +268,23 @@ export const OpenCalendar: Story = {
 
 /** Open popover with the time controls, also covered by the a11y check. */
 export const OpenCalendarWithTime: Story = {
-  // Pre-existing component issue: the calendar and the time control each
-  // render a <header> (banner landmark) inside the popover, so the document
-  // ends up with duplicate, unlabeled banner landmarks.
-  parameters: disableA11yRules(
-    "landmark-no-duplicate-banner",
-    "landmark-unique",
+  parameters: a11yExceptions(
+    {
+      rule: "landmark-no-duplicate-banner",
+      selector: "header",
+      reason:
+        "Library defect: the calendar and the time control each render a <header> banner in the popover.",
+      source:
+        "src/lib/form/datepicker/calendar.tsx:21, src/lib/form/datepicker/time-control.tsx:16",
+    },
+    {
+      rule: "landmark-unique",
+      selector: "header",
+      reason:
+        "Library defect: the two unlabeled <header> banners are indistinguishable.",
+      source:
+        "src/lib/form/datepicker/calendar.tsx:21, src/lib/form/datepicker/time-control.tsx:16",
+    },
   ),
   args: {
     ...WithDefaultValue.args,

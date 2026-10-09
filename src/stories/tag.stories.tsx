@@ -1,9 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
 
 import TagComponent from "../lib/tag";
+import { a11yExceptions } from "./a11y";
+import { PRIMARY_BLUE_TEXT_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: TagComponent,
@@ -23,9 +25,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
-/** Pre-existing design issue: enabled tag text (primary blue on the medium
- * blue background) is below the WCAG AA contrast ratio. */
-const TAG_CONTRAST = disableA11yRules("color-contrast");
+const TAG_CONTRAST = a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT);
 
 export const Tag: Story = {
   parameters: TAG_CONTRAST,

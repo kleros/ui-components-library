@@ -2,7 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect, userEvent, waitFor, within } from "@storybook/test";
 import React, { useState } from "react";
 
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
+import { a11yExceptions } from "./a11y";
+import { PRIMARY_BLUE_TEXT_LIGHT } from "./a11y-defects";
 
 import FileViewerComponent from "../lib/file-viewer";
 import MarkdownDocRenderer from "../lib/file-viewer/markdown-viewer";
@@ -180,11 +182,26 @@ const SVG_DATA_URL =
   );
 
 export const FileViewer: Story = {
-  // react-doc-viewer's PDF controls: icon-only zoom buttons without an
-  // accessible name, and a grey page counter below contrast.
   parameters: {
     ...NO_SNAPSHOT,
-    ...disableA11yRules("button-name", "color-contrast"),
+    ...a11yExceptions(
+      {
+        rule: "button-name",
+        selector:
+          "#pdf-zoom-in, #pdf-zoom-out, #pdf-zoom-reset, #pdf-toggle-pagination",
+        reason:
+          "Dependency defect: react-doc-viewer's PDF controls are icon-only buttons with no accessible name.",
+        source: "src/lib/file-viewer/index.tsx:208",
+      },
+      {
+        rule: "color-contrast",
+        selector: "#pdf-page-info",
+        reason:
+          "Dependency defect: react-doc-viewer's grey #999999 page counter is 2.8:1 on white.",
+        source: "src/lib/file-viewer/index.tsx:208",
+        themes: ["light"],
+      },
+    ),
   },
   args: {
     themeUI: "light",
@@ -217,7 +234,16 @@ export const FileViewer: Story = {
 
 export const Image: Story = {
   // react-doc-viewer's <img> has no alt attribute.
-  parameters: { ...NO_SNAPSHOT, ...disableA11yRules("image-alt") },
+  parameters: {
+    ...NO_SNAPSHOT,
+    ...a11yExceptions({
+      rule: "image-alt",
+      selector: "#image-img",
+      reason:
+        "Dependency defect: react-doc-viewer's image renderer sets no alt attribute.",
+      source: "src/lib/file-viewer/index.tsx:208",
+    }),
+  },
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -269,9 +295,7 @@ export const UnsupportedScheme: Story = {
 };
 
 export const UnsupportedFileType: Story = {
-  // The fallback link uses PrimaryBlue on white (2.97:1), a component colour
-  // choice that cannot be fixed from the story.
-  parameters: { ...NO_SNAPSHOT, ...disableA11yRules("color-contrast") },
+  parameters: { ...NO_SNAPSHOT, ...a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT) },
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -586,7 +610,12 @@ const SwitchableViewer = (
     <div>
       <div className="flex gap-2 pb-2">
         {SWITCH_DOCS.map((doc) => (
-          <button key={doc.label} type="button" onClick={() => setUrl(doc.url)}>
+          <button
+            key={doc.label}
+            type="button"
+            className="text-klerosUIComponentsPrimaryText"
+            onClick={() => setUrl(doc.url)}
+          >
             {doc.label}
           </button>
         ))}
@@ -598,10 +627,7 @@ const SwitchableViewer = (
 
 /** Switching `url` on a mounted viewer replaces the previous document. */
 export const DocumentSwitching: Story = {
-  parameters: {
-    ...NO_SNAPSHOT,
-    ...disableA11yRules("color-contrast", "image-alt"),
-  },
+  parameters: NO_SNAPSHOT,
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -662,7 +688,6 @@ export const DocumentSwitching: Story = {
 /** An SVG with `onload`, `<script>` and external references, served from
  * localhost. It is shown through `<img>`, so nothing runs or is fetched. */
 export const MaliciousSvgFile: Story = {
-  parameters: disableA11yRules("image-alt"),
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -689,7 +714,6 @@ export const MaliciousSvgFile: Story = {
 /** Markdown with `<script>`, event-handler HTML, a `javascript:` link and an
  * iframe. None of it may execute or reach the network. */
 export const MaliciousMarkdownFile: Story = {
-  parameters: disableA11yRules("color-contrast"),
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -720,10 +744,7 @@ export const MaliciousMarkdownFile: Story = {
 export const MaliciousMarkdownRemoteImage: Story = {
   // Excluded: the markdown viewer requests off-origin images (parked library issue).
   tags: ["!test"],
-  parameters: {
-    ...NO_SNAPSHOT,
-    ...disableA11yRules("color-contrast", "image-alt"),
-  },
+  parameters: NO_SNAPSHOT,
   args: {
     themeUI: "light",
     backgroundUI: "light",

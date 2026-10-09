@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect, userEvent, waitFor, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
+import { auditA11y } from "./a11y";
 
 import AccordionComponent from "../lib/accordion/index";
 
@@ -44,7 +45,7 @@ export const Accordion: Story = {
     themeUI: "dark",
     backgroundUI: "light",
   },
-  play: async ({ canvasElement, step }) => {
+  play: async ({ canvasElement, step, ...context }) => {
     const canvas = within(canvasElement);
     const [first, second] = canvas.getAllByRole("button", {
       name: "How it works?",
@@ -55,6 +56,7 @@ export const Accordion: Story = {
       await expect(second).toHaveAttribute("aria-expanded", "false");
       // collapsed body wrappers have zero height
       await expect(bodyHeight(first)).toBe("0px");
+      await auditA11y(context, "resting");
     });
 
     await step("clicking an item expands only that item", async () => {
@@ -63,6 +65,7 @@ export const Accordion: Story = {
       await expect(second).toHaveAttribute("aria-expanded", "false");
       // the body wrapper animates to the measured content height
       await waitFor(() => expect(bodyHeight(first)).toMatch(/^[1-9][\d.]*px$/));
+      await auditA11y(context, "open");
     });
 
     await step(

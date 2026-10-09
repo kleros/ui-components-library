@@ -11,7 +11,6 @@ import {
 
 import {
   IPreviewArgs,
-  disableA11yRules,
   hoverForTooltip,
   hoverToReveal,
   waitForAnimations,
@@ -19,18 +18,26 @@ import {
 } from "./utils";
 
 import CopiableComponent from "../lib/copiable";
+import { a11yExceptions } from "./a11y";
+import {
+  TOOLTIP_TRIGGER_NESTED,
+  TOOLTIP_TRIGGER_UNNAMED,
+} from "./a11y-defects";
 
 const meta = {
   component: CopiableComponent,
   title: "Copiable",
   tags: ["autodocs"],
-  // Pre-existing component issues: the copy button is icon-only without an
-  // accessible name, and it is wrapped by the Tooltip trigger, which renders a
-  // focusable `role="button"` div around it (nested interactive controls).
-  parameters: disableA11yRules(
-    "button-name",
-    "nested-interactive",
-    "aria-command-name",
+  parameters: a11yExceptions(
+    {
+      rule: "button-name",
+      selector: 'div[role="button"] > button',
+      reason:
+        "Library defect: the copy button is icon-only and has no accessible name.",
+      source: "src/lib/copiable/index.tsx:66",
+    },
+    TOOLTIP_TRIGGER_NESTED,
+    TOOLTIP_TRIGGER_UNNAMED,
   ),
   // The clipboard API needs a user permission in headless browsers, so it is
   // stubbed for every story and restored afterwards.

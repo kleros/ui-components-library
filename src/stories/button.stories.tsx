@@ -1,14 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
 
 import Button from "../lib/button/index";
 import Telegram from "../assets/svgs/telegram.svg";
+import { a11yExceptions, auditA11y } from "./a11y";
+import { PRIMARY_BLUE_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: Button,
   title: "Button",
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
   tags: ["autodocs"],
   args: {
     onPress: fn(),
@@ -132,9 +135,13 @@ export const LoadingButton: Story = {
     themeUI: "dark",
     backgroundUI: "light",
   },
-  // Pre-existing component issue: while loading, the button text is hidden with
-  // `visibility: hidden`, so the button has no accessible name.
-  parameters: disableA11yRules("button-name"),
+  parameters: a11yExceptions({
+    rule: "button-name",
+    selector: "button[data-disabled]",
+    reason:
+      "Library defect: while loading, the label is `invisible` and the button has no accessible name.",
+    source: "src/lib/button/ButtonText.tsx:14",
+  }),
   play: async ({ canvasElement, args }) => {
     const button = within(canvasElement).getByRole("button");
     await expect(button).toBeDisabled();
@@ -154,11 +161,12 @@ export const DisabledButton: Story = {
     themeUI: "dark",
     backgroundUI: "light",
   },
-  play: async ({ canvasElement, args }) => {
+  play: async ({ canvasElement, args, ...context }) => {
     const button = within(canvasElement).getByRole("button", {
       name: "Disabled",
     });
     await expect(button).toBeDisabled();
+    await auditA11y(context, "disabled");
     await expect(button).toHaveClass(
       "bg-klerosUIComponentsLightGrey",
       "hover:cursor-not-allowed",

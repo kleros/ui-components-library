@@ -8,10 +8,23 @@ import SelectComponent from "../lib/dropdown/select";
 import { Form } from "react-aria-components";
 import { Button } from "../lib";
 import Telegram from "../assets/svgs/telegram.svg";
+import { a11yExceptions, auditA11y } from "./a11y";
+import {
+  ERROR_TEXT_LIGHT,
+  SECONDARY_TEXT_LIGHT,
+  SELECT_VALUE_LIGHT,
+  WHITE_ON_BLUE_LIGHT,
+} from "./a11y-defects";
 
 const meta = {
   component: SelectComponent,
   title: "Dropdown/Select",
+  parameters: a11yExceptions(
+    SECONDARY_TEXT_LIGHT,
+    ERROR_TEXT_LIGHT,
+    SELECT_VALUE_LIGHT,
+    WHITE_ON_BLUE_LIGHT,
+  ),
   tags: ["autodocs"],
   args: {
     callback: fn(),
@@ -65,12 +78,13 @@ export const Select: Story = {
     ],
     placeholder: "Select a value",
   },
-  play: async ({ canvasElement, args, step }) => {
+  play: async ({ canvasElement, args, step, ...context }) => {
     const canvas = within(canvasElement);
     const trigger = canvas.getByRole("button");
     await expect(trigger).toHaveTextContent("Select a value");
     await expect(trigger).toHaveAttribute("aria-haspopup", "listbox");
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await auditA11y(context, "resting");
 
     await step("selecting an option with the mouse", async () => {
       const listbox = await openListbox(trigger);
@@ -82,6 +96,7 @@ export const Select: Story = {
         "hello 4",
         "hello 5",
       ]);
+      await auditA11y(context, "open");
       await userEvent.click(
         within(listbox).getByRole("option", { name: "hello 3" }),
       );
@@ -228,7 +243,7 @@ export const RequiredSelect: Story = {
       />
     </Form>
   ),
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, ...context }) => {
     const canvas = within(canvasElement);
     const trigger = canvas.getByRole("button", { name: /Select a value/ });
     await userEvent.click(canvas.getByRole("button", { name: "Click me!" }));
@@ -239,6 +254,7 @@ export const RequiredSelect: Story = {
     await expect(
       canvasElement.querySelector(".text-klerosUIComponentsError"),
     ).not.toBeEmptyDOMElement();
+    await auditA11y(context, "error");
 
     const listbox = await openListbox(trigger);
     await userEvent.click(

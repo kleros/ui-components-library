@@ -7,10 +7,13 @@ import { IPreviewArgs, waitForAnimations } from "./utils";
 import DropdownCascaderComponent from "../lib/dropdown/cascader";
 import { Form } from "react-aria-components";
 import { Button } from "../lib";
+import { a11yExceptions } from "./a11y";
+import { WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: DropdownCascaderComponent,
   title: "Dropdown/Cascader",
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   tags: ["autodocs"],
   args: {
     callback: fn(),

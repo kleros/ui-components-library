@@ -13,10 +13,13 @@ import CustomRadio, {
 import Card from "../lib/container/card";
 import TextField from "../lib/form/text-field";
 import { cn } from "../utils";
+import { a11yExceptions } from "./a11y";
+import { SECONDARY_TEXT_LIGHT, ERROR_TEXT_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: CustomRadio,
   title: "Input/CustomRadio",
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, ERROR_TEXT_LIGHT),
   tags: ["autodocs"],
 } satisfies Meta<typeof CustomRadio>;
 

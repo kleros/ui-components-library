@@ -13,17 +13,31 @@ import Telegram from "../assets/svgs/telegram.svg";
 import BigNumber from "bignumber.js";
 import {
   IPreviewArgs,
-  disableA11yRules,
   expectHoverRevealsNothing,
   expectRevealedOnEachHover,
   hoverToReveal,
 } from "./utils";
 import { Button, Form } from "../lib";
+import { a11yExceptions } from "./a11y";
+import {
+  SECONDARY_TEXT_LIGHT,
+  SUCCESS_TEXT_LIGHT,
+  WARNING_TEXT_LIGHT,
+  ERROR_TEXT_LIGHT,
+  WHITE_ON_BLUE_LIGHT,
+} from "./a11y-defects";
 
 const meta: Meta<typeof BigNumberField> = {
   title: "Form/BigNumberField",
   component: BigNumberField,
   parameters: {
+    ...a11yExceptions(
+      SECONDARY_TEXT_LIGHT,
+      SUCCESS_TEXT_LIGHT,
+      WARNING_TEXT_LIGHT,
+      ERROR_TEXT_LIGHT,
+      WHITE_ON_BLUE_LIGHT,
+    ),
     layout: "centered",
   },
   tags: ["autodocs"],
@@ -199,10 +213,13 @@ export const WithMinMax: Story = {
 };
 
 export const WithLargeNumbers: Story = {
-  // Pre-existing component issue: when this is the first BigNumberField to
-  // render, aria-valuenow is in exponential notation (see play), which axe
-  // reports as an invalid aria-valuenow value.
-  parameters: disableA11yRules("aria-valid-attr-value"),
+  parameters: a11yExceptions({
+    rule: "aria-valid-attr-value",
+    selector: "input",
+    reason:
+      "Library defect: when no BigNumberField rendered before, aria-valuenow is in exponential notation.",
+    source: "src/lib/form/bignumber-field/useBigNumberField.tsx:572",
+  }),
   args: {
     ...Default.args,
     placeholder: "Enter a large number",

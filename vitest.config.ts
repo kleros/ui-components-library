@@ -24,7 +24,7 @@ export default defineConfig({
         // Pre-bundle the test-only dependencies up front so Vite does not
         // re-optimize (and reload) in the middle of a run.
         optimizeDeps: {
-          include: ["@storybook/test", "@storybook/addon-a11y/preview"],
+          include: ["@storybook/test", "axe-core"],
         },
         test: {
           name: "storybook",
@@ -35,6 +35,8 @@ export default defineConfig({
             instances: [{ browser: "chromium" }],
           },
           setupFiles: ["./.storybook/vitest.setup.ts"],
+          // `A11Y_AUDIT_LOG=1` logs every a11y audit (checkpoint and theme).
+          env: { A11Y_AUDIT_LOG: process.env.A11Y_AUDIT_LOG ?? "" },
         },
       },
       {

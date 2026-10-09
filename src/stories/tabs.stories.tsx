@@ -1,18 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import React from "react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
 
 import TabsComponent from "../lib/pagination/tabs";
 import Telegram from "../assets/svgs/telegram.svg";
+import { a11yExceptions } from "./a11y";
+import { PRIMARY_BLUE_TEXT_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: TabsComponent,
   title: "Pagination/Tabs",
   tags: ["autodocs"],
-  // Pre-existing design issue: the disabled tab's text uses the stroke color,
-  // below the WCAG AA contrast ratio.
-  parameters: disableA11yRules("color-contrast"),
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     callback: fn(),
   },

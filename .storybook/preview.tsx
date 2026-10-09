@@ -4,6 +4,7 @@ import clsx from "clsx";
 import type { Preview } from "@storybook/react";
 
 import { allModes } from "./modes";
+import { auditA11y } from "../src/stories/a11y";
 
 import "../src/styles/global.css";
 
@@ -47,6 +48,8 @@ const preview: Preview = {
       );
     },
   ],
+  // Audits the state each story ends in; plays add their own checkpoints.
+  experimental_afterEach: (context) => auditA11y(context, "end"),
   globalTypes: {
     theme: {
       description: "Theme (overrides the themeUI arg)",
@@ -78,7 +81,7 @@ const preview: Preview = {
   parameters: {
     layout: "centered",
     a11y: {
-      // Fail story tests (Vitest addon-test integration) on any axe violation.
+      // Storybook UI only; story tests run `auditA11y` instead of the addon check.
       test: "error",
     },
     chromatic: {

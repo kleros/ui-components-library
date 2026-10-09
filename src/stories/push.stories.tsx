@@ -1,13 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
 
 import PushComponent from "../lib/messages/push";
+import { a11yExceptions } from "./a11y";
+import { WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: PushComponent,
   title: "Message/Push",
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   tags: ["autodocs"],
   args: {
     callback: fn(),
@@ -24,9 +27,13 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
-/** Pre-existing component issue: the close button (not rendered when `small`)
- * only contains an icon and cannot be given an accessible name. */
-const ICON_ONLY_CLOSE_BUTTON = disableA11yRules("button-name");
+const ICON_ONLY_CLOSE_BUTTON = a11yExceptions({
+  rule: "button-name",
+  selector: "button.absolute",
+  reason:
+    "Library defect: the close button is icon-only and cannot be given an accessible name.",
+  source: "src/lib/messages/push.tsx:62",
+});
 
 export const Push: Story = {
   parameters: ICON_ONLY_CLOSE_BUTTON,

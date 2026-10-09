@@ -2,14 +2,25 @@ import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, spyOn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
 
 import FileUploaderComponent from "../lib/form/file-uploader";
 import Button from "../lib/button";
+import { a11yExceptions } from "./a11y";
+import {
+  PRIMARY_BLUE_TEXT_LIGHT,
+  SECONDARY_TEXT_LIGHT,
+  WARNING_TEXT_LIGHT,
+} from "./a11y-defects";
 
 const meta = {
   component: FileUploaderComponent,
   title: "Form/File Uploader",
+  parameters: a11yExceptions(
+    PRIMARY_BLUE_TEXT_LIGHT,
+    SECONDARY_TEXT_LIGHT,
+    WARNING_TEXT_LIGHT,
+  ),
   tags: ["autodocs"],
   args: {
     callback: fn(),
@@ -29,10 +40,13 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
-/** Pre-existing component issue, hit by stories that end without a selected
- * file: the upload button then only contains an icon and has no accessible
- * name. */
-const ICON_ONLY_UPLOAD_BUTTON = disableA11yRules("button-name");
+const ICON_ONLY_UPLOAD_BUTTON = a11yExceptions({
+  rule: "button-name",
+  selector: "button.bg-transparent",
+  reason:
+    "Library defect: with no file selected the upload button only holds an icon and has no accessible name.",
+  source: "src/lib/form/file-uploader.tsx:107",
+});
 
 const png = () => new File(["png"], "picture.png", { type: "image/png" });
 const txt = () => new File(["hello"], "notes.txt", { type: "text/plain" });

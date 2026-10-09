@@ -1,18 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, within } from "@storybook/test";
 
-import { IPreviewArgs, disableA11yRules } from "./utils";
+import { IPreviewArgs } from "./utils";
 
 import Pagination from "../lib/pagination/standard";
 import React, { useState } from "react";
+import { a11yExceptions } from "./a11y";
+import { ICON_ONLY_PAGE_ARROWS } from "./a11y-defects";
 
 const meta = {
   component: Pagination,
   title: "Pagination/Standard Pagination",
   tags: ["autodocs"],
-  // Pre-existing component issue: the previous / next arrow buttons are
-  // icon-only and the component offers no way to give them accessible names.
-  parameters: disableA11yRules("button-name"),
+  parameters: a11yExceptions(ICON_ONLY_PAGE_ARROWS),
   argTypes: {
     numPages: {
       control: "number",

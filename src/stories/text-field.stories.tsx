@@ -8,10 +8,21 @@ import TextFieldComponent from "../lib/form/text-field";
 import Telegram from "../assets/svgs/telegram.svg";
 import { Form } from "react-aria-components";
 import Button from "../lib/button";
+import { a11yExceptions, auditA11y } from "./a11y";
+import {
+  SECONDARY_TEXT_LIGHT,
+  ERROR_TEXT_LIGHT,
+  WHITE_ON_BLUE_LIGHT,
+} from "./a11y-defects";
 
 const meta = {
   component: TextFieldComponent,
   title: "Form/TextField",
+  parameters: a11yExceptions(
+    SECONDARY_TEXT_LIGHT,
+    ERROR_TEXT_LIGHT,
+    WHITE_ON_BLUE_LIGHT,
+  ),
   tags: ["autodocs"],
   args: {
     onChange: fn(),
@@ -121,6 +132,7 @@ export const WithDescription: Story = {
 export const Required: Story = {
   args: {
     ...Default.args,
+    "aria-label": "Username",
     isRequired: true,
   },
   render: (args) => (
@@ -158,11 +170,12 @@ export const Required: Story = {
       />
     </Form>
   ),
-  play: async ({ canvasElement, step }) => {
+  play: async ({ canvasElement, step, ...context }) => {
     const canvas = within(canvasElement);
     const input = canvas.getByRole("textbox");
     const submit = canvas.getByRole("button", { name: "Click me!" });
     await expect(input).toBeRequired();
+    await auditA11y(context, "resting");
 
     await step("empty required field is invalid on submit", async () => {
       await userEvent.click(submit);
@@ -177,6 +190,7 @@ export const Required: Story = {
       await userEvent.click(submit);
       await expect(await canvas.findByText("Nice try!")).toBeVisible();
       await expect(input).toHaveAccessibleDescription(/Nice try!/);
+      await auditA11y(context, "error");
     });
 
     await step("valid input clears the error", async () => {
@@ -198,9 +212,10 @@ export const Disabled: Story = {
     defaultValue: "Alice",
     isDisabled: true,
   },
-  play: async ({ canvasElement, args }) => {
+  play: async ({ canvasElement, args, ...context }) => {
     const input = within(canvasElement).getByRole("textbox", { name: "Name" });
     await expect(input).toBeDisabled();
+    await auditA11y(context, "disabled");
     await userEvent.type(input, "Bob");
     await expect(input).toHaveValue("Alice");
     await expect(args.onChange).not.toHaveBeenCalled();
