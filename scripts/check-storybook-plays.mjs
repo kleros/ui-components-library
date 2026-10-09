@@ -9,12 +9,16 @@ import {
 import { createServer } from "node:http";
 import { availableParallelism } from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium } from "playwright";
 
 const THEMES = ["light", "dark"];
 // Each page is a renderer process; more pages than CPUs starves the plays.
 const MAX_WORKERS = 8;
+const REPO_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 const STORY_TIMEOUT_MS = 30_000;
 
 const FAILURE_EVENTS = [
@@ -174,6 +178,10 @@ const main = async () => {
   const browser = await chromium.launch();
   const context = await browser.newContext();
   await context.addInitScript(hookChannel, FAILURE_EVENTS);
+  // Same filter as the Vitest story project, so plays see the same hover state.
+  await context.addInitScript({
+    path: path.join(REPO_ROOT, ".storybook/trusted-event-filter.js"),
+  });
 
   const queue = stories.flatMap((story) =>
     THEMES.map((theme) => ({ id: story.id, theme })),
