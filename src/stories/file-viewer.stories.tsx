@@ -720,7 +720,10 @@ export const MaliciousMarkdownFile: Story = {
 export const MaliciousMarkdownRemoteImage: Story = {
   // Excluded: the markdown viewer requests off-origin images (parked library issue).
   tags: ["!test"],
-  parameters: disableA11yRules("color-contrast", "image-alt"),
+  parameters: {
+    ...NO_SNAPSHOT,
+    ...disableA11yRules("color-contrast", "image-alt"),
+  },
   args: {
     themeUI: "light",
     backgroundUI: "light",
