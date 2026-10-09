@@ -9,7 +9,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Pushes to main get a per-SHA group so back-to-back merges each finish.
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: true
 
 jobs:
