@@ -75,6 +75,9 @@ export const Tooltip: Story = {
     await expect(body.queryByRole("tooltip")).not.toBeInTheDocument();
 
     await step("hovering shows the tooltip", async () => {
+      // react-aria opens tooltips instantly for 500 ms after another one
+      // closed; waiting that out makes this hover exercise `delay` itself
+      await new Promise((resolve) => setTimeout(resolve, 600));
       // the default `delay` is 0: one hover opens the tooltip within
       // HOVER_REVEAL_TIMEOUT_MS
       const tooltip = await hoverForTooltip(userEvent, trigger);

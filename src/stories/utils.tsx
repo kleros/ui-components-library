@@ -53,13 +53,11 @@ export const waitForAnimations = async (element: Element) => {
 };
 
 /**
- * Upper bound for hover-revealed UI to appear. The library's hover feedback
- * (stepper buttons, tooltips with the default `delay` of 0) is immediate, so
- * anything slower than this is treated as a regression. The bound only leaves
- * slack for rendering on a loaded CI machine; keep it below any delay that
- * should fail the tests.
+ * Upper bound for hover-revealed UI to appear. Tooltips with the default
+ * `delay` of 0 and stepper buttons are immediate, so a 500 ms delay must
+ * exceed this bound; the slack covers rendering on a loaded CI machine.
  */
-export const HOVER_REVEAL_TIMEOUT_MS = 1000;
+export const HOVER_REVEAL_TIMEOUT_MS = 300;
 
 /**
  * Hovers `target` once and waits for `query()` to find the element revealed by
