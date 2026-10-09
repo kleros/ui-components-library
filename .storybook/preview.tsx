@@ -17,22 +17,20 @@ export type IPreviewArgs = {
   backgroundUI: "white" | "light";
 };
 
+// The `theme` global (toolbar, Chromatic modes) has no default and overrides
+// the `themeUI` arg when set.
+const applyTheme = (theme: string | undefined) => {
+  document.documentElement.classList.toggle("dark", theme === "dark");
+};
+
 const preview: Preview = {
   decorators: [
-    (Story, { args, globals }) => {
-      const { themeUI, backgroundUI } = args;
-      // The `theme` global (toolbar / Chromatic modes) takes precedence over
-      // the per-story `themeUI` arg. It has no default value, so when it is
-      // unset the story's own `themeUI` arg keeps working as before.
-      const theme = globals.theme ?? themeUI;
+    (Story, { args }) => {
+      const { backgroundUI } = args;
       const background =
         backgroundUI === "white"
           ? "var(--klerosUIComponentsWhiteBackground)"
           : "var(--klerosUIComponentsLightBackground)";
-      useEffect(() => {
-        if (theme === "dark") document.documentElement.classList.add("dark");
-        else document.documentElement.classList.remove("dark");
-      }, [theme]);
       useEffect(() => {
         // Paint the whole canvas, not just the padded wrapper, so dark
         // snapshots aren't framed by the default white body.
@@ -52,7 +50,9 @@ const preview: Preview = {
       );
     },
   ],
-  beforeEach: () => {
+  // Runs before every render, args and globals changes included.
+  beforeEach: ({ args, globals }) => {
+    applyTheme(globals.theme ?? args.themeUI);
     resetA11yAudit();
   },
   // Audits the state each story ends in; plays add their own checkpoints.
