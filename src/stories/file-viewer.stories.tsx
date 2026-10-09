@@ -14,7 +14,12 @@ const observed = {
   dialogs: [] as string[],
   opened: [] as string[],
   requests: [] as string[],
+  /** Worker script URLs, including URLs found inside `blob:` worker sources. */
+  workers: [] as string[],
+  workerScans: [] as Promise<void>[],
+  blobs: new Map<string, Blob>(),
   unloads: 0,
+  startHref: "",
   /** Controlled `fetch` outcomes by request URL suffix. */
   stubs: new Map<string, () => Promise<Response>>(),
 };
@@ -33,14 +38,102 @@ const isLocalRequest = (raw: string): boolean => {
   }
 };
 
-/** Records dialogs, `window.open`, page unloads and fetch/XHR targets until
- * the story ends, then restores the originals. */
+/** URLs in a `srcset`/`imagesrcset` value. A URL may itself contain commas
+ * (`data:`), so candidates are split per the HTML parsing rules. */
+const srcsetUrls = (srcset: string): string[] => {
+  const urls: string[] = [];
+  let i = 0;
+  while (i < srcset.length) {
+    while (i < srcset.length && /[\s,]/.test(srcset[i])) i++;
+    const start = i;
+    while (i < srcset.length && !/\s/.test(srcset[i])) i++;
+    const raw = srcset.slice(start, i);
+    const url = raw.replace(/,+$/, "");
+    if (url === raw) while (i < srcset.length && srcset[i] !== ",") i++;
+    if (url) urls.push(url);
+  }
+  return urls;
+};
+
+/** Quoted absolute or protocol-relative URLs in a script's source. */
+const scriptUrls = (source: string): string[] =>
+  Array.from(
+    source.matchAll(/["'`]([a-z][\w+.-]*:\/\/[^"'`\s]+|\/\/[^"'`\s]+)["'`]/gi),
+    (match) => match[1],
+  );
+
+/** Records a worker's script URL. A `blob:` worker's source is scanned for the
+ * URLs it imports, since its own requests are invisible to the page. */
+const recordWorkerScript = (scriptUrl: string | URL) => {
+  const url = new URL(scriptUrl, window.location.href).href;
+  if (!url.startsWith("blob:")) {
+    observed.workers.push(url);
+    return;
+  }
+  const blob = observed.blobs.get(url);
+  if (!blob) {
+    observed.workers.push(`unscanned:${url}`);
+    return;
+  }
+  observed.workerScans.push(
+    blob.text().then((source) => {
+      observed.workers.push(...scriptUrls(source));
+    }),
+  );
+};
+
+// react-doc-viewer points pdf.js at unpkg.com. This is the pdf.js worker build
+// it bundles (same version), served by Storybook `staticDirs`.
+const PDF_WORKER_URL = "./pdfjs/pdf.worker.mjs";
+
+const serveLocalPdfWorker = () => {
+  const { pdfjsLib } = globalThis as {
+    pdfjsLib?: { GlobalWorkerOptions: { workerSrc: string } };
+  };
+  if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_URL;
+};
+
+const LOADING_ELEMENTS =
+  "img, embed, object, iframe, source, video, audio, script, link";
+
+const LOADING_ATTRIBUTES = ["src", "data", "href", "poster"];
+
+const SRCSET_ATTRIBUTES = ["srcset", "imagesrcset"];
+
+/** Loading-element properties whose setter starts a request, including on
+ * elements never attached to the document (`new Image().src = ...`). */
+const LOADING_PROPERTIES: [{ prototype: object }, string][] = [
+  [HTMLImageElement, "src"],
+  [HTMLImageElement, "srcset"],
+  [HTMLSourceElement, "src"],
+  [HTMLSourceElement, "srcset"],
+  [HTMLScriptElement, "src"],
+  [HTMLIFrameElement, "src"],
+  [HTMLEmbedElement, "src"],
+  [HTMLObjectElement, "data"],
+  [HTMLMediaElement, "src"],
+  [HTMLVideoElement, "poster"],
+  [HTMLLinkElement, "href"],
+  [HTMLLinkElement, "imageSrcset"],
+];
+
+/** The URLs an element attribute value refers to. */
+const attributeUrls = (name: string, value: string): string[] =>
+  SRCSET_ATTRIBUTES.includes(name.toLowerCase()) ? srcsetUrls(value) : [value];
+
+/** Records dialogs, `window.open`, page unloads, fetch/XHR targets, URLs set on
+ * loading elements and worker scripts until the story ends, then restores the
+ * originals. */
 const startObservers = () => {
   observed.dialogs = [];
   observed.opened = [];
   observed.requests = [];
+  observed.workers = [];
+  observed.workerScans = [];
+  observed.blobs.clear();
   observed.unloads = 0;
   observed.stubs.clear();
+  performance.clearResourceTimings();
 
   const originals = {
     alert: window.alert,
@@ -49,6 +142,17 @@ const startObservers = () => {
     open: window.open,
     fetch: window.fetch,
     xhrOpen: XMLHttpRequest.prototype.open,
+    Worker: window.Worker,
+    createObjectURL: URL.createObjectURL,
+    setAttribute: Element.prototype.setAttribute,
+    properties: LOADING_PROPERTIES.map(
+      ([owner, name]) =>
+        [
+          owner.prototype,
+          name,
+          Object.getOwnPropertyDescriptor(owner.prototype, name),
+        ] as const,
+    ),
   };
   window.alert = (message?: unknown) => {
     observed.dialogs.push(`alert:${String(message)}`);
@@ -87,11 +191,47 @@ const startObservers = () => {
       ...rest,
     );
   };
+  Element.prototype.setAttribute = function (
+    this: Element,
+    name: string,
+    value: string,
+  ) {
+    const attr = name.toLowerCase();
+    if (
+      [...LOADING_ATTRIBUTES, ...SRCSET_ATTRIBUTES].includes(attr) &&
+      this.matches(LOADING_ELEMENTS)
+    ) {
+      observed.requests.push(...attributeUrls(attr, String(value)));
+    }
+    return originals.setAttribute.call(this, name, value);
+  };
+  for (const [prototype, name, descriptor] of originals.properties) {
+    if (!descriptor?.set) continue;
+    const set = descriptor.set;
+    Object.defineProperty(prototype, name, {
+      ...descriptor,
+      set(this: Element, value: unknown) {
+        observed.requests.push(...attributeUrls(name, String(value)));
+        set.call(this, value);
+      },
+    });
+  }
+  URL.createObjectURL = (obj: Blob | MediaSource) => {
+    const url = originals.createObjectURL.call(URL, obj);
+    if (obj instanceof Blob) observed.blobs.set(url, obj);
+    return url;
+  };
+  window.Worker = class extends originals.Worker {
+    constructor(scriptUrl: string | URL, options?: WorkerOptions) {
+      recordWorkerScript(scriptUrl);
+      super(scriptUrl, options);
+    }
+  };
   const onBeforeUnload = () => {
     observed.unloads += 1;
   };
   window.addEventListener("beforeunload", onBeforeUnload);
-  const startHref = window.location.href;
+  observed.startHref = window.location.href;
 
   return () => {
     window.alert = originals.alert;
@@ -100,27 +240,41 @@ const startObservers = () => {
     window.open = originals.open;
     window.fetch = originals.fetch;
     XMLHttpRequest.prototype.open = originals.xhrOpen;
+    window.Worker = originals.Worker;
+    URL.createObjectURL = originals.createObjectURL;
+    Element.prototype.setAttribute = originals.setAttribute;
+    for (const [prototype, name, descriptor] of originals.properties) {
+      if (descriptor) Object.defineProperty(prototype, name, descriptor);
+    }
     window.removeEventListener("beforeunload", onBeforeUnload);
-    if (window.location.href !== startHref) {
-      throw new Error(`Story navigated away to ${window.location.href}`);
+    if (window.location.href !== observed.startHref) {
+      history.replaceState(history.state, "", observed.startHref);
     }
   };
 };
 
-/** Fails on any non-local URL in resource timing, fetch/XHR or a loading
- * element's attributes, and on any dialog, `window.open` or unload. */
+/** Fails on any worker script that is not local. */
+const expectLocalWorkerScripts = async () => {
+  await Promise.all(observed.workerScans);
+  const remote = observed.workers.filter((url) => !isLocalRequest(url));
+  if (remote.length > 0) {
+    throw new Error(`Non-local worker scripts: ${remote.join(", ")}`);
+  }
+};
+
+/** Fails on any non-local URL in resource timing, fetch/XHR, worker scripts or
+ * a loading element's attributes, and on any dialog, `window.open` or unload. */
 const expectOnlyLocalRequests = async () => {
+  await expectLocalWorkerScripts();
   const loaded = performance
     .getEntriesByType("resource")
     .map((entry) => entry.name);
   const pending = Array.from(
-    document.querySelectorAll(
-      "img, embed, object, iframe, source, video, audio, script[src], link[href]",
-    ),
+    document.querySelectorAll(LOADING_ELEMENTS),
   ).flatMap((el) =>
-    ["src", "data", "href", "poster"].flatMap((attr) => {
+    [...LOADING_ATTRIBUTES, ...SRCSET_ATTRIBUTES].flatMap((attr) => {
       const value = el.getAttribute(attr);
-      return value ? [value] : [];
+      return value ? attributeUrls(attr, value) : [];
     }),
   );
   const remote = [...loaded, ...observed.requests, ...pending].filter(
@@ -134,11 +288,20 @@ const expectOnlyLocalRequests = async () => {
   await expect(observed.unloads).toBe(0);
 };
 
+/** Runs after each story's play, so a failure is reported on that story. */
+const expectStoryStayedPut = async () => {
+  if (window.location.href !== observed.startHref) {
+    throw new Error(`Story navigated away to ${window.location.href}`);
+  }
+  await expectOnlyLocalRequests();
+};
+
 const meta = {
   component: FileViewerComponent,
   title: "File Viewer",
   tags: ["autodocs"],
-  beforeEach: startObservers,
+  beforeEach: [serveLocalPdfWorker, startObservers],
+  experimental_afterEach: expectStoryStayedPut,
 } satisfies Meta<typeof FileViewerComponent>;
 
 export default meta;
@@ -214,6 +377,13 @@ export const FileViewer: Story = {
     await expect(
       canvasElement.querySelector("#react-doc-viewer"),
     ).toBeInTheDocument();
+    await waitFor(() => expect(observed.workers.length).toBeGreaterThan(0), {
+      timeout: 10000,
+    });
+    await expectLocalWorkerScripts();
+    await expect(observed.workers).toEqual([
+      new URL(PDF_WORKER_URL, window.location.href).href,
+    ]);
     // pdf.js renders each page to a canvas once the file has been fetched
     await waitFor(
       () =>
@@ -780,6 +950,81 @@ export const RequestObserverRejectsRemote: Story = {
     await expect(isLocalRequest("https://evil.example/exfil")).toBe(false);
     await expect(isLocalRequest("//evil.example/exfil")).toBe(false);
     await expect(isLocalRequest("http://localhost.evil.example/")).toBe(false);
+    await expect(
+      srcsetUrls("data:image/png;base64,a,b 1x, https://evil.example/a.png 2x"),
+    ).toEqual(["data:image/png;base64,a,b", "https://evil.example/a.png"]);
+    await expect(srcsetUrls("./a.png, https://evil.example/b.png")).toEqual([
+      "./a.png",
+      "https://evil.example/b.png",
+    ]);
+  },
+};
+
+/** A `srcset` candidate off-origin fails the DOM scan. A lone `<source>`
+ * outside `<picture>` never loads, so nothing is requested. */
+export const SrcsetObserverRejectsRemote: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: "./fixtures/sample.txt",
+  },
+  play: async ({ canvasElement }) => {
+    // parsed markup bypasses the setter and setAttribute hooks
+    canvasElement.insertAdjacentHTML(
+      "beforeend",
+      '<source id="probe" srcset="./a.png 1x, https://evil.example/a.png 2x">',
+    );
+    const error = await expectOnlyLocalRequests().catch((e: Error) => e);
+    canvasElement.querySelector("#probe")?.remove();
+    await expect(error).toEqual(
+      new Error("Non-local requests: https://evil.example/a.png"),
+    );
+  },
+};
+
+/** A URL set on a detached loading element is recorded when it is set. A
+ * `<source>` outside a media element never loads, so nothing is requested. */
+export const DetachedElementObserverRejectsRemote: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: "./fixtures/sample.txt",
+  },
+  play: async () => {
+    document.createElement("source").src = "https://evil.example/a.png";
+    document
+      .createElement("source")
+      .setAttribute("srcset", "https://evil.example/b.png 2x");
+    const error = await expectOnlyLocalRequests().catch((e: Error) => e);
+    observed.requests = [];
+    await expect(error).toEqual(
+      new Error(
+        "Non-local requests: https://evil.example/a.png, https://evil.example/b.png",
+      ),
+    );
+  },
+};
+
+/** A `blob:` worker whose source names an off-origin URL fails the worker
+ * check. The source only holds the URL as a string, so nothing is fetched. */
+export const WorkerObserverRejectsRemote: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: "./fixtures/sample.txt",
+  },
+  play: async () => {
+    const source = 'const target = "https://evil.example/worker.mjs";';
+    const worker = new Worker(URL.createObjectURL(new Blob([source])));
+    worker.terminate();
+    const error = await expectLocalWorkerScripts().catch((e: Error) => e);
+    observed.workers = [];
+    await expect(error).toEqual(
+      new Error("Non-local worker scripts: https://evil.example/worker.mjs"),
+    );
   },
 };
 
