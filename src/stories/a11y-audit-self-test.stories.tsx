@@ -88,6 +88,23 @@ export const ProjectEndAuditFailsOnViolation: Story = {
   },
 };
 
+export const ProjectEndAuditFailsOnStaleException: Story = {
+  play: async (storyContext) => {
+    if (!isStoryTest) return;
+    const context = {
+      ...storyContext,
+      parameters: a11yExceptions(exceptionOn(ABSENT)),
+    };
+    try {
+      await expect(await errorOf(() => projectAfterEach(context))).toContain(
+        "stale a11y exceptions",
+      );
+    } finally {
+      resetA11yAudit();
+    }
+  },
+};
+
 export const DarkOnlyViolationFailsAudit: Story = {
   play: async () => {
     if (!isStoryTest) return;
