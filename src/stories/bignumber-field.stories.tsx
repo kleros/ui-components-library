@@ -780,6 +780,24 @@ export const TypingAfterIdleFormatting: Story = {
   },
 };
 
+/** Typing into the idle-formatted negative value clamps to the min bound. */
+export const TypingAfterIdleFormattingBelowMin: Story = {
+  args: {
+    ...TypingAfterIdleFormatting.args,
+  },
+  play: async ({ canvasElement, args }) => {
+    const input = within(canvasElement).getByRole("spinbutton");
+    await userEvent.type(input, "-5");
+    await expect(input).toHaveValue("-5");
+    await waitFor(() => expect(input).toHaveValue("$-5"), { timeout: 5000 });
+    await expect(input).toHaveFocus();
+    await userEvent.keyboard("9");
+    await expect(input).toHaveValue("-10");
+    await expect(input).toHaveAttribute("aria-valuenow", "-10");
+    await expect(lastChange(args.onChange)).toBe("-10");
+  },
+};
+
 const BoundsHarness = (props: React.ComponentProps<typeof BigNumberField>) => {
   const [bounds, setBounds] = React.useState({ min: "0", max: "10" });
   return (
