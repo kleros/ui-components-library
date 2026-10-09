@@ -37,7 +37,9 @@ export const srcsetUrls = (srcset: string): string[] => {
     const start = i;
     while (i < srcset.length && !/\s/.test(srcset[i])) i++;
     const raw = srcset.slice(start, i);
-    const url = raw.replace(/,+$/, "");
+    let end = raw.length;
+    while (end > 0 && raw[end - 1] === ",") end--;
+    const url = raw.slice(0, end);
     if (url === raw) while (i < srcset.length && srcset[i] !== ",") i++;
     if (url) urls.push(url);
   }

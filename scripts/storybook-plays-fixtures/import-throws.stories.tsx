@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 // Indexed at build time, but the module throws when the preview loads it.
-throw new Error("fixture: stories module throws on import");
+if (typeof window !== "undefined")
+  throw new Error("fixture: stories module throws on import");
 
 const meta = { title: "Checker Fixtures Import" } satisfies Meta;
 

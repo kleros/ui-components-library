@@ -12,11 +12,11 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Passes: Story = {
-  play: async () => {},
+  play: () => {},
 };
 
 export const PlayThrows: Story = {
-  play: async () => {
+  play: () => {
     throw new Error("fixture: play throws");
   },
 };
@@ -29,7 +29,7 @@ export const AfterEachThrowsAfterTimer: Story = {
 };
 
 export const DarkOnlyAtPlayStart: Story = {
-  play: async () => {
+  play: () => {
     if (document.documentElement.classList.contains("dark"))
       throw new Error("fixture: dark at play start");
   },

@@ -505,16 +505,17 @@ const failedResponseStory = (
 });
 
 /** The server answers 500 for a PDF: no PDF or image is rendered. */
-export const FailedResponseServerError = failedResponseStory(
-  "broken.pdf",
-  async () => new Response("boom", { status: 500, statusText: "Server Error" }),
+export const FailedResponseServerError = failedResponseStory("broken.pdf", () =>
+  Promise.resolve(
+    new Response("boom", { status: 500, statusText: "Server Error" }),
+  ),
 );
 
 /** The server answers 404 for an image: no PDF or image is rendered. */
-export const FailedResponseNotFound = failedResponseStory(
-  "missing.png",
-  async () =>
+export const FailedResponseNotFound = failedResponseStory("missing.png", () =>
+  Promise.resolve(
     new Response("not found", { status: 404, statusText: "Not Found" }),
+  ),
 );
 
 const SWITCH_DOCS = [
@@ -792,7 +793,9 @@ export const ObserverCleanupRestoresFetch: Story = {
 export const ObserverStartClearsFetchStubs: Story = {
   args: observerProbeArgs,
   play: async () => {
-    observed.stubs.set("/stale-stub", async () => new Response("stale"));
+    observed.stubs.set("/stale-stub", () =>
+      Promise.resolve(new Response("stale")),
+    );
     startObservers()();
     const remaining = observed.stubs.size;
     observed.stubs.clear();
@@ -805,7 +808,9 @@ export const FetchObserverRejectsRemote: Story = {
   args: observerProbeArgs,
   play: async () => {
     const url = `${UNREACHABLE}/fetch-probe`;
-    observed.stubs.set("/fetch-probe", async () => new Response("probe"));
+    observed.stubs.set("/fetch-probe", () =>
+      Promise.resolve(new Response("probe")),
+    );
     await fetch(url);
     const error = await expectOnlyLocalRequests().catch((e: Error) => e);
     observed.requests = [];
@@ -1007,7 +1012,7 @@ export const MarkdownUnicodeFixture: Story = {
 };
 
 const utf8Base64 = (text: string) =>
-  btoa(String.fromCharCode(...new TextEncoder().encode(text)));
+  btoa(String.fromCodePoint(...new TextEncoder().encode(text)));
 
 /** Renders the markdown renderer directly with `fileData`, the only way to
  * reach its ArrayBuffer, percent-encoded and plain-string branches. */
