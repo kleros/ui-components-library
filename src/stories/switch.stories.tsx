@@ -100,6 +100,19 @@ export const Disabled: Story = {
   },
 };
 
+/** A consumer `className` is merged with the base classes and wins conflicts. */
+export const CustomClassName: Story = {
+  args: {
+    ...Switch.args,
+    className: "custom-switch w-20",
+  },
+  play: async ({ canvasElement }) => {
+    const label = within(canvasElement).getByRole("switch").closest("label");
+    await expect(label).toHaveClass("custom-switch", "relative", "h-6", "w-20");
+    await expect(label).not.toHaveClass("w-12");
+  },
+};
+
 /** Controlled switch: the state lives in the parent. */
 export const Controlled: Story = {
   args: {
