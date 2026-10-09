@@ -320,6 +320,21 @@ const expectBlocked: Story["play"] = async ({ canvasElement, args }) => {
   await expectOnlyLocalRequests();
 };
 
+// Fixture documents are fetched before they render; waitFor defaults to 1 s.
+const LOAD = { timeout: 5000 };
+
+/** The rendered `#image-img`, once it has decoded. An `<img>` without `src`
+ * also reports `complete`. */
+const loadedImage = (canvasElement: HTMLElement) =>
+  waitFor(() => {
+    const img = canvasElement.querySelector<HTMLImageElement>("#image-img");
+    expect(img).toBeInTheDocument();
+    expect(img?.getAttribute("src")).toBeTruthy();
+    expect(img?.complete).toBe(true);
+    expect(img?.naturalWidth).toBeGreaterThan(0);
+    return img as HTMLImageElement;
+  }, LOAD);
+
 const PDF_URL = "./fixtures/sample.pdf";
 
 const IMAGE_URL = "./fixtures/sample.png";
@@ -421,13 +436,8 @@ export const Image: Story = {
     url: IMAGE_URL,
   },
   play: async ({ canvasElement }) => {
-    const img = await waitFor(() => {
-      const el = canvasElement.querySelector("#image-img");
-      expect(el).toBeInTheDocument();
-      return el as HTMLImageElement;
-    });
+    const img = await loadedImage(canvasElement);
     await expect(img.tagName).toBe("IMG");
-    await waitFor(() => expect(img.naturalWidth).toBeGreaterThan(0));
     // doc-viewer fetches the file and renders it from a data URI
     await expect(img.getAttribute("src")).toMatch(/^data:image\/png;base64,/);
     await expectOnlyLocalRequests();
@@ -762,8 +772,6 @@ export const FailedResponseNotFound = failedResponseStory(
     new Response("not found", { status: 404, statusText: "Not Found" }),
 );
 
-const LOAD = { timeout: 5000 };
-
 const SWITCH_DOCS = [
   { label: "Text", url: "./fixtures/sample.txt" },
   { label: "Image", url: "./fixtures/sample.png" },
@@ -814,11 +822,7 @@ export const DocumentSwitching: Story = {
     ).toBeVisible();
 
     await userEvent.click(canvas.getByRole("button", { name: "Image" }));
-    await waitFor(() => {
-      const img = canvasElement.querySelector("#image-img");
-      expect(img).toBeInTheDocument();
-      expect((img as HTMLImageElement).naturalWidth).toBeGreaterThan(0);
-    });
+    await loadedImage(canvasElement);
     await expect(
       canvas.queryByText("Kleros file viewer fixture."),
     ).not.toBeInTheDocument();
@@ -866,12 +870,7 @@ export const MaliciousSvgFile: Story = {
     fileName: "malicious.svg",
   },
   play: async ({ canvasElement }) => {
-    const img = await waitFor(() => {
-      const el = canvasElement.querySelector("#image-img");
-      expect(el).toBeInTheDocument();
-      return el as HTMLImageElement;
-    });
-    await waitFor(() => expect(img.complete).toBe(true));
+    await loadedImage(canvasElement);
     await expect(
       canvasElement.querySelector("iframe, object, embed, script"),
     ).toBeNull();
