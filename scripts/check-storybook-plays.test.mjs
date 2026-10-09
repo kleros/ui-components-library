@@ -145,6 +145,9 @@ test("fails on a built Storybook with no stories", () => {
   }
 });
 
+// Bounds the never-settling fixture; the other fixtures finish well within it.
+const FIXTURE_TIMEOUT_MS = 5_000;
+
 // `${id} [${theme}]` -> the failure events the checker must report, exactly.
 const EXPECTED = {
   "checker-fixtures--play-throws [light]": [
@@ -176,6 +179,8 @@ const EXPECTED = {
   "checker-fixtures--render-throws [light]": ["storyThrewException"],
   "checker-fixtures--render-throws [dark]": ["storyThrewException"],
   "checker-fixtures--dark-only-at-first-render [dark]": ["storyThrewException"],
+  "checker-fixtures--play-never-settles [light]": ["page.waitForFunction"],
+  "checker-fixtures--play-never-settles [dark]": ["page.waitForFunction"],
   "checker-fixtures-import--module-throws [light]": ["storyMissing"],
   "checker-fixtures-import--module-throws [dark]": ["storyMissing"],
 };
@@ -187,6 +192,10 @@ describe("checker on known-bad stories", () => {
     result = spawnSync("node", [checker, FIXTURES_OUT], {
       cwd: repo,
       encoding: "utf8",
+      env: {
+        ...process.env,
+        PLAYS_STORY_TIMEOUT_MS: String(FIXTURE_TIMEOUT_MS),
+      },
     });
     reported = {};
     let current;

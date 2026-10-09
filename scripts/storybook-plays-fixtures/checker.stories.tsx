@@ -62,3 +62,7 @@ export const RenderThrows: Story = {
     throw new Error("fixture: render throws");
   },
 };
+
+export const PlayNeverSettles: Story = {
+  play: () => new Promise<void>(() => {}),
+};

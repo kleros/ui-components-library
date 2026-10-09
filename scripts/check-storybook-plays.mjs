@@ -19,7 +19,8 @@ const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const STORY_TIMEOUT_MS = 30_000;
+// Per-story wait for storyFinished; the self-test shortens it.
+const STORY_TIMEOUT_MS = Number(process.env.PLAYS_STORY_TIMEOUT_MS) || 30_000;
 
 const FAILURE_EVENTS = [
   "playFunctionThrewException",
