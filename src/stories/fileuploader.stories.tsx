@@ -98,6 +98,9 @@ const dragFile = async (zone: HTMLElement, file: File, drop: boolean) => {
 
 const dropFile = (zone: HTMLElement, file: File) => dragFile(zone, file, true);
 
+// onDrop awaits item.getFile(), which settles on microtasks before the next task.
+const settleDrop = () => new Promise((resolve) => setTimeout(resolve, 0));
+
 export const FileUploader: Story = {
   parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
@@ -192,6 +195,7 @@ export const FileUploaderWithAcceptedTypes: Story = {
     );
     // dropping a non-accepted type is ignored
     await dropFile(getDropZone(canvasElement), txt());
+    await settleDrop();
     await expect(args.callback).not.toHaveBeenCalled();
     await dropFile(getDropZone(canvasElement), png());
     await waitFor(() =>
@@ -212,14 +216,15 @@ export const FileUploaderWithCustomValidation: Story = {
     acceptedFileTypes: ["image/png"],
     msg: "This will not accept any file and invalidate",
     variant: "info",
-    validationFunction: () => {
-      return false;
-    },
+    validationFunction: fn(() => false),
   },
   play: async ({ canvasElement, args }) => {
     const button = getUploadButton(canvasElement);
     await userEvent.upload(getInput(canvasElement), png());
     await dropFile(getDropZone(canvasElement), png());
+    await waitFor(() =>
+      expect(args.validationFunction).toHaveBeenCalledTimes(2),
+    );
     // validationFunction returns false: the file is rejected
     await expect(args.callback).not.toHaveBeenCalled();
     await expect(button).not.toHaveTextContent("picture.png");
@@ -316,6 +321,7 @@ export const DisabledFileUploader: Story = {
     const zone = getDropZone(canvasElement);
     await expect(zone.closest("[data-disabled]")).toBeInTheDocument();
     await dropFile(zone, png());
+    await settleDrop();
     await expect(args.callback).not.toHaveBeenCalled();
     await expect(
       within(canvasElement).getByText("Uploads are disabled."),
