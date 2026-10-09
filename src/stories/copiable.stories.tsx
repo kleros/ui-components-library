@@ -134,8 +134,12 @@ export const LeftAlignedCopiable: Story = {
     await waitFor(() =>
       expect(button.querySelector(".copied-icon")).toBeInTheDocument(),
     );
-    // keyboard focus keeps the "Copied!" tooltip open: let its fade-in finish
-    // so the axe check sees the final, opaque tooltip
+    await waitFor(
+      () => expect(button.querySelector(".copy-icon")).toBeInTheDocument(),
+      { timeout: 3000 },
+    );
+    // keyboard focus keeps the tooltip open: let its fade-in finish so the
+    // axe check sees the final, opaque tooltip
     await waitForAnimations(document.body);
   },
 };
@@ -158,6 +162,13 @@ export const DefaultInfo: Story = {
     await userEvent.click(button);
     await expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
       "0xdeadbeef",
+    );
+    await waitFor(() =>
+      expect(button.querySelector(".copied-icon")).toBeInTheDocument(),
+    );
+    await waitFor(
+      () => expect(button.querySelector(".copy-icon")).toBeInTheDocument(),
+      { timeout: 3000 },
     );
     await userEvent.unhover(button);
     // let the tooltip finish fading out before the axe check runs
