@@ -673,20 +673,23 @@ export const WheelEnabled: Story = {
     const input = canvas.getByRole("spinbutton");
     await userEvent.click(input);
 
+    // Outside act() a wheel step renders asynchronously, and the next wheel
+    // handler reads the value from that render.
     await step("scrolling down increments and up decrements", async () => {
       // fireEvent returns false when the event was cancelled
       await expect(fireEvent.wheel(input, { deltaY: 100 })).toBe(false);
-      await expect(input).toHaveValue("6");
+      await waitFor(() => expect(input).toHaveValue("6"));
       await expect(lastChange(args.onChange)).toBe("6");
       fireEvent.wheel(input, { deltaY: -100 });
+      await waitFor(() => expect(input).toHaveValue("5"));
       fireEvent.wheel(input, { deltaY: -100 });
-      await expect(input).toHaveValue("4");
+      await waitFor(() => expect(input).toHaveValue("4"));
       await expect(lastChange(args.onChange)).toBe("4");
     });
 
     await step("a mostly vertical scroll with some X still steps", async () => {
       fireEvent.wheel(input, { deltaX: 10, deltaY: 100 });
-      await expect(input).toHaveValue("5");
+      await waitFor(() => expect(input).toHaveValue("5"));
     });
 
     await step("horizontal-dominant or zero scroll is ignored", async () => {
