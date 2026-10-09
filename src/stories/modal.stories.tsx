@@ -119,6 +119,46 @@ export const NonDismissable: Story = {
   },
 };
 
+/** Tab and Shift+Tab wrap inside the dialog instead of reaching the page behind it. */
+export const FocusContainment: Story = {
+  args: {
+    ...Modal.args,
+    isOpen: true,
+    ariaLabel: "Containment",
+    children: (
+      <div className="flex size-full items-center justify-center gap-4">
+        <Button text="First" />
+        <Button text="Last" />
+      </div>
+    ),
+  },
+  render: (args) => (
+    <div>
+      <Button text="Outside" />
+      <ModalComponent {...args} />
+    </div>
+  ),
+  play: async () => {
+    const dialog = await body.findByRole("dialog", { name: "Containment" });
+    await waitForAnimations(document.body);
+    const first = within(dialog).getByRole("button", { name: "First" });
+    const last = within(dialog).getByRole("button", { name: "Last" });
+
+    first.focus();
+    await userEvent.tab({ shift: true });
+    await expect(dialog).toContainElement(
+      document.activeElement as HTMLElement,
+    );
+    await expect(last).toHaveFocus();
+
+    await userEvent.tab();
+    await expect(dialog).toContainElement(
+      document.activeElement as HTMLElement,
+    );
+    await expect(first).toHaveFocus();
+  },
+};
+
 /** A modal left open, so its (portaled) content is covered by the a11y check. */
 export const OpenModal: Story = {
   args: {
