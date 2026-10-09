@@ -186,6 +186,7 @@ Every story is snapshotted by [Chromatic](https://www.chromatic.com/) and compar
   - `FileViewer`, because pdf.js canvas output is not pixel-stable across runs.
   - `FailedResponseServerError`, `FailedResponseNotFound` and `DocumentSwitching`. Their snapshots haven't been checked for determinism yet.
 - The `Internal/A11y Self Test` stories test the accessibility audit in `src/stories/a11y.ts`. They run only under the Vitest story runner and elsewhere render a "Skipped" note, so they are excluded too and hidden from the sidebar and docs.
+- The `Internal/Trusted Event Filter Self Test` story moves the real cursor to check that the story tests drop trusted cursor events. It runs only under the Vitest story runner and is excluded and hidden the same way.
 
 **Plays outside Vitest**: Chromatic runs each story's play without Vitest's `act()` wrapper, so a play that reads a React update synchronously can pass `yarn test:stories` and still fail in Chromatic. `yarn test:storybook-plays` renders every story of a built Storybook (`yarn build-storybook` first) in both themes and fails on any render or play error. Like the story tests, it drops trusted cursor events (`.storybook/trusted-event-filter.js`), so plays that depend on hover state surviving a real cursor are not covered. The Storybook Tests workflow runs it after the story tests.
 
