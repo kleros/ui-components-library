@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
@@ -6,7 +6,7 @@ import { IPreviewArgs, disableA11yRules } from "./utils";
 
 import DraggableList from "../lib/draggable-list";
 import { Button } from "../lib";
-import { ListItem } from "../lib/draggable-list/useList";
+import { ListItem, useList } from "../lib/draggable-list/useList";
 
 const meta = {
   component: DraggableList,
@@ -246,11 +246,7 @@ export const CustomDragPreview: Story = {
   },
 };
 
-/** Items can be reordered with the keyboard (Enter to drag, arrows, Enter to drop).
- *
- * NOTE: this moves an item *up*. Moving an item down onto a "before" drop
- * target currently lands one slot too far (`useList.moveBefore` does not
- * account for the removed item), so that direction is not asserted here. */
+/** Items can be reordered with the keyboard (Enter to drag, arrows, Enter to drop). */
 export const KeyboardReorder: Story = {
   ...Default,
   play: async ({ canvasElement, args }) => {
@@ -286,6 +282,264 @@ export const KeyboardReorder: Story = {
       { id: 1, name: "Illustrator", value: "" },
       { id: 3, name: "Acrobat", value: "" },
       { id: 2, name: "Premiere", value: "" },
+    ]);
+  },
+};
+
+type ListApi = ReturnType<typeof useList>;
+
+const FOUR_ITEMS: ListItem[] = [1, 2, 3, 4].map((id) => ({
+  id,
+  name: `Item ${id}`,
+  value: "",
+}));
+
+/** The `onChange` payload for the items with these ids, in this order. */
+const payload = (...ids: number[]): ListItem[] =>
+  ids.map((id) => FOUR_ITEMS.find((item) => item.id === id)!);
+
+let listApi: ListApi | undefined;
+
+/** Renders `useList` directly so `moveBefore` / `moveAfter` receive exact keys
+ * instead of react-aria drop positions. */
+function ListHarness({
+  onChange,
+}: Readonly<{ onChange: (items: ListItem[]) => void }>) {
+  const api = useList({ initialItems: FOUR_ITEMS, onChange });
+  useEffect(() => {
+    listApi = api;
+  });
+  return (
+    <ul aria-label="useList harness">
+      {api.items.map((item) => (
+        <li key={item.id}>{item.name}</li>
+      ))}
+    </ul>
+  );
+}
+
+const hookItemNames = () =>
+  within(document.body)
+    .getAllByRole("listitem")
+    .map((item) => item.textContent);
+
+const namesOf = (...ids: number[]) => ids.map((id) => `Item ${id}`);
+
+const hookStory = (play: NonNullable<Story["play"]>): Story => ({
+  args: { ...Default.args },
+  parameters: disableA11yRules("color-contrast"),
+  render: function Render(args) {
+    const [mount, setMount] = useState(0);
+    return (
+      <>
+        <ListHarness
+          key={mount}
+          onChange={(items) => args.updateCallback?.(items)}
+        />
+        <Button
+          text="Reset"
+          onPress={() => {
+            listApi = undefined;
+            setMount(mount + 1);
+          }}
+        />
+      </>
+    );
+  },
+  play,
+});
+
+type MoveCase = {
+  move: (api: ListApi) => void;
+  /** Ids in the order the list should hold afterwards. */
+  expected: number[];
+  /** Expected `onChange` calls; 0 for a rejected move. */
+  calls: number;
+};
+
+/** Runs every case against a freshly mounted `[1, 2, 3, 4]` list, asserting
+ * the rendered order and the exact `onChange` call count and payload. */
+const runMoveCases = async (
+  canvasElement: HTMLElement,
+  onChange: ReturnType<typeof fn>,
+  cases: Record<string, MoveCase>,
+) => {
+  const canvas = within(canvasElement);
+  let first = true;
+  for (const [label, { move, expected, calls }] of Object.entries(cases)) {
+    if (!first)
+      await userEvent.click(canvas.getByRole("button", { name: "Reset" }));
+    first = false;
+    await waitFor(() => expect(listApi).toBeDefined());
+    await waitFor(() => expect(hookItemNames()).toEqual(namesOf(1, 2, 3, 4)));
+    onChange.mockClear();
+
+    move(listApi!);
+
+    await waitFor(
+      () => expect(hookItemNames(), label).toEqual(namesOf(...expected)),
+      { timeout: 1000 },
+    );
+    await expect(onChange, label).toHaveBeenCalledTimes(calls);
+    if (calls > 0)
+      await expect(onChange, label).toHaveBeenLastCalledWith(
+        payload(...expected),
+      );
+  }
+};
+
+const rejected = (move: MoveCase["move"]): MoveCase => ({
+  move,
+  expected: [1, 2, 3, 4],
+  calls: 0,
+});
+
+/** `moveBefore` with the source above the target is not affected by the removal shift. */
+export const MoveBeforeUpward: Story = hookStory(
+  async ({ canvasElement, args }) => {
+    await runMoveCases(
+      canvasElement,
+      args.updateCallback as ReturnType<typeof fn>,
+      {
+        "nonadjacent: 4 before 2": {
+          move: (api) => api.moveBefore(2, [4]),
+          expected: [1, 4, 2, 3],
+          calls: 1,
+        },
+        "adjacent: 3 before 2": {
+          move: (api) => api.moveBefore(2, [3]),
+          expected: [1, 3, 2, 4],
+          calls: 1,
+        },
+        "only the first key moves: 4 before 2 with keys [4, 3]": {
+          move: (api) => api.moveBefore(2, [4, 3]),
+          expected: [1, 4, 2, 3],
+          calls: 1,
+        },
+        "to the front: 4 before 1": {
+          move: (api) => api.moveBefore(1, [4]),
+          expected: [4, 1, 2, 3],
+          calls: 1,
+        },
+      },
+    );
+  },
+);
+
+/** `moveAfter` with the source above the target (a downward move) must account for the removed item. */
+export const MoveAfterDownward: Story = hookStory(
+  async ({ canvasElement, args }) => {
+    await runMoveCases(
+      canvasElement,
+      args.updateCallback as ReturnType<typeof fn>,
+      {
+        "nonadjacent: 1 after 3": {
+          move: (api) => api.moveAfter(3, [1]),
+          expected: [2, 3, 1, 4],
+          calls: 1,
+        },
+        "adjacent: 1 after 2": {
+          move: (api) => api.moveAfter(2, [1]),
+          expected: [2, 1, 3, 4],
+          calls: 1,
+        },
+        "to the end: 1 after 4": {
+          move: (api) => api.moveAfter(4, [1]),
+          expected: [2, 3, 4, 1],
+          calls: 1,
+        },
+      },
+    );
+  },
+);
+
+/** `moveAfter` with the source below the target inserts directly after it. */
+export const MoveAfterUpward: Story = hookStory(
+  async ({ canvasElement, args }) => {
+    await runMoveCases(
+      canvasElement,
+      args.updateCallback as ReturnType<typeof fn>,
+      {
+        "nonadjacent: 4 after 1": {
+          move: (api) => api.moveAfter(1, [4]),
+          expected: [1, 4, 2, 3],
+          calls: 1,
+        },
+        "only the first key moves: 4 after 1 with keys [4, 3]": {
+          move: (api) => api.moveAfter(1, [4, 3]),
+          expected: [1, 4, 2, 3],
+          calls: 1,
+        },
+        "4 after 2": {
+          move: (api) => api.moveAfter(2, [4]),
+          expected: [1, 2, 4, 3],
+          calls: 1,
+        },
+      },
+    );
+  },
+);
+
+/** Moves that must leave the list untouched and not call `onChange`. */
+export const MoveRejected: Story = hookStory(
+  async ({ canvasElement, args }) => {
+    await runMoveCases(
+      canvasElement,
+      args.updateCallback as ReturnType<typeof fn>,
+      {
+        "moveBefore onto itself": rejected((api) => api.moveBefore(2, [2])),
+        "moveAfter onto itself": rejected((api) => api.moveAfter(2, [2])),
+        "moveBefore with a missing source": rejected((api) =>
+          api.moveBefore(2, [99]),
+        ),
+        "moveAfter with a missing source": rejected((api) =>
+          api.moveAfter(2, [99]),
+        ),
+        "moveBefore with a missing target": rejected((api) =>
+          api.moveBefore(99, [2]),
+        ),
+        "moveAfter with a missing target": rejected((api) =>
+          api.moveAfter(99, [2]),
+        ),
+      },
+    );
+  },
+);
+
+/** Dropping below the last item reaches `moveAfter` through the component. */
+export const KeyboardReorderAfter: Story = {
+  ...Default,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const illustrator = await canvas.findByRole("option", {
+      name: "Illustrator",
+    });
+    illustrator.focus();
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() =>
+      expect(
+        within(document.body).getAllByRole("option", { name: /Insert/ }).length,
+      ).toBeGreaterThan(0),
+    );
+    for (let i = 0; i < 8; i++) {
+      const label = document.activeElement?.getAttribute("aria-label") ?? "";
+      if (/after Acrobat/.test(label)) break;
+      await userEvent.keyboard("{ArrowDown}");
+    }
+    await expect(document.activeElement).toHaveAccessibleName(/after Acrobat/);
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() =>
+      expect(names(getOptions(canvasElement))).toEqual([
+        "Premiere",
+        "Acrobat",
+        "Illustrator",
+      ]),
+    );
+    await expect(args.updateCallback).toHaveBeenCalledTimes(1);
+    await expect(args.updateCallback).toHaveBeenLastCalledWith([
+      { id: 2, name: "Premiere", value: "" },
+      { id: 3, name: "Acrobat", value: "" },
+      { id: 1, name: "Illustrator", value: "" },
     ]);
   },
 };
