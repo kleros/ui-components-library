@@ -757,6 +757,49 @@ const observerProbeArgs: Story["args"] = {
   url: "./fixtures/sample.txt",
 };
 
+/** A `blob:` worker whose Blob the hooked `createObjectURL` never saw cannot
+ * be scanned, so the worker check fails closed. */
+export const WorkerObserverRejectsUnscannedBlob: Story = {
+  args: observerProbeArgs,
+  play: async () => {
+    const url = URL.createObjectURL(new Blob(["// unseen"]));
+    observed.blobs.delete(url);
+    new Worker(url).terminate();
+    const error = await expectLocalWorkerScripts().catch((e: Error) => e);
+    observed.workers = [];
+    URL.revokeObjectURL(url);
+    await expect(error).toEqual(
+      new Error(`Non-local worker scripts: unscanned:${url}`),
+    );
+  },
+};
+
+/** Cleanup restores `fetch`, so the next start hooks the original again. */
+export const ObserverCleanupRestoresFetch: Story = {
+  args: observerProbeArgs,
+  play: async () => {
+    const hooked = window.fetch;
+    startObservers()();
+    const restoredOnce = window.fetch === hooked;
+    startObservers()();
+    const restoredTwice = window.fetch === hooked;
+    window.fetch = hooked;
+    await expect([restoredOnce, restoredTwice]).toEqual([true, true]);
+  },
+};
+
+/** Starting the observers drops fetch stubs left by an earlier story. */
+export const ObserverStartClearsFetchStubs: Story = {
+  args: observerProbeArgs,
+  play: async () => {
+    observed.stubs.set("/stale-stub", async () => new Response("stale"));
+    startObservers()();
+    const remaining = observed.stubs.size;
+    observed.stubs.clear();
+    await expect(remaining).toBe(0);
+  },
+};
+
 /** `fetch` to another origin fails the check. */
 export const FetchObserverRejectsRemote: Story = {
   args: observerProbeArgs,
