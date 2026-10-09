@@ -116,4 +116,13 @@ export default [
       ],
     },
   },
+  {
+    // The node resolver ignores package.json "exports" subpaths (vitest/config);
+    // tsconfig.node.json type-checks these imports instead.
+    files: [".storybook/**/*.{ts,tsx}", "vitest*.config.ts"],
+    rules: {
+      "import/no-unresolved": "off",
+      "import/namespace": "off",
+    },
+  },
 ];
