@@ -4,7 +4,7 @@ import { expect, userEvent, within } from "@storybook/test";
 
 import {
   IPreviewArgs,
-  hoverForTooltip,
+  hoverToReveal,
   mouseHover,
   waitForAnimations,
   waitForTooltipHidden,
@@ -64,6 +64,21 @@ const getTrigger = (canvasElement: HTMLElement) =>
 
 const waitForHidden = waitForTooltipHidden;
 
+/**
+ * Whether a tooltip is rendered when a `ms` timer, started by the first
+ * pointerover on `trigger` before React handles it, fires. A tooltip `delay`
+ * timer of the same length starts later, so it fires after this one.
+ */
+const openBeforeTimer = (trigger: Element, ms: number) =>
+  new Promise<boolean>((resolve) => {
+    const onPointerOver = (event: Event) => {
+      if (!trigger.contains(event.target as Node)) return;
+      window.removeEventListener("pointerover", onPointerOver, true);
+      setTimeout(() => resolve(body.queryByRole("tooltip") !== null), ms);
+    };
+    window.addEventListener("pointerover", onPointerOver, true);
+  });
+
 export const Tooltip: Story = {
   args: {
     themeUI: "light",
@@ -80,9 +95,14 @@ export const Tooltip: Story = {
       // react-aria opens tooltips instantly for 500 ms after another one
       // closed; waiting that out makes this hover exercise `delay` itself
       await new Promise((resolve) => setTimeout(resolve, 600));
-      // the default `delay` is 0: one hover opens the tooltip within
-      // HOVER_REVEAL_TIMEOUT_MS
-      const tooltip = await hoverForTooltip(userEvent, trigger);
+      // react-aria only opens hover tooltips in "pointer" interaction modality
+      await userEvent.click(document.body);
+      const openWithin500Ms = openBeforeTimer(trigger, 500);
+      const tooltip = await hoverToReveal(userEvent, trigger, () =>
+        body.getByRole("tooltip"),
+      );
+      // the default `delay` is 0, so the tooltip beats a 500 ms delay
+      await expect(await openWithin500Ms).toBe(true);
       await expect(tooltip).toHaveTextContent("Tooltip Text");
       await expect(trigger).toHaveAttribute("aria-describedby", tooltip.id);
       await auditA11y(context, "open");

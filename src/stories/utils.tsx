@@ -39,11 +39,10 @@ export const waitForAnimations = async (element: Element) => {
 };
 
 /**
- * Upper bound for hover-revealed UI to appear. Tooltips with the default
- * `delay` of 0 and stepper buttons are immediate, so a 500 ms delay must
- * exceed this bound; the slack covers rendering on a loaded CI machine.
+ * Load timeout for hover-revealed UI to appear or hide. Reveal speed is not
+ * under test here; the Tooltip story checks the default delay.
  */
-export const HOVER_REVEAL_TIMEOUT_MS = 300;
+export const HOVER_REVEAL_TIMEOUT_MS = 5000;
 
 /**
  * Hovers `target` once and waits for `query()` to find the element revealed by
@@ -61,7 +60,7 @@ export const hoverToReveal = async <T extends HTMLElement>(
 
 /**
  * Hovers `trigger` as a mouse user and returns the tooltip it opens (portaled
- * into document.body) within `HOVER_REVEAL_TIMEOUT_MS`.
+ * into document.body).
  */
 export const hoverForTooltip = async (
   user: {
