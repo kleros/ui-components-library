@@ -1,0 +1,1 @@
+Kleros file viewer fixture.

@@ -4,12 +4,19 @@ on:
     branches: [main]
 jobs:
   eslint:
+    # PRs only from branches in this repo, which needs write access: fork PRs
+    # from outside contributors skip CI.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Enable corepack
         run: corepack enable
       - name: Install modules
-        run: yarn
+        run: yarn install --immutable
+        env:
+          YARN_ENABLE_SCRIPTS: false
       - name: Run ESLint
         run: yarn check-style

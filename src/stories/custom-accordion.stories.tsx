@@ -1,20 +1,36 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect, userEvent, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
 import CustomAccordion from "../lib/accordion/custom";
 import Button from "../lib/button/index";
+import { a11yExceptions } from "./a11y";
+import { PRIMARY_BLUE_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: CustomAccordion,
   title: "CustomAccordion",
   tags: ["autodocs"],
+  parameters: a11yExceptions(
+    {
+      rule: "nested-interactive",
+      selector: "#expand-button",
+      reason:
+        "Library defect: a custom `expandButton` is rendered inside the item's header button.",
+      source: "src/lib/accordion/accordion-item.tsx:75",
+    },
+    WHITE_ON_BLUE_LIGHT,
+  ),
 } satisfies Meta<typeof CustomAccordion>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
+
+const getHeaders = (canvasElement: HTMLElement) =>
+  within(canvasElement).getAllByRole("button", { name: /^How it works\?/ });
 
 /** CustomAccordion provides the ability to render custom title, body and expandButton. */
 export const Accordion: Story = {
@@ -56,10 +72,36 @@ export const Accordion: Story = {
     themeUI: "dark",
     backgroundUI: "light",
   },
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    const [first, second] = getHeaders(canvasElement);
+    await expect(first).toHaveAttribute("aria-expanded", "false");
+
+    await step("the custom expand button toggles its item", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Expand" }));
+      await expect(first).toHaveAttribute("aria-expanded", "true");
+      // the render prop receives the new `expanded` state
+      const close = canvas.getByRole("button", { name: "Close" });
+      await expect(
+        canvas.queryByRole("button", { name: "Expand" }),
+      ).not.toBeInTheDocument();
+      await userEvent.click(close);
+      await expect(first).toHaveAttribute("aria-expanded", "false");
+    });
+
+    await step("items without expandButton use the default icon", async () => {
+      await expect(within(second).queryByRole("button")).toBeNull();
+      await expect(second.querySelector("svg")).toBeInTheDocument();
+      await userEvent.click(second);
+      await expect(second).toHaveAttribute("aria-expanded", "true");
+      await expect(first).toHaveAttribute("aria-expanded", "false");
+    });
+  },
 };
 
 /** You can provide an expand button at Parent level for all Accordion Items */
 export const GlobalExpandButton: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     className: "max-w-[80dvw]",
 
@@ -97,10 +139,31 @@ export const GlobalExpandButton: Story = {
     themeUI: "dark",
     backgroundUI: "light",
   },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const [first, second] = getHeaders(canvasElement);
+    // the parent-level expandButton is used by every item
+    const expandButtons = canvas.getAllByRole("button", { name: "Expand" });
+    await expect(expandButtons).toHaveLength(2);
+    await expect(within(second).getByRole("button")).toBe(expandButtons[1]);
+
+    await userEvent.click(expandButtons[1]);
+    await expect(second).toHaveAttribute("aria-expanded", "true");
+    await expect(first).toHaveAttribute("aria-expanded", "false");
+    await expect(within(second).getByRole("button")).toHaveTextContent("Close");
+    await expect(within(first).getByRole("button")).toHaveTextContent("Expand");
+
+    // keyboard: the nested button is focusable and toggles with Enter
+    within(first).getByRole("button").focus();
+    await userEvent.keyboard("{Enter}");
+    await expect(first).toHaveAttribute("aria-expanded", "true");
+    await expect(second).toHaveAttribute("aria-expanded", "false");
+  },
 };
 
 /** Parent Expand Button can be ovverrided at Item level if required */
 export const ItemExpandButton: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     className: "max-w-[80dvw]",
 
@@ -144,5 +207,20 @@ export const ItemExpandButton: Story = {
     },
     themeUI: "dark",
     backgroundUI: "light",
+  },
+  play: async ({ canvasElement }) => {
+    const [first, second] = getHeaders(canvasElement);
+    // the item-level button overrides the parent-level one
+    await expect(within(first).getByRole("button")).toHaveTextContent(
+      "Item Expand",
+    );
+    await expect(within(second).getByRole("button")).toHaveTextContent(
+      /^Expand$/,
+    );
+    await userEvent.click(within(first).getByRole("button"));
+    await expect(first).toHaveAttribute("aria-expanded", "true");
+    await expect(within(first).getByRole("button")).toHaveTextContent(
+      "Item Close",
+    );
   },
 };

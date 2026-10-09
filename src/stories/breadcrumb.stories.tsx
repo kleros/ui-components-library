@@ -1,13 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect, fn, userEvent, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
 import BreadcrumbComponent from "../lib/breadcrumb";
+import { a11yExceptions } from "./a11y";
+import { PRIMARY_BLUE_TEXT_LIGHT, SECONDARY_TEXT_LIGHT } from "./a11y-defects";
 
 const meta = {
   component: BreadcrumbComponent,
   title: "Pagination/Breadcrumb",
   tags: ["autodocs"],
+  args: {
+    callback: fn(),
+  },
   argTypes: {
     variant: {
       options: ["primary", "secondary"],
@@ -24,6 +30,7 @@ export default meta;
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
 export const Breadcrumb: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     variant: "primary",
     themeUI: "dark",
@@ -34,5 +41,49 @@ export const Breadcrumb: Story = {
       { text: "Non-Technical", value: 2 },
     ],
     clickable: false,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // every item except the last one is a button
+    const buttons = canvas.getAllByRole("button");
+    await expect(buttons.map((b) => b.textContent)).toEqual([
+      "General Court",
+      "Blockchain",
+    ]);
+    const current = canvas.getByText("Non-Technical");
+    await expect(current.closest("button")).toBeNull();
+    await expect(current).toHaveClass("font-semibold");
+    await expect(canvas.getAllByText("/")).toHaveLength(2);
+    // not clickable: text cursor
+    await expect(buttons[0]).toHaveClass("cursor-text");
+  },
+};
+
+/** With `clickable`, pressing an item calls `callback` with that item's `value`. */
+export const ClickableBreadcrumb: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  args: {
+    ...Breadcrumb.args,
+    variant: "secondary",
+    clickable: true,
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const blockchain = canvas.getByRole("button", { name: "Blockchain" });
+    await expect(blockchain).toHaveClass("cursor-pointer");
+
+    await userEvent.click(blockchain);
+    await expect(args.callback).toHaveBeenCalledTimes(1);
+    await expect(args.callback).toHaveBeenLastCalledWith(1);
+
+    // keyboard: Tab to the first crumb and press Enter
+    blockchain.blur();
+    await userEvent.tab();
+    await expect(
+      canvas.getByRole("button", { name: "General Court" }),
+    ).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await expect(args.callback).toHaveBeenLastCalledWith(0);
+    await expect(args.callback).toHaveBeenCalledTimes(2);
   },
 };
