@@ -205,6 +205,9 @@ export const RejectedWriteRetry: Story = {
 
     await step("a rejected write keeps the normal icon", async () => {
       await userEvent.click(button);
+      // Each direct userEvent call has its own pointer state, so leaving the
+      // button must be explicit or the next hover is ignored as a re-enter.
+      await userEvent.unhover(button);
       await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
       // the rejection handler runs on a microtask after the call
       await new Promise((resolve) => setTimeout(resolve, 100));
