@@ -1,5 +1,6 @@
 // Renders every story of a built Storybook in Chromium, in both themes, and
-// fails when a render, play or afterEach throws. Plays run without Vitest or act(), as in Chromatic, with the story tests' trusted-event filter.
+// fails when a render, play or afterEach throws. Plays run without Vitest or
+// act(), as in Chromatic, with the story tests' trusted-event filter.
 import {
   createReadStream,
   readFileSync,
