@@ -186,6 +186,7 @@ Every story is snapshotted by [Chromatic](https://www.chromatic.com/) and compar
   - `FileViewer`, because pdf.js canvas output is not pixel-stable across runs.
   - `MaliciousMarkdownRemoteImage`, because the markdown viewer requests its off-origin image. It is also left out of the story tests.
   - `FailedResponseServerError`, `FailedResponseNotFound` and `DocumentSwitching`. Their snapshots haven't been checked for determinism yet.
+- The `Internal/A11y Self Test` stories test the accessibility audit in `src/stories/a11y.ts` and render nothing, so they are excluded too and hidden from the sidebar and docs.
 
 **Running locally**:
 
