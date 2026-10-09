@@ -7,6 +7,12 @@ permissions:
   contents: read
 jobs:
   unit-tests:
+    # PRs only from org members, collaborators and the listed team members whose
+    # org membership is private (GitHub reports them as CONTRIBUTOR).
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association) ||
+      contains(fromJSON('["alcercu"]'), github.event.pull_request.user.login)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0

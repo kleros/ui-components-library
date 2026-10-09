@@ -16,6 +16,12 @@ concurrency:
 jobs:
   storybook-tests:
     name: Component tests (Vitest + Playwright)
+    # PRs only from org members, collaborators and the listed team members whose
+    # org membership is private (GitHub reports them as CONTRIBUTOR).
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association) ||
+      contains(fromJSON('["alcercu"]'), github.event.pull_request.user.login)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

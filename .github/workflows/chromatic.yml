@@ -23,10 +23,13 @@ jobs:
     # Secrets are not available to PRs from forks (or Dependabot), so skip
     # instead of failing. Never switch this to `pull_request_target`: that
     # would run untrusted PR code with access to CHROMATIC_PROJECT_TOKEN.
+    # PRs only from org members, collaborators and listed team members.
     if: >-
       github.event_name == 'push' ||
       (github.event.pull_request.head.repo.full_name == github.repository &&
-      github.actor != 'dependabot[bot]')
+      github.actor != 'dependabot[bot]' &&
+      (contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association) ||
+      contains(fromJSON('["alcercu"]'), github.event.pull_request.user.login)))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
