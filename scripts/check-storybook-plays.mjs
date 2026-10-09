@@ -1,20 +1,21 @@
 // Renders every story of a built Storybook in Chromium, in both themes, and
-// fails when a render or play throws. Plays run as in Chromatic: no Vitest, no act().
-import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
+// fails when a render, play or afterEach throws. Plays run as in Chromatic: no Vitest, no act().
+import {
+  createReadStream,
+  readFileSync,
+  realpathSync,
+  statSync,
+} from "node:fs";
 import { createServer } from "node:http";
+import { availableParallelism } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
 
-const ROOT = path.resolve(process.argv[2] ?? "storybook-static");
 const THEMES = ["light", "dark"];
-const WORKERS = 8;
+// Each page is a renderer process; more pages than CPUs starves the plays.
+const MAX_WORKERS = 8;
 const STORY_TIMEOUT_MS = 30_000;
-
-// Story id prefix -> why the story is not checked here.
-const EXCLUDED = {
-  "internal-a11y-self-test--":
-    "self-tests of the Vitest-only a11y audit; outside the story runner their play is a no-op",
-};
 
 const FAILURE_EVENTS = [
   "playFunctionThrewException",
@@ -38,16 +39,47 @@ const MIME = {
   ".txt": "text/plain",
 };
 
-const serve = () =>
-  new Promise((resolve) => {
+const isInside = (root, candidate) =>
+  candidate === root || candidate.startsWith(root + path.sep);
+
+/**
+ * Maps a request URL to a regular file under `root` (a realpath), or returns
+ * null for anything that is not one, including `..` segments and symlink escapes.
+ */
+export const resolveRequest = (root, url) => {
+  let pathname;
+  try {
+    pathname = decodeURIComponent(new URL(url, "http://localhost").pathname);
+  } catch {
+    return null;
+  }
+  const segments = pathname.split("/").filter(Boolean);
+  if (
+    segments.some(
+      (segment) =>
+        segment === ".." || segment.includes("\\") || segment.includes("\0"),
+    )
+  )
+    return null;
+  const file = path.resolve(root, ...segments);
+  if (!isInside(root, file)) return null;
+  let real;
+  try {
+    real = realpathSync(file);
+  } catch {
+    return null;
+  }
+  if (!isInside(root, real) || !statSync(real).isFile()) return null;
+  return real;
+};
+
+/** Serves the files under `root` on a random loopback port. */
+export const serve = (root) => {
+  const realRoot = realpathSync(root);
+  return new Promise((resolve) => {
     const server = createServer((request, response) => {
-      const { pathname } = new URL(request.url, "http://localhost");
-      const file = path.join(ROOT, decodeURIComponent(pathname));
-      if (
-        !file.startsWith(ROOT) ||
-        !existsSync(file) ||
-        statSync(file).isDirectory()
-      ) {
+      const file = resolveRequest(realRoot, request.url);
+      if (!file) {
         response.writeHead(404).end();
         return;
       }
@@ -58,12 +90,28 @@ const serve = () =>
     });
     server.listen(0, "127.0.0.1", () => resolve(server));
   });
+};
+
+/** Resolves the CLI argument to a built Storybook directory inside the working directory. */
+export const storybookDir = (argument, cwd = process.cwd()) => {
+  const base = realpathSync(cwd);
+  const resolved = path.resolve(base, argument);
+  if (!isInside(base, resolved))
+    throw new Error(`${argument} is outside ${base}`);
+  const real = realpathSync(resolved);
+  if (!isInside(base, real)) throw new Error(`${argument} is outside ${base}`);
+  for (const file of ["index.json", "iframe.html"])
+    if (!statSync(path.join(real, file), { throwIfNoEntry: false })?.isFile())
+      throw new Error(`${argument} is not a built Storybook (no ${file})`);
+  return real;
+};
 
 // Runs in the page before the preview boots, which assigns the channel once.
 const hookChannel = (failureEvents) => {
   window.__playCheck = { failures: [], done: false };
+  const fail = (message) => window.__playCheck.failures.push(message);
   const record = (event) => (payload) =>
-    window.__playCheck.failures.push(
+    fail(
       `${event}: ${payload?.message ?? payload?.description ?? JSON.stringify(payload)}`,
     );
   let channel;
@@ -73,9 +121,18 @@ const hookChannel = (failureEvents) => {
     set: (value) => {
       channel = value;
       for (const event of failureEvents) channel.on(event, record(event));
+      channel.on("storyMissing", () => (window.__playCheck.done = true));
+      // Emitted after experimental_afterEach; a11y reports are left to the Vitest audit.
+      channel.on("storyFinished", ({ reporters = [] }) => {
+        for (const report of reporters)
+          if (report.type !== "a11y" && report.status === "failed")
+            fail(`storyFinished: ${report.type} report failed`);
+        window.__playCheck.done = true;
+      });
       channel.on("storyRenderPhaseChanged", ({ newPhase }) => {
-        if (["completed", "errored", "aborted"].includes(newPhase))
-          window.__playCheck.done = true;
+        if (newPhase !== "aborted") return;
+        fail("storyRenderPhaseChanged: render aborted");
+        window.__playCheck.done = true;
       });
     },
   });
@@ -105,26 +162,25 @@ const checkStory = async (context, base, id, theme) => {
 
 const main = async () => {
   const started = Date.now();
-  const index = JSON.parse(readFileSync(path.join(ROOT, "index.json"), "utf8"));
+  const root = storybookDir(process.argv[2] ?? "storybook-static");
+  const index = JSON.parse(readFileSync(path.join(root, "index.json"), "utf8"));
   const stories = Object.values(index.entries).filter(
     (entry) => entry.type === "story",
   );
-  const exclusion = (story) =>
-    Object.keys(EXCLUDED).find((prefix) => story.id.startsWith(prefix));
-  const checked = stories.filter((story) => !exclusion(story));
+  const workers = Math.min(MAX_WORKERS, availableParallelism());
 
-  const server = await serve();
+  const server = await serve(root);
   const base = `http://127.0.0.1:${server.address().port}`;
   const browser = await chromium.launch();
   const context = await browser.newContext();
   await context.addInitScript(hookChannel, FAILURE_EVENTS);
 
-  const queue = checked.flatMap((story) =>
+  const queue = stories.flatMap((story) =>
     THEMES.map((theme) => ({ id: story.id, theme })),
   );
   const failed = [];
   await Promise.all(
-    Array.from({ length: WORKERS }, async () => {
+    Array.from({ length: workers }, async () => {
       for (let job = queue.shift(); job; job = queue.shift()) {
         const failures = await checkStory(context, base, job.id, job.theme);
         if (failures.length > 0) failed.push({ ...job, failures });
@@ -134,10 +190,6 @@ const main = async () => {
   await browser.close();
   server.close();
 
-  for (const [prefix, reason] of Object.entries(EXCLUDED)) {
-    const count = stories.filter((story) => exclusion(story) === prefix).length;
-    console.info(`excluded ${prefix}* (${count} stories): ${reason}`);
-  }
   failed.sort((a, b) =>
     `${a.id} ${a.theme}`.localeCompare(`${b.id} ${b.theme}`),
   );
@@ -146,12 +198,11 @@ const main = async () => {
     for (const failure of failures) console.info(`  ${failure.split("\n")[0]}`);
   }
   const seconds = ((Date.now() - started) / 1000).toFixed(1);
-  const excludedCount = stories.length - checked.length;
   console.info(
-    `${checked.length} stories x ${THEMES.length} themes: ` +
-      `${failed.length} failing, ${excludedCount} excluded, ${seconds}s`,
+    `${stories.length} stories x ${THEMES.length} themes: ` +
+      `${failed.length} failing, ${workers} workers, ${seconds}s`,
   );
   process.exitCode = failed.length > 0 ? 1 : 0;
 };
 
-await main();
+if (import.meta.url === pathToFileURL(process.argv[1]).href) await main();
