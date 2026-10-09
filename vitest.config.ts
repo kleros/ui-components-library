@@ -41,6 +41,15 @@ export default defineConfig({
       },
       {
         extends: "./vite.config.ts",
+        // Same reason as above: deps first imported by these tests (the file
+        // viewer's) otherwise trigger a mid-run re-optimize and a second React.
+        optimizeDeps: {
+          include: [
+            "@testing-library/react",
+            "@cyntler/react-doc-viewer",
+            "react-markdown",
+          ],
+        },
         test: {
           name: "storybook-native",
           // Real Playwright input; the trusted-event filter in
