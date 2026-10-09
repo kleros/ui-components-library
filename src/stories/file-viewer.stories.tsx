@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { IPreviewArgs, disableA11yRules } from "./utils";
 
 import FileViewerComponent from "../lib/file-viewer";
+import MarkdownDocRenderer from "../lib/file-viewer/markdown-viewer";
 
 /** Side effects recorded during a story, and controlled fetch responses. */
 const observed = {
@@ -757,3 +758,125 @@ export const RequestObserverRejectsRemote: Story = {
     await expect(isLocalRequest("http://localhost.evil.example/")).toBe(false);
   },
 };
+
+const UNICODE_URL = "./fixtures/unicode.txt";
+
+/** Reads the fixture with the browser's own UTF-8 decoder, as the reference. */
+const loadUnicodeSource = async () => ({
+  source: await (await fetch(UNICODE_URL)).text(),
+});
+
+const sourceParagraphs = (source: string) => source.trim().split(/\n\n+/);
+
+const expectMarkdownText = async (
+  canvasElement: HTMLElement,
+  expected: string[],
+) => {
+  const renderer = await waitFor(() => {
+    const el = canvasElement.querySelector("#md-renderer");
+    expect(el).not.toBeNull();
+    return el as HTMLElement;
+  }, LOAD);
+  const paragraphs = Array.from(renderer.querySelectorAll("p")).map(
+    (p) => p.textContent,
+  );
+  await expect(paragraphs).toEqual(expected);
+  // react-markdown separates block elements with "\n" text nodes
+  await expect(renderer.textContent).toBe(expected.join("\n"));
+};
+
+/** Accented, non-Latin and emoji text fetched by the viewer renders unchanged. */
+export const MarkdownUnicodeFixture: Story = {
+  loaders: [loadUnicodeSource],
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: UNICODE_URL,
+  },
+  play: async ({ canvasElement, loaded }) => {
+    await expectMarkdownText(canvasElement, sourceParagraphs(loaded.source));
+    await expectOnlyLocalRequests();
+  },
+};
+
+const utf8Base64 = (text: string) =>
+  btoa(String.fromCharCode(...new TextEncoder().encode(text)));
+
+/** Renders the markdown renderer directly with `fileData`, the only way to
+ * reach its ArrayBuffer, percent-encoded and plain-string branches. */
+const markdownDataStory = (
+  toFileData: (source: string) => string | ArrayBuffer,
+  expected: (source: string) => string[],
+): Story => ({
+  loaders: [loadUnicodeSource],
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: "",
+  },
+  render: (_args, { loaded }) => {
+    const document = { uri: "", fileData: toFileData(loaded.source) };
+    return (
+      <MarkdownDocRenderer
+        mainState={{
+          currentFileNo: 0,
+          documents: [document],
+          currentDocument: document,
+          language: "en",
+        }}
+      />
+    );
+  },
+  play: async ({ canvasElement, loaded }) => {
+    await expectMarkdownText(canvasElement, expected(loaded.source));
+  },
+});
+
+export const MarkdownBase64DataUrl = markdownDataStory(
+  (source) => `data:text/markdown;base64,${utf8Base64(source)}`,
+  sourceParagraphs,
+);
+
+// The `;base64` marker is matched case-insensitively.
+export const MarkdownBase64UppercaseMarker = markdownDataStory(
+  (source) => `data:text/markdown;BASE64,${utf8Base64(source)}`,
+  sourceParagraphs,
+);
+
+export const MarkdownPercentEncodedDataUrl = markdownDataStory(
+  (source) => `data:text/markdown;charset=utf-8,${encodeURIComponent(source)}`,
+  sourceParagraphs,
+);
+
+// Without `;base64` the payload is percent-decoded even when it is valid base64.
+export const MarkdownPercentPayloadNotBase64 = markdownDataStory(
+  () => "data:text/plain,test",
+  () => ["test"],
+);
+
+export const MarkdownArrayBuffer = markdownDataStory(
+  (source) => new TextEncoder().encode(source).buffer as ArrayBuffer,
+  sourceParagraphs,
+);
+
+export const MarkdownPlainString = markdownDataStory(
+  (source) => source,
+  sourceParagraphs,
+);
+
+export const MarkdownEmptyBase64DataUrl = markdownDataStory(
+  () => "data:text/markdown;base64,",
+  () => [],
+);
+
+export const MarkdownEmptyPercentDataUrl = markdownDataStory(
+  () => "data:text/markdown,",
+  () => [],
+);
+
+export const MarkdownEmptyArrayBuffer = markdownDataStory(
+  () => new ArrayBuffer(0),
+  () => [],
+);
