@@ -723,6 +723,46 @@ export const LowerBoundTyping: Story = {
   },
 };
 
+/** An empty field steps from zero: ArrowDown gives -step, ArrowUp gives +step. */
+export const SteppingFromEmpty: Story = {
+  args: { ...Default.args, label: "Amount", step: "2" },
+  play: async ({ canvasElement, args }) => {
+    const input = within(canvasElement).getByRole("spinbutton");
+    await userEvent.click(input);
+    await expect(input).toHaveValue("");
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(input).toHaveValue("-2");
+    await expect(lastChange(args.onChange)).toBe("-2");
+    await userEvent.clear(input);
+    await userEvent.keyboard("{ArrowUp}");
+    await expect(input).toHaveValue("2");
+    await expect(lastChange(args.onChange)).toBe("2");
+  },
+};
+
+/** Typing into the idle-formatted, still focused field clamps to the bounds. */
+export const TypingAfterIdleFormatting: Story = {
+  args: {
+    ...Default.args,
+    label: "Amount",
+    minValue: "-10",
+    maxValue: "10",
+    formatOptions: { prefix: "$" },
+  },
+  play: async ({ canvasElement, args }) => {
+    const input = within(canvasElement).getByRole("spinbutton");
+    await userEvent.type(input, "5");
+    await expect(input).toHaveValue("5");
+    // the focused field is formatted in place after 3s without input
+    await waitFor(() => expect(input).toHaveValue("$5"), { timeout: 5000 });
+    await expect(input).toHaveFocus();
+    await userEvent.keyboard("9");
+    await expect(input).toHaveValue("10");
+    await expect(input).toHaveAttribute("aria-valuenow", "10");
+    await expect(lastChange(args.onChange)).toBe("10");
+  },
+};
+
 const BoundsHarness = (props: React.ComponentProps<typeof BigNumberField>) => {
   const [bounds, setBounds] = React.useState({ min: "0", max: "10" });
   return (
