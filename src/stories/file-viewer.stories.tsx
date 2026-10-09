@@ -169,6 +169,26 @@ export const DataUrlSvgAllowed: Story = {
   },
 };
 
+// Outcome: allowlist entries are matched case-insensitively.
+export const DataUrlSvgAllowedMixedCase: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url: SVG_DATA_URL,
+    allowedDataMimes: ["Image/SVG+XML"],
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() =>
+      expect(canvasElement.querySelector("#image-img")).toBeInTheDocument(),
+    );
+    await expect(
+      canvas.queryByText("Unable to display this file."),
+    ).not.toBeInTheDocument();
+  },
+};
+
 export const DataUrlXhtmlBlocked: Story = {
   args: {
     themeUI: "light",
@@ -202,6 +222,103 @@ export const DataUrlPercentEncodedMimeBlocked: Story = {
   },
   play: expectBlocked,
 };
+
+const blockedDataUrlStory = (url: string): Story => ({
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[800px]",
+    url,
+  },
+  play: expectBlocked,
+});
+
+// One case per UNSAFE_DATA_MIMES entry. Removing a guard makes that story's
+// `expectBlocked` assertion fail because the viewer renders instead.
+export const DataUrlTextXmlBlocked = blockedDataUrlStory(
+  "data:text/xml,<?xml-stylesheet type='text/xsl' href='data:text/xsl,evil'?><root/>",
+);
+
+// Outcome: mixed-case MIMEs are lowercased before matching, so they are blocked.
+export const DataUrlHtmlMixedCaseBlocked = blockedDataUrlStory(
+  "data:TeXt/HtMl,<script>alert('xss')</script>",
+);
+
+export const DataUrlXhtmlMixedCaseBlocked = blockedDataUrlStory(
+  "data:Application/XHTML+XML,<html xmlns='http://www.w3.org/1999/xhtml'><script>alert(1)</script></html>",
+);
+
+export const DataUrlXmlMixedCaseBlocked = blockedDataUrlStory(
+  "data:APPLICATION/XML,<root/>",
+);
+
+export const DataUrlTextXmlMixedCaseBlocked = blockedDataUrlStory(
+  "data:TEXT/XML,<root/>",
+);
+
+export const DataUrlSvgMixedCaseBlocked = blockedDataUrlStory(
+  "data:IMAGE/SVG+XML,<svg onload=alert(1) xmlns='http://www.w3.org/2000/svg'/>",
+);
+
+// Outcome: percent-encoded MIMEs are decoded before matching, so they are blocked.
+export const DataUrlXhtmlPercentEncodedBlocked = blockedDataUrlStory(
+  "data:application%2Fxhtml%2Bxml,<html/>",
+);
+
+export const DataUrlXmlPercentEncodedBlocked = blockedDataUrlStory(
+  "data:application%2Fxml,<root/>",
+);
+
+export const DataUrlTextXmlPercentEncodedBlocked = blockedDataUrlStory(
+  "data:text%2Fxml,<root/>",
+);
+
+export const DataUrlSvgPercentEncodedBlocked = blockedDataUrlStory(
+  "data:image%2Fsvg%2Bxml,<svg onload=alert(1) xmlns='http://www.w3.org/2000/svg'/>",
+);
+
+// Outcome: MIME parameters (`;charset=...`) are stripped before matching, so they are blocked.
+export const DataUrlHtmlParamsBlocked = blockedDataUrlStory(
+  "data:text/html;charset=utf-8,<script>alert('xss')</script>",
+);
+
+export const DataUrlXhtmlParamsBlocked = blockedDataUrlStory(
+  "data:application/xhtml+xml;charset=utf-8,<html/>",
+);
+
+export const DataUrlXmlParamsBlocked = blockedDataUrlStory(
+  "data:application/xml;charset=utf-8,<root/>",
+);
+
+export const DataUrlTextXmlParamsBlocked = blockedDataUrlStory(
+  "data:text/xml;charset=utf-8,<root/>",
+);
+
+export const DataUrlSvgParamsBlocked = blockedDataUrlStory(
+  "data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSkgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJy8+",
+);
+
+// Outcome: leading whitespace in the MIME is trimmed before matching (Fetch
+// strips it too), so these are blocked.
+export const DataUrlHtmlLeadingSpaceBlocked = blockedDataUrlStory(
+  "data: text/html,<script>alert('xss')</script>",
+);
+
+export const DataUrlXhtmlLeadingSpaceBlocked = blockedDataUrlStory(
+  "data: application/xhtml+xml,<html/>",
+);
+
+export const DataUrlXmlLeadingSpaceBlocked = blockedDataUrlStory(
+  "data: application/xml,<root/>",
+);
+
+export const DataUrlTextXmlLeadingSpaceBlocked = blockedDataUrlStory(
+  "data: text/xml,<root/>",
+);
+
+export const DataUrlSvgLeadingSpaceBlocked = blockedDataUrlStory(
+  "data: image/svg+xml,<svg onload=alert(1) xmlns='http://www.w3.org/2000/svg'/>",
+);
 
 /** Relative URLs resolve against the page origin and are allowed. The file is
  * a local fixture (served through Storybook `staticDirs`), so the rendered
