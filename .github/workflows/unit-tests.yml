@@ -24,5 +24,17 @@ jobs:
         run: yarn install --immutable
         env:
           YARN_ENABLE_SCRIPTS: false
-      - name: Run unit tests
-        run: yarn test:unit
+      - name: Run unit tests with coverage
+        run: yarn test:unit:coverage
+      # Fails below the break threshold in stryker.config.json.
+      - name: Run mutation tests
+        run: yarn test:mutation
+      - name: Upload coverage and mutation reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-and-mutation-reports
+          path: |
+            coverage/
+            reports/mutation/
+          if-no-files-found: warn
