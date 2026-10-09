@@ -314,6 +314,7 @@ export const DataUrlSvgAllowedMixedCase: Story = {
     await expect(
       canvas.queryByText("Unable to display this file."),
     ).not.toBeInTheDocument();
+    await expectOnlyLocalRequests();
   },
 };
 
@@ -855,6 +856,69 @@ export const ObserverClearsResourceTimings: Story = {
     const timedAfterStart = timed();
     stop();
     await expect(timedAfterStart).toBe(false);
+  },
+};
+
+/** A load no hook sees (a CSS background) fails the check through resource
+ * timing. Chromium records the blocked request without sending it. */
+export const ResourceTimingObserverRejectsRemote: Story = {
+  args: observerProbeArgs,
+  play: async ({ canvasElement }) => {
+    const url = `${UNREACHABLE}/timing-probe.png`;
+    const probe = document.createElement("div");
+    probe.style.backgroundImage = `url("${url}")`;
+    probe.style.height = "1px";
+    canvasElement.append(probe);
+    await waitFor(() =>
+      expect(
+        performance.getEntriesByType("resource").map((e) => e.name),
+      ).toContain(url),
+    );
+    const error = await expectOnlyLocalRequests().catch((e: Error) => e);
+    probe.remove();
+    performance.clearResourceTimings();
+    await expect(error).toEqual(new Error(`Non-local requests: ${url}`));
+  },
+};
+
+/** `src` set on a detached image is recorded when it is set. A lazy image
+ * outside the document never loads, so nothing is requested. */
+export const ImageSrcObserverRejectsRemote: Story = {
+  args: observerProbeArgs,
+  play: async () => {
+    const url = `${UNREACHABLE}/image-probe.png`;
+    const image = document.createElement("img");
+    image.loading = "lazy";
+    image.src = url;
+    const error = await expectOnlyLocalRequests().catch((e: Error) => e);
+    observed.requests = [];
+    await expect(error).toEqual(new Error(`Non-local requests: ${url}`));
+  },
+};
+
+/** The meta `afterEach` fails a story that changed the page URL. */
+export const AfterEachRejectsNavigation: Story = {
+  args: observerProbeArgs,
+  play: async () => {
+    const start = location.href;
+    history.replaceState(history.state, "", "#navigated");
+    const error = await meta.experimental_afterEach().catch((e: Error) => e);
+    history.replaceState(history.state, "", start);
+    await expect(error).toEqual(
+      new Error(`Story navigated away to ${new URL("#navigated", start)}`),
+    );
+  },
+};
+
+/** The meta `afterEach` fails a story that made a non-local request. */
+export const AfterEachRejectsRemoteRequests: Story = {
+  args: observerProbeArgs,
+  play: async () => {
+    const url = `${UNREACHABLE}/after-each-probe`;
+    new XMLHttpRequest().open("GET", url);
+    const error = await meta.experimental_afterEach().catch((e: Error) => e);
+    observed.requests = [];
+    await expect(error).toEqual(new Error(`Non-local requests: ${url}`));
   },
 };
 
