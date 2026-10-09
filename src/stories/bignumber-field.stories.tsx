@@ -801,6 +801,7 @@ export const TypingAfterIdleFormatting: Story = {
 
 /** Typing into the idle-formatted negative value clamps to the min bound. */
 export const TypingAfterIdleFormattingBelowMin: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...TypingAfterIdleFormatting.args,
   },
