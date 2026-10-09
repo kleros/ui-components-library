@@ -35,11 +35,17 @@ jobs:
           node-version: 20
           cache: yarn
 
+      # No dependency build script is needed: esbuild ships its binary in a
+      # platform package, and jsdom treats canvas as optional.
       - name: Install dependencies
         run: yarn install --immutable
+        env:
+          YARN_ENABLE_SCRIPTS: false
 
       - name: Install Playwright Chromium
         run: yarn playwright install --with-deps chromium
+        env:
+          YARN_ENABLE_SCRIPTS: false
 
       - name: Run story tests
         run: yarn test:stories

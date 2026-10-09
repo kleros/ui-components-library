@@ -43,8 +43,12 @@ jobs:
         with:
           node-version: 20
           cache: yarn
+      # No dependency build script is needed: esbuild ships its binary in a
+      # platform package.
       - name: Install modules
         run: yarn install --immutable
+        env:
+          YARN_ENABLE_SCRIPTS: false
       - name: Publish to Chromatic
         uses: chromaui/action@db3ceb5efb0cd7447d63c2d8cce7da732ce89322 # v18.10.1
         with:

@@ -18,7 +18,11 @@ jobs:
         with:
           node-version: 20
           cache: yarn
+      # No dependency build script is needed: esbuild ships its binary in a
+      # platform package, and jsdom treats canvas as optional.
       - name: Install modules
         run: yarn install --immutable
+        env:
+          YARN_ENABLE_SCRIPTS: false
       - name: Run unit tests
         run: yarn test:unit
