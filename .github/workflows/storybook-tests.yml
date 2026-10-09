@@ -59,3 +59,6 @@ jobs:
 
       - name: Run story plays outside Vitest
         run: yarn test:storybook-plays
+
+      - name: Self-test the story plays checker
+        run: yarn test:storybook-plays:self-test

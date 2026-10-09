@@ -16,6 +16,8 @@
   "include": [
     ".storybook/**/*.ts",
     ".storybook/**/*.tsx",
+    "scripts/storybook-plays-fixtures/**/*.ts",
+    "scripts/storybook-plays-fixtures/**/*.tsx",
     "vitest.config.ts",
     "vitest.unit.config.ts"
   ]

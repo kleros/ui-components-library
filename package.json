@@ -34,6 +34,7 @@
     "start": "storybook dev -p 6006",
     "test:stories": "vitest run --project=storybook",
     "test:storybook-plays": "node scripts/check-storybook-plays.mjs",
+    "test:storybook-plays:self-test": "node --test scripts/check-storybook-plays.test.mjs",
     "test:native": "vitest run --project=storybook-native",
     "test:unit": "vitest run --project=unit",
     "test:unit:coverage": "vitest run --project=unit --coverage",

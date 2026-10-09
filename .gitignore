@@ -37,3 +37,6 @@ __screenshots__/
 
 # storybook build output (also used by Chromatic)
 storybook-static
+
+# plays checker self-test fixture build
+storybook-plays-fixtures-static
