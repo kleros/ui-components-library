@@ -19,12 +19,6 @@ import {
 const meta = {
   component: SelectComponent,
   title: "Dropdown/Select",
-  parameters: a11yExceptions(
-    SECONDARY_TEXT_LIGHT,
-    ERROR_TEXT_LIGHT,
-    SELECT_VALUE_LIGHT,
-    WHITE_ON_BLUE_LIGHT,
-  ),
   tags: ["autodocs"],
   args: {
     callback: fn(),
@@ -66,6 +60,7 @@ const waitForClose = () =>
   waitFor(() => expect(body.queryByRole("listbox")).not.toBeInTheDocument());
 
 export const Select: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -154,6 +149,7 @@ export const DefaultValueSelect: Story = {
 
 /** Select with a simple button. */
 export const SimpleSelect: Story = {
+  parameters: a11yExceptions(SELECT_VALUE_LIGHT),
   args: {
     ...Select.args,
     defaultSelectedKey: 1,
@@ -180,6 +176,7 @@ export const SimpleSelect: Story = {
 
 /** The simple button can be scaled down by setting `smallButton` flag to true. */
 export const SmallSimpleSelect: Story = {
+  parameters: a11yExceptions(SELECT_VALUE_LIGHT),
   args: {
     ...Select.args,
     defaultSelectedKey: 1,
@@ -222,6 +219,11 @@ export const DisabledKeysSelect: Story = {
 
 /** When used with Form, Select can be marked as `required` to prevent form submission. */
 export const RequiredSelect: Story = {
+  parameters: a11yExceptions(
+    SECONDARY_TEXT_LIGHT,
+    ERROR_TEXT_LIGHT,
+    WHITE_ON_BLUE_LIGHT,
+  ),
   args: {
     ...Select.args,
     isRequired: true,

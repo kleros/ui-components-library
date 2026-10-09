@@ -6,7 +6,7 @@ import { IPreviewArgs } from "./utils";
 
 import FileUploaderComponent from "../lib/form/file-uploader";
 import Button from "../lib/button";
-import { a11yExceptions } from "./a11y";
+import { a11yExceptions, type A11yException } from "./a11y";
 import {
   PRIMARY_BLUE_TEXT_LIGHT,
   SECONDARY_TEXT_LIGHT,
@@ -16,11 +16,6 @@ import {
 const meta = {
   component: FileUploaderComponent,
   title: "Form/File Uploader",
-  parameters: a11yExceptions(
-    PRIMARY_BLUE_TEXT_LIGHT,
-    SECONDARY_TEXT_LIGHT,
-    WARNING_TEXT_LIGHT,
-  ),
   tags: ["autodocs"],
   args: {
     callback: fn(),
@@ -40,13 +35,13 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
-const ICON_ONLY_UPLOAD_BUTTON = a11yExceptions({
+const ICON_ONLY_UPLOAD_BUTTON = {
   rule: "button-name",
   selector: "button.bg-transparent",
   reason:
     "Library defect: with no file selected the upload button only holds an icon and has no accessible name.",
   source: "src/lib/form/file-uploader.tsx:107",
-});
+} satisfies A11yException;
 
 const png = () => new File(["png"], "picture.png", { type: "image/png" });
 const txt = () => new File(["hello"], "notes.txt", { type: "text/plain" });
@@ -104,6 +99,7 @@ const dragFile = async (zone: HTMLElement, file: File, drop: boolean) => {
 const dropFile = (zone: HTMLElement, file: File) => dragFile(zone, file, true);
 
 export const FileUploader: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -135,7 +131,7 @@ export const FileUploader: Story = {
 };
 
 export const FileUploaderWithMessage: Story = {
-  parameters: ICON_ONLY_UPLOAD_BUTTON,
+  parameters: a11yExceptions(ICON_ONLY_UPLOAD_BUTTON, SECONDARY_TEXT_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -157,7 +153,7 @@ export const FileUploaderWithMessage: Story = {
   },
 };
 export const FileUploaderVariant: Story = {
-  parameters: ICON_ONLY_UPLOAD_BUTTON,
+  parameters: a11yExceptions(ICON_ONLY_UPLOAD_BUTTON, WARNING_TEXT_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -175,6 +171,7 @@ export const FileUploaderVariant: Story = {
 };
 
 export const FileUploaderWithAcceptedTypes: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT, SECONDARY_TEXT_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -207,7 +204,7 @@ export const FileUploaderWithAcceptedTypes: Story = {
 };
 
 export const FileUploaderWithCustomValidation: Story = {
-  parameters: ICON_ONLY_UPLOAD_BUTTON,
+  parameters: a11yExceptions(ICON_ONLY_UPLOAD_BUTTON, SECONDARY_TEXT_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -231,6 +228,7 @@ export const FileUploaderWithCustomValidation: Story = {
 };
 
 export const FileUploaderWithControlledBehaviour: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT, SECONDARY_TEXT_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -258,6 +256,7 @@ export const FileUploaderWithControlledBehaviour: Story = {
 };
 
 export const FileUploaderWithParentDrivenSelection: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -304,7 +303,7 @@ export const FileUploaderWithParentDrivenSelection: Story = {
 };
 
 export const DisabledFileUploader: Story = {
-  parameters: ICON_ONLY_UPLOAD_BUTTON,
+  parameters: a11yExceptions(ICON_ONLY_UPLOAD_BUTTON),
   args: {
     themeUI: "dark",
     backgroundUI: "light",

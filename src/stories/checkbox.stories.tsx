@@ -12,7 +12,6 @@ import { PRIMARY_BLUE_TEXT_LIGHT } from "./a11y-defects";
 const meta = {
   component: CheckboxComponent,
   title: "Input/Checkbox",
-  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   tags: ["autodocs"],
   args: {
     onChange: fn(),
@@ -118,6 +117,7 @@ export const Invalid: Story = {
 
 /** Controlled checkbox: the selection lives in the parent's state. */
 export const Controlled: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     ...Box.args,
     label: "Controlled",

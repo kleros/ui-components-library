@@ -22,12 +22,6 @@ const FIXED_DATE = parseZonedDateTime("2025-01-15T10:30[UTC]");
 const meta = {
   component: DatepickerComponent,
   title: "Form/Datepicker",
-  parameters: a11yExceptions(
-    SECONDARY_TEXT_LIGHT,
-    PRIMARY_BLUE_TEXT_LIGHT,
-    WHITE_ON_BLUE_LIGHT,
-    FOCUSED_DATE_SEGMENT_LIGHT,
-  ),
   tags: ["autodocs"],
   args: {
     onChange: fn(),
@@ -76,6 +70,11 @@ const navButton = (dialog: HTMLElement, slot: "previous" | "next") =>
   dialog.querySelector(`button[slot="${slot}"]`) as HTMLButtonElement;
 
 export const Datepicker: Story = {
+  parameters: a11yExceptions(
+    SECONDARY_TEXT_LIGHT,
+    PRIMARY_BLUE_TEXT_LIGHT,
+    WHITE_ON_BLUE_LIGHT,
+  ),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -250,6 +249,11 @@ export const WithDefaultValueAndTime: Story = {
 
 /** The calendar popover left open, so its content is covered by the a11y check. */
 export const OpenCalendar: Story = {
+  parameters: a11yExceptions(
+    SECONDARY_TEXT_LIGHT,
+    PRIMARY_BLUE_TEXT_LIGHT,
+    WHITE_ON_BLUE_LIGHT,
+  ),
   args: {
     ...WithDefaultValue.args,
     defaultOpen: true,
@@ -285,6 +289,9 @@ export const OpenCalendarWithTime: Story = {
       source:
         "src/lib/form/datepicker/calendar.tsx:21, src/lib/form/datepicker/time-control.tsx:16",
     },
+    SECONDARY_TEXT_LIGHT,
+    PRIMARY_BLUE_TEXT_LIGHT,
+    WHITE_ON_BLUE_LIGHT,
   ),
   args: {
     ...WithDefaultValue.args,
@@ -321,6 +328,7 @@ export const Disabled: Story = {
 };
 
 export const Invalid: Story = {
+  parameters: a11yExceptions(FOCUSED_DATE_SEGMENT_LIGHT),
   args: {
     ...WithDefaultValue.args,
     validate: (value) =>

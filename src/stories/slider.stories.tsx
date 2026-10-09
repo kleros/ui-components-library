@@ -10,7 +10,6 @@ import { SLIDER_LABEL_LIGHT } from "./a11y-defects";
 const meta = {
   component: SliderComponent,
   title: "Form/Slider",
-  parameters: a11yExceptions(SLIDER_LABEL_LIGHT),
   tags: ["autodocs"],
   args: {
     callback: fn(),
@@ -79,6 +78,7 @@ export const Slider: Story = {
 
 /** We can pass a formatter function to format the value thats displayed on the Slider thumb. */
 export const FormattedValueSlider: Story = {
+  parameters: a11yExceptions(SLIDER_LABEL_LIGHT),
   args: {
     ...Slider.args,
     formatter: (val) => `${val} days`,

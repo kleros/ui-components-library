@@ -18,11 +18,6 @@ import {
 const meta = {
   component: TextFieldComponent,
   title: "Form/TextField",
-  parameters: a11yExceptions(
-    SECONDARY_TEXT_LIGHT,
-    ERROR_TEXT_LIGHT,
-    WHITE_ON_BLUE_LIGHT,
-  ),
   tags: ["autodocs"],
   args: {
     onChange: fn(),
@@ -104,6 +99,7 @@ export const CustomIcon: Story = {
 };
 
 export const Labelled: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Name",
@@ -117,6 +113,7 @@ export const Labelled: Story = {
 };
 
 export const WithDescription: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Name",
@@ -130,6 +127,7 @@ export const WithDescription: Story = {
 
 /** Make a field required. Optionally you can choose to show the validation error and customize their style. */
 export const Required: Story = {
+  parameters: a11yExceptions(ERROR_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
   args: {
     ...Default.args,
     "aria-label": "Username",
@@ -225,6 +223,7 @@ export const Disabled: Story = {
 };
 
 export const ReadOnly: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Name",
@@ -244,6 +243,7 @@ export const ReadOnly: Story = {
 
 /** Controlled usage with `value` + `onChange`. */
 export const Controlled: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Name",
@@ -276,6 +276,7 @@ export const Controlled: Story = {
 };
 
 export const ErrorMessage: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, ERROR_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Name",

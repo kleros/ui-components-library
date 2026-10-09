@@ -12,7 +12,6 @@ const meta = {
   title: "Progress/Linear",
   tags: ["autodocs"],
   parameters: {
-    ...a11yExceptions(ERROR_TEXT_LIGHT),
     // Chromatic pauses CSS animations at their first frame by default, which
     // for the `progressFill` entry animation is an empty bar. Capture the end
     // state instead.
@@ -96,6 +95,7 @@ export const NonAnimated: Story = {
 
 /** Optional timer text can be provided, in case of time related progress */
 export const WithTimerLabel: Story = {
+  parameters: a11yExceptions(ERROR_TEXT_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",

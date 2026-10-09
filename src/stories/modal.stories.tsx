@@ -11,7 +11,6 @@ import { WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 const meta = {
   component: ModalComponent,
   title: "Containers/Modal",
-  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   tags: ["autodocs"],
   args: {
     onOpenChange: fn(),
@@ -36,6 +35,7 @@ const waitForClose = () =>
   waitFor(() => expect(body.queryByRole("dialog")).not.toBeInTheDocument());
 
 export const Modal: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -126,6 +126,7 @@ export const NonDismissable: Story = {
 
 /** Tab and Shift+Tab wrap inside the dialog instead of reaching the page behind it. */
 export const FocusContainment: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   args: {
     ...Modal.args,
     isOpen: true,

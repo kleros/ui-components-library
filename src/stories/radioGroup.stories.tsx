@@ -17,11 +17,7 @@ import {
 const meta = {
   component: RadioGroup,
   title: "Input/RadioGroup",
-  parameters: a11yExceptions(
-    SECONDARY_TEXT_LIGHT,
-    ERROR_TEXT_LIGHT,
-    WHITE_ON_BLUE_LIGHT,
-  ),
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   tags: ["autodocs"],
   args: {
     onChange: fn(),
@@ -146,6 +142,7 @@ export const DisabledOptions: Story = {
 };
 
 export const RequiredOptions: Story = {
+  parameters: a11yExceptions(ERROR_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -230,6 +227,7 @@ export const Controlled: Story = {
 
 /** Externally invalid group, e.g. after server-side validation. */
 export const Invalid: Story = {
+  parameters: a11yExceptions(ERROR_TEXT_LIGHT),
   args: {
     ...Vertical.args,
     isInvalid: true,

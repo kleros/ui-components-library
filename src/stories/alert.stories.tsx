@@ -15,12 +15,6 @@ import {
 const meta = {
   component: AlertComponent,
   title: "Message/Alert",
-  parameters: a11yExceptions(
-    PRIMARY_BLUE_TEXT_LIGHT,
-    SUCCESS_TEXT_LIGHT,
-    WARNING_TEXT_LIGHT,
-    ERROR_TEXT_LIGHT,
-  ),
   tags: ["autodocs"],
   argTypes: {
     variant: {
@@ -52,6 +46,7 @@ const variantPlay =
   };
 
 export const Alert: Story = {
+  parameters: a11yExceptions(WARNING_TEXT_LIGHT),
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -64,6 +59,7 @@ export const Alert: Story = {
 };
 
 export const SuccessAlert: Story = {
+  parameters: a11yExceptions(SUCCESS_TEXT_LIGHT),
   args: {
     ...Alert.args,
     variant: "success",
@@ -74,6 +70,7 @@ export const SuccessAlert: Story = {
 };
 
 export const ErrorAlert: Story = {
+  parameters: a11yExceptions(ERROR_TEXT_LIGHT),
   args: {
     ...Alert.args,
     variant: "error",
@@ -84,6 +81,7 @@ export const ErrorAlert: Story = {
 };
 
 export const InfoAlert: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     ...Alert.args,
     variant: "info",

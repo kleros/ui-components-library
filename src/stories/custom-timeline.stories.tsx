@@ -20,14 +20,7 @@ const meta = {
   component: TimelineComponent,
   title: "Progress/CustomTimeline",
   tags: ["autodocs"],
-  parameters: a11yExceptions(
-    SECONDARY_TEXT_LIGHT,
-    PRIMARY_BLUE_TEXT_LIGHT,
-    SUCCESS_TEXT_LIGHT,
-    ERROR_TEXT_LIGHT,
-    DISABLED_TIMELINE_ITEM,
-    PARTY_VARIANT_COLOUR_DARK,
-  ),
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
 } satisfies Meta<typeof TimelineComponent>;
 
 export default meta;
@@ -40,6 +33,7 @@ const getItems = (canvasElement: HTMLElement) => {
 };
 
 export const Timeline: Story = {
+  parameters: a11yExceptions(PARTY_VARIANT_COLOUR_DARK),
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -83,6 +77,7 @@ export const Timeline: Story = {
 
 /** Step states can be changed to reflect their current status. */
 export const TimelineStates: Story = {
+  parameters: a11yExceptions(DISABLED_TIMELINE_ITEM, PARTY_VARIANT_COLOUR_DARK),
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -123,6 +118,10 @@ export const TimelineStates: Story = {
 
 /** Custom Element can be provided for `party` for interactivity. */
 export const TimelineCustomParty: Story = {
+  parameters: a11yExceptions(
+    PRIMARY_BLUE_TEXT_LIGHT,
+    PARTY_VARIANT_COLOUR_DARK,
+  ),
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -171,6 +170,10 @@ export const TimelineCustomParty: Story = {
  * All steps are right aligned by default.
  */
 export const TimelineAlignment: Story = {
+  parameters: a11yExceptions(
+    PRIMARY_BLUE_TEXT_LIGHT,
+    PARTY_VARIANT_COLOUR_DARK,
+  ),
   args: {
     themeUI: "light",
     backgroundUI: "light",
@@ -215,6 +218,7 @@ export const TimelineAlignment: Story = {
 
 /** An item can be marked as the current step. */
 export const ActiveItem: Story = {
+  parameters: a11yExceptions(SUCCESS_TEXT_LIGHT, ERROR_TEXT_LIGHT),
   args: {
     themeUI: "light",
     backgroundUI: "light",

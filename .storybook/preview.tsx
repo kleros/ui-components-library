@@ -4,7 +4,11 @@ import clsx from "clsx";
 import type { Preview } from "@storybook/react";
 
 import { allModes } from "./modes";
-import { auditA11y } from "../src/stories/a11y";
+import {
+  auditA11y,
+  expectNoStaleA11yExceptions,
+  resetA11yAudit,
+} from "../src/stories/a11y";
 
 import "../src/styles/global.css";
 
@@ -48,8 +52,14 @@ const preview: Preview = {
       );
     },
   ],
+  beforeEach: () => {
+    resetA11yAudit();
+  },
   // Audits the state each story ends in; plays add their own checkpoints.
-  experimental_afterEach: (context) => auditA11y(context, "end"),
+  experimental_afterEach: async (context) => {
+    await auditA11y(context, "end");
+    await expectNoStaleA11yExceptions(context);
+  },
   globalTypes: {
     theme: {
       description: "Theme (overrides the themeUI arg)",

@@ -11,7 +11,6 @@ import { PRIMARY_BLUE_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 const meta = {
   component: Button,
   title: "Button",
-  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
   tags: ["autodocs"],
   args: {
     onPress: fn(),
@@ -34,6 +33,7 @@ export default meta;
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
 export const PrimaryButton: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   args: {
     variant: "primary",
     text: "Primary",
@@ -64,6 +64,7 @@ export const PrimaryButton: Story = {
 };
 
 export const SecondaryButton: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     variant: "secondary",
     text: "Secondary",
@@ -107,6 +108,7 @@ export const TertiaryButton: Story = {
 };
 
 export const IconButton: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   args: {
     variant: "primary",
     text: "Telegram",

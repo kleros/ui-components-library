@@ -10,7 +10,6 @@ import { PRIMARY_BLUE_TEXT_LIGHT, SECONDARY_TEXT_LIGHT } from "./a11y-defects";
 const meta = {
   component: BreadcrumbComponent,
   title: "Pagination/Breadcrumb",
-  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT, SECONDARY_TEXT_LIGHT),
   tags: ["autodocs"],
   args: {
     callback: fn(),
@@ -31,6 +30,7 @@ export default meta;
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
 export const Breadcrumb: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     variant: "primary",
     themeUI: "dark",
@@ -61,6 +61,7 @@ export const Breadcrumb: Story = {
 
 /** With `clickable`, pressing an item calls `callback` with that item's `value`. */
 export const ClickableBreadcrumb: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Breadcrumb.args,
     variant: "secondary",

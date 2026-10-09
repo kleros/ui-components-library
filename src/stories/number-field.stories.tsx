@@ -19,7 +19,6 @@ import { SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 const meta = {
   component: NumberFieldComponent,
   title: "Form/NumberField",
-  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
   tags: ["autodocs"],
   args: {
     onChange: fn(),
@@ -143,6 +142,7 @@ export const CustomIcon: Story = {
 };
 
 export const Labelled: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Age",
@@ -156,6 +156,7 @@ export const Labelled: Story = {
 };
 
 export const WithDescription: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Age",
@@ -169,6 +170,7 @@ export const WithDescription: Story = {
 
 /** Make a field required. Optionally you can choose to show the validation error and customize their style. */
 export const Required: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   args: {
     ...Default.args,
     isRequired: true,
@@ -246,6 +248,7 @@ export const Required: Story = {
 
 /** `minValue` / `maxValue` clamp the value and disable the steppers at the limits. */
 export const WithMinMax: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Rating",

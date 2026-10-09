@@ -21,7 +21,6 @@ const meta = {
         "Library defect: a custom `expandButton` is rendered inside the item's header button.",
       source: "src/lib/accordion/accordion-item.tsx:75",
     },
-    PRIMARY_BLUE_TEXT_LIGHT,
     WHITE_ON_BLUE_LIGHT,
   ),
 } satisfies Meta<typeof CustomAccordion>;
@@ -102,6 +101,7 @@ export const Accordion: Story = {
 
 /** You can provide an expand button at Parent level for all Accordion Items */
 export const GlobalExpandButton: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     className: "max-w-[80dvw]",
 
@@ -163,6 +163,7 @@ export const GlobalExpandButton: Story = {
 
 /** Parent Expand Button can be ovverrided at Item level if required */
 export const ItemExpandButton: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
   args: {
     className: "max-w-[80dvw]",
 

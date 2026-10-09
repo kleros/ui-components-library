@@ -13,7 +13,6 @@ import { WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
 const meta = {
   component: DropdownCascaderComponent,
   title: "Dropdown/Cascader",
-  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   tags: ["autodocs"],
   args: {
     callback: fn(),
@@ -215,6 +214,7 @@ export const DisabledKeysSelect: Story = {
 
 /** When used with Form, Dropdown Cacader can be marked as `required` to prevent form submission. */
 export const RequiredSelect: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   args: {
     ...DropdownCascader.args,
     isRequired: true,
@@ -260,6 +260,7 @@ export const RequiredSelect: Story = {
 
 /** The cascader left open, so its (portaled) tree is covered by the a11y check. */
 export const OpenCascader: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   args: {
     ...DropdownCascader.args,
     defaultSelectedKey: 3,

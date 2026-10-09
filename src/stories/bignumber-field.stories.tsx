@@ -31,13 +31,6 @@ const meta: Meta<typeof BigNumberField> = {
   title: "Form/BigNumberField",
   component: BigNumberField,
   parameters: {
-    ...a11yExceptions(
-      SECONDARY_TEXT_LIGHT,
-      SUCCESS_TEXT_LIGHT,
-      WARNING_TEXT_LIGHT,
-      ERROR_TEXT_LIGHT,
-      WHITE_ON_BLUE_LIGHT,
-    ),
     layout: "centered",
   },
   tags: ["autodocs"],
@@ -148,6 +141,7 @@ export const Default: Story = {
 };
 
 export const WithLabel: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Amount",
@@ -163,6 +157,7 @@ export const WithLabel: Story = {
 };
 
 export const WithMinMax: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Amount",
@@ -213,13 +208,22 @@ export const WithMinMax: Story = {
 };
 
 export const WithLargeNumbers: Story = {
-  parameters: a11yExceptions({
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, {
     rule: "aria-valid-attr-value",
-    selector: "input",
+    selector: 'input[aria-valuenow*="e+"]',
     reason:
-      "Library defect: when no BigNumberField rendered before, aria-valuenow is in exponential notation.",
-    source: "src/lib/form/bignumber-field/useBigNumberField.tsx:572",
+      "Library defect: on the first render aria-valuenow is in exponential notation.",
+    source: "src/lib/form/bignumber-field/useBigNumberField.tsx:94",
   }),
+  // EXPONENTIAL_AT is global and the hook raises it only after its first
+  // render, so the story starts from the bignumber.js default [-7, 20].
+  beforeEach: () => {
+    const { EXPONENTIAL_AT } = BigNumber.config({});
+    BigNumber.config({ EXPONENTIAL_AT: [-7, 20] });
+    return () => {
+      BigNumber.config({ EXPONENTIAL_AT });
+    };
+  },
   args: {
     ...Default.args,
     placeholder: "Enter a large number",
@@ -230,11 +234,9 @@ export const WithLargeNumbers: Story = {
     const input = within(canvasElement).getByRole("spinbutton");
     // no precision is lost on numbers beyond Number.MAX_SAFE_INTEGER
     await expect(input).toHaveValue("123,456,789,012,345,678,901,234,567,890");
-    // NOTE: the hook sets `BigNumber.config({ EXPONENTIAL_AT })` in an effect,
-    // after the first render, so when no other BigNumberField rendered before
-    // (e.g. this story alone or first in a shuffled run) aria-valuenow is in
-    // exponential notation. Compare numerically: the exact value is kept.
+    // aria-valuenow is exponential but exact, so compare numerically.
     const valueNow = input.getAttribute("aria-valuenow") ?? "";
+    await expect(valueNow).toContain("e+");
     await expect(
       new BigNumber(valueNow).isEqualTo("123456789012345678901234567890"),
     ).toBe(true);
@@ -242,6 +244,7 @@ export const WithLargeNumbers: Story = {
 };
 
 export const WithFormatting: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     placeholder: "Enter a number with formatting",
@@ -263,6 +266,7 @@ export const WithFormatting: Story = {
 };
 
 export const WithCustomFormatting: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     placeholder: "Enter a number with custom formatting",
@@ -289,6 +293,7 @@ export const WithCustomFormatting: Story = {
 };
 
 export const WithStep: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Amount",
@@ -339,6 +344,7 @@ export const WithIcon: Story = {
 };
 
 export const SuccessVariant: Story = {
+  parameters: a11yExceptions(SUCCESS_TEXT_LIGHT),
   args: {
     ...Default.args,
     variant: "success",
@@ -356,6 +362,7 @@ export const SuccessVariant: Story = {
 };
 
 export const WarningVariant: Story = {
+  parameters: a11yExceptions(WARNING_TEXT_LIGHT),
   args: {
     ...Default.args,
     variant: "warning",
@@ -373,6 +380,7 @@ export const WarningVariant: Story = {
 };
 
 export const ErrorVariant: Story = {
+  parameters: a11yExceptions(ERROR_TEXT_LIGHT),
   args: {
     ...Default.args,
     variant: "error",
@@ -390,6 +398,7 @@ export const ErrorVariant: Story = {
 };
 
 export const InfoVariant: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     variant: "info",
@@ -454,6 +463,7 @@ export const ReadOnly: Story = {
 
 /** Make a field required. Optionally you can choose to show the validation error and customize their style. */
 export const Required: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   args: {
     ...Default.args,
     isRequired: true,
@@ -547,6 +557,7 @@ const ControlledHarness = (
 };
 
 export const ControlledValue: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
   args: { ...Default.args, label: "Amount" },
   render: (args) => <ControlledHarness {...args} />,
   play: async ({ canvasElement, args, step }) => {
@@ -585,6 +596,7 @@ export const ControlledValue: Story = {
 };
 
 export const FractionalStep: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Amount",
@@ -607,6 +619,7 @@ export const FractionalStep: Story = {
 };
 
 export const NegativeStep: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: { ...Default.args, label: "Amount", step: "-0.5" },
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
@@ -625,6 +638,7 @@ export const NegativeStep: Story = {
 };
 
 export const FractionalStepButtons: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Amount",
@@ -652,6 +666,7 @@ export const FractionalStepButtons: Story = {
 };
 
 export const WheelEnabled: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: { ...Default.args, label: "Amount", defaultValue: "5" },
   play: async ({ canvasElement, args, step }) => {
     const canvas = within(canvasElement);
@@ -695,6 +710,7 @@ export const WheelEnabled: Story = {
 };
 
 export const WheelDisabled: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Amount",
@@ -716,6 +732,7 @@ export const WheelDisabled: Story = {
 };
 
 export const LowerBoundTyping: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Amount",
@@ -742,6 +759,7 @@ export const LowerBoundTyping: Story = {
 
 /** An empty field steps from zero: ArrowDown gives -step, ArrowUp gives +step. */
 export const SteppingFromEmpty: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: { ...Default.args, label: "Amount", step: "2" },
   play: async ({ canvasElement, args }) => {
     const input = within(canvasElement).getByRole("spinbutton");
@@ -759,6 +777,7 @@ export const SteppingFromEmpty: Story = {
 
 /** Typing into the idle-formatted, still focused field clamps to the bounds. */
 export const TypingAfterIdleFormatting: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Amount",
@@ -820,6 +839,7 @@ const BoundsHarness = (props: React.ComponentProps<typeof BigNumberField>) => {
 };
 
 export const ChangingBounds: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
   args: { ...Default.args, label: "Amount", defaultValue: "4" },
   render: (args) => <BoundsHarness {...args} />,
   play: async ({ canvasElement, args, step }) => {

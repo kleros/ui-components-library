@@ -19,7 +19,6 @@ import { SECONDARY_TEXT_LIGHT, ERROR_TEXT_LIGHT } from "./a11y-defects";
 const meta = {
   component: CustomRadio,
   title: "Input/CustomRadio",
-  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, ERROR_TEXT_LIGHT),
   tags: ["autodocs"],
 } satisfies Meta<typeof CustomRadio>;
 
@@ -119,6 +118,7 @@ export const Cards: Story = {
  *  it must NOT go inside the radio's `<label>` (interactive controls there are invalid
  *  and would toggle the radio). The `RadioIndicator` is driven by the item's render props. */
 export const Composition: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: { themeUI: "dark", backgroundUI: "light" },
   render: function Render() {
     const [value, setValue] = useState("all");
@@ -227,6 +227,7 @@ export const Disabled: Story = {
 
 /** Required + invalid group shows its validation state and error message. */
 export const Invalid: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, ERROR_TEXT_LIGHT),
   args: {
     ...Uncontrolled.args,
     defaultValue: undefined,

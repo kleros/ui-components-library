@@ -17,11 +17,6 @@ import {
 const meta = {
   component: TextAreaFieldComponent,
   title: "Form/TextArea",
-  parameters: a11yExceptions(
-    SECONDARY_TEXT_LIGHT,
-    ERROR_TEXT_LIGHT,
-    WHITE_ON_BLUE_LIGHT,
-  ),
   tags: ["autodocs"],
   args: {
     onChange: fn(),
@@ -91,6 +86,7 @@ export const Variant: Story = {
 };
 
 export const Labelled: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Description",
@@ -104,6 +100,7 @@ export const Labelled: Story = {
 };
 
 export const Resizable: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Description",
@@ -122,6 +119,7 @@ export const Resizable: Story = {
 
 /** Make a field required. Optionally you can choose to show the validation error and customize their style. */
 export const Required: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
   args: {
     ...Default.args,
     isRequired: true,
@@ -210,6 +208,7 @@ export const Disabled: Story = {
 };
 
 export const ErrorMessage: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, ERROR_TEXT_LIGHT),
   args: {
     ...Default.args,
     label: "Description",
