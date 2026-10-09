@@ -234,7 +234,7 @@ export const UnsupportedFileType: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(
-      await canvas.findByText("This file type can't be previewed."),
+      await canvas.findByText("This file type can't be previewed.", {}, LOAD),
     ).toBeVisible();
     const link = canvas.getByRole("link", { name: "Open in a new tab" });
     await expect(link).toHaveAttribute("download", "sample.json");
@@ -580,7 +580,7 @@ export const DocumentSwitching: Story = {
 
     await userEvent.click(canvas.getByRole("button", { name: "Blocked" }));
     await expect(
-      await canvas.findByText("Unable to display this file."),
+      await canvas.findByText("Unable to display this file.", {}, LOAD),
     ).toBeVisible();
     await expect(viewer()).toBeNull();
     await expect(canvas.queryByRole("link")).not.toBeInTheDocument();
@@ -638,7 +638,7 @@ export const MaliciousMarkdownFile: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(
-      await canvas.findByText("Malicious markdown fixture"),
+      await canvas.findByText("Malicious markdown fixture", {}, LOAD),
     ).toBeVisible();
     await expect(
       canvasElement.querySelector("script, iframe, embed, object, [onerror]"),
