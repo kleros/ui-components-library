@@ -45,7 +45,10 @@ export default defineConfig({
           name: "storybook-native",
           // Real Playwright input; the trusted-event filter in
           // .storybook/vitest.setup.ts is not installed here.
-          include: ["src/native/**/*.native.test.tsx"],
+          include: [
+            "src/native/**/*.native.test.tsx",
+            "src/test/**/*.browser.test.tsx",
+          ],
           browser: {
             enabled: true,
             headless: true,

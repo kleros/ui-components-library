@@ -13,7 +13,7 @@ export default defineProject({
       "src/hooks/**/*.test.{ts,tsx}",
       "src/test/**/*.test.{ts,tsx}",
     ],
-    exclude: ["**/node_modules/**", "**/*.stories.*"],
+    exclude: ["**/node_modules/**", "**/*.stories.*", "**/*.browser.test.*"],
     restoreMocks: true,
     unstubGlobals: true,
   },
