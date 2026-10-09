@@ -34,7 +34,7 @@ type AuditContext = {
 };
 
 const exceptionKey = (exception: A11yException) =>
-  `${exception.rule} ${exception.selector}`;
+  `${exception.rule} ${exception.selector} ${[...(exception.themes ?? [])].sort().join(",")}`;
 
 const ruleSelector = (id: string) => {
   const { rules } = (
@@ -46,8 +46,8 @@ const ruleSelector = (id: string) => {
 };
 
 /**
- * Story `parameters` recording accessibility exceptions. Keyed by rule and
- * selector, so exceptions set on `meta` and on a story are merged.
+ * Story `parameters` recording accessibility exceptions. Keyed by rule, selector
+ * and themes, so exceptions set on `meta` and on a story are merged.
  */
 export const a11yExceptions = (...exceptions: A11yException[]) => {
   for (const exception of exceptions) {

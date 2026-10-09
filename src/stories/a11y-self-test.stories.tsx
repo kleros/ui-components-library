@@ -110,6 +110,15 @@ export const LightOnlyExceptionStillFailsInDark: Story = {
   }),
 };
 
+export const ThemeSpecificExceptionsStayDistinct: Story = {
+  play: storyRunnerOnly(async () => {
+    const light = unnamedButtonException({ themes: ["light"] });
+    const dark = unnamedButtonException({ themes: ["dark"] });
+    const { exceptions } = a11yExceptions(light, dark).a11y;
+    await expect(Object.values(exceptions)).toEqual([light, dark]);
+  }),
+};
+
 export const UnknownRuleThrows: Story = {
   play: storyRunnerOnly(async () => {
     const unknown = unnamedButtonException({ rule: "not-an-axe-rule" });
