@@ -8,6 +8,7 @@ export default defineProject({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     include: [
+      "src/lib/**/*.test.{ts,tsx}",
       "src/utils/**/*.test.{ts,tsx}",
       "src/hooks/**/*.test.{ts,tsx}",
       "src/test/**/*.test.{ts,tsx}",
