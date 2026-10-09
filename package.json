@@ -28,7 +28,7 @@
     "build": "vite build",
     "build-storybook": "storybook build",
     "check-style": "eslint 'src/**/*.{ts,tsx}'",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "clean": "rm -rf dist",
     "prepare": "husky install",
     "start": "storybook dev -p 6006",
