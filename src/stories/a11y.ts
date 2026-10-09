@@ -33,8 +33,11 @@ type AuditContext = {
   };
 };
 
+const appliesIn = (exception: A11yException) =>
+  THEMES.filter((theme) => exception.themes?.includes(theme) ?? true);
+
 const exceptionKey = (exception: A11yException) =>
-  `${exception.rule} ${exception.selector} ${[...(exception.themes ?? [])].sort().join(",")}`;
+  `${exception.rule} ${exception.selector} ${appliesIn(exception).join(",")}`;
 
 const ruleSelector = (id: string) => {
   const { rules } = (
@@ -148,16 +151,20 @@ export const runAxe = async (exceptions: A11yException[], theme: Theme) => {
   }
 };
 
-// Keys of the exceptions that suppressed a violation in the current story.
+// `<exception key>@<theme>` for each exception that suppressed a violation in
+// the current story.
 const matchedKeys = new Set<string>();
 
 /** Clears the matched exceptions; preview's `beforeEach` runs it per story. */
 export const resetA11yAudit = () => matchedKeys.clear();
 
-/** The story's exceptions that no audit since `resetA11yAudit` matched. */
+/** The story's exceptions that, since `resetA11yAudit`, matched no violation in
+ * one of the themes they apply to. */
 export const staleA11yExceptions = ({ parameters }: AuditContext) =>
   Object.entries(parameters.a11y?.exceptions ?? {})
-    .filter(([key]) => !matchedKeys.has(key))
+    .filter(([key, exception]) =>
+      appliesIn(exception).some((theme) => !matchedKeys.has(`${key}@${theme}`)),
+    )
     .map(([, exception]) => exception);
 
 /**
@@ -194,7 +201,8 @@ export const auditA11y = async (context: AuditContext, checkpoint: string) => {
   try {
     for (const theme of THEMES) {
       const { violations, matched } = await runAxe(exceptions, theme);
-      for (const exception of matched) matchedKeys.add(exceptionKey(exception));
+      for (const exception of matched)
+        matchedKeys.add(`${exceptionKey(exception)}@${theme}`);
       if (import.meta.env.A11Y_AUDIT_LOG)
         console.info(`a11y audit: ${checkpoint} / ${theme}`);
       await expect(
@@ -216,6 +224,6 @@ export const expectNoStaleA11yExceptions = async (context: AuditContext) => {
   );
   await expect(
     stale,
-    `stale a11y exceptions, no violation matched in any checkpoint or theme: ${stale.join("; ")}`,
+    `stale a11y exceptions, no violation matched in a theme they apply to: ${stale.join("; ")}`,
   ).toEqual([]);
 };
