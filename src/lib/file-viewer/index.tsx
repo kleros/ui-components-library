@@ -200,7 +200,7 @@ function FileViewer({
     <div
       className={cn(
         "bg-klerosUIComponentsWhiteBackground shadow-default",
-        "rounded-base max-h-[80vh] overflow-auto",
+        "rounded-base scrollbar-styled max-h-[80vh] overflow-auto",
         className,
       )}
     >
