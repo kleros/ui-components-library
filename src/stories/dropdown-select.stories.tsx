@@ -394,6 +394,9 @@ export const AccessibleName: Story = {
 
     await expect(trigger("label")).toHaveAccessibleName(/\bJurisdiction\b/);
     await expect(trigger("label")).not.toHaveAccessibleName(/\bSelect\b/);
+    await expect(trigger("label")).not.toHaveAccessibleName(
+      /Jurisdiction.*Jurisdiction/,
+    );
 
     await expect(trigger("labelledby")).toHaveAccessibleName(
       /\bAppeal court\b/,
