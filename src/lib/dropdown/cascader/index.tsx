@@ -40,7 +40,7 @@ function DropdownCascader({
       {...props}
       {...{ defaultSelectedKey, selectedKey, disabledKeys }}
       aria-label={
-        ariaLabel ?? label ?? (props["aria-labelledby"] ? undefined : "Select")
+        ariaLabel ?? (label || props["aria-labelledby"] ? undefined : "Select")
       }
     >
       {({ isOpen }) => (

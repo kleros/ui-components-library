@@ -53,7 +53,7 @@ function DropdownSelect({
       {...props}
       onSelectionChange={handleSelection}
       aria-label={
-        ariaLabel ?? label ?? (props["aria-labelledby"] ? undefined : "Select")
+        ariaLabel ?? (label || props["aria-labelledby"] ? undefined : "Select")
       }
     >
       {({ isOpen }) => (
