@@ -18,13 +18,14 @@ interface BulletProps extends VariantProp, SideProp, StateProp {
   subtitle: string;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   line?: boolean;
+  isFirst?: boolean;
   isLast: boolean;
   className?: string;
 }
 
 const Bullet: React.FC<BulletProps> = (props) => {
   const { title, party, subtitle, className, ...restProps } = props;
-  const { rightSided, variant, line, Icon, isLast, state } = restProps;
+  const { rightSided, variant, line, Icon, isFirst, isLast, state } = restProps;
   const titleRef = useRef<HTMLHeadingElement>(null);
 
   return (
@@ -41,7 +42,7 @@ const Bullet: React.FC<BulletProps> = (props) => {
       aria-label={`Timeline item: ${title}`}
       aria-current={state === "active" ? "step" : undefined}
     >
-      <Spine {...{ variant, line, Icon, titleRef }} />
+      <Spine {...{ variant, line, isFirst, Icon, titleRef }} />
       <div
         className={clsx(
           "flex flex-col gap-1 lg:gap-0.5",

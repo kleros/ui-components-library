@@ -178,20 +178,27 @@ export const TimelineCustomParty: Story = {
 
 /** A party element taller than the title keeps the bullet centred on the title. */
 export const TimelineTallParty: Story = {
-  parameters: a11yExceptions(PARTY_VARIANT_COLOUR_DARK),
   args: {
     themeUI: "light",
     backgroundUI: "light",
     items: [
       {
         title: "Pay 250 DAI",
-        party: <div className="size-8 rounded-full bg-gray-400" />,
+        party: (
+          <span className="text-klerosUIComponentsPrimaryText flex size-8 items-center justify-center">
+            AB
+          </span>
+        ),
         subtitle: "06 Jul 2023 12:00 UTC",
         variant: "#4D00B4",
       },
       {
         title: "Jury Decision - Round 1",
-        party: <div className="size-8 rounded-full bg-gray-400" />,
+        party: (
+          <span className="text-klerosUIComponentsPrimaryText flex size-8 items-center justify-center">
+            AB
+          </span>
+        ),
         subtitle: "06 Jul 2023 12:00 UTC",
         variant: "#ca2314",
       },
