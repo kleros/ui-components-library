@@ -126,7 +126,7 @@ function FileUploader({
         </FileTrigger>
       </DropZone>
       {msg && (
-        <div className="mt-4 flex items-center">
+        <div className="mt-4 flex items-start">
           {variant === "success" && (
             <SuccessIcon className="fill-klerosUIComponentsSuccess mr-2 max-w-4 min-w-4" />
           )}
@@ -137,7 +137,7 @@ function FileUploader({
             <ErrorIcon className="fill-klerosUIComponentsError mr-2 max-w-4 min-w-4" />
           )}
           {variant === "info" && (
-            <InfoIcon className="fill-klerosUIComponentsPrimaryBlue mr-2 max-w-4 min-w-4" />
+            <InfoIcon className="fill-klerosUIComponentsSecondaryText mr-2 max-w-4 min-w-4" />
           )}
           <small
             id="dropzone-label"
