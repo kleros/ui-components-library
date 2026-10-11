@@ -8,6 +8,8 @@ import FileUploaderComponent from "../lib/form/file-uploader";
 import Button from "../lib/button";
 import { a11yExceptions, type A11yException } from "./a11y";
 import {
+  ERROR_TEXT_LIGHT,
+  SUCCESS_TEXT_LIGHT,
   PRIMARY_BLUE_TEXT_LIGHT,
   SECONDARY_TEXT_LIGHT,
   WARNING_TEXT_LIGHT,
@@ -150,11 +152,97 @@ export const FileUploaderWithMessage: Story = {
     await expect(
       canvas.getByRole("button", { name: /Please upload the file\./ }),
     ).toBeInTheDocument();
-    await expect(message.previousElementSibling).toHaveClass(
-      "fill-klerosUIComponentsPrimaryBlue",
-    );
+    await expect(message.previousElementSibling?.tagName).toBe("svg");
   },
 };
+
+const setTheme = (theme: "light" | "dark") =>
+  document.documentElement.classList.toggle("dark", theme === "dark");
+
+const iconOf = (message: HTMLElement) =>
+  message.previousElementSibling as SVGElement;
+
+export const FileUploaderInfoIconColour: Story = {
+  parameters: a11yExceptions(ICON_ONLY_UPLOAD_BUTTON, SECONDARY_TEXT_LIGHT),
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    className: "w-[500px]",
+    variant: "info",
+    msg: "Please upload the file.",
+  },
+  play: async ({ canvasElement }) => {
+    const message = within(canvasElement).getByText("Please upload the file.");
+    for (const theme of ["light", "dark"] as const) {
+      setTheme(theme);
+      await expect(getComputedStyle(iconOf(message)).fill).toBe(
+        getComputedStyle(message).color,
+      );
+    }
+  },
+};
+
+export const FileUploaderInfoIconAlignment: Story = {
+  parameters: a11yExceptions(ICON_ONLY_UPLOAD_BUTTON, SECONDARY_TEXT_LIGHT),
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    className: "w-[200px]",
+    variant: "info",
+    msg: "This is a long message that keeps going so that it wraps over several lines of the uploader.",
+  },
+  play: async ({ canvasElement }) => {
+    const message = within(canvasElement).getByText(/This is a long message/);
+    const lineHeight = parseFloat(getComputedStyle(message).lineHeight);
+    await expect(message.getBoundingClientRect().height).toBeGreaterThanOrEqual(
+      lineHeight * 3 - 1,
+    );
+    const iconTop = iconOf(message).getBoundingClientRect().top;
+    const firstLineTop = message.getBoundingClientRect().top;
+    await expect(Math.abs(iconTop - firstLineTop)).toBeLessThanOrEqual(2);
+  },
+};
+
+export const FileUploaderStatusColours: Story = {
+  parameters: a11yExceptions(
+    ICON_ONLY_UPLOAD_BUTTON,
+    SUCCESS_TEXT_LIGHT,
+    ERROR_TEXT_LIGHT,
+    WARNING_TEXT_LIGHT,
+  ),
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    className: "w-[500px]",
+  },
+  render: (args) => (
+    <div>
+      <FileUploaderComponent {...args} variant="success" msg="Success msg" />
+      <FileUploaderComponent {...args} variant="error" msg="Error msg" />
+      <FileUploaderComponent {...args} variant="warning" msg="Warning msg" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const probe = document.createElement("span");
+    canvasElement.append(probe);
+    const token = (name: string) => {
+      probe.style.color = `var(--klerosUIComponents${name})`;
+      return getComputedStyle(probe).color;
+    };
+    for (const [text, name] of [
+      ["Success msg", "Success"],
+      ["Error msg", "Error"],
+      ["Warning msg", "Warning"],
+    ]) {
+      const message = canvas.getByText(text);
+      await expect(getComputedStyle(message).color).toBe(token(name));
+      await expect(getComputedStyle(iconOf(message)).fill).toBe(token(name));
+    }
+    probe.remove();
+  },
+};
+
 export const FileUploaderVariant: Story = {
   parameters: a11yExceptions(ICON_ONLY_UPLOAD_BUTTON, WARNING_TEXT_LIGHT),
   args: {
