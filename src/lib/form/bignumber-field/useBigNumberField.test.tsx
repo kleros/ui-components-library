@@ -1,7 +1,7 @@
 import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import BigNumber from "bignumber.js";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BigNumberFieldProps, useBigNumberField } from "./useBigNumberField";
 
@@ -63,5 +63,51 @@ describe("useBigNumberField controlled value precision", () => {
 
     rerender(<Field value={new BigNumber(from)} />);
     expect(input).toHaveProperty("value", from);
+  });
+});
+
+describe("useBigNumberField empty string value", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // The idle-format timer runs 3s after the numeric value changes.
+  const passIdleFormatDelay = () =>
+    act(() => {
+      vi.advanceTimersByTime(3500);
+    });
+
+  it('mounts empty with value=""', () => {
+    render(<Field value="" />);
+    const input = screen.getByRole("spinbutton");
+
+    passIdleFormatDelay();
+
+    expect(input).toHaveProperty("value", "");
+    expect(input.getAttribute("aria-valuetext")).not.toMatch(/NaN/);
+  });
+
+  it('mounts empty with defaultValue=""', () => {
+    render(<Field defaultValue="" />);
+    const input = screen.getByRole("spinbutton");
+
+    passIdleFormatDelay();
+
+    expect(input).toHaveProperty("value", "");
+  });
+
+  it('empties when the controlled value changes to ""', () => {
+    const { rerender } = render(<Field value="5" />);
+    const input = screen.getByRole("spinbutton");
+
+    rerender(<Field value="" />);
+    passIdleFormatDelay();
+    fireEvent.blur(input);
+
+    expect(input).toHaveProperty("value", "");
+    expect(input.getAttribute("aria-valuetext")).not.toMatch(/NaN/);
   });
 });

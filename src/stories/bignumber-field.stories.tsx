@@ -1036,3 +1036,62 @@ export const ControlledBigNumberClear: Story = {
   ...ControlledBigNumberEcho,
   play: playClear,
 };
+
+/** Asserts the field shows no text, also after blur and the idle-format delay. */
+const expectEmptyField = async (input: HTMLElement) => {
+  await expect(input).toHaveValue("");
+  await expect(input.getAttribute("aria-valuetext")).not.toMatch(/NaN/);
+  await userEvent.click(input);
+  await userEvent.tab();
+  await expect(input).toHaveValue("");
+  // the idle-format timer fires 3s after the numeric value changes
+  await new Promise((resolve) => setTimeout(resolve, 3500));
+  await expect(input).toHaveValue("");
+};
+
+export const EmptyStringValue: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  args: { ...Default.args, label: "Amount", value: "" },
+  play: async ({ canvasElement }) => {
+    const input = within(canvasElement).getByRole("spinbutton");
+    await expectEmptyField(input);
+  },
+};
+
+const ClearHarness = (props: React.ComponentProps<typeof BigNumberField>) => {
+  const [value, setValue] = React.useState<string>("5");
+  return (
+    <div>
+      <BigNumberField {...props} value={value} />
+      <Button
+        variant="primary"
+        small
+        text="Set empty"
+        onPress={() => setValue("")}
+      />
+      <Button
+        variant="primary"
+        small
+        text="Set 5"
+        onPress={() => setValue("5")}
+      />
+    </div>
+  );
+};
+
+export const ControlledValueToEmptyString: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
+  args: { ...Default.args, label: "Amount" },
+  render: (args) => <ClearHarness {...args} />,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    await expect(input).toHaveValue("5");
+    await userEvent.click(canvas.getByRole("button", { name: "Set empty" }));
+    await waitFor(() => expect(input).toHaveValue(""));
+    await expectEmptyField(input);
+    await userEvent.click(canvas.getByRole("button", { name: "Set 5" }));
+    await waitFor(() => expect(input).toHaveValue("5"));
+    await expect(args.onChange).not.toHaveBeenCalled();
+  },
+};
