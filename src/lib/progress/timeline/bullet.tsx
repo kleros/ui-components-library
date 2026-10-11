@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import Spine, { VariantProp, colorRegex } from "./spine";
+import Spine, { VariantProp, colorRegex, useBulletAlignment } from "./spine";
 export type { VariantProp };
 import clsx from "clsx";
 import { cn, isUndefined } from "../../../utils";
@@ -27,6 +27,9 @@ const Bullet: React.FC<BulletProps> = (props) => {
   const { title, party, subtitle, className, ...restProps } = props;
   const { rightSided, variant, line, Icon, isFirst, isLast, state } = restProps;
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const spacerRef = useRef<HTMLDivElement>(null);
+  const bulletRef = useRef<HTMLDivElement>(null);
+  useBulletAlignment(titleRef, spacerRef, bulletRef);
 
   return (
     <li
@@ -42,7 +45,7 @@ const Bullet: React.FC<BulletProps> = (props) => {
       aria-label={`Timeline item: ${title}`}
       aria-current={state === "active" ? "step" : undefined}
     >
-      <Spine {...{ variant, line, isFirst, Icon, titleRef }} />
+      <Spine {...{ variant, line, isFirst, Icon, spacerRef, bulletRef }} />
       <div
         className={clsx(
           "flex flex-col gap-1 lg:gap-0.5",

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useLayoutEffect } from "react";
 import { isUndefined } from "../../../utils";
 
 export const colorRegex = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
@@ -10,26 +10,27 @@ interface SpineProps extends VariantProp {
   line?: boolean;
   isFirst?: boolean;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
-  titleRef?: React.RefObject<HTMLHeadingElement>;
+  spacerRef?: React.RefObject<HTMLDivElement>;
+  bulletRef?: React.RefObject<HTMLDivElement>;
 }
 
-const Spine: React.FC<SpineProps> = ({
-  variant,
-  line,
-  isFirst,
-  Icon,
-  titleRef,
-}) => {
-  const spacerRef = useRef<HTMLDivElement>(null);
-  const bulletRef = useRef<HTMLDivElement>(null);
-
+/**
+ * Sizes the spacer above the bullet so the bullet's centre meets the title's.
+ * Call it from the component that renders both: its layout effect runs after
+ * every child ref is attached.
+ */
+export const useBulletAlignment = (
+  titleRef: React.RefObject<HTMLElement>,
+  spacerRef: React.RefObject<HTMLElement>,
+  bulletRef: React.RefObject<HTMLElement>,
+) => {
   useLayoutEffect(() => {
+    const title = titleRef.current;
+    const bullet = bulletRef.current;
+    const spacer = spacerRef.current;
+    if (!title || !bullet || !spacer) return;
+
     const measure = () => {
-      const title = titleRef?.current;
-      const bullet = bulletRef.current;
-      const spacer = spacerRef.current;
-      if (!title || !bullet || !spacer) return;
-      // Spacer ends where the bullet's centre meets the title's centre.
       const next = Math.max(
         0,
         title.offsetTop + (title.offsetHeight - bullet.offsetHeight) / 2,
@@ -45,9 +46,9 @@ const Spine: React.FC<SpineProps> = ({
       typeof ResizeObserver === "undefined"
         ? undefined
         : new ResizeObserver(measure);
-    const title = titleRef?.current;
-    if (title) observer?.observe(title);
-    if (title?.parentElement) observer?.observe(title.parentElement);
+    observer?.observe(title);
+    if (title.parentElement) observer?.observe(title.parentElement);
+    observer?.observe(bullet);
     let active = true;
     document.fonts?.ready.then(() => active && measure());
 
@@ -56,8 +57,17 @@ const Spine: React.FC<SpineProps> = ({
       observer?.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [titleRef]);
+  }, [titleRef, spacerRef, bulletRef]);
+};
 
+const Spine: React.FC<SpineProps> = ({
+  variant,
+  line,
+  isFirst,
+  Icon,
+  spacerRef,
+  bulletRef,
+}) => {
   return (
     <div className="flex h-auto flex-col items-center justify-start">
       <div
