@@ -1,6 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, within } from "@storybook/test";
+import { expect, userEvent, waitFor, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
@@ -298,5 +298,70 @@ export const ActiveItem: Story = {
     await expect(
       within(voting).getByLabelText("Timeline item party: Ongoing"),
     ).toHaveClass("text-klerosUIComponentsError");
+  },
+};
+
+const LengthenableTimeline = (
+  props: React.ComponentProps<typeof TimelineComponent>,
+) => {
+  const [long, setLong] = React.useState(false);
+  const [first, ...rest] = props.items;
+  return (
+    <>
+      <button
+        className="text-klerosUIComponentsPrimaryText bg-transparent"
+        onClick={() => setLong(true)}
+      >
+        Lengthen
+      </button>
+      <TimelineComponent
+        {...props}
+        items={[
+          {
+            ...first,
+            title: long
+              ? "A very long title that has to wrap onto several lines"
+              : first.title,
+          },
+          ...rest,
+        ]}
+      />
+    </>
+  );
+};
+
+/** The bullet follows the title when it grows after mount. */
+export const TimelineTitleWraps: Story = {
+  parameters: a11yExceptions(PARTY_VARIANT_COLOUR_DARK),
+  render: (args) => <LengthenableTimeline {...args} />,
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[200px]",
+    items: [
+      {
+        title: "Pay 250 DAI",
+        party: "Yes",
+        subtitle: "06 Jul 2023 12:00 UTC",
+        variant: "#4D00B4",
+      },
+      {
+        title: "Jury Decision",
+        party: "No",
+        subtitle: "06 Jul 2023 12:00 UTC",
+        variant: "#ca2314",
+      },
+    ],
+  },
+  play: async ({ canvasElement }) => {
+    const items = getItems(canvasElement);
+    const title = within(items[0]).getByRole("heading");
+    const before = title.getBoundingClientRect().height;
+    await userEvent.click(
+      within(canvasElement).getByRole("button", { name: "Lengthen" }),
+    );
+    await expect(title.getBoundingClientRect().height).toBeGreaterThan(before);
+    await waitFor(() => expectBulletsCentredOnTitles(items));
+    await expectConnectorsMeetBullets(items);
   },
 };
