@@ -129,7 +129,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   // State for the input value
   const [inputValue, setInputValue] = useState<string>(() => {
     if (value !== undefined) {
-      return formatBigNumber(new BigNumber(value.toString()));
+      return value.toString();
     }
     if (defaultValue !== undefined) {
       return formatBigNumber(new BigNumber(defaultValue.toString()));
@@ -165,9 +165,14 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   // Debounce timer reference for formatting after inactivity
   const formatTimerRef = useRef<number | null>(null);
 
+  const numberValueRef = useRef(numberValue);
+  numberValueRef.current = numberValue;
+
   // Update internal state when controlled value changes
   useEffect(() => {
     if (value !== undefined) {
+      // An echo of the field's own onChange keeps the text being typed.
+      if (numberValueRef.current?.isEqualTo(value.toString())) return;
       setInputValue(value.toString());
       try {
         setNumberValue(new BigNumber(value.toString()));

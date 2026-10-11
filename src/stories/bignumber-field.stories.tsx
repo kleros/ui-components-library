@@ -881,3 +881,158 @@ export const ChangingBounds: Story = {
     });
   },
 };
+
+const EchoHarness = ({
+  state,
+  ...props
+}: React.ComponentProps<typeof BigNumberField> & {
+  state: "string" | "bignumber";
+}) => {
+  const [amount, setAmount] = React.useState<string | BigNumber>("5");
+  // "bignumber" passes a fresh BigNumber on every render.
+  const value = state === "string" ? amount : new BigNumber(amount);
+  return (
+    <div>
+      <BigNumberField
+        {...props}
+        value={value}
+        onChange={(v) => {
+          setAmount(state === "string" ? v.toString() : v);
+          props.onChange?.(v);
+        }}
+      />
+      <Button
+        variant="primary"
+        small
+        text="Set 5"
+        onPress={() => setAmount("5")}
+      />
+      <Button
+        variant="primary"
+        small
+        text="Set 7"
+        onPress={() => setAmount("7")}
+      />
+    </div>
+  );
+};
+
+const typeOver = async (input: HTMLElement, text: string) => {
+  const length = (input as HTMLInputElement).value.length;
+  await userEvent.type(input, text, {
+    initialSelectionStart: 0,
+    initialSelectionEnd: length,
+  });
+};
+
+const playParentChange: Story["play"] = async ({ canvasElement, step }) => {
+  const canvas = within(canvasElement);
+  const input = canvas.getByRole("spinbutton");
+
+  await step(
+    "a parent change to a different value replaces the text",
+    async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Set 7" }));
+      await waitFor(() => expect(input).toHaveValue("7"));
+      await expect(input).toHaveAttribute("aria-valuenow", "7");
+      await userEvent.click(canvas.getByRole("button", { name: "Set 5" }));
+      await waitFor(() => expect(input).toHaveValue("5"));
+    },
+  );
+
+  await step("a parent change replaces in-progress text", async () => {
+    await typeOver(input, "1");
+    await userEvent.keyboard(".");
+    await userEvent.click(canvas.getByRole("button", { name: "Set 7" }));
+    await waitFor(() => expect(input).toHaveValue("7"));
+  });
+};
+
+const playClear: Story["play"] = async ({ canvasElement, args }) => {
+  const canvas = within(canvasElement);
+  const input = canvas.getByRole("spinbutton");
+  await typeOver(input, "12");
+  await expect(input).toHaveValue("12");
+  await userEvent.clear(input);
+  await expect(lastChange(args.onChange)).toBe("0");
+  await expect(input).toHaveValue("0");
+  await expect(input).toHaveAttribute("aria-valuenow", "0");
+};
+
+export const ControlledStringEcho: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
+  args: { ...Default.args, label: "Amount" },
+  render: (args) => <EchoHarness {...args} state="string" />,
+  play: async ({ canvasElement, args, step }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    await expect(input).toHaveValue("5");
+
+    await step("deleting a trailing digit keeps the text typed", async () => {
+      await typeOver(input, "1.05");
+      await expect(input).toHaveValue("1.05");
+      await userEvent.keyboard("{Backspace}");
+      await expect(input).toHaveValue("1.0");
+      await expect(lastChange(args.onChange)).toBe("1");
+      await userEvent.keyboard("3");
+      await expect(input).toHaveValue("1.03");
+      await expect(lastChange(args.onChange)).toBe("1.03");
+    });
+
+    await step("deleting back to a trailing point keeps it", async () => {
+      await typeOver(input, "2.50");
+      await userEvent.keyboard("{Backspace}{Backspace}");
+      await expect(input).toHaveValue("2.");
+      await expect(lastChange(args.onChange)).toBe("2");
+      await userEvent.keyboard("7");
+      await expect(input).toHaveValue("2.7");
+    });
+  },
+};
+
+export const ControlledBigNumberEcho: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
+  args: { ...Default.args, label: "Amount" },
+  render: (args) => <EchoHarness {...args} state="bignumber" />,
+  play: async ({ canvasElement, args, step }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    await expect(input).toHaveValue("5");
+
+    await step("a trailing decimal point survives the echo", async () => {
+      await typeOver(input, "1.");
+      await expect(input).toHaveValue("1.");
+      await expect(lastChange(args.onChange)).toBe("1");
+      await userEvent.keyboard("5");
+      await expect(input).toHaveValue("1.5");
+      await expect(lastChange(args.onChange)).toBe("1.5");
+    });
+
+    await step("trailing zeros survive the echo", async () => {
+      await typeOver(input, "0.10");
+      await expect(input).toHaveValue("0.10");
+      await userEvent.keyboard("4");
+      await expect(input).toHaveValue("0.104");
+    });
+  },
+};
+
+export const ControlledStringParentChange: Story = {
+  ...ControlledStringEcho,
+  play: playParentChange,
+};
+
+export const ControlledBigNumberParentChange: Story = {
+  ...ControlledBigNumberEcho,
+  play: playParentChange,
+};
+
+export const ControlledStringClear: Story = {
+  ...ControlledStringEcho,
+  play: playClear,
+};
+
+export const ControlledBigNumberClear: Story = {
+  ...ControlledBigNumberEcho,
+  play: playClear,
+};
