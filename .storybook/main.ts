@@ -2,11 +2,19 @@ import type { StorybookConfig } from "@storybook/react-vite";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
+  staticDirs: [
+    // Small local files used by stories (e.g. the file viewer), so Storybook,
+    // story tests and Chromatic render the same deterministic content.
+    { from: "../src/stories/fixtures", to: "/fixtures" },
+    // react-doc-viewer's own pdf.js worker; it must match the bundled API version.
+    { from: "../node_modules/@cyntler/react-doc-viewer/dist", to: "/pdfjs" },
+  ],
   addons: [
     "@storybook/addon-essentials",
     "@storybook/addon-onboarding",
     "@chromatic-com/storybook",
-    "@storybook/addon-interactions",
+    "@storybook/addon-a11y",
+    "@storybook/experimental-addon-test",
   ],
   framework: {
     name: "@storybook/react-vite",

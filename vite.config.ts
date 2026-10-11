@@ -23,7 +23,7 @@ export default defineConfig({
       input: Object.fromEntries(
         glob
           .sync("src/lib/**/*.{ts,tsx}", {
-            ignore: ["src/lib/**/*.d.ts"],
+            ignore: ["src/lib/**/*.d.ts", "src/lib/**/*.test.{ts,tsx}"],
           })
           .map((file) => [
             // The name of the entry point
@@ -60,6 +60,7 @@ export default defineConfig({
     dts({
       insertTypesEntry: true,
       include: ["src/lib", "src/global.d.ts"],
+      exclude: ["src/lib/**/*.test.{ts,tsx}"],
     }),
   ],
 });

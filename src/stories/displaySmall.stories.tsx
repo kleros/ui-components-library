@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
@@ -23,5 +24,18 @@ export const DisplaySmall: Story = {
     text: "250 DAI",
     label: "Amount",
     Icon: Dai,
+  },
+  play: async ({ canvasElement }) => {
+    // the value is labelled by the `label` text
+    const heading = within(canvasElement).getByRole("heading", {
+      level: 2,
+      name: "Amount",
+    });
+    await expect(heading).toHaveTextContent("250 DAI");
+    // the label is rendered above the value card
+    const label = within(canvasElement).getByText("Amount");
+    await expect(
+      label.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   },
 };

@@ -162,6 +162,40 @@ yarn check-types    # Type checking
 yarn check-style    # Linting
 ```
 
+### Visual regression testing (Chromatic)
+
+Every story is snapshotted by [Chromatic](https://www.chromatic.com/) and compared against the accepted baseline. The workflow lives in [`.github/workflows/chromatic.yml`](.github/workflows/chromatic.yml).
+
+**What runs when**
+
+- **Pull requests to `main`**: Storybook is built and uploaded to Chromatic. Visual changes don't fail the job (`exitZeroOnChanges`). Instead, Chromatic adds a "UI Tests" check to the PR, and someone reviews and accepts or denies the changes in the Chromatic web app. Superseded runs on the same PR are cancelled.
+- **Pushes to `main`**: the build is auto-accepted (`autoAcceptChanges: main`), so whatever lands on `main` becomes the new baseline.
+- **TurboSnap** (`onlyChanged: true`): only stories affected by the changed files are re-snapshotted. The rest are inherited from the baseline. TurboSnap needs the full git history, so the checkout uses `fetch-depth: 0`. A change to the Storybook config in `.storybook/` re-snapshots every story.
+
+**Setup**: add the Chromatic project token as the repository secret `CHROMATIC_PROJECT_TOKEN` (Settings → Secrets and variables → Actions).
+
+**Forks and Dependabot**: GitHub doesn't expose repository secrets to pull requests from forks or to Dependabot, so the job is skipped for those PRs instead of failing. A maintainer can push the branch to this repository to get a Chromatic build. The workflow deliberately avoids `pull_request_target`, which would run untrusted PR code with access to the token.
+
+**Light and dark modes**: each story is captured twice, through [Chromatic modes](https://www.chromatic.com/docs/modes/) defined in [`.storybook/modes.ts`](.storybook/modes.ts). The modes set the Storybook `theme` global, which you can also switch from the Storybook toolbar. When `theme` is set, it overrides a story's `themeUI` arg. When it isn't set (the default), `themeUI` applies as before.
+
+**Keeping snapshots deterministic**: Chromatic pauses CSS animations on their first frame. Stories opt out only when that frame or the current time would give a wrong or unstable snapshot:
+
+- The progress stories use `chromatic: { pauseAnimationAtEnd: true }`, because the first frame of the fill animation is an empty bar.
+- The Datepicker stories pass a fixed `defaultValue` and `minValue`, because the component defaults to "now".
+- The File Viewer stories load local fixtures from `src/stories/fixtures`, and the pdf.js worker is served from react-doc-viewer's own copy (mapped to `/pdfjs` in `.storybook/main.ts`), so nothing is fetched from a CDN. Some are excluded with `chromatic: { disableSnapshot: true }`:
+  - `FileViewer`, because pdf.js canvas output is not pixel-stable across runs.
+  - `FailedResponseServerError`, `FailedResponseNotFound` and `DocumentSwitching`. Their snapshots haven't been checked for determinism yet.
+- The `Internal/A11y Self Test` stories test the accessibility audit in `src/stories/a11y.ts`. They run only under the Vitest story runner and elsewhere render a "Skipped" note, so they are excluded too and hidden from the sidebar and docs.
+- The `Internal/Trusted Event Filter Self Test` story moves the real cursor to check that the story tests drop trusted cursor events. It runs only under the Vitest story runner and is excluded and hidden the same way.
+
+**Plays outside Vitest**: Chromatic runs each story's play without Vitest's `act()` wrapper, so a play that reads a React update synchronously can pass `yarn test:stories` and still fail in Chromatic. `yarn test:storybook-plays` renders every story of a built Storybook (`yarn build-storybook` first) in both themes and fails on any render or play error. Like the story tests, it drops trusted cursor events (`.storybook/trusted-event-filter.js`), so plays that depend on hover state surviving a real cursor are not covered. The Storybook Tests workflow runs it after the story tests.
+
+**Running locally**:
+
+```bash
+yarn dlx chromatic --project-token=<CHROMATIC_PROJECT_TOKEN> --only-changed
+```
+
 ## Package Publication
 
 ### Tagging

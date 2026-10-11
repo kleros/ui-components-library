@@ -1,4 +1,6 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
@@ -19,5 +21,19 @@ export const Box: Story = {
     themeUI: "dark",
     backgroundUI: "light",
     className: "w-[500px]",
+    children: (
+      <span className="text-klerosUIComponentsPrimaryText">Box content</span>
+    ),
+  },
+  play: async ({ canvasElement }) => {
+    const box = canvasElement.querySelector(
+      ".bg-klerosUIComponentsMediumBlue",
+    ) as HTMLElement;
+    await expect(box).toHaveTextContent("Box content");
+    await expect(box).toHaveClass("rounded-[18px]", "h-[200px]");
+    // className overrides the default width (tailwind-merge)
+    await expect(box).toHaveClass("w-[500px]");
+    await expect(box).not.toHaveClass("w-[328px]");
+    await expect(box.getBoundingClientRect().width).toBe(500);
   },
 };

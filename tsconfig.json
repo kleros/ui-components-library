@@ -34,6 +34,13 @@
     "commitlint.config.cjs",
     "eslint.config.mjs",
     "vite.config.ts",
+    "vitest.config.ts",
+    "vitest.unit.config.ts",
+    "coverage",
+    "reports",
+    ".stryker-tmp",
+    "storybook-static",
+    "storybook-plays-fixtures-static",
     "vite.config.theme.ts"
   ]
 }
