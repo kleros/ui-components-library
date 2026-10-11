@@ -88,6 +88,12 @@ const DEFAULT_FORMAT = {
   suffix: "",
 };
 
+/** Parses a value, returning null for text BigNumber reads as NaN, such as "". */
+const parseValue = (value: string | BigNumber): BigNumber | null => {
+  const parsed = new BigNumber(value.toString());
+  return parsed.isNaN() ? null : parsed;
+};
+
 export function useBigNumberField(props: BigNumberFieldProps) {
   // Configure BigNumber exponential
   useEffect(() => {
@@ -129,12 +135,11 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   // State for the input value
   const [inputValue, setInputValue] = useState<string>(() => {
     if (value !== undefined) {
-      return value.toString();
+      return parseValue(value) === null ? "" : value.toString();
     }
-    if (defaultValue !== undefined) {
-      return formatBigNumber(new BigNumber(defaultValue.toString()));
-    }
-    return "";
+    const parsedDefault =
+      defaultValue !== undefined ? parseValue(defaultValue) : null;
+    return parsedDefault === null ? "" : formatBigNumber(parsedDefault);
   });
 
   // State to track if the input is currently formatted
@@ -150,10 +155,10 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   const [numberValue, setNumberValue] = useState<BigNumber | null>(() => {
     try {
       if (value !== undefined) {
-        return new BigNumber(value.toString());
+        return parseValue(value);
       }
       if (defaultValue !== undefined) {
-        return new BigNumber(defaultValue.toString());
+        return parseValue(defaultValue);
       }
     } catch (error) {
       // If the value can't be parsed as a BigNumber, return null
@@ -173,11 +178,13 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     if (value !== undefined) {
       // An echo of the field's own onChange keeps the text being typed.
       if (numberValueRef.current?.isEqualTo(value.toString())) return;
-      setInputValue(value.toString());
       try {
-        setNumberValue(new BigNumber(value.toString()));
+        const parsed = parseValue(value);
+        setInputValue(parsed === null ? "" : value.toString());
+        setNumberValue(parsed);
       } catch (error) {
         console.error("Error updating BigNumber value:", error);
+        setInputValue(value.toString());
         setNumberValue(null);
       }
     }
