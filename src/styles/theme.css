@@ -30,6 +30,17 @@
     --klerosUIComponentsTintMedium: #fcf4ff;
     --klerosUIComponentsTintPurple: #f4f0fa;
 
+    --klerosUIComponentsDarkPurple: #220050;
+    --klerosUIComponentsVioletPurple: #6a1dcd;
+    --klerosUIComponentsLavenderPurple: #bb72ff;
+    --klerosUIComponentsWhiteLowOpacitySubtle: #ffffff0d;
+    --klerosUIComponentsWhiteLowOpacityStrong: #ffffff26;
+    --klerosUIComponentsBlackLowOpacity: #00000080;
+    --klerosUIComponentsSkeletonBackground: #ebebeb;
+    --klerosUIComponentsSkeletonHighlight: #f5f5f5;
+    --klerosUIComponentsPaleCyan: #acffff;
+    --klerosUIComponentsLimeGreen: #f3ffd9;
+
     --klerosUIComponentsTransitionSpeed: 0.25s;
 
     --klerosUIComponentsBaseRadius: 3px;
@@ -66,6 +77,17 @@
     --klerosUIComponentsTint: #ddb6ff;
     --klerosUIComponentsTintMedium: #401d6c;
     --klerosUIComponentsTintPurple: #2f0960;
+
+    --klerosUIComponentsDarkPurple: #220050;
+    --klerosUIComponentsVioletPurple: #6a1dcd;
+    --klerosUIComponentsLavenderPurple: #bb72ff;
+    --klerosUIComponentsWhiteLowOpacitySubtle: #ffffff0f;
+    --klerosUIComponentsWhiteLowOpacityStrong: #ffffff24;
+    --klerosUIComponentsBlackLowOpacity: #00000080;
+    --klerosUIComponentsSkeletonBackground: #3a2270;
+    --klerosUIComponentsSkeletonHighlight: #3e307c;
+    --klerosUIComponentsPaleCyan: #acffff;
+    --klerosUIComponentsLimeGreen: #f3ffd9;
 
     --klerosUIComponentsTransitionSpeed: 0.25s;
   }
@@ -115,6 +137,29 @@
   --color-klerosUIComponentsTint: var(--klerosUIComponentsTint);
   --color-klerosUIComponentsTintMedium: var(--klerosUIComponentsTintMedium);
   --color-klerosUIComponentsTintPurple: var(--klerosUIComponentsTintPurple);
+
+  --color-klerosUIComponentsDarkPurple: var(--klerosUIComponentsDarkPurple);
+  --color-klerosUIComponentsVioletPurple: var(--klerosUIComponentsVioletPurple);
+  --color-klerosUIComponentsLavenderPurple: var(
+    --klerosUIComponentsLavenderPurple
+  );
+  --color-klerosUIComponentsWhiteLowOpacitySubtle: var(
+    --klerosUIComponentsWhiteLowOpacitySubtle
+  );
+  --color-klerosUIComponentsWhiteLowOpacityStrong: var(
+    --klerosUIComponentsWhiteLowOpacityStrong
+  );
+  --color-klerosUIComponentsBlackLowOpacity: var(
+    --klerosUIComponentsBlackLowOpacity
+  );
+  --color-klerosUIComponentsSkeletonBackground: var(
+    --klerosUIComponentsSkeletonBackground
+  );
+  --color-klerosUIComponentsSkeletonHighlight: var(
+    --klerosUIComponentsSkeletonHighlight
+  );
+  --color-klerosUIComponentsPaleCyan: var(--klerosUIComponentsPaleCyan);
+  --color-klerosUIComponentsLimeGreen: var(--klerosUIComponentsLimeGreen);
   --color-klerosUIComponentsTransitionSpeed: var(
     --klerosUIComponentsTransitionSpeed
   );
