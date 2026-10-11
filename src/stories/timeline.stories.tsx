@@ -6,6 +6,10 @@ import { IPreviewArgs } from "./utils";
 import TimelineComponent from "../lib/progress/timeline";
 import { a11yExceptions } from "./a11y";
 import {
+  expectBulletsCentredOnTitles,
+  expectConnectorsMeetBullets,
+} from "./timeline-geometry";
+import {
   SECONDARY_TEXT_LIGHT,
   PARTY_VARIANT_COLOUR_DARK,
 } from "./a11y-defects";
@@ -66,6 +70,8 @@ export const Timeline: Story = {
       await expect(item).toHaveClass("justify-start");
       await expect(item).toHaveClass("translate-x-[calc(50%_-_8px)]");
     }
+    await expectBulletsCentredOnTitles(items);
+    await expectConnectorsMeetBullets(items);
   },
 };
 
@@ -106,5 +112,7 @@ export const TimelineAlignment: Story = {
     );
     // left sided items render the text before the spine
     await expect(left.lastElementChild).toHaveClass("-order-1", "text-right");
+    await expectBulletsCentredOnTitles([right, left]);
+    await expectConnectorsMeetBullets([right, left]);
   },
 };
