@@ -33,6 +33,7 @@ function Slider({
   formatter,
   callback,
   theme,
+  onChange,
   ...props
 }: Readonly<SliderProps>) {
   const { sliderColor, thumbColor, labelColor, trackColor } = theme ?? {};
@@ -40,7 +41,10 @@ function Slider({
     <AriaSlider
       className={cn("mt-4 box-border w-125")}
       {...props}
-      onChange={callback}
+      onChange={(value) => {
+        onChange?.(value);
+        callback(value as number);
+      }}
     >
       <SliderTrack className="relative h-7 w-full">
         {({ state, isDisabled }) => (

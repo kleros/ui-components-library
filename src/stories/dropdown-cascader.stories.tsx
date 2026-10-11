@@ -9,7 +9,11 @@ import DropdownCascaderComponent from "../lib/dropdown/cascader";
 import { Form } from "react-aria-components";
 import { Button } from "../lib";
 import { a11yExceptions } from "./a11y";
-import { PRIMARY_BLUE_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
+import {
+  PRIMARY_BLUE_TEXT_LIGHT,
+  SECONDARY_TEXT_LIGHT,
+  WHITE_ON_BLUE_LIGHT,
+} from "./a11y-defects";
 
 const meta = {
   component: DropdownCascaderComponent,
@@ -436,5 +440,59 @@ export const UncontrolledUserSelection: Story = {
       );
       await closeTree();
     });
+  },
+};
+
+/** The accessible name comes from `aria-label`, a visible `label`, or `aria-labelledby`; "Select" is the fallback. */
+export const AccessibleName: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    items: [{ label: "General Court", id: 0, itemValue: 0 }],
+    placeholder: "Pick one",
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-4">
+      <div data-testid="aria-label">
+        <DropdownCascaderComponent {...args} aria-label="Court" />
+      </div>
+      <div data-testid="label">
+        <DropdownCascaderComponent {...args} label="Jurisdiction" />
+      </div>
+      <div data-testid="labelledby">
+        <span
+          id="cascader-external-name"
+          className="text-klerosUIComponentsPrimaryText"
+        >
+          Appeal court
+        </span>
+        <DropdownCascaderComponent
+          {...args}
+          aria-labelledby="cascader-external-name"
+        />
+      </div>
+      <div data-testid="fallback">
+        <DropdownCascaderComponent {...args} />
+      </div>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = (id: string) =>
+      within(canvas.getByTestId(id)).getByRole("button");
+
+    await expect(trigger("aria-label")).toHaveAccessibleName(/\bCourt\b/);
+    await expect(trigger("aria-label")).not.toHaveAccessibleName(/\bSelect\b/);
+
+    await expect(trigger("label")).toHaveAccessibleName(/\bJurisdiction\b/);
+    await expect(trigger("label")).not.toHaveAccessibleName(/\bSelect\b/);
+
+    await expect(trigger("labelledby")).toHaveAccessibleName(
+      /\bAppeal court\b/,
+    );
+    await expect(trigger("labelledby")).not.toHaveAccessibleName(/\bSelect\b/);
+
+    await expect(trigger("fallback")).toHaveAccessibleName(/\bSelect\b/);
   },
 };
