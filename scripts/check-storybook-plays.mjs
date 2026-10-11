@@ -10,6 +10,7 @@ import {
 import { createServer } from "node:http";
 import { availableParallelism } from "node:os";
 import path from "node:path";
+import { pipeline } from "node:stream";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium } from "playwright";
 
@@ -92,7 +93,8 @@ export const serve = (root) => {
       response.writeHead(200, {
         "content-type": MIME[path.extname(file)] ?? "application/octet-stream",
       });
-      createReadStream(file).pipe(response);
+      // A failed read destroys the response instead of throwing in the process.
+      pipeline(createReadStream(file), response, () => {});
     });
     server.listen(0, "127.0.0.1", () => resolve(server));
   });

@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import {
+  chmodSync,
   mkdirSync,
   mkdtempSync,
   rmSync,
@@ -57,6 +58,8 @@ describe("static server", () => {
     const root = path.join(parent, "root");
     mkdirSync(path.join(root, "nested"), { recursive: true });
     writeFileSync(path.join(root, "nested/inside.txt"), "inside");
+    writeFileSync(path.join(root, "unreadable.txt"), "unreadable");
+    chmodSync(path.join(root, "unreadable.txt"), 0o000);
     writeFileSync(path.join(parent, "outside.txt"), "outside");
     symlinkSync(path.join(parent, "outside.txt"), path.join(root, "escape"));
     symlinkSync(parent, path.join(root, "escape-dir"));
@@ -71,6 +74,18 @@ describe("static server", () => {
   test("serves files under the root", async () => {
     assert.equal(await get(port, "/nested/inside.txt"), 200);
     assert.equal(await get(port, "/nested/../nested/inside.txt"), 200);
+  });
+
+  test("survives a file that cannot be read", { timeout: 5000 }, async () => {
+    await new Promise((resolve) => {
+      request(
+        { host: "127.0.0.1", port, path: "/unreadable.txt" },
+        (response) => response.resume().on("close", resolve),
+      )
+        .on("error", resolve)
+        .end();
+    });
+    assert.equal(await get(port, "/nested/inside.txt"), 200);
   });
 
   for (const hostile of [
