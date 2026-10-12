@@ -38,7 +38,7 @@ function DropdownCascader({
       className={cn("relative flex flex-col gap-1", className)}
       {...props}
       {...{ defaultSelectedKey, selectedKey, disabledKeys }}
-      aria-label={label ?? "Select"}
+      aria-label={props["aria-label"] ?? label ?? "Select"}
     >
       {({ isOpen }) => (
         <>
