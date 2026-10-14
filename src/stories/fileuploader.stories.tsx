@@ -173,11 +173,16 @@ export const FileUploaderInfoIconColour: Story = {
   },
   play: async ({ canvasElement }) => {
     const message = within(canvasElement).getByText("Please upload the file.");
-    for (const theme of ["light", "dark"] as const) {
-      setTheme(theme);
-      await expect(getComputedStyle(iconOf(message)).fill).toBe(
-        getComputedStyle(message).color,
-      );
+    const initiallyDark = document.documentElement.classList.contains("dark");
+    try {
+      for (const theme of ["light", "dark"] as const) {
+        setTheme(theme);
+        await expect(getComputedStyle(iconOf(message)).fill).toBe(
+          getComputedStyle(message).color,
+        );
+      }
+    } finally {
+      setTheme(initiallyDark ? "dark" : "light");
     }
   },
 };
@@ -193,7 +198,7 @@ export const FileUploaderInfoIconAlignment: Story = {
   },
   play: async ({ canvasElement }) => {
     const message = within(canvasElement).getByText(/This is a long message/);
-    const lineHeight = parseFloat(getComputedStyle(message).lineHeight);
+    const lineHeight = Number.parseFloat(getComputedStyle(message).lineHeight);
     await expect(message.getBoundingClientRect().height).toBeGreaterThanOrEqual(
       lineHeight * 3 - 1,
     );

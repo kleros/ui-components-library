@@ -221,8 +221,8 @@ export const FileViewer: Story = {
       canvas.queryByText("This file type can't be previewed."),
     ).not.toBeInTheDocument();
     await expectOnlyLocalRequests();
-    await expectLibraryScrollbar(canvasElement);
-    await expectContainerLayoutUnchanged(canvasElement);
+    expectLibraryScrollbar(canvasElement);
+    expectContainerLayoutUnchanged(canvasElement);
   },
 };
 
@@ -246,8 +246,8 @@ export const Image: Story = {
     // doc-viewer fetches the file and renders it from a data URI
     await expect(img.getAttribute("src")).toMatch(/^data:image\/png;base64,/);
     await expectOnlyLocalRequests();
-    await expectLibraryScrollbar(canvasElement);
-    await expectContainerLayoutUnchanged(canvasElement);
+    expectLibraryScrollbar(canvasElement);
+    expectContainerLayoutUnchanged(canvasElement);
   },
 };
 

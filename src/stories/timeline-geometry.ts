@@ -44,14 +44,16 @@ export const expectConnectorsMeetBullets = async (items: HTMLElement[]) => {
       1,
     );
     const drawn =
-      parseFloat(getComputedStyle(spacer as HTMLElement).borderLeftWidth) > 0;
+      Number.parseFloat(
+        getComputedStyle(spacer as HTMLElement).borderLeftWidth,
+      ) > 0;
     await expect(drawn).toBe(i > 0);
     if (i > 0) {
       const prev = parts(items[i - 1]);
       const prevLine = prev.spine.lastElementChild as HTMLElement;
       const lineRect = prevLine.getBoundingClientRect();
       await expect(
-        parseFloat(getComputedStyle(prevLine).borderLeftWidth),
+        Number.parseFloat(getComputedStyle(prevLine).borderLeftWidth),
       ).toBeGreaterThan(0);
       await expect(lineRect.top).toBeCloseTo(
         prev.bullet.getBoundingClientRect().bottom,
