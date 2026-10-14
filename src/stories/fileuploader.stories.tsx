@@ -162,6 +162,28 @@ const setTheme = (theme: "light" | "dark") =>
 const iconOf = (message: HTMLElement) =>
   message.previousElementSibling as SVGElement;
 
+/** The icon's centre sits between the first line's cap-height and x-height midpoints. */
+const expectIconCentredOnFirstLine = async (message: HTMLElement) => {
+  const style = getComputedStyle(message);
+  const context = document.createElement("canvas").getContext("2d")!;
+  context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  const metrics = context.measureText("Hx");
+  const lineHeight = Number.parseFloat(style.lineHeight);
+  const contentHeight =
+    metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+  const baseline =
+    message.getBoundingClientRect().top +
+    (lineHeight - contentHeight) / 2 +
+    metrics.fontBoundingBoxAscent;
+  const capMid =
+    baseline - context.measureText("H").actualBoundingBoxAscent / 2;
+  const xMid = baseline - context.measureText("x").actualBoundingBoxAscent / 2;
+  const icon = iconOf(message).getBoundingClientRect();
+  const iconMid = (icon.top + icon.bottom) / 2;
+  await expect(iconMid).toBeGreaterThanOrEqual(capMid - 0.5);
+  await expect(iconMid).toBeLessThanOrEqual(xMid + 0.5);
+};
+
 export const FileUploaderInfoIconColour: Story = {
   parameters: a11yExceptions(ICON_ONLY_UPLOAD_BUTTON, SECONDARY_TEXT_LIGHT),
   args: {
@@ -180,6 +202,7 @@ export const FileUploaderInfoIconColour: Story = {
         await expect(getComputedStyle(iconOf(message)).fill).toBe(
           getComputedStyle(message).color,
         );
+        await expectIconCentredOnFirstLine(message);
       }
     } finally {
       setTheme(initiallyDark ? "dark" : "light");
@@ -202,9 +225,7 @@ export const FileUploaderInfoIconAlignment: Story = {
     await expect(message.getBoundingClientRect().height).toBeGreaterThanOrEqual(
       lineHeight * 3 - 1,
     );
-    const iconTop = iconOf(message).getBoundingClientRect().top;
-    const firstLineTop = message.getBoundingClientRect().top;
-    await expect(Math.abs(iconTop - firstLineTop)).toBeLessThanOrEqual(2);
+    await expectIconCentredOnFirstLine(message);
   },
 };
 
