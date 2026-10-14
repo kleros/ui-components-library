@@ -195,7 +195,8 @@ const expectIconCentredInEveryFont = async (
 ) => {
   // FontFaceSet is a Set<FontFace> at runtime; this TypeScript lib omits its `add`.
   const fonts = document.fonts as FontFaceSet & Set<FontFace>;
-  for (const face of METRIC_FACES) fonts.add(await face.load());
+  for (const face of await Promise.all(METRIC_FACES.map((f) => f.load())))
+    fonts.add(face);
   try {
     for (const font of FONTS) {
       root.style.fontFamily = font;
