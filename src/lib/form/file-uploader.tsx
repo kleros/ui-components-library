@@ -128,16 +128,16 @@ function FileUploader({
       {msg && (
         <div className="mt-4 flex items-start">
           {variant === "success" && (
-            <SuccessIcon className="fill-klerosUIComponentsSuccess mr-2 max-w-4 min-w-4" />
+            <SuccessIcon className="fill-klerosUIComponentsSuccess mt-1 mr-2 max-w-4 min-w-4" />
           )}
           {variant === "warning" && (
-            <WarningIcon className="fill-klerosUIComponentsWarning mr-2 max-w-4 min-w-4" />
+            <WarningIcon className="fill-klerosUIComponentsWarning mt-1 mr-2 max-w-4 min-w-4" />
           )}
           {variant === "error" && (
-            <ErrorIcon className="fill-klerosUIComponentsError mr-2 max-w-4 min-w-4" />
+            <ErrorIcon className="fill-klerosUIComponentsError mt-1 mr-2 max-w-4 min-w-4" />
           )}
           {variant === "info" && (
-            <InfoIcon className="fill-klerosUIComponentsSecondaryText mr-2 max-w-4 min-w-4" />
+            <InfoIcon className="fill-klerosUIComponentsSecondaryText mt-1 mr-2 max-w-4 min-w-4" />
           )}
           <small
             id="dropzone-label"
