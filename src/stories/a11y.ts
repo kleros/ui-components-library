@@ -202,6 +202,22 @@ export const auditA11y = async (context: AuditContext, checkpoint: string) => {
   const noTransitions = document.createElement("style");
   noTransitions.textContent = "* { transition: none !important; }";
   document.head.append(noTransitions);
+  // Looping animations (loading pulses) never settle; audit them at their first frame.
+  const looping = document
+    .getAnimations()
+    .filter(
+      (animation) =>
+        animation.effect?.getComputedTiming().iterations === Infinity,
+    )
+    .map((animation) => ({
+      animation,
+      currentTime: animation.currentTime,
+      running: animation.playState === "running",
+    }));
+  for (const { animation } of looping) {
+    animation.pause();
+    animation.currentTime = 0;
+  }
   try {
     for (const theme of THEMES) {
       const { violations, matched } = await runAxe(exceptions, theme);
@@ -216,6 +232,10 @@ export const auditA11y = async (context: AuditContext, checkpoint: string) => {
     }
   } finally {
     noTransitions.remove();
+    for (const { animation, currentTime, running } of looping) {
+      animation.currentTime = currentTime;
+      if (running) animation.play();
+    }
   }
 };
 
