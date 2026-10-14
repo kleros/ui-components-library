@@ -50,7 +50,7 @@ export const useBulletAlignment = (
     if (title.parentElement) observer?.observe(title.parentElement);
     observer?.observe(bullet);
     let active = true;
-    document.fonts?.ready.then(() => active && measure());
+    void document.fonts?.ready.then(() => active && measure());
 
     return () => {
       active = false;
