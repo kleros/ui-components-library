@@ -159,8 +159,52 @@ export const FileUploaderWithMessage: Story = {
 const setTheme = (theme: "light" | "dark") =>
   document.documentElement.classList.toggle("dark", theme === "dark");
 
-const iconOf = (message: HTMLElement) =>
-  message.previousElementSibling as SVGElement;
+const iconOf = (message: HTMLElement) => {
+  const before = message.previousElementSibling as Element;
+  return (
+    before instanceof SVGElement ? before : before.querySelector("svg")
+  ) as SVGElement;
+};
+
+// Linux CI and Chromatic resolve the library's system font stack to a face with other vertical
+// metrics than macOS; the overridden faces move the glyphs down and up inside the same line box.
+const LOCAL_SANS =
+  "local('Helvetica'), local('Arial'), local('Liberation Sans'), local('DejaVu Sans')";
+const METRIC_FACES = [
+  new FontFace("UploaderTallAscent", LOCAL_SANS, {
+    ascentOverride: "110%",
+    descentOverride: "10%",
+  }),
+  new FontFace("UploaderShortAscent", LOCAL_SANS, {
+    ascentOverride: "70%",
+    descentOverride: "40%",
+  }),
+];
+const FONTS = [
+  "",
+  "Georgia, serif",
+  "'Courier New', monospace",
+  "UploaderTallAscent",
+  "UploaderShortAscent",
+];
+
+/** Runs the centring check with the default font and with faces whose metrics differ. */
+const expectIconCentredInEveryFont = async (
+  root: HTMLElement,
+  message: HTMLElement,
+) => {
+  // FontFaceSet is a Set<FontFace> at runtime; this TypeScript lib omits its `add`.
+  const fonts = document.fonts as FontFaceSet & Set<FontFace>;
+  for (const face of METRIC_FACES) fonts.add(await face.load());
+  try {
+    for (const font of FONTS) {
+      root.style.fontFamily = font;
+      await expectIconCentredOnFirstLine(message);
+    }
+  } finally {
+    root.style.fontFamily = "";
+  }
+};
 
 /** The icon's centre sits between the first line's cap-height and x-height midpoints. */
 const expectIconCentredOnFirstLine = async (message: HTMLElement) => {
@@ -225,7 +269,7 @@ export const FileUploaderInfoIconAlignment: Story = {
     await expect(message.getBoundingClientRect().height).toBeGreaterThanOrEqual(
       lineHeight * 3 - 1,
     );
-    await expectIconCentredOnFirstLine(message);
+    await expectIconCentredInEveryFont(canvasElement, message);
   },
 };
 
@@ -264,6 +308,7 @@ export const FileUploaderStatusColours: Story = {
       const message = canvas.getByText(text);
       await expect(getComputedStyle(message).color).toBe(token(name));
       await expect(getComputedStyle(iconOf(message)).fill).toBe(token(name));
+      await expectIconCentredInEveryFont(canvasElement, message);
     }
     probe.remove();
   },
