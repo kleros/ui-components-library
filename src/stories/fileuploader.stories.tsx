@@ -206,7 +206,7 @@ const expectIconCentredInEveryFont = async (
   }
 };
 
-/** The icon's centre sits between the first line's cap-height and x-height midpoints. */
+/** The icon's centre sits between the first line's cap-height and x-height midpoints, within 1px for pixel snapping. */
 const expectIconCentredOnFirstLine = async (message: HTMLElement) => {
   const style = getComputedStyle(message);
   const context = document.createElement("canvas").getContext("2d")!;
@@ -224,8 +224,8 @@ const expectIconCentredOnFirstLine = async (message: HTMLElement) => {
   const xMid = baseline - context.measureText("x").actualBoundingBoxAscent / 2;
   const icon = iconOf(message).getBoundingClientRect();
   const iconMid = (icon.top + icon.bottom) / 2;
-  await expect(iconMid).toBeGreaterThanOrEqual(capMid - 0.5);
-  await expect(iconMid).toBeLessThanOrEqual(xMid + 0.5);
+  await expect(iconMid).toBeGreaterThanOrEqual(capMid - 1);
+  await expect(iconMid).toBeLessThanOrEqual(xMid + 1);
 };
 
 export const FileUploaderInfoIconColour: Story = {
