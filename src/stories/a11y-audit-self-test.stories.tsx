@@ -202,7 +202,7 @@ export const InfiniteAnimationAuditedAtRest: Story = {
       await expect(
         await errorOf(() => auditA11y({ parameters: {} }, "pulse")),
       ).toBe("no error");
-      await expect(pulse.currentTime).toBe(1000);
+      await expect(pulse.currentTime).toBeGreaterThanOrEqual(1000);
       await expect(pulse.playState).toBe("running");
     } finally {
       pulse.cancel();

@@ -214,11 +214,11 @@ export const auditA11y = async (context: AuditContext, checkpoint: string) => {
       currentTime: animation.currentTime,
       running: animation.playState === "running",
     }));
-  for (const { animation } of looping) {
-    animation.pause();
-    animation.currentTime = 0;
-  }
   try {
+    for (const { animation } of looping) {
+      animation.pause();
+      animation.currentTime = 0;
+    }
     for (const theme of THEMES) {
       const { violations, matched } = await runAxe(exceptions, theme);
       for (const exception of matched)
@@ -233,7 +233,8 @@ export const auditA11y = async (context: AuditContext, checkpoint: string) => {
   } finally {
     noTransitions.remove();
     for (const { animation, currentTime, running } of looping) {
-      animation.currentTime = currentTime;
+      // A time that was unresolved (not yet started) cannot be assigned back once resolved.
+      if (typeof currentTime === "number") animation.currentTime = currentTime;
       if (running) animation.play();
     }
   }
