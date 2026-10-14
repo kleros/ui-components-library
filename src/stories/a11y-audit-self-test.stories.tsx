@@ -181,3 +181,33 @@ export const ExceptionMatchedInOneThemeIsStale: Story = {
     }
   },
 };
+
+export const InfiniteAnimationAuditedAtRest: Story = {
+  play: async () => {
+    if (!isStoryTest) return;
+    // #767676 on white is 4.54:1 at full opacity and fails contrast at half.
+    const fixture = document.createElement("div");
+    fixture.style.background = "#ffffff";
+    const label = document.createElement("span");
+    label.textContent = "Pulsing label";
+    label.style.color = "#767676";
+    fixture.append(label);
+    document.body.append(fixture);
+    const pulse = label.animate(
+      [{ opacity: 1 }, { opacity: 0.5 }, { opacity: 1 }],
+      { duration: 2000, iterations: Infinity },
+    );
+    pulse.currentTime = 1000;
+    try {
+      await expect(
+        await errorOf(() => auditA11y({ parameters: {} }, "pulse")),
+      ).toBe("no error");
+      await expect(pulse.currentTime).toBe(1000);
+      await expect(pulse.playState).toBe("running");
+    } finally {
+      pulse.cancel();
+      fixture.remove();
+      resetA11yAudit();
+    }
+  },
+};
