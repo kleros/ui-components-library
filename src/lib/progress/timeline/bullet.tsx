@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import Spine, { VariantProp, colorRegex } from "./spine";
+import Spine, { VariantProp, colorRegex, useBulletAlignment } from "./spine";
 export type { VariantProp };
 import clsx from "clsx";
 import { cn, isUndefined } from "../../../utils";
@@ -18,14 +18,18 @@ interface BulletProps extends VariantProp, SideProp, StateProp {
   subtitle: string;
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   line?: boolean;
+  isFirst?: boolean;
   isLast: boolean;
   className?: string;
 }
 
 const Bullet: React.FC<BulletProps> = (props) => {
   const { title, party, subtitle, className, ...restProps } = props;
-  const { rightSided, variant, line, Icon, isLast, state } = restProps;
+  const { rightSided, variant, line, Icon, isFirst, isLast, state } = restProps;
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const spacerRef = useRef<HTMLDivElement>(null);
+  const bulletRef = useRef<HTMLDivElement>(null);
+  useBulletAlignment(titleRef, spacerRef, bulletRef);
 
   return (
     <li
@@ -41,7 +45,7 @@ const Bullet: React.FC<BulletProps> = (props) => {
       aria-label={`Timeline item: ${title}`}
       aria-current={state === "active" ? "step" : undefined}
     >
-      <Spine {...{ variant, line, Icon, titleRef }} />
+      <Spine {...{ variant, line, isFirst, Icon, spacerRef, bulletRef }} />
       <div
         className={clsx(
           "flex flex-col gap-1 lg:gap-0.5",

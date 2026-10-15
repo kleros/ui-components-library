@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useState } from "react";
+import React, { ReactNode, useCallback } from "react";
 
 import { cn } from "../../utils";
 import {
@@ -56,20 +56,16 @@ function Tabs({
   tabListProps,
   panelClassName,
   callback,
-  defaultSelectedKey,
+  onSelectionChange,
   ...props
 }: Readonly<TabsProps>) {
-  const [selectedKey, setSelectedKey] = useState<Key | undefined>(
-    defaultSelectedKey,
-  );
-
   const handleSelection = useCallback(
     (key: Key) => {
-      setSelectedKey(key);
+      onSelectionChange?.(key);
       const selectedItem = items.find((item) => item.id === key);
       if (selectedItem && callback) callback(key, selectedItem.value);
     },
-    [items, callback],
+    [items, callback, onSelectionChange],
   );
 
   return (
@@ -87,39 +83,45 @@ function Tabs({
             id={id}
             key={id}
             isDisabled={disabled}
-            className={cn(
-              "hover-short-transition h-[45px] bg-none hover:cursor-pointer",
-              "flex grow items-center justify-center",
-              "border-b-klerosUIComponentsStroke border-b-[3px]",
-              id === selectedKey && ["border-b-klerosUIComponentsPrimaryBlue"],
-              disabled && ["hover:cursor-default"],
-              id !== selectedKey &&
-                !disabled && [
-                  "hover:hover-long-transition",
-                  "hover:border-b-klerosUIComponentsSecondaryBlue",
-                ],
-            )}
+            className={({ isSelected }) =>
+              cn(
+                "hover-short-transition h-[45px] bg-none hover:cursor-pointer",
+                "flex grow items-center justify-center",
+                "border-b-klerosUIComponentsStroke border-b-[3px]",
+                isSelected && ["border-b-klerosUIComponentsPrimaryBlue"],
+                disabled && ["hover:cursor-default"],
+                !isSelected &&
+                  !disabled && [
+                    "hover:hover-long-transition",
+                    "hover:border-b-klerosUIComponentsSecondaryBlue",
+                  ],
+              )
+            }
           >
-            {icon ??
-              (Icon && (
-                <Icon
+            {({ isSelected }) => (
+              <>
+                {icon ??
+                  (Icon && (
+                    <Icon
+                      className={cn(
+                        "hover-short-transition size-4",
+                        "fill-klerosUIComponentsPrimaryText mr-4",
+                        isSelected && "fill-klerosUIComponentsPrimaryBlue",
+                        disabled && "fill-klerosUIComponentsStroke",
+                      )}
+                    />
+                  ))}
+                <span
                   className={cn(
-                    "hover-short-transition size-4",
-                    "fill-klerosUIComponentsPrimaryText mr-4",
-                    id === selectedKey && "fill-klerosUIComponentsPrimaryBlue",
-                    disabled && "fill-klerosUIComponentsStroke",
+                    "text-klerosUIComponentsPrimaryText text-base",
+                    isSelected && "text-klerosUIComponentsPrimaryBlue",
+                    disabled && "text-klerosUIComponentsStroke",
                   )}
-                />
-              ))}
-            <span
-              className={cn(
-                "text-klerosUIComponentsPrimaryText text-base",
-                id === selectedKey && "text-klerosUIComponentsPrimaryBlue",
-                disabled && "text-klerosUIComponentsStroke",
-              )}
-            >
-              {text}
-            </span>
+                >
+                  {text}
+                </span>
+              </>
+            )}
           </Tab>
         ))}
       </TabList>

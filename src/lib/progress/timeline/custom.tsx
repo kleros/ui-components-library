@@ -28,12 +28,20 @@ function CustomTimeline({
       aria-label="Timeline"
     >
       {items.slice(0, -1).map((item, i) => (
-        <Bullet key={i} line {...item} rightSided isLast={false} />
+        <Bullet
+          key={i}
+          line
+          {...item}
+          rightSided
+          isFirst={i === 0}
+          isLast={false}
+        />
       ))}
       <Bullet
         className="h-[unset] grow-0 basis-auto"
         rightSided
         {...lastItem}
+        isFirst={items.length === 1}
         isLast={true}
       />
     </ol>

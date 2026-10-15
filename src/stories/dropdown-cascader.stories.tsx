@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import type { Key } from "react-aria-components";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
@@ -8,7 +9,11 @@ import DropdownCascaderComponent from "../lib/dropdown/cascader";
 import { Form } from "react-aria-components";
 import { Button } from "../lib";
 import { a11yExceptions } from "./a11y";
-import { WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
+import {
+  PRIMARY_BLUE_TEXT_LIGHT,
+  SECONDARY_TEXT_LIGHT,
+  WHITE_ON_BLUE_LIGHT,
+} from "./a11y-defects";
 
 const meta = {
   component: DropdownCascaderComponent,
@@ -48,6 +53,19 @@ const row = (tree: ReturnType<typeof within>, name: string) =>
   tree.getByRole("row", {
     name: (accessibleName: string) => accessibleName.startsWith(name),
   });
+
+const findTrigger = (canvasElement: HTMLElement) => {
+  const trigger = within(canvasElement)
+    .getAllByRole("button")
+    .find((button) => button.hasAttribute("aria-haspopup"));
+  if (!trigger) throw new Error("cascader trigger not found");
+  return trigger;
+};
+
+const closeTree = async () => {
+  await userEvent.click(document.body);
+  await waitForClose();
+};
 
 const waitForClose = () =>
   waitFor(() => expect(body.queryByRole("dialog")).not.toBeInTheDocument());
@@ -284,5 +302,200 @@ export const OpenCascader: Story = {
       tree.getByRole("button", { name: /Select\s+Non-technical/ }),
     ).toBeEnabled();
     await waitForAnimations(document.body);
+  },
+};
+
+/** Controlled cascader: the parent owns `selectedKey` and can change it from outside. */
+export const ControlledSelectedKey: Story = {
+  parameters: a11yExceptions(PRIMARY_BLUE_TEXT_LIGHT),
+  args: {
+    ...DropdownCascader.args,
+  },
+  render: function Render(args) {
+    const [selectedKey, setSelectedKey] = useState<Key | null>(1);
+    return (
+      <div className="flex flex-col gap-4">
+        <DropdownCascaderComponent
+          {...args}
+          selectedKey={selectedKey}
+          onSelectionChange={setSelectedKey}
+        />
+        <Button
+          small
+          variant="secondary"
+          text="Pick Non-technical"
+          onPress={() => setSelectedKey(3)}
+        />
+        <Button
+          small
+          variant="secondary"
+          text="Pick Marketing Services"
+          onPress={() => setSelectedKey(5)}
+        />
+      </div>
+    );
+  },
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    const trigger = findTrigger(canvasElement);
+    await expect(trigger).toHaveTextContent("Blockchain");
+
+    await step("the mounted key is highlighted", async () => {
+      const tree = await openTree(trigger);
+      await waitFor(() => expect(row(tree, "Blockchain")).toBeVisible());
+      await expect(row(tree, "Blockchain")).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await closeTree();
+    });
+
+    await step("an external change moves the highlight", async () => {
+      await userEvent.click(
+        canvas.getByRole("button", { name: "Pick Non-technical" }),
+      );
+      await waitFor(() => expect(trigger).toHaveTextContent("Non-technical"));
+      const tree = await openTree(trigger);
+      await waitFor(() => expect(row(tree, "Non-technical")).toBeVisible());
+      await expect(row(tree, "Non-technical")).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await expect(row(tree, "Blockchain")).not.toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await closeTree();
+    });
+
+    await step("a second external change moves it again", async () => {
+      await userEvent.click(
+        canvas.getByRole("button", { name: "Pick Marketing Services" }),
+      );
+      await waitFor(() =>
+        expect(trigger).toHaveTextContent("Marketing Services"),
+      );
+      const tree = await openTree(trigger);
+      await waitFor(() =>
+        expect(row(tree, "Marketing Services")).toBeVisible(),
+      );
+      await expect(row(tree, "Marketing Services")).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await expect(
+        tree.queryByRole("row", {
+          name: (name: string) => name.startsWith("Non-technical"),
+          selected: true,
+        }),
+      ).toBeNull();
+      await expect(row(tree, "Blockchain")).not.toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await closeTree();
+    });
+  },
+};
+
+/** Uncontrolled cascader: a user selection replaces the default key in both the label and the tree. */
+export const UncontrolledUserSelection: Story = {
+  args: {
+    ...DropdownCascader.args,
+    defaultSelectedKey: 1,
+  },
+  play: async ({ canvasElement, args, step }) => {
+    const trigger = findTrigger(canvasElement);
+    await expect(trigger).toHaveTextContent("Blockchain");
+
+    await step("the default key is highlighted on open", async () => {
+      const tree = await openTree(trigger);
+      await waitFor(() => expect(row(tree, "Blockchain")).toBeVisible());
+      await expect(row(tree, "Blockchain")).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await waitFor(() => expect(row(tree, "Non-technical")).toBeVisible());
+      await userEvent.click(row(tree, "Non-technical"));
+      await userEvent.click(
+        await tree.findByRole("button", { name: /Select\s+Non-technical/ }),
+      );
+      await waitForClose();
+    });
+
+    await step("the user selection updates label and tree", async () => {
+      await expect(args.callback).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 3 }),
+      );
+      await expect(trigger).toHaveTextContent("Non-technical");
+      const tree = await openTree(trigger);
+      await waitFor(() => expect(row(tree, "Non-technical")).toBeVisible());
+      await expect(row(tree, "Non-technical")).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await expect(row(tree, "Blockchain")).not.toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await closeTree();
+    });
+  },
+};
+
+/** The accessible name comes from `aria-label`, a visible `label`, or `aria-labelledby`; "Select" is the fallback. */
+export const AccessibleName: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    items: [{ label: "General Court", id: 0, itemValue: 0 }],
+    placeholder: "Pick one",
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-4">
+      <div data-testid="aria-label">
+        <DropdownCascaderComponent {...args} aria-label="Court" />
+      </div>
+      <div data-testid="label">
+        <DropdownCascaderComponent {...args} label="Jurisdiction" />
+      </div>
+      <div data-testid="labelledby">
+        <span
+          id="cascader-external-name"
+          className="text-klerosUIComponentsPrimaryText"
+        >
+          Appeal court
+        </span>
+        <DropdownCascaderComponent
+          {...args}
+          aria-labelledby="cascader-external-name"
+        />
+      </div>
+      <div data-testid="fallback">
+        <DropdownCascaderComponent {...args} />
+      </div>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = (id: string) =>
+      within(canvas.getByTestId(id)).getByRole("button");
+
+    await expect(trigger("aria-label")).toHaveAccessibleName(/\bCourt\b/);
+    await expect(trigger("aria-label")).not.toHaveAccessibleName(/\bSelect\b/);
+
+    await expect(trigger("label")).toHaveAccessibleName(/\bJurisdiction\b/);
+    await expect(trigger("label")).not.toHaveAccessibleName(/\bSelect\b/);
+    await expect(trigger("label")).not.toHaveAccessibleName(
+      /Jurisdiction.*Jurisdiction/,
+    );
+
+    await expect(trigger("labelledby")).toHaveAccessibleName(
+      /\bAppeal court\b/,
+    );
+    await expect(trigger("labelledby")).not.toHaveAccessibleName(/\bSelect\b/);
+
+    await expect(trigger("fallback")).toHaveAccessibleName(/\bSelect\b/);
   },
 };

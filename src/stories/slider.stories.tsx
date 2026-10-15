@@ -4,7 +4,7 @@ import { expect, fn, userEvent, within } from "@storybook/test";
 import { IPreviewArgs } from "./utils";
 
 import SliderComponent from "../lib/form/slider";
-import { a11yExceptions } from "./a11y";
+import { a11yExceptions, type A11yException } from "./a11y";
 import { SLIDER_LABEL_LIGHT } from "./a11y-defects";
 
 const meta = {
@@ -113,5 +113,35 @@ export const DisabledSlider: Story = {
     await userEvent.keyboard("{ArrowRight}");
     await expect((slider as HTMLInputElement).value).toBe("50");
     await expect(args.callback).not.toHaveBeenCalled();
+  },
+};
+
+const SLIDER_OUTPUT_LIGHT: A11yException = {
+  rule: "color-contrast",
+  selector: "#slider-label output",
+  reason:
+    "Library defect: the slider value output defaults to PrimaryBlue text, 2.9:1.",
+  source: "src/lib/form/slider.tsx:100",
+  themes: ["light"],
+};
+
+/** A caller's `onChange` runs alongside the component's own `callback`. */
+export const OnChange: Story = {
+  parameters: a11yExceptions(SLIDER_OUTPUT_LIGHT),
+  args: {
+    ...Slider.args,
+    onChange: fn(),
+  },
+  play: async ({ canvasElement, args }) => {
+    const slider = within(canvasElement).getByRole("slider");
+    const thumbLabel = canvasElement.querySelector(
+      "#slider-label",
+    ) as HTMLElement;
+    slider.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(args.onChange).toHaveBeenLastCalledWith(51);
+    await expect((slider as HTMLInputElement).value).toBe("51");
+    await expect(thumbLabel).toHaveTextContent("51");
+    await expect(args.callback).toHaveBeenLastCalledWith(51);
   },
 };

@@ -43,6 +43,11 @@
 
   .scrollbar {
     overflow: scroll;
+  }
+
+  /* Scrollbar styling without forcing overflow. */
+  .scrollbar,
+  .scrollbar-styled {
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;

@@ -347,3 +347,85 @@ export const OpenSelect: Story = {
     await waitForAnimations(document.body);
   },
 };
+
+const namingItems = [
+  { text: "General", itemValue: 1, id: 1 },
+  { text: "Blockchain", itemValue: 2, id: 2 },
+];
+
+/** The accessible name comes from `aria-label`, a visible `label`, or `aria-labelledby`; "Select" is the fallback. */
+export const AccessibleName: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    items: namingItems,
+    placeholder: "Pick one",
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-4">
+      <div data-testid="aria-label">
+        <SelectComponent {...args} aria-label="Court" />
+      </div>
+      <div data-testid="label">
+        <SelectComponent {...args} label="Jurisdiction" />
+      </div>
+      <div data-testid="labelledby">
+        <span
+          id="select-external-name"
+          className="text-klerosUIComponentsPrimaryText"
+        >
+          Appeal court
+        </span>
+        <SelectComponent {...args} aria-labelledby="select-external-name" />
+      </div>
+      <div data-testid="fallback">
+        <SelectComponent {...args} />
+      </div>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = (id: string) =>
+      within(canvas.getByTestId(id)).getByRole("button");
+
+    await expect(trigger("aria-label")).toHaveAccessibleName(/\bCourt\b/);
+    await expect(trigger("aria-label")).not.toHaveAccessibleName(/\bSelect\b/);
+
+    await expect(trigger("label")).toHaveAccessibleName(/\bJurisdiction\b/);
+    await expect(trigger("label")).not.toHaveAccessibleName(/\bSelect\b/);
+    await expect(trigger("label")).not.toHaveAccessibleName(
+      /Jurisdiction.*Jurisdiction/,
+    );
+
+    await expect(trigger("labelledby")).toHaveAccessibleName(
+      /\bAppeal court\b/,
+    );
+    await expect(trigger("labelledby")).not.toHaveAccessibleName(/\bSelect\b/);
+
+    await expect(trigger("fallback")).toHaveAccessibleName(/\bSelect\b/);
+  },
+};
+
+/** A caller's `onSelectionChange` runs alongside the component's own `callback`. */
+export const OnSelectionChange: Story = {
+  args: {
+    ...Select.args,
+    onSelectionChange: fn(),
+  },
+  play: async ({ canvasElement, args }) => {
+    const trigger = within(canvasElement).getByRole("button");
+    const listbox = await openListbox(trigger);
+    await userEvent.click(
+      within(listbox).getByRole("option", { name: "hello 3" }),
+    );
+    await waitForClose();
+    await expect(args.onSelectionChange).toHaveBeenCalledTimes(1);
+    await expect(args.onSelectionChange).toHaveBeenCalledWith(3);
+    await expect(trigger).toHaveTextContent("hello 3");
+    await expect(args.callback).toHaveBeenCalledTimes(1);
+    await expect(args.callback).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 3, itemValue: 3, text: "hello 3" }),
+    );
+  },
+};

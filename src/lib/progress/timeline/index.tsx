@@ -28,6 +28,7 @@ function Timeline({ items, className, ...props }: Readonly<TimelineProps>) {
           key={`${item.title}-${i}`}
           line
           {...item}
+          isFirst={i === 0}
           isLast={false}
           className={clsx(
             "relative",
@@ -39,6 +40,7 @@ function Timeline({ items, className, ...props }: Readonly<TimelineProps>) {
       ))}
       <Bullet
         {...lastItem}
+        isFirst={items.length === 1}
         isLast={true}
         className={clsx(
           "relative",

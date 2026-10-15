@@ -8,6 +8,8 @@ import FileUploaderComponent from "../lib/form/file-uploader";
 import Button from "../lib/button";
 import { a11yExceptions, type A11yException } from "./a11y";
 import {
+  ERROR_TEXT_LIGHT,
+  SUCCESS_TEXT_LIGHT,
   PRIMARY_BLUE_TEXT_LIGHT,
   SECONDARY_TEXT_LIGHT,
   WARNING_TEXT_LIGHT,
@@ -150,11 +152,169 @@ export const FileUploaderWithMessage: Story = {
     await expect(
       canvas.getByRole("button", { name: /Please upload the file\./ }),
     ).toBeInTheDocument();
-    await expect(message.previousElementSibling).toHaveClass(
-      "fill-klerosUIComponentsPrimaryBlue",
-    );
+    await expect(message.previousElementSibling?.tagName).toBe("svg");
   },
 };
+
+const setTheme = (theme: "light" | "dark") =>
+  document.documentElement.classList.toggle("dark", theme === "dark");
+
+const iconOf = (message: HTMLElement) => {
+  const before = message.previousElementSibling as Element;
+  return (
+    before instanceof SVGElement ? before : before.querySelector("svg")
+  ) as SVGElement;
+};
+
+// Linux CI and Chromatic resolve the library's system font stack to a face with other vertical
+// metrics than macOS; the overridden faces move the glyphs down and up inside the same line box.
+const LOCAL_SANS =
+  "local('Helvetica'), local('Arial'), local('Liberation Sans'), local('DejaVu Sans')";
+const METRIC_FACES = [
+  new FontFace("UploaderTallAscent", LOCAL_SANS, {
+    ascentOverride: "110%",
+    descentOverride: "10%",
+  }),
+  new FontFace("UploaderShortAscent", LOCAL_SANS, {
+    ascentOverride: "70%",
+    descentOverride: "40%",
+  }),
+];
+const FONTS = [
+  "",
+  "Georgia, serif",
+  "'Courier New', monospace",
+  "UploaderTallAscent",
+  "UploaderShortAscent",
+];
+
+/** Runs the centring check with the default font and with faces whose metrics differ. */
+const expectIconCentredInEveryFont = async (
+  root: HTMLElement,
+  message: HTMLElement,
+) => {
+  // FontFaceSet is a Set<FontFace> at runtime; this TypeScript lib omits its `add`.
+  const fonts = document.fonts as FontFaceSet & Set<FontFace>;
+  for (const face of await Promise.all(METRIC_FACES.map((f) => f.load())))
+    fonts.add(face);
+  try {
+    for (const font of FONTS) {
+      root.style.fontFamily = font;
+      await expectIconCentredOnFirstLine(message);
+    }
+  } finally {
+    root.style.fontFamily = "";
+  }
+};
+
+/** The icon's centre sits between the first line's cap-height and x-height midpoints, within 1px for pixel snapping. */
+const expectIconCentredOnFirstLine = async (message: HTMLElement) => {
+  const style = getComputedStyle(message);
+  const context = document.createElement("canvas").getContext("2d")!;
+  context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  const metrics = context.measureText("Hx");
+  const lineHeight = Number.parseFloat(style.lineHeight);
+  const contentHeight =
+    metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+  const baseline =
+    message.getBoundingClientRect().top +
+    (lineHeight - contentHeight) / 2 +
+    metrics.fontBoundingBoxAscent;
+  const capMid =
+    baseline - context.measureText("H").actualBoundingBoxAscent / 2;
+  const xMid = baseline - context.measureText("x").actualBoundingBoxAscent / 2;
+  const icon = iconOf(message).getBoundingClientRect();
+  const iconMid = (icon.top + icon.bottom) / 2;
+  await expect(iconMid).toBeGreaterThanOrEqual(capMid - 1);
+  await expect(iconMid).toBeLessThanOrEqual(xMid + 1);
+};
+
+export const FileUploaderInfoIconColour: Story = {
+  parameters: a11yExceptions(ICON_ONLY_UPLOAD_BUTTON, SECONDARY_TEXT_LIGHT),
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    className: "w-[500px]",
+    variant: "info",
+    msg: "Please upload the file.",
+  },
+  play: async ({ canvasElement }) => {
+    const message = within(canvasElement).getByText("Please upload the file.");
+    const initiallyDark = document.documentElement.classList.contains("dark");
+    try {
+      for (const theme of ["light", "dark"] as const) {
+        setTheme(theme);
+        await expect(getComputedStyle(iconOf(message)).fill).toBe(
+          getComputedStyle(message).color,
+        );
+        await expectIconCentredOnFirstLine(message);
+      }
+    } finally {
+      setTheme(initiallyDark ? "dark" : "light");
+    }
+  },
+};
+
+export const FileUploaderInfoIconAlignment: Story = {
+  parameters: a11yExceptions(ICON_ONLY_UPLOAD_BUTTON, SECONDARY_TEXT_LIGHT),
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    className: "w-[200px]",
+    variant: "info",
+    msg: "This is a long message that keeps going so that it wraps over several lines of the uploader.",
+  },
+  play: async ({ canvasElement }) => {
+    const message = within(canvasElement).getByText(/This is a long message/);
+    const lineHeight = Number.parseFloat(getComputedStyle(message).lineHeight);
+    await expect(message.getBoundingClientRect().height).toBeGreaterThanOrEqual(
+      lineHeight * 3 - 1,
+    );
+    await expectIconCentredInEveryFont(canvasElement, message);
+  },
+};
+
+export const FileUploaderStatusColours: Story = {
+  parameters: a11yExceptions(
+    ICON_ONLY_UPLOAD_BUTTON,
+    SUCCESS_TEXT_LIGHT,
+    ERROR_TEXT_LIGHT,
+    WARNING_TEXT_LIGHT,
+  ),
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    className: "w-[500px]",
+  },
+  render: (args) => (
+    <div>
+      <FileUploaderComponent {...args} variant="success" msg="Success msg" />
+      <FileUploaderComponent {...args} variant="error" msg="Error msg" />
+      <FileUploaderComponent {...args} variant="warning" msg="Warning msg" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const probe = document.createElement("span");
+    canvasElement.append(probe);
+    const token = (name: string) => {
+      probe.style.color = `var(--klerosUIComponents${name})`;
+      return getComputedStyle(probe).color;
+    };
+    for (const [text, name] of [
+      ["Success msg", "Success"],
+      ["Error msg", "Error"],
+      ["Warning msg", "Warning"],
+    ]) {
+      const message = canvas.getByText(text);
+      await expect(getComputedStyle(message).color).toBe(token(name));
+      await expect(getComputedStyle(iconOf(message)).fill).toBe(token(name));
+      await expectIconCentredInEveryFont(canvasElement, message);
+    }
+    probe.remove();
+  },
+};
+
 export const FileUploaderVariant: Story = {
   parameters: a11yExceptions(ICON_ONLY_UPLOAD_BUTTON, WARNING_TEXT_LIGHT),
   args: {

@@ -34,14 +34,17 @@ function DropdownSelect({
   placeholder,
   className,
   dropdownClassName,
+  onSelectionChange,
+  "aria-label": ariaLabel,
   ...props
 }: Readonly<SelectProps>) {
   const handleSelection = useCallback(
     (selectedKey: Key) => {
+      onSelectionChange?.(selectedKey);
       const selectedItem = items.find((item) => item.id === selectedKey);
       if (selectedItem) callback(selectedItem);
     },
-    [items, callback],
+    [items, callback, onSelectionChange],
   );
 
   return (
@@ -49,7 +52,9 @@ function DropdownSelect({
       className={cn("flex flex-col gap-1", className)}
       {...props}
       onSelectionChange={handleSelection}
-      aria-label={label ?? "Select"}
+      aria-label={
+        ariaLabel ?? (label || props["aria-labelledby"] ? undefined : "Select")
+      }
     >
       {({ isOpen }) => (
         <>

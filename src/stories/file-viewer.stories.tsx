@@ -76,6 +76,71 @@ const loadedImage = (canvasElement: HTMLElement) =>
     return img as HTMLImageElement;
   }, LOAD);
 
+/** The scroll container rendered by FileViewer: the parent of the doc viewer. */
+const viewerContainer = (canvasElement: HTMLElement) => {
+  const container = canvasElement.querySelector("#react-doc-viewer")
+    ?.parentElement as HTMLElement;
+  expect(container).toBeInTheDocument();
+  return container;
+};
+
+/** Resolves a CSS value through a probe element so `var()` and theme tokens
+ * compare as the browser computes them. */
+const computedOf = (
+  canvasElement: HTMLElement,
+  style: Partial<CSSStyleDeclaration>,
+  className = "",
+) => {
+  const probe = document.createElement("div");
+  probe.className = className;
+  Object.assign(probe.style, style);
+  canvasElement.appendChild(probe);
+  const computed = getComputedStyle(probe);
+  const result = {
+    color: computed.color,
+    borderRadius: computed.borderRadius,
+  };
+  probe.remove();
+  return result;
+};
+
+/** Every element in the viewer that can scroll uses the library scrollbar. */
+const expectLibraryScrollbar = (canvasElement: HTMLElement) => {
+  const primaryBlue = computedOf(canvasElement, {
+    color: "var(--klerosUIComponentsPrimaryBlue)",
+  }).color;
+  const container = viewerContainer(canvasElement);
+  const scrollers = [
+    container,
+    ...Array.from(container.querySelectorAll("*")),
+  ].filter((el) => /(auto|scroll)/.test(getComputedStyle(el).overflow));
+  expect(scrollers).toContain(container);
+  for (const el of scrollers) {
+    const style = getComputedStyle(el);
+    expect(style.scrollbarWidth).toBe("thin");
+    expect(style.scrollbarColor.startsWith(primaryBlue)).toBe(true);
+  }
+};
+
+/** The container keeps its own sizing, rounding and `overflow: auto`. */
+const expectContainerLayoutUnchanged = (canvasElement: HTMLElement) => {
+  const container = viewerContainer(canvasElement);
+  const style = getComputedStyle(container);
+  expect(style.overflowX).toBe("auto");
+  expect(style.overflowY).toBe("auto");
+  expect(style.maxHeight).toBe(`${window.innerHeight * 0.8}px`);
+  expect(style.borderRadius).toBe(
+    computedOf(canvasElement, {}, "rounded-base").borderRadius,
+  );
+  const box = container.getBoundingClientRect();
+  expect(box.width).toBe(800);
+  expect(box.height).toBeLessThanOrEqual(window.innerHeight * 0.8);
+  // overflow: scroll would reserve a gutter and break this
+  expect(container.offsetWidth - container.clientWidth).toBeLessThanOrEqual(
+    container.scrollHeight > container.clientHeight ? 15 : 0,
+  );
+};
+
 const PDF_URL = "./fixtures/sample.pdf";
 
 const IMAGE_URL = "./fixtures/sample.png";
@@ -156,6 +221,8 @@ export const FileViewer: Story = {
       canvas.queryByText("This file type can't be previewed."),
     ).not.toBeInTheDocument();
     await expectOnlyLocalRequests();
+    expectLibraryScrollbar(canvasElement);
+    expectContainerLayoutUnchanged(canvasElement);
   },
 };
 
@@ -179,6 +246,8 @@ export const Image: Story = {
     // doc-viewer fetches the file and renders it from a data URI
     await expect(img.getAttribute("src")).toMatch(/^data:image\/png;base64,/);
     await expectOnlyLocalRequests();
+    expectLibraryScrollbar(canvasElement);
+    expectContainerLayoutUnchanged(canvasElement);
   },
 };
 

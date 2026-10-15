@@ -1,10 +1,17 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Collection,
   Tree,
   TreeItem,
   Popover,
   Dialog,
+  SelectStateContext,
   type Key,
 } from "react-aria-components";
 import clsx from "clsx";
@@ -35,6 +42,11 @@ const DropdownContainer: React.FC<IDropdownContainer> = ({
     defaultSelectedKey ?? null,
   );
   const [expandedKeys, setExpandedKeys] = useState<Set<Key>>(new Set());
+  const confirmedKey = useContext(SelectStateContext)?.selectedKey;
+
+  useEffect(() => {
+    if (confirmedKey !== undefined) setSelectedKey(confirmedKey);
+  }, [confirmedKey]);
 
   const keyToLevelMap = useRef<
     Map<Key, { level: number; parentKey: Key | null }>
@@ -105,7 +117,7 @@ const DropdownContainer: React.FC<IDropdownContainer> = ({
             "grid auto-cols-auto grid-flow-row-dense auto-rows-auto gap-x-0.25 gap-y-0.5 py-4",
             "relative",
           )}
-          defaultSelectedKeys={selectedKey ? [selectedKey] : undefined}
+          selectedKeys={selectedKey === null ? [] : [selectedKey]}
           expandedKeys={expandedKeys}
           disabledKeys={disabledKeys}
           onSelectionChange={(selection) => {

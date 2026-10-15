@@ -1,12 +1,16 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, within } from "@storybook/test";
+import { expect, userEvent, waitFor, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
 import TimelineComponent from "../lib/progress/timeline/custom";
 import Circle from "../assets/svgs/check-circle-outline.svg";
 import { a11yExceptions } from "./a11y";
+import {
+  expectBulletsCentredOnTitles,
+  expectConnectorsMeetBullets,
+} from "./timeline-geometry";
 import {
   SECONDARY_TEXT_LIGHT,
   PRIMARY_BLUE_TEXT_LIGHT,
@@ -72,6 +76,8 @@ export const Timeline: Story = {
     // a custom Icon replaces the default bullet
     await expect(items[0].querySelector("svg")).toBeInTheDocument();
     await expect(items[1].querySelector("svg")).toBeNull();
+    await expectBulletsCentredOnTitles(items);
+    await expectConnectorsMeetBullets(items);
   },
 };
 
@@ -113,6 +119,8 @@ export const TimelineStates: Story = {
     await expect(loading).toHaveClass("animate-loading");
     for (const item of [first, disabled, loading])
       await expect(item).not.toHaveAttribute("aria-current");
+    await expectBulletsCentredOnTitles([first, disabled, loading]);
+    await expectConnectorsMeetBullets([first, disabled, loading]);
   },
 };
 
@@ -163,6 +171,47 @@ export const TimelineCustomParty: Story = {
     await expect(link).toHaveAttribute("href", "https://docs.kleros.io/");
     await expect(link).toHaveAttribute("target", "_blank");
     await expect(party).toHaveTextContent("alice.eth -");
+    await expectBulletsCentredOnTitles(getItems(canvasElement));
+    await expectConnectorsMeetBullets(getItems(canvasElement));
+  },
+};
+
+/** A party element taller than the title keeps the bullet centred on the title. */
+export const TimelineTallParty: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    items: [
+      {
+        title: "Pay 250 DAI",
+        party: (
+          <span className="text-klerosUIComponentsPrimaryText flex size-8 items-center justify-center">
+            AB
+          </span>
+        ),
+        subtitle: "06 Jul 2023 12:00 UTC",
+        variant: "#4D00B4",
+      },
+      {
+        title: "Jury Decision - Round 1",
+        party: (
+          <span className="text-klerosUIComponentsPrimaryText flex size-8 items-center justify-center">
+            AB
+          </span>
+        ),
+        subtitle: "06 Jul 2023 12:00 UTC",
+        variant: "#ca2314",
+      },
+    ],
+  },
+  play: async ({ canvasElement }) => {
+    const items = getItems(canvasElement);
+    const party = within(items[0]).getByLabelText(
+      "Timeline item party element",
+    );
+    await expect(party.getBoundingClientRect().height).toBe(32);
+    await expectBulletsCentredOnTitles(items);
+    await expectConnectorsMeetBullets(items);
   },
 };
 
@@ -249,5 +298,70 @@ export const ActiveItem: Story = {
     await expect(
       within(voting).getByLabelText("Timeline item party: Ongoing"),
     ).toHaveClass("text-klerosUIComponentsError");
+  },
+};
+
+const LengthenableTimeline = (
+  props: React.ComponentProps<typeof TimelineComponent>,
+) => {
+  const [long, setLong] = React.useState(false);
+  const [first, ...rest] = props.items;
+  return (
+    <>
+      <button
+        className="text-klerosUIComponentsPrimaryText bg-transparent"
+        onClick={() => setLong(true)}
+      >
+        Lengthen
+      </button>
+      <TimelineComponent
+        {...props}
+        items={[
+          {
+            ...first,
+            title: long
+              ? "A very long title that has to wrap onto several lines"
+              : first.title,
+          },
+          ...rest,
+        ]}
+      />
+    </>
+  );
+};
+
+/** The bullet follows the title when it grows after mount. */
+export const TimelineTitleWraps: Story = {
+  parameters: a11yExceptions(PARTY_VARIANT_COLOUR_DARK),
+  render: (args) => <LengthenableTimeline {...args} />,
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    className: "w-[200px]",
+    items: [
+      {
+        title: "Pay 250 DAI",
+        party: "Yes",
+        subtitle: "06 Jul 2023 12:00 UTC",
+        variant: "#4D00B4",
+      },
+      {
+        title: "Jury Decision",
+        party: "No",
+        subtitle: "06 Jul 2023 12:00 UTC",
+        variant: "#ca2314",
+      },
+    ],
+  },
+  play: async ({ canvasElement }) => {
+    const items = getItems(canvasElement);
+    const title = within(items[0]).getByRole("heading");
+    const before = title.getBoundingClientRect().height;
+    await userEvent.click(
+      within(canvasElement).getByRole("button", { name: "Lengthen" }),
+    );
+    await expect(title.getBoundingClientRect().height).toBeGreaterThan(before);
+    await waitFor(() => expectBulletsCentredOnTitles(items));
+    await expectConnectorsMeetBullets(items);
   },
 };

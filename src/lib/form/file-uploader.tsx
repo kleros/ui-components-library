@@ -33,6 +33,11 @@ interface FileUploaderProps {
 
 /** Allows to upload a file by either dropping it on the dropzone or
  * accessing the file system. */
+// The icon sits on the text baseline; shifting it by half its height minus half a cap height
+// puts its centre on the capitals' centre whatever font the platform resolves.
+const ICON_ON_BASELINE =
+  "relative top-[calc(0.5rem-0.5cap)] mr-2 size-4 shrink-0 text-base";
+
 function FileUploader({
   callback,
   msg,
@@ -126,23 +131,34 @@ function FileUploader({
         </FileTrigger>
       </DropZone>
       {msg && (
-        <div className="mt-4 flex items-center">
+        <div className="mt-4 flex items-baseline">
           {variant === "success" && (
-            <SuccessIcon className="fill-klerosUIComponentsSuccess mr-2 max-w-4 min-w-4" />
+            <SuccessIcon
+              className={cn(ICON_ON_BASELINE, "fill-klerosUIComponentsSuccess")}
+            />
           )}
           {variant === "warning" && (
-            <WarningIcon className="fill-klerosUIComponentsWarning mr-2 max-w-4 min-w-4" />
+            <WarningIcon
+              className={cn(ICON_ON_BASELINE, "fill-klerosUIComponentsWarning")}
+            />
           )}
           {variant === "error" && (
-            <ErrorIcon className="fill-klerosUIComponentsError mr-2 max-w-4 min-w-4" />
+            <ErrorIcon
+              className={cn(ICON_ON_BASELINE, "fill-klerosUIComponentsError")}
+            />
           )}
           {variant === "info" && (
-            <InfoIcon className="fill-klerosUIComponentsPrimaryBlue mr-2 max-w-4 min-w-4" />
+            <InfoIcon
+              className={cn(
+                ICON_ON_BASELINE,
+                "fill-klerosUIComponentsSecondaryText",
+              )}
+            />
           )}
           <small
             id="dropzone-label"
             className={cn(
-              "text-klerosUIComponentsSecondaryText relative -top-0.25 text-justify text-base",
+              "text-klerosUIComponentsSecondaryText text-justify text-base",
               {
                 "text-klerosUIComponentsSuccess": variant === "success",
                 "text-klerosUIComponentsError": variant === "error",

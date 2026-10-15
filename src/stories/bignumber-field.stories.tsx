@@ -881,3 +881,217 @@ export const ChangingBounds: Story = {
     });
   },
 };
+
+const EchoHarness = ({
+  state,
+  ...props
+}: React.ComponentProps<typeof BigNumberField> & {
+  state: "string" | "bignumber";
+}) => {
+  const [amount, setAmount] = React.useState<string | BigNumber>("5");
+  // "bignumber" passes a fresh BigNumber on every render.
+  const value = state === "string" ? amount : new BigNumber(amount);
+  return (
+    <div>
+      <BigNumberField
+        {...props}
+        value={value}
+        onChange={(v) => {
+          setAmount(state === "string" ? v.toString() : v);
+          props.onChange?.(v);
+        }}
+      />
+      <Button
+        variant="primary"
+        small
+        text="Set 5"
+        onPress={() => setAmount("5")}
+      />
+      <Button
+        variant="primary"
+        small
+        text="Set 7"
+        onPress={() => setAmount("7")}
+      />
+    </div>
+  );
+};
+
+const typeOver = async (input: HTMLElement, text: string) => {
+  const length = (input as HTMLInputElement).value.length;
+  await userEvent.type(input, text, {
+    initialSelectionStart: 0,
+    initialSelectionEnd: length,
+  });
+};
+
+const playParentChange: Story["play"] = async ({ canvasElement, step }) => {
+  const canvas = within(canvasElement);
+  const input = canvas.getByRole("spinbutton");
+
+  await step(
+    "a parent change to a different value replaces the text",
+    async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Set 7" }));
+      await waitFor(() => expect(input).toHaveValue("7"));
+      await expect(input).toHaveAttribute("aria-valuenow", "7");
+      await userEvent.click(canvas.getByRole("button", { name: "Set 5" }));
+      await waitFor(() => expect(input).toHaveValue("5"));
+    },
+  );
+
+  await step("a parent change replaces in-progress text", async () => {
+    await typeOver(input, "1");
+    await userEvent.keyboard(".");
+    await userEvent.click(canvas.getByRole("button", { name: "Set 7" }));
+    await waitFor(() => expect(input).toHaveValue("7"));
+  });
+};
+
+const playClear: Story["play"] = async ({ canvasElement, args }) => {
+  const canvas = within(canvasElement);
+  const input = canvas.getByRole("spinbutton");
+  await typeOver(input, "12");
+  await expect(input).toHaveValue("12");
+  await userEvent.clear(input);
+  await expect(lastChange(args.onChange)).toBe("0");
+  await expect(input).toHaveValue("0");
+  await expect(input).toHaveAttribute("aria-valuenow", "0");
+};
+
+export const ControlledStringEcho: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
+  args: { ...Default.args, label: "Amount" },
+  render: (args) => <EchoHarness {...args} state="string" />,
+  play: async ({ canvasElement, args, step }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    await expect(input).toHaveValue("5");
+
+    await step("deleting a trailing digit keeps the text typed", async () => {
+      await typeOver(input, "1.05");
+      await expect(input).toHaveValue("1.05");
+      await userEvent.keyboard("{Backspace}");
+      await expect(input).toHaveValue("1.0");
+      await expect(lastChange(args.onChange)).toBe("1");
+      await userEvent.keyboard("3");
+      await expect(input).toHaveValue("1.03");
+      await expect(lastChange(args.onChange)).toBe("1.03");
+    });
+
+    await step("deleting back to a trailing point keeps it", async () => {
+      await typeOver(input, "2.50");
+      await userEvent.keyboard("{Backspace}{Backspace}");
+      await expect(input).toHaveValue("2.");
+      await expect(lastChange(args.onChange)).toBe("2");
+      await userEvent.keyboard("7");
+      await expect(input).toHaveValue("2.7");
+    });
+  },
+};
+
+export const ControlledBigNumberEcho: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
+  args: { ...Default.args, label: "Amount" },
+  render: (args) => <EchoHarness {...args} state="bignumber" />,
+  play: async ({ canvasElement, args, step }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    await expect(input).toHaveValue("5");
+
+    await step("a trailing decimal point survives the echo", async () => {
+      await typeOver(input, "1.");
+      await expect(input).toHaveValue("1.");
+      await expect(lastChange(args.onChange)).toBe("1");
+      await userEvent.keyboard("5");
+      await expect(input).toHaveValue("1.5");
+      await expect(lastChange(args.onChange)).toBe("1.5");
+    });
+
+    await step("trailing zeros survive the echo", async () => {
+      await typeOver(input, "0.10");
+      await expect(input).toHaveValue("0.10");
+      await userEvent.keyboard("4");
+      await expect(input).toHaveValue("0.104");
+    });
+  },
+};
+
+export const ControlledStringParentChange: Story = {
+  ...ControlledStringEcho,
+  play: playParentChange,
+};
+
+export const ControlledBigNumberParentChange: Story = {
+  ...ControlledBigNumberEcho,
+  play: playParentChange,
+};
+
+export const ControlledStringClear: Story = {
+  ...ControlledStringEcho,
+  play: playClear,
+};
+
+export const ControlledBigNumberClear: Story = {
+  ...ControlledBigNumberEcho,
+  play: playClear,
+};
+
+/** Asserts the field shows no text, also after blur and the idle-format delay. */
+const expectEmptyField = async (input: HTMLElement) => {
+  await expect(input).toHaveValue("");
+  await expect(input.getAttribute("aria-valuetext")).not.toMatch(/NaN/);
+  await userEvent.click(input);
+  await userEvent.tab();
+  await expect(input).toHaveValue("");
+  // the idle-format timer fires 3s after the numeric value changes
+  await new Promise((resolve) => setTimeout(resolve, 3500));
+  await expect(input).toHaveValue("");
+};
+
+export const EmptyStringValue: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  args: { ...Default.args, label: "Amount", value: "" },
+  play: async ({ canvasElement }) => {
+    const input = within(canvasElement).getByRole("spinbutton");
+    await expectEmptyField(input);
+  },
+};
+
+const ClearHarness = (props: React.ComponentProps<typeof BigNumberField>) => {
+  const [value, setValue] = React.useState<string>("5");
+  return (
+    <div>
+      <BigNumberField {...props} value={value} />
+      <Button
+        variant="primary"
+        small
+        text="Set empty"
+        onPress={() => setValue("")}
+      />
+      <Button
+        variant="primary"
+        small
+        text="Set 5"
+        onPress={() => setValue("5")}
+      />
+    </div>
+  );
+};
+
+export const ControlledValueToEmptyString: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
+  args: { ...Default.args, label: "Amount" },
+  render: (args) => <ClearHarness {...args} />,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("spinbutton");
+    await expect(input).toHaveValue("5");
+    await userEvent.click(canvas.getByRole("button", { name: "Set empty" }));
+    await waitFor(() => expect(input).toHaveValue(""));
+    await expectEmptyField(input);
+    await userEvent.click(canvas.getByRole("button", { name: "Set 5" }));
+    await waitFor(() => expect(input).toHaveValue("5"));
+    await expect(args.onChange).not.toHaveBeenCalled();
+  },
+};
