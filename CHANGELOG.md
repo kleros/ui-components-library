@@ -2,7 +2,7 @@
 
 Notable changes to `@kleros/ui-components-library`, for the apps that consume it. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/).
 
-Every pull request that changes what a consumer sees adds its entry under **Unreleased**. A release renames that heading to the version and date.
+Every pull request that changes what a consumer sees adds its entry under **Unreleased**. A release moves those entries under a new heading with the version and date and leaves **Unreleased** in place, empty, for the next changes.
 
 ## [Unreleased]
 
