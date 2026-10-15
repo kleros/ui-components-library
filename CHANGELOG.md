@@ -2,9 +2,11 @@
 
 Notable changes to `@kleros/ui-components-library`, for the apps that consume it. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/).
 
-Every pull request that changes what a consumer sees adds its entry under **Unreleased**. A release renames that heading to the version and date.
+Every pull request that changes what a consumer sees adds its entry under **Unreleased**. A release moves those entries under a new heading with the version and date and leaves **Unreleased** in place, empty, for the next changes.
 
 ## [Unreleased]
+
+## [3.10.0] - 2026-10-15
 
 ### Breaking changes
 
@@ -33,5 +35,6 @@ None.
 
 Earlier releases are recorded only as git tags; see the [tags](https://github.com/kleros/ui-components-library/tags).
 
-[Unreleased]: https://github.com/kleros/ui-components-library/compare/v3.9.0...HEAD
+[Unreleased]: https://github.com/kleros/ui-components-library/compare/v3.10.0...HEAD
+[3.10.0]: https://github.com/kleros/ui-components-library/compare/v3.9.0...v3.10.0
 [3.9.0]: https://github.com/kleros/ui-components-library/releases/tag/v3.9.0
