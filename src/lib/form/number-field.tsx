@@ -50,6 +50,7 @@ function NumberField({
   placeholder,
   label,
   isDisabled,
+  isReadOnly,
   inputProps,
   showFieldError,
   fieldErrorProps,
@@ -59,6 +60,7 @@ function NumberField({
     <AriaNumberField
       className={cn("flex w-[278px] flex-col", className)}
       isDisabled={isDisabled}
+      isReadOnly={isReadOnly}
       {...props}
     >
       {label && (
@@ -94,6 +96,7 @@ function NumberField({
                 "animate-fade-in absolute top-0 right-3 hidden h-full w-3.5",
                 isHovered &&
                   !isDisabled &&
+                  !isReadOnly &&
                   "flex flex-col items-center justify-center gap-1",
                 {
                   "right-9": variant && variant !== "info",

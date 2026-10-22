@@ -91,6 +91,13 @@ const lastChange = (onChange: unknown) => {
 const callCount = (onChange: unknown) =>
   (onChange as ReturnType<typeof fn>).mock.calls.length;
 
+/** The value passed in the most recent `onValueChange` call, as a string, or null. */
+const lastValueChange = (onValueChange: unknown) => {
+  const calls = (onValueChange as ReturnType<typeof fn>).mock.calls;
+  const value = calls[calls.length - 1]?.[0] as BigNumber | null | undefined;
+  return value === null ? null : value?.toString();
+};
+
 export const Default: Story = {
   args: {
     themeUI: "dark",
@@ -953,6 +960,8 @@ const playClear: Story["play"] = async ({ canvasElement, args }) => {
   const input = canvas.getByRole("spinbutton");
   await typeOver(input, "12");
   await expect(input).toHaveValue("12");
+  // onChange reports an emptied input as 0, and the echoed 0 is shown; a field controlled
+  // through onValueChange stays empty instead (ControlledStringValueChange).
   await userEvent.clear(input);
   await expect(lastChange(args.onChange)).toBe("0");
   await expect(input).toHaveValue("0");
@@ -987,6 +996,12 @@ export const ControlledStringEcho: Story = {
       await userEvent.keyboard("7");
       await expect(input).toHaveValue("2.7");
     });
+
+    await step("a leading point survives the NaN echo", async () => {
+      await typeOver(input, ".5");
+      await expect(input).toHaveValue(".5");
+      await expect(lastChange(args.onChange)).toBe("0.5");
+    });
   },
 };
 
@@ -1013,6 +1028,12 @@ export const ControlledBigNumberEcho: Story = {
       await expect(input).toHaveValue("0.10");
       await userEvent.keyboard("4");
       await expect(input).toHaveValue("0.104");
+    });
+
+    await step("a leading point survives the NaN echo", async () => {
+      await typeOver(input, ".5");
+      await expect(input).toHaveValue(".5");
+      await expect(lastChange(args.onChange)).toBe("0.5");
     });
   },
 };
@@ -1094,4 +1115,114 @@ export const ControlledValueToEmptyString: Story = {
     await waitFor(() => expect(input).toHaveValue("5"));
     await expect(args.onChange).not.toHaveBeenCalled();
   },
+};
+
+/** `value={null}`, like `value=""`, shows an empty field. */
+export const NullValue: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  args: { ...Default.args, label: "Amount", value: null },
+  play: async ({ canvasElement }) => {
+    const input = within(canvasElement).getByRole("spinbutton");
+    await expectEmptyField(input);
+  },
+};
+
+const ValueChangeHarness = ({
+  state,
+  ...props
+}: React.ComponentProps<typeof BigNumberField> & {
+  state: "string" | "nullable";
+}) => {
+  // "string" keeps "" for an empty field, "nullable" keeps BigNumber | null with null for empty.
+  const [amount, setAmount] = React.useState<string | BigNumber | null>(
+    state === "string" ? "5" : new BigNumber("5"),
+  );
+  return (
+    <div>
+      <BigNumberField
+        {...props}
+        value={amount}
+        onValueChange={(v) => {
+          setAmount(state === "string" ? (v?.toString() ?? "") : v);
+          props.onValueChange?.(v);
+        }}
+      />
+      <Button
+        variant="primary"
+        small
+        text="Set empty"
+        onPress={() => setAmount(state === "string" ? "" : null)}
+      />
+    </div>
+  );
+};
+
+const playValueChange: Story["play"] = async ({
+  canvasElement,
+  args,
+  step,
+}) => {
+  const canvas = within(canvasElement);
+  const input = canvas.getByRole("spinbutton");
+  await expect(input).toHaveValue("5");
+
+  await step("clearing keeps the field empty and reports null", async () => {
+    await typeOver(input, "12");
+    await userEvent.clear(input);
+    await expect(input).toHaveValue("");
+    await expect(input).toHaveAttribute("aria-valuenow", "");
+    await expect(lastValueChange(args.onValueChange)).toBeNull();
+    // onChange still reports an emptied input as 0
+    await expect(lastChange(args.onChange)).toBe("0");
+  });
+
+  await step("a typed 0 is reported as 0, not as empty", async () => {
+    await userEvent.type(input, "0.5");
+    await expect(input).toHaveValue("0.5");
+    await expect(lastValueChange(args.onValueChange)).toBe("0.5");
+    await userEvent.keyboard("{Backspace}{Backspace}");
+    await expect(input).toHaveValue("0");
+    await expect(lastValueChange(args.onValueChange)).toBe("0");
+  });
+
+  await step(
+    "text that holds no number yet is kept and reported as null",
+    async () => {
+      await typeOver(input, ".");
+      await expect(input).toHaveValue(".");
+      await expect(lastValueChange(args.onValueChange)).toBeNull();
+      await userEvent.keyboard("5");
+      await expect(input).toHaveValue(".5");
+      await expect(lastValueChange(args.onValueChange)).toBe("0.5");
+      await typeOver(input, "-");
+      await expect(input).toHaveValue("-");
+      await expect(lastValueChange(args.onValueChange)).toBeNull();
+      await userEvent.keyboard("3");
+      await expect(lastValueChange(args.onValueChange)).toBe("-3");
+    },
+  );
+
+  await step("a parent update empties the field", async () => {
+    const calls = callCount(args.onValueChange);
+    await userEvent.click(canvas.getByRole("button", { name: "Set empty" }));
+    await waitFor(() => expect(input).toHaveValue(""));
+    await expect(input).toHaveAttribute("aria-valuenow", "");
+    // parent updates do not call the handlers
+    await expect(callCount(args.onValueChange)).toBe(calls);
+  });
+};
+
+/** Controlled through `onValueChange` with string state: an emptied field reports `null`, so it
+ * stays empty instead of echoing back as 0, and `""` empties it from the parent. */
+export const ControlledStringValueChange: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT),
+  args: { ...Default.args, label: "Amount", onValueChange: fn() },
+  render: (args) => <ValueChangeHarness {...args} state="string" />,
+  play: playValueChange,
+};
+
+/** Controlled through `onValueChange` with `BigNumber | null` state, where `null` is an empty field. */
+export const ControlledNullableValueChange: Story = {
+  ...ControlledStringValueChange,
+  render: (args) => <ValueChangeHarness {...args} state="nullable" />,
 };
