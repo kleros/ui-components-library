@@ -1,1 +1,1 @@
-import "../styles/global.css";
+import "../styles/stories.css";

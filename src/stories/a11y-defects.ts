@@ -53,7 +53,7 @@ export const ERROR_TEXT_LIGHT = contrastInLight(
 export const SELECT_VALUE_LIGHT = contrastInLight(
   ".react-aria-SelectValue",
   "Library defect: the simple select's value inherits PrimaryBlue text, 2.9:1.",
-  "src/lib/dropdown/select/simple-button.tsx:34",
+  "src/lib/dropdown/select/simple-button.tsx:36",
 );
 
 export const SLIDER_LABEL_LIGHT = contrastInLight(

@@ -174,6 +174,16 @@ export const Composition: Story = {
     // typing in the field does not change the selection
     await expect(gated).toBeChecked();
 
+    // arrow keys typed in the field stay in it: they move the caret, not the selection
+    for (const key of ["{ArrowUp}", "{ArrowDown}", "{ArrowRight}"]) {
+      await userEvent.keyboard(key);
+      await expect(field).toHaveFocus();
+      await expect(gated).toBeChecked();
+    }
+    await userEvent.keyboard("{ArrowLeft}{ArrowLeft}9");
+    await expect(field).toHaveValue("0x12934");
+    await expect(gated).toBeChecked();
+
     await userEvent.click(all);
     await expect(
       canvas.queryByRole("textbox", { name: "Token address" }),

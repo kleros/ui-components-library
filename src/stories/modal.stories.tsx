@@ -78,8 +78,9 @@ export const Modal: Story = {
         expect(within(dialog).getByText("I am a Modal.")).toBeVisible(),
       );
       await waitFor(() => expect(dialog).toHaveFocus());
-      // the rest of the page is hidden from assistive technology
-      await expect(trigger.closest("[aria-hidden='true']")).not.toBeNull();
+      // the rest of the page is inert: hidden from assistive technology and
+      // out of reach of focus and the pointer
+      await expect(trigger.closest("[inert]")).not.toBeNull();
       await auditA11y(context, "open");
     });
 

@@ -31,8 +31,9 @@ export interface FormatOptions {
 }
 
 export interface BigNumberFieldProps {
-  /** The current value (controlled). */
-  value?: string | BigNumber;
+  /** The current value (controlled). `null` or `""` empties the field; `undefined` leaves the field
+   * uncontrolled. */
+  value?: string | BigNumber | null;
   /** The default value (uncontrolled). */
   defaultValue?: string | BigNumber;
   /** The minimum allowed value. */
@@ -41,8 +42,13 @@ export interface BigNumberFieldProps {
   maxValue?: string | BigNumber;
   /** The amount to increment or decrement by. */
   step?: string | BigNumber;
-  /** Handler that is called when the value changes. */
+  /** Handler that is called when the value changes. An emptied input is reported as 0, and `.` or
+   * `-.` as NaN; a lone `-` is not reported. `onValueChange` reports each of these as `null`. */
   onChange?: (value: BigNumber) => void;
+  /** Handler that is called when the value changes, with the same number as `onChange`, or `null`
+   * when the input holds none: when it is emptied (where `onChange` gets 0) or holds only `-`, `.`
+   * or `-.`. */
+  onValueChange?: (value: BigNumber | null) => void;
   /** Whether the input is disabled. */
   isDisabled?: boolean;
   /** Whether the input is read only. */
@@ -103,18 +109,22 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   }, []);
 
   const {
-    value,
+    value: valueProp,
     defaultValue,
     minValue,
     maxValue,
     step = "1",
     onChange,
+    onValueChange,
     isDisabled,
     isReadOnly,
     isWheelDisabled,
     id: propId,
     formatOptions,
   } = props;
+
+  // `null` empties a controlled field, like "".
+  const value = valueProp === null ? "" : valueProp;
 
   // Generate an ID if one is not provided
   const generatedId = useId();
@@ -173,22 +183,46 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   const numberValueRef = useRef(numberValue);
   numberValueRef.current = numberValue;
 
+  // The text in the update being committed, and the text of the previous commit
+  const inputValueRef = useRef(inputValue);
+  inputValueRef.current = inputValue;
+  const committedInputValueRef = useRef(inputValue);
+
   // Update internal state when controlled value changes
   useEffect(() => {
     if (value !== undefined) {
-      // An echo of the field's own onChange keeps the text being typed.
+      // An echo of the field's own onChange or onValueChange keeps the text being typed.
       if (numberValueRef.current?.isEqualTo(value.toString())) return;
       try {
         const parsed = parseValue(value);
+        // So does an empty value that comes in the same update as an edit leaving no number yet,
+        // such as "." (NaN for onChange) or "-" (null for onValueChange).
+        if (
+          parsed === null &&
+          numberValueRef.current === null &&
+          inputValueRef.current !== committedInputValueRef.current
+        )
+          return;
+        // The new text is unformatted, so typing, pasting and the idle formatter treat it as such.
         setInputValue(parsed === null ? "" : value.toString());
         setNumberValue(parsed);
+        setIsFormatted(false);
       } catch (error) {
         console.error("Error updating BigNumber value:", error);
         setInputValue(value.toString());
         setNumberValue(null);
+        setIsFormatted(false);
       }
     }
   }, [value]);
+
+  // A parent's echo comes in the same update as the edit it answers. In a later update, where the
+  // text is unchanged, an empty value is the parent's own reset, even when the edit got no echo.
+  // This compares committed text rather than tracking when a handler ran: React can run the
+  // effects of an earlier update after a handler has run.
+  useEffect(() => {
+    committedInputValueRef.current = inputValue;
+  });
 
   // Apply formatting after 3 second of inactivity when numberValue changes
   useEffect(() => {
@@ -245,6 +279,18 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     return clampedValue;
   };
 
+  // Report a new value: onChange gets 0 for an emptied input (null), onValueChange gets null
+  // for any value that is not a number.
+  const emitChange = (newValue: BigNumber | null) => {
+    onChange?.(newValue ?? new BigNumber(0));
+    onValueChange?.(newValue?.isNaN() ? null : newValue);
+  };
+
+  // Report a lone "-": onChange is not called for it, onValueChange gets null
+  const emitLoneMinus = () => {
+    onValueChange?.(null);
+  };
+
   // Handle increment/decrement
   const increment = () => {
     if (!canIncrement()) return;
@@ -264,7 +310,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     setNumberValue(newValue);
     setInputValue(newValue.toString());
     setIsFormatted(false);
-    onChange?.(newValue);
+    emitChange(newValue);
     setValidationResult(getValidationResult(newValue));
   };
 
@@ -286,7 +332,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     setNumberValue(newValue);
     setInputValue(newValue.toString());
     setIsFormatted(false);
-    onChange?.(newValue);
+    emitChange(newValue);
     setValidationResult(getValidationResult(newValue));
   };
 
@@ -364,12 +410,22 @@ export function useBigNumberField(props: BigNumberFieldProps) {
             setInputValue(unformattedValue);
             setNumberValue(null);
             if (unformattedValue === "") {
-              onChange?.(new BigNumber(0));
+              emitChange(null);
+            } else {
+              emitLoneMinus();
             }
             return;
           }
 
           const newNumberValue = new BigNumber(unformattedValue);
+          // "." or "-." holds no number yet: keep the text instead of showing "NaN".
+          // onChange still gets NaN, as it always has.
+          if (newNumberValue.isNaN()) {
+            setInputValue(unformattedValue);
+            setNumberValue(null);
+            emitChange(newNumberValue);
+            return;
+          }
           // Clamp the value to min/max range
           const clampedValue = clampValue(newNumberValue);
 
@@ -382,7 +438,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
           }
 
           setNumberValue(clampedValue);
-          onChange?.(clampedValue);
+          emitChange(clampedValue);
         } catch (error) {
           console.error("Error parsing unformatted value:", error);
           setInputValue(unformattedValue);
@@ -399,12 +455,22 @@ export function useBigNumberField(props: BigNumberFieldProps) {
           setInputValue(newInputValue);
           setNumberValue(null);
           if (newInputValue === "") {
-            onChange?.(new BigNumber(0));
+            emitChange(null);
+          } else {
+            emitLoneMinus();
           }
           return;
         }
 
         const newNumberValue = new BigNumber(newInputValue);
+        // "." or "-." holds no number yet: keep the text instead of showing "NaN".
+        // onChange still gets NaN, as it always has.
+        if (newNumberValue.isNaN()) {
+          setInputValue(newInputValue);
+          setNumberValue(null);
+          emitChange(newNumberValue);
+          return;
+        }
         // Clamp the value to min/max range
         const clampedValue = clampValue(newNumberValue);
 
@@ -417,7 +483,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
         }
 
         setNumberValue(clampedValue);
-        onChange?.(clampedValue);
+        emitChange(clampedValue);
       } catch (error) {
         // If the input can't be parsed as a BigNumber, just update the input value
         console.error("Error parsing input as BigNumber:", error);
@@ -444,15 +510,19 @@ export function useBigNumberField(props: BigNumberFieldProps) {
 
   // Handle blur event to normalize and format the input value
   const handleBlur = () => {
+    // The text left after blur, which the required check sees
+    let text = inputValue;
     if (numberValue !== null) {
       // Format the number using BigNumber.toFormat
-      setInputValue(formatBigNumber(numberValue));
+      text = formatBigNumber(numberValue);
+      setInputValue(text);
       setIsFormatted(true);
     } else if (inputValue !== "" && inputValue !== "-") {
-      setInputValue("");
+      text = "";
+      setInputValue(text);
     }
 
-    setValidationResult(getValidationResult());
+    setValidationResult(getValidationResult(undefined, text));
   };
 
   // Handle keyboard events
@@ -489,10 +559,21 @@ export function useBigNumberField(props: BigNumberFieldProps) {
         return;
       }
 
-      // Special handling for decimal point - only allow one
-      if (e.key === "." && inputValue.includes(".")) {
-        e.preventDefault();
-        return;
+      // Special handling for decimal point - only allow one. Typing replaces the selected text,
+      // so a selected decimal point does not count. A formatted text whose decimal separator is
+      // not "." holds "." only as a group separator.
+      if (e.key === ".") {
+        const { value: text, selectionStart, selectionEnd } = e.currentTarget;
+        const { decimalSeparator } = { ...DEFAULT_FORMAT, ...formatOptions };
+        const unselected =
+          isFormatted && decimalSeparator !== "."
+            ? text
+            : text.slice(0, selectionStart ?? text.length) +
+              text.slice(selectionEnd ?? text.length);
+        if (unselected.includes(".")) {
+          e.preventDefault();
+          return;
+        }
       }
 
       // Handle special key actions
@@ -511,7 +592,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
             setNumberValue(minBig);
             setInputValue(minBig.toString());
             setIsFormatted(false);
-            onChange?.(minBig);
+            emitChange(minBig);
           }
           break;
         case "End":
@@ -520,7 +601,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
             setNumberValue(maxBig);
             setInputValue(maxBig.toString());
             setIsFormatted(false);
-            onChange?.(maxBig);
+            emitChange(maxBig);
           }
           break;
       }
@@ -627,16 +708,13 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   });
 
   // Field Error Render props
-  const getValidationResult = (value?: BigNumber) => {
+  const getValidationResult = (value?: BigNumber, text = inputValue) => {
     const fieldErrorProps = {
       isInvalid: false,
       validationError: "",
     };
 
-    if (
-      props.isRequired &&
-      (value ? value.toString() : inputValue).trim() === ""
-    ) {
+    if (props.isRequired && (value ? value.toString() : text).trim() === "") {
       fieldErrorProps.isInvalid = true;
       fieldErrorProps.validationError = "Please fill out this field.";
     }

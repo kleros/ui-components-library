@@ -39,11 +39,13 @@ const Item: React.FC<IItem> = ({ text, Icon, icon, dot, ...props }) => {
       {({ isDisabled }) => (
         <>
           {icon ??
-            (Icon && <Icon className="max-h-4 min-h-3 max-w-4 min-w-3" />)}
-          {dot && <Dot className="mr-2" color={dot} />}
+            (Icon && (
+              <Icon className="max-h-4 min-h-3 max-w-4 min-w-3 shrink-0" />
+            ))}
+          {dot && <Dot className="mr-2 shrink-0" color={dot} />}
           <p
             className={clsx(
-              "text-base",
+              "min-w-0 text-base break-words",
               isDisabled
                 ? "text-klerosUIComponentsSecondaryText"
                 : "text-klerosUIComponentsPrimaryText",

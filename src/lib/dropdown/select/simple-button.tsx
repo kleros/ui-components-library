@@ -1,27 +1,29 @@
-import clsx from "clsx";
 import React from "react";
 import { Button, type ButtonProps, SelectValue } from "react-aria-components";
 import Arrow from "../../../assets/svgs/dropdown/arrow.svg";
 import { cn } from "../../../utils";
 
-interface ISimpleButton extends ButtonProps {
+interface ISimpleButton extends Omit<ButtonProps, "className"> {
   isOpen: boolean;
   small?: boolean;
   placeholder?: string;
+  className?: string;
 }
 
 const SimpleButton: React.FC<ISimpleButton> = ({
   isOpen,
   small,
   placeholder,
+  className,
   ...props
 }) => {
   return (
     <Button
-      className={clsx(
+      className={cn(
         "rounded-base p-1",
         "flex cursor-pointer items-center disabled:cursor-not-allowed",
         "focus:shadow-input outline-none",
+        className,
       )}
       {...props}
     >

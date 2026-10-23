@@ -1,4 +1,6 @@
-@import "tailwindcss";
+/* Scan only the components, so the shipped stylesheet carries no utilities that only stories or
+   tests use. Storybook, the browser tests and the dev page load stories.css, which adds them. */
+@import "tailwindcss" source("../lib");
 @plugin "tailwindcss-react-aria-components";
 
 @import "./theme.css";

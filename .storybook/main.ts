@@ -30,10 +30,18 @@ const config: StorybookConfig = {
           if (!fileName.includes("node_modules")) {
             return true;
           }
-          // Include props from react-aria-components and react-aria
+          // Exclude the DOM events and attributes every react-aria component accepts
+          if (
+            prop.parent.name === "GlobalDOMEvents" ||
+            prop.parent.name === "GlobalDOMAttributes"
+          ) {
+            return false;
+          }
+          // Include props from react-aria-components, react-aria and react-stately
           if (
             fileName.includes("react-aria-components") ||
             fileName.includes("react-aria") ||
+            fileName.includes("react-stately") ||
             fileName.includes("node_modules/@react-types")
           ) {
             return true;

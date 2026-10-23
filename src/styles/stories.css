@@ -1,0 +1,6 @@
+/* Storybook, the browser tests and the dev page render stories and tests that use utilities of
+   their own. global.css scans only src/lib, so add their sources here. */
+@import "./global.css";
+@source "../stories";
+@source "../native";
+@source "../test";

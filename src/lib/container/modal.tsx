@@ -36,7 +36,9 @@ function Modal({
       )}
       {...props}
     >
-      <AriaModal {...props}>
+      {/* The props are the overlay's. react-aria warns when the nested Modal also
+          gets isOpen or onOpenChange, and DOM events on both would fire twice. */}
+      <AriaModal>
         <Dialog
           aria-label={ariaLabel ?? "Modal"}
           className={cn(
