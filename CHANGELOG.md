@@ -22,6 +22,7 @@ None.
 - BigNumberField: a required field shows its error when blur empties a leftover `.` or `-.`.
 - BigNumberField: a value set from outside after blur formatted the text, such as a reset to `""`, leaves the field unformatted. Before, the field kept treating its text as formatted: a pasted `1,5` read the comma as a group separator and gave 15 where a fresh field rejects it, and a value set afterwards was never formatted.
 - NumberField: a read-only field no longer shows its stepper buttons on hover; BigNumberField already hid them. The buttons were disabled, so they could not change the value (related to [#98](https://github.com/kleros/ui-components-library/issues/98)).
+- CustomRadio: arrow keys typed in a field inside the group, such as a TextField or BigNumberField next to the options, move that field's caret or value. Before, the group took them: it moved the selection, which could unmount the field, and cancelled the key. The options now sit in a `display: contents` element, so the group still lays them out, but a child selector such as `[role="radiogroup"] > label` no longer matches them ([#109](https://github.com/kleros/ui-components-library/issues/109)).
 
 ## [3.10.0] - 2026-10-15
 
