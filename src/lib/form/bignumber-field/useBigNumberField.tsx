@@ -203,12 +203,15 @@ export function useBigNumberField(props: BigNumberFieldProps) {
           inputValueRef.current !== committedInputValueRef.current
         )
           return;
+        // The new text is unformatted, so typing, pasting and the idle formatter treat it as such.
         setInputValue(parsed === null ? "" : value.toString());
         setNumberValue(parsed);
+        setIsFormatted(false);
       } catch (error) {
         console.error("Error updating BigNumber value:", error);
         setInputValue(value.toString());
         setNumberValue(null);
+        setIsFormatted(false);
       }
     }
   }, [value]);

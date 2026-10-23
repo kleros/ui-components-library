@@ -20,6 +20,7 @@ None.
 - BigNumberField: typing `.` or `-.` keeps that text instead of showing `NaN`, so `.5` gives 0.5. Before, an uncontrolled field got stuck on `NaN`, and in a controlled field the `.` disappeared when the NaN echoed back, so `.5` gave 5. From that text, the arrow keys, the wheel and the stepper buttons now step from empty. Blur empties the field, and `validate` then gets `null`, as for any empty field, where it got NaN. `onChange` still gets NaN for that text, until a digit follows (related to [#97](https://github.com/kleros/ui-components-library/issues/97)).
 - BigNumberField: typing `.` over a selection that holds the decimal point replaces it. Before, the `.` was ignored, so selecting `2.7` and typing `.5` gave 5. As for any leading `.`, `onChange` gets NaN until the `5` follows.
 - BigNumberField: a required field shows its error when blur empties a leftover `.` or `-.`.
+- BigNumberField: a value set from outside after blur formatted the text, such as a reset to `""`, leaves the field unformatted. Before, the field kept treating its text as formatted: a pasted `1,5` read the comma as a group separator and gave 15 where a fresh field rejects it, and a value set afterwards was never formatted.
 - NumberField: a read-only field no longer shows its stepper buttons on hover; BigNumberField already hid them. The buttons were disabled, so they could not change the value (related to [#98](https://github.com/kleros/ui-components-library/issues/98)).
 
 ## [3.10.0] - 2026-10-15
