@@ -2032,7 +2032,7 @@ __metadata:
     prettier-plugin-tailwindcss: "npm:^0.6.11"
     process: "npm:^0.11.10"
     react: "npm:^18.0.0"
-    react-aria-components: "npm:^1.20.0"
+    react-aria-components: "npm:~1.20.0"
     react-dom: "npm:^18.0.0"
     react-is: "npm:^18.0.0"
     react-markdown: "npm:^9.0.1"
@@ -10761,7 +10761,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-aria-components@npm:^1.20.0":
+"react-aria-components@npm:~1.20.0":
   version: 1.20.0
   resolution: "react-aria-components@npm:1.20.0"
   dependencies:
