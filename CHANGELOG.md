@@ -25,6 +25,7 @@ None. The react-aria-components upgrade changes some behaviour; see **Changed**.
   - Modal, and the popovers of DropdownSelect, DropdownCascader and DatePicker: while one is open, the rest of the page is inert, not only `aria-hidden`, so it can't be clicked or focused. Content that must stay usable over it, such as a toast, needs the `data-react-aria-top-layer` attribute.
   - Checkbox and Switch: react-aria handles a click on the label instead of the browser forwarding it to the input. Real clicks work as before, but react-aria reads the pointer events of a `@testing-library/user-event` click as a screen reader's and ignores them on the label, so a test should click the control (`getByRole("checkbox")`).
   - Checkbox, RadioGroup and Switch: pressing Enter submits the form they are in.
+  - RadioGroup: when a click submits a form in which the group is invalid, react-aria focuses its first radio but no longer shows the focus ring ([react-spectrum#10751](https://github.com/adobe/react-spectrum/issues/10751)). Submitting with the keyboard still shows it.
   - Button: `onClick` also runs when the button is pressed with the keyboard, not only when it is clicked. `onPress` remains the handler to use.
   - DatePicker: clearing a segment no longer calls `onChange` with `null`.
   - NumberField: a disabled field is left out of its form's data, as a disabled native input is.
