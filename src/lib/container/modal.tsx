@@ -17,19 +17,6 @@ interface ModalProps
   ariaLabel?: string;
 }
 
-/** ModalOverlay props that the nested Modal ignores, and warns about when given. */
-const OVERLAY_ONLY_PROPS = new Set([
-  "isOpen",
-  "defaultOpen",
-  "onOpenChange",
-  "isDismissable",
-  "isKeyboardDismissDisabled",
-  "shouldCloseOnInteractOutside",
-  "isEntering",
-  "isExiting",
-  "UNSTABLE_portalContainer",
-]);
-
 /** A modal is an overlay element which blocks interaction with elements outside it. */
 function Modal({
   className,
@@ -38,9 +25,6 @@ function Modal({
   ariaLabel,
   ...props
 }: Readonly<ModalProps>) {
-  const modalProps = Object.fromEntries(
-    Object.entries(props).filter(([key]) => !OVERLAY_ONLY_PROPS.has(key)),
-  );
   return (
     <ModalOverlay
       className={cn(
@@ -52,7 +36,9 @@ function Modal({
       )}
       {...props}
     >
-      <AriaModal {...modalProps}>
+      {/* The props are the overlay's. react-aria warns when the nested Modal also
+          gets isOpen or onOpenChange, and DOM events on both would fire twice. */}
+      <AriaModal>
         <Dialog
           aria-label={ariaLabel ?? "Modal"}
           className={cn(

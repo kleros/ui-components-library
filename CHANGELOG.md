@@ -27,6 +27,7 @@ None. The react-aria-components upgrade changes some behaviour; see **Changed**.
   - Checkbox, RadioGroup and Switch: pressing Enter submits the form they are in.
   - RadioGroup: when a click submits a form in which the group is invalid, react-aria focuses its first radio but no longer shows the focus ring ([react-spectrum#10751](https://github.com/adobe/react-spectrum/issues/10751)). Submitting with the keyboard still shows it.
   - Button: `onClick` also runs when the button is pressed with the keyboard, not only when it is clicked. `onPress` remains the handler to use.
+  - Checkbox, Switch, TextField, NumberField and Modal call a caller's `onClick`, which react-aria 1.7.1 dropped.
   - DatePicker: clearing a segment no longer calls `onChange` with `null`.
   - NumberField: a disabled field is left out of its form's data, as a disabled native input is.
 
