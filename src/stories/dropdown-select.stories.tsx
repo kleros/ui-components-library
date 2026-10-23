@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
 import { IPreviewArgs, expectTruncated, waitForAnimations } from "./utils";
 
 import SelectComponent from "../lib/dropdown/select";
-import { Form } from "react-aria-components";
+import { Form, type Key } from "react-aria-components";
 import { Button } from "../lib";
 import Telegram from "../assets/svgs/telegram.svg";
 import { a11yExceptions, auditA11y } from "./a11y";
@@ -426,6 +426,46 @@ export const OnSelectionChange: Story = {
     await expect(args.callback).toHaveBeenCalledTimes(1);
     await expect(args.callback).toHaveBeenCalledWith(
       expect.objectContaining({ id: 3, itemValue: 3, text: "hello 3" }),
+    );
+  },
+};
+
+/** react-aria's `value` and `onChange` control the selected key, alongside `callback`. */
+export const ValueAndOnChange: Story = {
+  args: {
+    ...Select.args,
+    onChange: fn(),
+  },
+  render: function Render(args) {
+    const [value, setValue] = useState<Key | null>(2);
+    return (
+      <SelectComponent
+        {...args}
+        value={value}
+        onChange={(key) => {
+          setValue(key);
+          args.onChange?.(key);
+        }}
+      />
+    );
+  },
+  play: async ({ canvasElement, args }) => {
+    const trigger = within(canvasElement).getByRole("button");
+    await expect(trigger).toHaveTextContent("hello 2");
+    const listbox = await openListbox(trigger);
+    await expect(
+      within(listbox).getByRole("option", { name: "hello 2" }),
+    ).toHaveAttribute("aria-selected", "true");
+    await userEvent.click(
+      within(listbox).getByRole("option", { name: "hello 4" }),
+    );
+    await waitForClose();
+    await expect(trigger).toHaveTextContent("hello 4");
+    await expect(args.onChange).toHaveBeenCalledTimes(1);
+    await expect(args.onChange).toHaveBeenCalledWith(4);
+    await expect(args.callback).toHaveBeenCalledTimes(1);
+    await expect(args.callback).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 4 }),
     );
   },
 };

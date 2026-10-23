@@ -14,12 +14,22 @@ import clsx from "clsx";
 
 const ItemDisplayContainer: React.FC<
   SelectValueRenderProps<IItem> & { placeholder?: string }
-> = ({ placeholder, isPlaceholder, selectedItem }) => {
+> = ({ placeholder, isPlaceholder, selectedItems, selectedText }) => {
+  const [selectedItem] = selectedItems;
   if (isPlaceholder || !selectedItem)
     return (
       <div className="flex items-center py-[9.5px] pr-4 pl-3.25">
         <p className="text-klerosUIComponentsSecondaryText truncate text-base">
           {placeholder ?? "Select"}
+        </p>
+      </div>
+    );
+  // several items picked in multiple selection: their texts as a list
+  if (selectedItems.length > 1)
+    return (
+      <div className="flex items-center py-[9.5px] pr-4 pl-3.25">
+        <p className="text-klerosUIComponentsPrimaryText truncate text-base">
+          {selectedText}
         </p>
       </div>
     );

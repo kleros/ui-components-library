@@ -13,10 +13,16 @@ import DropdownButton from "./dropdown-button";
 import DropdownContainer from "./dropdown-container";
 import { cn } from "../../../utils";
 
-interface SelectProps extends AriaSelectProps {
+type SelectionMode = "single" | "multiple";
+
+export interface SelectProps<M extends SelectionMode = "single">
+  extends AriaSelectProps<object, M> {
   items: IItem[];
-  /** Callback function passes the Item object as argument. */
-  callback: (value: IItem) => void;
+  /**
+   * Callback function passes the Item object as argument. With
+   * `selectionMode="multiple"`, it passes the selected Item objects.
+   */
+  callback: (value: M extends "multiple" ? IItem[] : IItem) => void;
   simpleButton?: boolean;
   /** When `simpleButton` is `true`, this scales down the dropdown button size. */
   smallButton?: boolean;
@@ -26,7 +32,20 @@ interface SelectProps extends AriaSelectProps {
   dropdownClassName?: string;
 }
 
-/** A select displays a collapsible list of options and allows a user to select one of them. */
+// Overloads rather than a generic, so `ComponentProps<typeof DropdownSelect>`
+// keeps resolving to the single-selection props, with `callback` taking one item.
+/**
+ * A select displays a collapsible list of options and allows a user to select
+ * one of them, or several with `selectionMode="multiple"`.
+ */
+function DropdownSelect(
+  props: Readonly<SelectProps<"multiple"> & { selectionMode: "multiple" }>,
+): React.ReactElement;
+/**
+ * A select displays a collapsible list of options and allows a user to select
+ * one of them, or several with `selectionMode="multiple"`.
+ */
+function DropdownSelect(props: Readonly<SelectProps>): React.ReactElement;
 function DropdownSelect({
   label,
   smallButton,
@@ -38,23 +57,38 @@ function DropdownSelect({
   buttonClassName,
   dropdownClassName,
   onSelectionChange,
+  onChange,
   "aria-label": ariaLabel,
   ...props
-}: Readonly<SelectProps>) {
+}: Readonly<SelectProps | SelectProps<"multiple">>) {
   const handleSelection = useCallback(
-    (selectedKey: Key) => {
+    (selectedKey: Key | null) => {
       onSelectionChange?.(selectedKey);
       const selectedItem = items.find((item) => item.id === selectedKey);
-      if (selectedItem) callback(selectedItem);
+      if (selectedItem) (callback as (item: IItem) => void)(selectedItem);
     },
     [items, callback, onSelectionChange],
   );
 
+  // With multiple selection, react-aria calls only onChange, with every
+  // selected key.
+  const handleChange = useCallback(
+    (value: Key | Key[] | null) => {
+      (onChange as ((value: Key | Key[] | null) => void) | undefined)?.(value);
+      if (Array.isArray(value))
+        (callback as (items: IItem[]) => void)(
+          value.flatMap((key) => items.filter((item) => item.id === key)),
+        );
+    },
+    [items, callback, onChange],
+  );
+
   return (
-    <AriaSelect
+    <AriaSelect<object, SelectionMode>
       className={cn("flex flex-col gap-1", className)}
       {...props}
       onSelectionChange={handleSelection}
+      onChange={handleChange}
       aria-label={
         ariaLabel ?? (label || props["aria-labelledby"] ? undefined : "Select")
       }
