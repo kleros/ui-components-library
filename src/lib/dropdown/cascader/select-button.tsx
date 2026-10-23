@@ -28,12 +28,7 @@ const SelectButton: React.FC<ISelectButton> = ({ selectedKey, callback }) => {
     >
       <Button
         onPress={() => {
-          if (!isUndefined(selectedKey)) {
-            state?.setSelectedKey(selectedKey);
-            // setSelectedKey doesn't commit validation, so a required field
-            // would keep showing its error after a valid pick.
-            state?.commitValidation();
-          }
+          if (!isUndefined(selectedKey)) state?.setSelectedKey(selectedKey);
           if (selectedItem) {
             callback(selectedItem.value as IItem);
           }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   Select as AriaSelect,
   FieldError,
@@ -10,6 +10,7 @@ import DropdownContainer from "./dropdown-container";
 import { cn } from "../../../utils";
 import { IItem } from "./item";
 import DropdownButton from "./button";
+import { SelectStateBridge, type SelectState } from "../select-state";
 
 export interface IDropdownCascader extends AriaSelectProps {
   items: IItem[];
@@ -34,20 +35,31 @@ function DropdownCascader({
   defaultSelectedKey,
   buttonClassName,
   dropdownClassName,
+  onChange,
   "aria-label": ariaLabel,
   ...props
 }: Readonly<IDropdownCascader>) {
+  const stateRef = useRef<SelectState | null>(null);
+
   return (
     <AriaSelect
       className={cn("relative flex flex-col gap-1", className)}
       {...props}
       {...{ defaultSelectedKey, selectedKey, disabledKeys }}
+      onChange={(value) => {
+        onChange?.(value);
+        // react-aria doesn't commit validation when the selection is set through
+        // its state, as the Select button and keys on the closed trigger do, so
+        // a required field kept its error after a valid pick.
+        stateRef.current?.commitValidation();
+      }}
       aria-label={
         ariaLabel ?? (label || props["aria-labelledby"] ? undefined : "Select")
       }
     >
       {({ isOpen }) => (
         <>
+          <SelectStateBridge stateRef={stateRef} />
           {label && (
             <Label
               className={clsx("text-klerosUIComponentsPrimaryText text-sm")}

@@ -162,6 +162,11 @@ export const SimpleSelect: Story = {
     const listbox = await openListbox(trigger);
     // the arrow rotates while open
     await expect(trigger.querySelector("svg")).toHaveClass("rotate-180");
+    // the simple button stretches across the field, but its list stays 240px
+    await expect(
+      (listbox.closest("[data-trigger]") as HTMLElement).getBoundingClientRect()
+        .width,
+    ).toBe(240);
     await userEvent.click(
       within(listbox).getByRole("option", { name: "hello 2" }),
     );
@@ -266,6 +271,56 @@ export const RequiredSelect: Story = {
     await waitFor(() =>
       expect(trigger.closest("[data-invalid]")).not.toBeInTheDocument(),
     );
+  },
+};
+
+let keyboardSubmits = 0;
+
+/** A key pressed on the closed button that picks an item clears a required error. */
+export const RequiredSelectKeyboard: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
+  args: {
+    ...Select.args,
+    isRequired: true,
+  },
+  render: (args) => (
+    <Form
+      onSubmit={(e) => {
+        e.preventDefault();
+        keyboardSubmits++;
+      }}
+    >
+      <SelectComponent {...args} />
+      <Button
+        variant="primary"
+        type="submit"
+        text="Submit"
+        small
+        className="mt-4"
+      />
+    </Form>
+  ),
+  play: async ({ canvasElement, args }) => {
+    keyboardSubmits = 0;
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole("button", { name: /Select a value/ });
+    await userEvent.click(canvas.getByRole("button", { name: "Submit" }));
+    await waitFor(() =>
+      expect(trigger.closest("[data-invalid]")).toBeInTheDocument(),
+    );
+    await expect(keyboardSubmits).toBe(0);
+
+    trigger.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(trigger).toHaveTextContent("hello 1");
+    await expect(args.callback).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 1 }),
+    );
+    await waitFor(() =>
+      expect(trigger.closest("[data-invalid]")).not.toBeInTheDocument(),
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Submit" }));
+    await waitFor(() => expect(keyboardSubmits).toBe(1));
   },
 };
 

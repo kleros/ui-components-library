@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 import {
   Select as AriaSelect,
   FieldError,
@@ -11,6 +11,7 @@ import SimpleButton from "./simple-button";
 import { IItem } from "./item";
 import DropdownButton from "./dropdown-button";
 import DropdownContainer from "./dropdown-container";
+import { SelectStateBridge, type SelectState } from "../select-state";
 import { cn } from "../../../utils";
 
 type SelectionMode = "single" | "multiple";
@@ -20,7 +21,8 @@ export interface SelectProps<M extends SelectionMode = "single">
   items: IItem[];
   /**
    * Callback function passes the Item object as argument. With
-   * `selectionMode="multiple"`, it passes the selected Item objects.
+   * `selectionMode="multiple"`, it passes the selected Item objects, in the
+   * order they were picked.
    */
   callback: (value: M extends "multiple" ? IItem[] : IItem) => void;
   simpleButton?: boolean;
@@ -32,14 +34,26 @@ export interface SelectProps<M extends SelectionMode = "single">
   dropdownClassName?: string;
 }
 
-// Overloads rather than a generic, so `ComponentProps<typeof DropdownSelect>`
-// keeps resolving to the single-selection props, with `callback` taking one item.
+/** react-aria ignores the single-selection props in multiple selection. */
+type MultipleSelectProps = Omit<
+  SelectProps<"multiple">,
+  "selectedKey" | "defaultSelectedKey" | "onSelectionChange"
+> & { selectionMode: "multiple" };
+
+// Overloads rather than a generic, so `ComponentProps<typeof DropdownSelect>`,
+// which reads the last one, keeps resolving to the single-selection props. The
+// docs read the first one, so single selection comes first too.
+/**
+ * A select displays a collapsible list of options and allows a user to select
+ * one of them, or several with `selectionMode="multiple"`.
+ */
+function DropdownSelect(props: Readonly<SelectProps>): React.ReactElement;
 /**
  * A select displays a collapsible list of options and allows a user to select
  * one of them, or several with `selectionMode="multiple"`.
  */
 function DropdownSelect(
-  props: Readonly<SelectProps<"multiple"> & { selectionMode: "multiple" }>,
+  props: Readonly<MultipleSelectProps>,
 ): React.ReactElement;
 /**
  * A select displays a collapsible list of options and allows a user to select
@@ -61,6 +75,8 @@ function DropdownSelect({
   "aria-label": ariaLabel,
   ...props
 }: Readonly<SelectProps | SelectProps<"multiple">>) {
+  const stateRef = useRef<SelectState | null>(null);
+
   const handleSelection = useCallback(
     (selectedKey: Key | null) => {
       onSelectionChange?.(selectedKey);
@@ -75,6 +91,9 @@ function DropdownSelect({
   const handleChange = useCallback(
     (value: Key | Key[] | null) => {
       (onChange as ((value: Key | Key[] | null) => void) | undefined)?.(value);
+      // react-aria commits validation for picks in the list, but not for keys
+      // pressed on the closed trigger, so a required field kept its error.
+      stateRef.current?.commitValidation();
       if (Array.isArray(value))
         (callback as (items: IItem[]) => void)(
           value.flatMap((key) => items.filter((item) => item.id === key)),
@@ -95,6 +114,7 @@ function DropdownSelect({
     >
       {({ isOpen }) => (
         <>
+          <SelectStateBridge stateRef={stateRef} />
           {label && (
             <Label
               className={clsx("text-klerosUIComponentsPrimaryText text-sm")}
@@ -114,6 +134,7 @@ function DropdownSelect({
           <FieldError className="text-klerosUIComponentsError text-sm" />
           <DropdownContainer
             {...{ isOpen, items, className: dropdownClassName }}
+            matchTriggerWidth={!simpleButton}
           />
         </>
       )}
