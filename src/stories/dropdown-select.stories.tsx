@@ -2,7 +2,7 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs, waitForAnimations } from "./utils";
+import { IPreviewArgs, expectTruncated, waitForAnimations } from "./utils";
 
 import SelectComponent from "../lib/dropdown/select";
 import { Form } from "react-aria-components";
@@ -427,5 +427,91 @@ export const OnSelectionChange: Story = {
     await expect(args.callback).toHaveBeenCalledWith(
       expect.objectContaining({ id: 3, itemValue: 3, text: "hello 3" }),
     );
+  },
+};
+
+const longItems = [
+  {
+    text: "A very long option label that does not fit",
+    dot: "red",
+    itemValue: 1,
+    id: 1,
+  },
+  { text: "0x7fbd8b2a1c9e4d3f6a5b0c8e2d1f4a7b9c3e6d5f", itemValue: 2, id: 2 },
+  { text: "Short", itemValue: 3, id: 3 },
+];
+
+/** Long text stays on one line inside the button, cut with an ellipsis. The list shows it in full. */
+export const LongText: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    items: longItems,
+    defaultSelectedKey: 1,
+  },
+  play: async ({ canvasElement, args }) => {
+    const trigger = within(canvasElement).getByRole("button");
+    await expect(trigger.getBoundingClientRect().width).toBe(240);
+    await expectTruncated(trigger);
+    // the accessible name keeps the whole text
+    await expect(trigger).toHaveAccessibleName(
+      /A very long option label that does not fit/,
+    );
+
+    const listbox = await openListbox(trigger);
+    for (const option of within(listbox).getAllByRole("option"))
+      await expect(option.scrollWidth).toBeLessThanOrEqual(option.clientWidth);
+    await userEvent.click(
+      within(listbox).getByRole("option", { name: longItems[1].text }),
+    );
+    await waitForClose();
+    await expect(trigger.getBoundingClientRect().width).toBe(240);
+    await expectTruncated(trigger);
+    await expect(args.callback).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 2 }),
+    );
+  },
+};
+
+/**
+ * `buttonClassName` sizes the trigger, and the list is never narrower than it.
+ * By default the trigger is 240px, or the field's width when that is less.
+ */
+export const ButtonWidth: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    items: longItems,
+    defaultSelectedKey: 1,
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-6">
+      <div data-testid="full" className="w-100">
+        <SelectComponent {...args} aria-label="Full" buttonClassName="w-full" />
+      </div>
+      <div data-testid="narrow" className="w-40">
+        <SelectComponent {...args} aria-label="Narrow" />
+      </div>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = (id: string) =>
+      within(canvas.getByTestId(id)).getByRole("button");
+    const listWidth = async (button: HTMLElement) => {
+      const listbox = await openListbox(button);
+      const popover = listbox.closest("[data-trigger]") as HTMLElement;
+      const { width } = popover.getBoundingClientRect();
+      await userEvent.keyboard("{Escape}");
+      await waitForClose();
+      return width;
+    };
+
+    await expect(trigger("full").getBoundingClientRect().width).toBe(400);
+    await expect(await listWidth(trigger("full"))).toBe(400);
+
+    await expect(trigger("narrow").getBoundingClientRect().width).toBe(160);
+    await expectTruncated(trigger("narrow"));
+    await expect(await listWidth(trigger("narrow"))).toBe(240);
   },
 };

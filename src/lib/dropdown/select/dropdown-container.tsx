@@ -15,6 +15,8 @@ const DropdownContainer: React.FC<{
       className={cn(
         "bg-klerosUIComponentsWhiteBackground rounded-base border-klerosUIComponentsStroke border",
         "shadow-default focus:outline-klerosUIComponentsPrimaryBlue box-border overflow-hidden outline-none",
+        // never narrower than the trigger, so a widened button keeps a matching list
+        "w-60 min-w-(--trigger-width)",
         "origin-top transform transition",
         isOpen
           ? "entering:animate-scale-in scale-y-100"
@@ -22,11 +24,11 @@ const DropdownContainer: React.FC<{
         className,
       )}
     >
-      <Scrollbar className="max-h-87.5 w-59.5">
+      <Scrollbar className="max-h-87.5 w-full">
         <ListBox
           id="listbox"
           className={clsx(
-            "bg-klerosUIComponentsWhiteBackground box-border w-59.5",
+            "bg-klerosUIComponentsWhiteBackground box-border w-full",
             "cols-[repeat(auto-fill,_minmax(0,_45px))] grid grow py-4",
           )}
         >

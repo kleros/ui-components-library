@@ -16,6 +16,8 @@ export interface IDropdownCascader extends AriaSelectProps {
   /** Callback function passes the Item object as argument. */
   callback: (item: IItem) => void;
   label?: string;
+  /** Classes for the trigger button, merged over its own, e.g. `w-full`. `className` styles the outer wrapper. */
+  buttonClassName?: string;
   dropdownClassName?: string;
 }
 
@@ -30,6 +32,7 @@ function DropdownCascader({
   disabledKeys,
   selectedKey,
   defaultSelectedKey,
+  buttonClassName,
   dropdownClassName,
   "aria-label": ariaLabel,
   ...props
@@ -52,7 +55,7 @@ function DropdownCascader({
               {label}
             </Label>
           )}
-          <DropdownButton {...{ placeholder }} />
+          <DropdownButton {...{ placeholder }} className={buttonClassName} />
           <FieldError className="text-klerosUIComponentsError text-sm" />
           <DropdownContainer
             {...{

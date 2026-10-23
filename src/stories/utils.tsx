@@ -143,3 +143,20 @@ export const waitForTooltipHidden = () =>
       ).not.toBeInTheDocument(),
     { timeout: TOOLTIP_HIDE_TIMEOUT_MS },
   );
+
+/**
+ * Checks that a dropdown trigger's value stays on one line inside it, cut with
+ * an ellipsis, and that the arrow keeps its size and its place.
+ */
+export const expectTruncated = async (trigger: HTMLElement) => {
+  const value = trigger.querySelector("p") as HTMLElement;
+  const arrow = trigger.querySelector(":scope > svg") as SVGElement;
+  const { right } = trigger.getBoundingClientRect();
+  await expect(value.scrollWidth).toBeGreaterThan(value.clientWidth);
+  await expect(value.getBoundingClientRect().height).toBe(
+    parseFloat(getComputedStyle(value).lineHeight),
+  );
+  await expect(value.getBoundingClientRect().right).toBeLessThanOrEqual(right);
+  await expect(arrow.getBoundingClientRect().width).toBe(16);
+  await expect(arrow.getBoundingClientRect().right).toBeLessThan(right);
+};

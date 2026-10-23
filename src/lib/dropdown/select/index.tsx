@@ -21,6 +21,8 @@ interface SelectProps extends AriaSelectProps {
   /** When `simpleButton` is `true`, this scales down the dropdown button size. */
   smallButton?: boolean;
   label?: string;
+  /** Classes for the trigger button, merged over its own, e.g. `w-full`. `className` styles the outer wrapper. */
+  buttonClassName?: string;
   dropdownClassName?: string;
 }
 
@@ -33,6 +35,7 @@ function DropdownSelect({
   callback,
   placeholder,
   className,
+  buttonClassName,
   dropdownClassName,
   onSelectionChange,
   "aria-label": ariaLabel,
@@ -66,9 +69,13 @@ function DropdownSelect({
             </Label>
           )}
           {simpleButton ? (
-            <SimpleButton {...{ isOpen, placeholder }} small={smallButton} />
+            <SimpleButton
+              {...{ isOpen, placeholder }}
+              small={smallButton}
+              className={buttonClassName}
+            />
           ) : (
-            <DropdownButton {...{ placeholder }} />
+            <DropdownButton {...{ placeholder }} className={buttonClassName} />
           )}
           <FieldError className="text-klerosUIComponentsError text-sm" />
           <DropdownContainer
