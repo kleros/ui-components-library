@@ -505,3 +505,46 @@ describe("useBigNumberField text that holds no number yet, controlled through on
     expect(input).toHaveProperty("value", "");
   });
 });
+
+describe("useBigNumberField value set after a formatted text", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // Typing then blurring formats the text; the parent then sets the value, e.g. a form reset.
+  const formatThenSet = (next: string, onValueChange = vi.fn()) => {
+    const { rerender } = render(
+      <Field value="" onValueChange={onValueChange} />,
+    );
+    const input = screen.getByRole("spinbutton");
+    fireEvent.change(input, { target: { value: "25" } });
+    rerender(<Field value="25" onValueChange={onValueChange} />);
+    fireEvent.blur(input);
+    rerender(<Field value={next} onValueChange={onValueChange} />);
+    return { input, rerender, onValueChange };
+  };
+
+  it("rejects a pasted group separator after the parent empties the field", () => {
+    const { input, onValueChange } = formatThenSet("");
+    onValueChange.mockClear();
+
+    fireEvent.change(input, { target: { value: "1,5" } });
+
+    expect(input).toHaveProperty("value", "");
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  it("formats a value the parent sets after emptying the field", () => {
+    const { input, rerender, onValueChange } = formatThenSet("");
+    rerender(<Field value="1234" onValueChange={onValueChange} />);
+
+    act(() => {
+      vi.advanceTimersByTime(3500);
+    });
+
+    expect(input).toHaveProperty("value", "1,234");
+  });
+});
