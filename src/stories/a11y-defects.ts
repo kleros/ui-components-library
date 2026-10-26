@@ -57,9 +57,9 @@ export const SELECT_VALUE_LIGHT = contrastInLight(
 );
 
 export const SLIDER_LABEL_LIGHT = contrastInLight(
-  "#slider-label",
-  "Library defect: the slider label defaults to PrimaryBlue text, 2.9:1.",
-  "src/lib/form/slider.tsx:100",
+  '[data-slot="slider-label"]',
+  "Library defect: the slider's value label defaults to PrimaryBlue text, 2.9:1.",
+  "src/lib/form/slider.tsx:149",
 );
 
 export const FOCUSED_DATE_SEGMENT_LIGHT = contrastInLight(
