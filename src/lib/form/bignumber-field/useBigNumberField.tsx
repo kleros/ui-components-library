@@ -32,7 +32,10 @@ export interface FormatOptions {
 
 export interface BigNumberFieldProps {
   /** The current value (controlled). `null` or `""` empties the field; `undefined` leaves the field
-   * uncontrolled. */
+   * uncontrolled. Pass each change back in the same update: a value relayed later, from an effect or
+   * a transition, can lose a leading `.` or `-`. While the field holds only `-`, `.` or `-.`, a parent
+   * wired through `onValueChange` already holds an empty value, so setting it empty again keeps that
+   * text: remount the field with a `key` to clear it. */
   value?: string | BigNumber | null;
   /** The default value (uncontrolled). */
   defaultValue?: string | BigNumber;
