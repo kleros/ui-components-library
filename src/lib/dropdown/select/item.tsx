@@ -27,7 +27,8 @@ const Item: React.FC<IItem> = ({ text, Icon, icon, dot, ...props }) => {
     <ListBoxItem
       className={cn(
         "hover-short-transition box-border cursor-pointer outline-none",
-        "flex items-center py-[10.5px] pr-4 pl-3.25",
+        // only the text shrinks: an icon or dot keeps its size next to long text
+        "flex items-center py-[10.5px] pr-4 pl-3.25 [&>:not(p)]:shrink-0",
         "hover:bg-klerosUIComponentsMediumBlue focus:bg-klerosUIComponentsMediumBlue",
         "selected:bg-klerosUIComponentsMediumBlue",
         "selected:border-l-klerosUIComponentsPrimaryBlue selected:border-l-3",

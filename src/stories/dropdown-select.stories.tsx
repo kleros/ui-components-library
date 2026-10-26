@@ -554,8 +554,12 @@ export const LongText: Story = {
     );
 
     const listbox = await openListbox(trigger);
+    // each option, long words included, stays inside the list
+    const listRight = listbox.getBoundingClientRect().right;
     for (const option of within(listbox).getAllByRole("option"))
-      await expect(option.scrollWidth).toBeLessThanOrEqual(option.clientWidth);
+      await expect(option.getBoundingClientRect().right).toBeLessThanOrEqual(
+        listRight,
+      );
     await userEvent.click(
       within(listbox).getByRole("option", { name: longItems[1].text }),
     );

@@ -45,13 +45,18 @@ function DropdownCascader({
     <AriaSelect
       className={cn("relative flex flex-col gap-1", className)}
       {...props}
+      // react-aria 1.7.1 ignored defaultValue, and an app that passes one still
+      // expects that; defaultSelectedKey sets the default.
+      defaultValue={undefined}
       {...{ defaultSelectedKey, selectedKey, disabledKeys }}
       onChange={(value) => {
         onChange?.(value);
         // react-aria doesn't commit validation when the selection is set through
         // its state, as the Select button and keys on the closed trigger do, so
-        // a required field kept its error after a valid pick.
-        stateRef.current?.commitValidation();
+        // a required field kept its error after a valid pick. A form reset also
+        // sets the value; react-aria handles validation there.
+        if (window.event?.type !== "reset")
+          stateRef.current?.commitValidation();
       }}
       aria-label={
         ariaLabel ?? (label || props["aria-labelledby"] ? undefined : "Select")

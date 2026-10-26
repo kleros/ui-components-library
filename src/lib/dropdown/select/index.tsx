@@ -72,6 +72,7 @@ function DropdownSelect({
   dropdownClassName,
   onSelectionChange,
   onChange,
+  defaultValue,
   "aria-label": ariaLabel,
   ...props
 }: Readonly<SelectProps | SelectProps<"multiple">>) {
@@ -92,8 +93,9 @@ function DropdownSelect({
     (value: Key | Key[] | null) => {
       (onChange as ((value: Key | Key[] | null) => void) | undefined)?.(value);
       // react-aria commits validation for picks in the list, but not for keys
-      // pressed on the closed trigger, so a required field kept its error.
-      stateRef.current?.commitValidation();
+      // pressed on the closed trigger, so a required field kept its error. A
+      // form reset also sets the value; react-aria handles validation there.
+      if (window.event?.type !== "reset") stateRef.current?.commitValidation();
       if (Array.isArray(value))
         (callback as (items: IItem[]) => void)(
           value.flatMap((key) => items.filter((item) => item.id === key)),
@@ -106,6 +108,11 @@ function DropdownSelect({
     <AriaSelect<object, SelectionMode>
       className={cn("flex flex-col gap-1", className)}
       {...props}
+      // react-aria 1.7.1 ignored defaultValue, and an app that passes one for a
+      // single selection still expects that; defaultSelectedKey sets its default.
+      defaultValue={
+        props.selectionMode === "multiple" ? defaultValue : undefined
+      }
       onSelectionChange={handleSelection}
       onChange={handleChange}
       aria-label={

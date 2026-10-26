@@ -31,7 +31,8 @@ const DropdownContainer: React.FC<{
           id="listbox"
           className={clsx(
             "bg-klerosUIComponentsWhiteBackground box-border w-full",
-            "cols-[repeat(auto-fill,_minmax(0,_45px))] grid grow py-4",
+            // one column as wide as the list, so long words wrap instead of widening it
+            "grid grow grid-cols-1 py-4",
           )}
         >
           <Collection items={items}>{(item) => <Item {...item} />}</Collection>

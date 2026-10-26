@@ -35,7 +35,8 @@ const ItemDisplayContainer: React.FC<
     );
   const { Icon, icon, text, dot } = selectedItem;
   return (
-    <div className="flex items-center py-[9.5px] pr-4 pl-3.25">
+    // only the text shrinks: an icon or dot keeps its size next to long text
+    <div className="flex items-center py-[9.5px] pr-4 pl-3.25 [&>:not(p)]:shrink-0">
       {icon ??
         (Icon && <Icon className="max-h-4 min-h-3 max-w-4 min-w-3 shrink-0" />)}
       {dot && <Dot className="mr-2 shrink-0" color={dot} />}

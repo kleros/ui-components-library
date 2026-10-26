@@ -1,5 +1,6 @@
-import React, { useContext, useLayoutEffect } from "react";
+import React, { useContext } from "react";
 import { SelectStateContext } from "react-aria-components";
+import { useIsomorphicLayoutEffect } from "usehooks-ts";
 
 export type SelectState = NonNullable<
   React.ContextType<typeof SelectStateContext>
@@ -10,7 +11,7 @@ export function SelectStateBridge({
   stateRef,
 }: Readonly<{ stateRef: React.MutableRefObject<SelectState | null> }>) {
   const state = useContext(SelectStateContext);
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     stateRef.current = state;
   });
   return null;

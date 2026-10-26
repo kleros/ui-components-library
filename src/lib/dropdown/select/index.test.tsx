@@ -20,6 +20,14 @@ const typeChecks = () => [
     items={items}
     callback={(picked: typeof items) => picked}
   />,
+  // @ts-expect-error react-aria ignores selectedKey in multiple selection
+  <DropdownSelect
+    key="multiple-selected"
+    selectionMode="multiple"
+    items={items}
+    callback={() => {}}
+    selectedKey={1}
+  />,
   // @ts-expect-error react-aria ignores defaultSelectedKey in multiple selection
   <DropdownSelect
     key="multiple-default"
