@@ -62,17 +62,16 @@ export interface CustomRadioProps
   fieldErrorProps?: FieldErrorProps;
 }
 
-/** Keeps arrow keys typed in a field nested in the group (an input other than the radios, a
- *  textarea, or editable content) from reaching react-aria's RadioGroup, which would move the
- *  selection and cancel the key. The field's own handlers have already run. */
-const keepArrowKeysInFields = (e: React.KeyboardEvent<HTMLDivElement>) => {
+/** Keeps arrow keys pressed in anything nested in the group other than its radios (a field, a
+ *  dropdown's button, a native select) from reaching react-aria's RadioGroup, which would move the
+ *  selection and cancel the key. The element's own handlers have already run. */
+const keepArrowKeysInNestedControls = (
+  e: React.KeyboardEvent<HTMLDivElement>,
+) => {
   const { target } = e;
   if (
     e.key.startsWith("Arrow") &&
-    target instanceof HTMLElement &&
-    (target.isContentEditable ||
-      target instanceof HTMLTextAreaElement ||
-      (target instanceof HTMLInputElement && target.type !== "radio"))
+    !(target instanceof HTMLInputElement && target.type === "radio")
   )
     e.stopPropagation();
 };
@@ -106,7 +105,7 @@ function CustomRadio({
         </Label>
       )}
       {/* `contents` keeps the options laid out by the group itself. */}
-      <div className="contents" onKeyDown={keepArrowKeysInFields}>
+      <div className="contents" onKeyDown={keepArrowKeysInNestedControls}>
         {children ??
           items?.map(({ content, className: itemClassName, ...item }) => (
             <CustomRadioItem
