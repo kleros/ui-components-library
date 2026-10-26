@@ -1,0 +1,108 @@
+diff --git a/dist/private/interactions/useInteractOutside.cjs b/dist/private/interactions/useInteractOutside.cjs
+index a3036cbf2fc352e6a05f0b47d6b15d1d75ede36f..389bbdd4100d15296e620b5caf3f5d0147435da0 100644
+--- a/dist/private/interactions/useInteractOutside.cjs
++++ b/dist/private/interactions/useInteractOutside.cjs
+@@ -57,10 +57,13 @@ function $98fa32654925fc3d$export$872b660ac5a1ff98(props) {
+             // Use click instead of pointerup to avoid Android Chrome issue
+             // https://issues.chromium.org/issues/40732224
+             documentObject.addEventListener('pointerdown', onPointerDown, true);
+-            documentObject.addEventListener('click', onClick, true);
++            // @kleros/ui-components-library: end the interaction on pointerup, as react-aria-components
++            // 1.7.1 did, so the click that follows still reaches what it lands on, such as a wallet modal
++            // or a toast above a dismissable Modal.
++            documentObject.addEventListener('pointerup', onClick, true);
+             return ()=>{
+                 documentObject.removeEventListener('pointerdown', onPointerDown, true);
+-                documentObject.removeEventListener('click', onClick, true);
++                documentObject.removeEventListener('pointerup', onClick, true);
+             };
+         } else if (process.env.NODE_ENV === 'test') {
+             let onMouseUp = (e)=>{
+diff --git a/dist/private/interactions/useInteractOutside.js b/dist/private/interactions/useInteractOutside.js
+index 605fd0744a9c250b62996cd76d3ea60c28d73562..8d34cf05be63674b0147523d9dc5a1e6c2c99f9e 100644
+--- a/dist/private/interactions/useInteractOutside.js
++++ b/dist/private/interactions/useInteractOutside.js
+@@ -51,10 +51,13 @@ function $f655e1abf15bbd1b$export$872b660ac5a1ff98(props) {
+             // Use click instead of pointerup to avoid Android Chrome issue
+             // https://issues.chromium.org/issues/40732224
+             documentObject.addEventListener('pointerdown', onPointerDown, true);
+-            documentObject.addEventListener('click', onClick, true);
++            // @kleros/ui-components-library: end the interaction on pointerup, as react-aria-components
++            // 1.7.1 did, so the click that follows still reaches what it lands on, such as a wallet modal
++            // or a toast above a dismissable Modal.
++            documentObject.addEventListener('pointerup', onClick, true);
+             return ()=>{
+                 documentObject.removeEventListener('pointerdown', onPointerDown, true);
+-                documentObject.removeEventListener('click', onClick, true);
++                documentObject.removeEventListener('pointerup', onClick, true);
+             };
+         } else if (process.env.NODE_ENV === 'test') {
+             let onMouseUp = (e)=>{
+diff --git a/dist/private/interactions/useInteractOutside.mjs b/dist/private/interactions/useInteractOutside.mjs
+index b0fc0f0b7037bc984a672d8a35f7cdf199a77ef5..42070676804d7a7d9076476fb4c96a86292878bc 100644
+--- a/dist/private/interactions/useInteractOutside.mjs
++++ b/dist/private/interactions/useInteractOutside.mjs
+@@ -51,10 +51,13 @@ function $e260d131964da0f9$export$872b660ac5a1ff98(props) {
+             // Use click instead of pointerup to avoid Android Chrome issue
+             // https://issues.chromium.org/issues/40732224
+             documentObject.addEventListener('pointerdown', onPointerDown, true);
+-            documentObject.addEventListener('click', onClick, true);
++            // @kleros/ui-components-library: end the interaction on pointerup, as react-aria-components
++            // 1.7.1 did, so the click that follows still reaches what it lands on, such as a wallet modal
++            // or a toast above a dismissable Modal.
++            documentObject.addEventListener('pointerup', onClick, true);
+             return ()=>{
+                 documentObject.removeEventListener('pointerdown', onPointerDown, true);
+-                documentObject.removeEventListener('click', onClick, true);
++                documentObject.removeEventListener('pointerup', onClick, true);
+             };
+         } else if (process.env.NODE_ENV === 'test') {
+             let onMouseUp = (e)=>{
+diff --git a/dist/private/overlays/ariaHideOutside.cjs b/dist/private/overlays/ariaHideOutside.cjs
+index b81041bbd3abe9251c1737df770e66f96d148bc2..6b23e8d06fad2a42f695a8b5b8ee110d902c5c53 100644
+--- a/dist/private/overlays/ariaHideOutside.cjs
++++ b/dist/private/overlays/ariaHideOutside.cjs
+@@ -38,7 +38,10 @@ function $3c73045d61be2d91$export$1c3ebcada18427bf(targets, options) {
+         root: options
+     } : options;
+     let root = opts?.root ?? document.body;
+-    let shouldUseInert = opts?.shouldUseInert && $3c73045d61be2d91$var$supportsInert;
++    // @kleros/ui-components-library: keep react-aria-components 1.7.1's behaviour and hide the
++    // rest of the page with aria-hidden only, never inert, so overlays that apps open on top of a
++    // Modal or popover, such as a wallet modal or a toast, stay usable.
++    let shouldUseInert = false;
+     let visibleNodes = new Set(targets);
+     let hiddenNodes = new Set();
+     let getHidden = (element)=>{
+diff --git a/dist/private/overlays/ariaHideOutside.js b/dist/private/overlays/ariaHideOutside.js
+index 88b97ab5d5200a25d92d877d03f279e04923d193..8ea4a05bc047a44726f3d5116214f7e4540a54d7 100644
+--- a/dist/private/overlays/ariaHideOutside.js
++++ b/dist/private/overlays/ariaHideOutside.js
+@@ -32,7 +32,10 @@ function $20aa6983aa303ce6$export$1c3ebcada18427bf(targets, options) {
+     } : options;
+     var _opts_root;
+     let root = (_opts_root = opts === null || opts === void 0 ? void 0 : opts.root) !== null && _opts_root !== void 0 ? _opts_root : document.body;
+-    let shouldUseInert = (opts === null || opts === void 0 ? void 0 : opts.shouldUseInert) && $20aa6983aa303ce6$var$supportsInert;
++    // @kleros/ui-components-library: keep react-aria-components 1.7.1's behaviour and hide the
++    // rest of the page with aria-hidden only, never inert, so overlays that apps open on top of a
++    // Modal or popover, such as a wallet modal or a toast, stay usable.
++    let shouldUseInert = false;
+     let visibleNodes = new Set(targets);
+     let hiddenNodes = new Set();
+     let getHidden = (element)=>{
+diff --git a/dist/private/overlays/ariaHideOutside.mjs b/dist/private/overlays/ariaHideOutside.mjs
+index 01643c2cac3682e1c55ca80957b23e6db197661c..e04365f44c88ad2db04982b12d035a9add076011 100644
+--- a/dist/private/overlays/ariaHideOutside.mjs
++++ b/dist/private/overlays/ariaHideOutside.mjs
+@@ -31,7 +31,10 @@ function $58196c8d6a1f38fc$export$1c3ebcada18427bf(targets, options) {
+         root: options
+     } : options;
+     let root = opts?.root ?? document.body;
+-    let shouldUseInert = opts?.shouldUseInert && $58196c8d6a1f38fc$var$supportsInert;
++    // @kleros/ui-components-library: keep react-aria-components 1.7.1's behaviour and hide the
++    // rest of the page with aria-hidden only, never inert, so overlays that apps open on top of a
++    // Modal or popover, such as a wallet modal or a toast, stay usable.
++    let shouldUseInert = false;
+     let visibleNodes = new Set(targets);
+     let hiddenNodes = new Set();
+     let getHidden = (element)=>{

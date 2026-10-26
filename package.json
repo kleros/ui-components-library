@@ -138,5 +138,8 @@
     "extends": [
       "plugin:storybook/recommended"
     ]
+  },
+  "resolutions": {
+    "react-aria@npm:3.51.0": "patch:react-aria@npm%3A3.51.0#~/.yarn/patches/react-aria-npm-3.51.0-7c39ac129d.patch"
   }
 }
