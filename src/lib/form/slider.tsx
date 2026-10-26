@@ -1,4 +1,5 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useRef } from "react";
+import { useIsomorphicLayoutEffect } from "usehooks-ts";
 import { cn, isUndefined } from "../../utils";
 import {
   Slider as AriaSlider,
@@ -37,7 +38,7 @@ function ValueTextBridge({
   inputRef: React.RefObject<HTMLInputElement>;
   valueText: string;
 }>) {
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const input = inputRef.current;
     if (input && input.getAttribute("aria-valuetext") !== valueText)
       input.setAttribute("aria-valuetext", valueText);
