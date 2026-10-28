@@ -26,6 +26,11 @@ export interface BaseButtonProps {
 export interface ButtonProps
   extends AriaButtonProps,
     Omit<BaseButtonProps, "$loading"> {
+  /**
+   * The button label. Children are not rendered: pass the label here.
+   * Use `onPress` (react-aria) for clicks and `isDisabled` to disable.
+   * @example <Button text="Submit" onPress={submit} isLoading={pending} />
+   */
   text: string;
   /** A React svg element to show as icon on button */
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;

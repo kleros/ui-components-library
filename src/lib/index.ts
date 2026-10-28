@@ -60,3 +60,5 @@ export { default as Copiable } from "../lib/copiable";
 export { default as DraggableList } from "../lib/draggable-list";
 
 export { default as FileViewer } from "../lib/file-viewer";
+
+export type * from "./types";

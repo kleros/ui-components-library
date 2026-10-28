@@ -16,6 +16,7 @@ None.
 - CircularProgress: a `tone` prop (`success`, `warning`, `error`, `info`, `neutral`, `accent`) sets the fill colour at every value. Without it the fill stays blue and turns green at 100%. The `CircularProgressTone` type is exported.
 - Card: a `fluid` prop sizes the card to its content and its container instead of the fixed 328×200.
 - Modal: a `fluid` prop sizes the dialog to its content, up to the viewport, instead of the fixed 328×200.
+- Types: every component's prop and item types are exported under unique names (for example `TabsItem`), and the published declarations keep their JSDoc, with examples on `Button`, `DropdownSelect`, `BigNumberField` and `Tabs`.
 
 ### Fixed
 

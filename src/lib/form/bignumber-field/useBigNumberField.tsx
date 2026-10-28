@@ -41,7 +41,11 @@ export interface BigNumberFieldProps {
   maxValue?: string | BigNumber;
   /** The amount to increment or decrement by. */
   step?: string | BigNumber;
-  /** Handler that is called when the value changes. */
+  /**
+   * Handler that is called when the value changes. The value is a bignumber.js `BigNumber` in display units
+   * (for example ETH, not wei). Keep it as a decimal string with `value.toFixed()`; convert to wei in your own code.
+   * @example <BigNumberField label="Deposit (ETH)" placeholder="0.0" onChange={(v) => setDeposit(v.toFixed())} />
+   */
   onChange?: (value: BigNumber) => void;
   /** Whether the input is disabled. */
   isDisabled?: boolean;
