@@ -14,6 +14,8 @@ None.
 
 - LinearProgress: `width` is optional. Without it the bar fills its container and follows it when it resizes. A number keeps today's fixed width.
 - CircularProgress: a `tone` prop (`success`, `warning`, `error`, `info`, `neutral`, `accent`) sets the fill colour at every value. Without it the fill stays blue and turns green at 100%. The `CircularProgressTone` type is exported.
+- Card: a `fluid` prop sizes the card to its content and its container instead of the fixed 328×200.
+- Modal: a `fluid` prop sizes the dialog to its content, up to the viewport, instead of the fixed 328×200.
 
 ## [3.10.0] - 2026-10-15
 
