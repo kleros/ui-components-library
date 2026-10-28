@@ -75,7 +75,9 @@ function NumberField({
               placeholder={placeholder}
               {...inputProps}
               className={cn(
-                "hover-medium-blue hover-short-transition bg-klerosUIComponentsWhiteBackground size-full",
+                "hover-short-transition bg-klerosUIComponentsWhiteBackground size-full",
+                // a field that can't be edited doesn't react to hover, as in BigNumberField
+                !isDisabled && !isReadOnly && "hover-medium-blue",
                 "rounded-base border-klerosUIComponentsStroke text-klerosUIComponentsPrimaryText border text-base",
                 "placeholder:text-klerosUIComponentsSecondaryText placeholder:opacity-50",
                 "focus:border-klerosUIComponentsPrimaryBlue focus:shadow-input focus:rounded-base focus:outline-none",
