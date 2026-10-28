@@ -125,6 +125,7 @@ function Slider({
                   "relative top-1/2 size-6",
                   "rounded-full border-3 border-solid",
                   "cursor-pointer outline-hidden transition",
+                  "focus-visible:shadow-input",
                   isDisabled &&
                     "border-klerosUIComponentsSecondaryText cursor-default",
                   isUndefined(thumbColor) && "dragging:shadow-input",
