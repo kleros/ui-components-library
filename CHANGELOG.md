@@ -18,6 +18,7 @@ None.
 - Modal: a `fluid` prop sizes the dialog to its content, up to the viewport, instead of the fixed 328×200.
 - Types: every component's prop and item types are exported under unique names (for example `TabsItem`), and the published declarations keep their JSDoc, with examples on `Button`, `DropdownSelect`, `BigNumberField` and `Tabs`.
 - Tag: `children` render instead of `text`, which stays required and becomes the accessible name. A `toggle` prop announces `active` as `aria-pressed`.
+- Tooltip: a `content` prop takes rich content, which replaces `text`. The `wrapperProps.role` option (default `button`) is documented.
 - `cn`: the class-name helper the components use (clsx plus tailwind-merge) is exported, so an app's `className` can override a default class.
 
 ### Fixed

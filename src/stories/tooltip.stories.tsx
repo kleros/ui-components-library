@@ -182,3 +182,55 @@ export const DisabledTooltip: Story = {
     await userEvent.unhover(trigger);
   },
 };
+
+/** `content` renders rich markup in the tooltip and wins over `text`. */
+export const RichContent: Story = {
+  args: {
+    ...OpenTooltip.args,
+    text: "Plain text, not shown",
+    content: (
+      <>
+        <strong>Verified</strong> by the <em>Curate</em> registry
+      </>
+    ),
+  },
+  play: async () => {
+    const tooltip = await body.findByRole("tooltip");
+    await expect(tooltip).toHaveTextContent("Verified by the Curate registry");
+    await expect(tooltip).not.toHaveTextContent("Plain text, not shown");
+    await expect(tooltip.querySelector("strong")).toHaveTextContent("Verified");
+    // rich content sits in a div, not in the <small> used for plain text
+    await expect(tooltip.querySelector("small")).toBeNull();
+    await waitForAnimations(document.body);
+  },
+};
+
+/**
+ * `wrapperProps.role` replaces the trigger's default `button` role. The second
+ * tooltip keeps the default so the story shows both.
+ */
+export const WrapperRole: Story = {
+  args: {
+    ...Tooltip.args,
+    wrapperProps: { role: "group", "aria-label": "Verified badge" },
+  },
+  render: (args) => (
+    <>
+      <TooltipComponent {...args} />
+      <TooltipComponent text="Default role">
+        <Tag active text="Default trigger" />
+      </TooltipComponent>
+    </>
+  ),
+  play: async ({ canvasElement }) => {
+    const group = within(canvasElement).getByRole("group", {
+      name: "Verified badge",
+    });
+    await expect(group).toHaveAttribute("tabindex", "0");
+    await expect(group).not.toHaveAttribute("role", "button");
+    // the second trigger keeps the default role
+    await expect(
+      canvasElement.querySelectorAll('[role="button"][tabindex]'),
+    ).toHaveLength(1);
+  },
+};
