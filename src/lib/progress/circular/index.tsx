@@ -75,7 +75,7 @@ function Circular({
         height={width + sw}
       >
         <path className="stroke-klerosUIComponentsStroke" d={circlePath} />
-        {progress && (
+        {progress > 0 && (
           <path
             className={clsx(
               tone

@@ -22,6 +22,7 @@ None.
 ### Fixed
 
 - Box passes every prop except `className` to its element (`id`, `role`, `aria-*`, handlers), where it dropped all but `children` and `className`.
+- CircularProgress no longer renders a stray `0` next to the label at 0%.
 - CircularProgress keeps a caller's `aria-label` instead of replacing it with the percentage.
 
 ## [3.10.0] - 2026-10-15

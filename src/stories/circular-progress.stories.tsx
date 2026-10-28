@@ -138,7 +138,7 @@ export const CustomRange: Story = {
   },
 };
 
-/** No progress: the fill arc is not rendered. */
+/** No progress: the fill arc is not rendered and no stray `0` shows. */
 export const Empty: Story = {
   args: {
     themeUI: "dark",
@@ -147,7 +147,8 @@ export const Empty: Story = {
   },
   play: async ({ canvasElement }) => {
     const progressbar = within(canvasElement).getByRole("progressbar");
-    await expect(progressbar).toHaveTextContent("0%");
+    // an exact match: a stray `0` rendered before the label reads "00%"
+    await expect(progressbar).toHaveTextContent(/^0%$/);
     await expect(progressbar.querySelectorAll("path")).toHaveLength(1);
   },
 };
