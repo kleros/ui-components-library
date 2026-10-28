@@ -59,8 +59,8 @@ export default defineConfig({
     libInjectCss(),
     dts({
       insertTypesEntry: true,
-      include: ["src/lib", "src/global.d.ts"],
-      exclude: ["src/lib/**/*.test.{ts,tsx}"],
+      include: ["src/lib", "src/utils", "src/global.d.ts"],
+      exclude: ["src/lib/**/*.test.{ts,tsx}", "src/utils/**/*.test.ts"],
     }),
   ],
 });
