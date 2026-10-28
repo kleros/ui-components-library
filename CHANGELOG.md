@@ -22,6 +22,7 @@ None.
 - TextField: `labelContent` and `description` take rich content for the label and the description slot. `label` and `message` stay strings, and the rich prop wins when both are set.
 - TextArea: `labelContent` and `description` take rich content for the label and the description slot. `label` and `message` stay strings, and the rich prop wins when both are set.
 - NumberField: `labelContent` and `description` take rich content for the label and the description slot. `label` and `message` stay strings, and the rich prop wins when both are set.
+- Breadcrumb: an item with `href` renders a link (react-aria `Link`) instead of a button. The last item has `aria-current="page"`. `as="nav"` with an `aria-label` (default "Breadcrumb") makes it a navigation landmark; the default stays a `div`.
 - `cn`: the class-name helper the components use (clsx plus tailwind-merge) is exported, so an app's `className` can override a default class.
 
 ### Fixed
