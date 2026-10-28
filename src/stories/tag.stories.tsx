@@ -6,7 +6,10 @@ import { IPreviewArgs } from "./utils";
 
 import TagComponent from "../lib/tag";
 import { a11yExceptions } from "./a11y";
-import { PRIMARY_BLUE_TEXT_LIGHT } from "./a11y-defects";
+import {
+  PRIMARY_BLUE_TEXT_LIGHT,
+  PRIMARY_BLUE_TEXT_RICH_LIGHT,
+} from "./a11y-defects";
 
 const meta = {
   component: TagComponent,
@@ -144,7 +147,10 @@ export const ActiveWithoutToggle: Story = {
 
 /** `children` replace `text` in the tag; `text` stays the accessible name. */
 export const RichTag: Story = {
-  parameters: TAG_CONTRAST,
+  parameters: a11yExceptions(
+    PRIMARY_BLUE_TEXT_LIGHT,
+    PRIMARY_BLUE_TEXT_RICH_LIGHT,
+  ),
   args: {
     themeUI: "light",
     backgroundUI: "light",

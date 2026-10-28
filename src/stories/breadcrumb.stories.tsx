@@ -123,6 +123,8 @@ export const LinkBreadcrumb: Story = {
     await expect(current).toHaveAttribute("aria-current", "page");
     await expect(links[0]).not.toHaveAttribute("aria-current");
 
+    // keep the test page in place: following the href navigates the runner away
+    canvasElement.addEventListener("click", (event) => event.preventDefault());
     await userEvent.click(links[1]);
     await expect(args.callback).toHaveBeenCalledTimes(1);
     await expect(args.callback).toHaveBeenLastCalledWith(1);

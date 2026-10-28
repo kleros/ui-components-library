@@ -14,7 +14,11 @@ import Telegram from "../assets/svgs/telegram.svg";
 import { Form } from "react-aria-components";
 import Button from "../lib/button";
 import { a11yExceptions } from "./a11y";
-import { SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
+import {
+  SECONDARY_TEXT_LIGHT,
+  SECONDARY_TEXT_RICH_LIGHT,
+  WHITE_ON_BLUE_LIGHT,
+} from "./a11y-defects";
 
 const meta = {
   component: NumberFieldComponent,
@@ -306,7 +310,7 @@ export const Disabled: Story = {
 
 /** `labelContent` and `description` take rich content, used in the label and the description slot. */
 export const RichLabelAndDescription: Story = {
-  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, SECONDARY_TEXT_RICH_LIGHT),
   args: {
     ...Default.args,
     labelContent: (

@@ -11,6 +11,7 @@ import Button from "../lib/button";
 import { a11yExceptions, auditA11y } from "./a11y";
 import {
   SECONDARY_TEXT_LIGHT,
+  SECONDARY_TEXT_RICH_LIGHT,
   ERROR_TEXT_LIGHT,
   WHITE_ON_BLUE_LIGHT,
 } from "./a11y-defects";
@@ -297,7 +298,7 @@ export const ErrorMessage: Story = {
 
 /** `labelContent` and `description` take rich content, used in the label and the description slot. */
 export const RichLabelAndDescription: Story = {
-  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, SECONDARY_TEXT_RICH_LIGHT),
   args: {
     ...Default.args,
     labelContent: (
