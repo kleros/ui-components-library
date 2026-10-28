@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs, waitForAnimations } from "./utils";
+import { IPreviewArgs, expectTruncated, waitForAnimations } from "./utils";
 
 import SelectComponent from "../lib/dropdown/select";
-import { Form } from "react-aria-components";
+import { Form, type Key } from "react-aria-components";
 import { Button } from "../lib";
 import Telegram from "../assets/svgs/telegram.svg";
 import { a11yExceptions, auditA11y } from "./a11y";
@@ -162,6 +162,11 @@ export const SimpleSelect: Story = {
     const listbox = await openListbox(trigger);
     // the arrow rotates while open
     await expect(trigger.querySelector("svg")).toHaveClass("rotate-180");
+    // the simple button stretches across the field, but its list stays 240px
+    await expect(
+      (listbox.closest("[data-trigger]") as HTMLElement).getBoundingClientRect()
+        .width,
+    ).toBe(240);
     await userEvent.click(
       within(listbox).getByRole("option", { name: "hello 2" }),
     );
@@ -266,6 +271,56 @@ export const RequiredSelect: Story = {
     await waitFor(() =>
       expect(trigger.closest("[data-invalid]")).not.toBeInTheDocument(),
     );
+  },
+};
+
+let keyboardSubmits = 0;
+
+/** A key pressed on the closed button that picks an item clears a required error. */
+export const RequiredSelectKeyboard: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
+  args: {
+    ...Select.args,
+    isRequired: true,
+  },
+  render: (args) => (
+    <Form
+      onSubmit={(e) => {
+        e.preventDefault();
+        keyboardSubmits++;
+      }}
+    >
+      <SelectComponent {...args} />
+      <Button
+        variant="primary"
+        type="submit"
+        text="Submit"
+        small
+        className="mt-4"
+      />
+    </Form>
+  ),
+  play: async ({ canvasElement, args }) => {
+    keyboardSubmits = 0;
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole("button", { name: /Select a value/ });
+    await userEvent.click(canvas.getByRole("button", { name: "Submit" }));
+    await waitFor(() =>
+      expect(trigger.closest("[data-invalid]")).toBeInTheDocument(),
+    );
+    await expect(keyboardSubmits).toBe(0);
+
+    trigger.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(trigger).toHaveTextContent("hello 1");
+    await expect(args.callback).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 1 }),
+    );
+    await waitFor(() =>
+      expect(trigger.closest("[data-invalid]")).not.toBeInTheDocument(),
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Submit" }));
+    await waitFor(() => expect(keyboardSubmits).toBe(1));
   },
 };
 
@@ -427,5 +482,135 @@ export const OnSelectionChange: Story = {
     await expect(args.callback).toHaveBeenCalledWith(
       expect.objectContaining({ id: 3, itemValue: 3, text: "hello 3" }),
     );
+  },
+};
+
+/** react-aria's `value` and `onChange` control the selected key, alongside `callback`. */
+export const ValueAndOnChange: Story = {
+  args: {
+    ...Select.args,
+    onChange: fn(),
+  },
+  render: function Render(args) {
+    const [value, setValue] = useState<Key | null>(2);
+    return (
+      <SelectComponent
+        {...args}
+        value={value}
+        onChange={(key) => {
+          setValue(key);
+          args.onChange?.(key);
+        }}
+      />
+    );
+  },
+  play: async ({ canvasElement, args }) => {
+    const trigger = within(canvasElement).getByRole("button");
+    await expect(trigger).toHaveTextContent("hello 2");
+    const listbox = await openListbox(trigger);
+    await expect(
+      within(listbox).getByRole("option", { name: "hello 2" }),
+    ).toHaveAttribute("aria-selected", "true");
+    await userEvent.click(
+      within(listbox).getByRole("option", { name: "hello 4" }),
+    );
+    await waitForClose();
+    await expect(trigger).toHaveTextContent("hello 4");
+    await expect(args.onChange).toHaveBeenCalledTimes(1);
+    await expect(args.onChange).toHaveBeenCalledWith(4);
+    await expect(args.callback).toHaveBeenCalledTimes(1);
+    await expect(args.callback).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 4 }),
+    );
+  },
+};
+
+const longItems = [
+  {
+    text: "A very long option label that does not fit",
+    dot: "red",
+    itemValue: 1,
+    id: 1,
+  },
+  { text: "0x7fbd8b2a1c9e4d3f6a5b0c8e2d1f4a7b9c3e6d5f", itemValue: 2, id: 2 },
+  { text: "Short", itemValue: 3, id: 3 },
+];
+
+/** Long text stays on one line inside the button, cut with an ellipsis. The list shows it in full. */
+export const LongText: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    items: longItems,
+    defaultSelectedKey: 1,
+  },
+  play: async ({ canvasElement, args }) => {
+    const trigger = within(canvasElement).getByRole("button");
+    await expect(trigger.getBoundingClientRect().width).toBe(240);
+    await expectTruncated(trigger);
+    // the accessible name keeps the whole text
+    await expect(trigger).toHaveAccessibleName(
+      /A very long option label that does not fit/,
+    );
+
+    const listbox = await openListbox(trigger);
+    // each option, long words included, stays inside the list
+    const listRight = listbox.getBoundingClientRect().right;
+    for (const option of within(listbox).getAllByRole("option"))
+      await expect(option.getBoundingClientRect().right).toBeLessThanOrEqual(
+        listRight,
+      );
+    await userEvent.click(
+      within(listbox).getByRole("option", { name: longItems[1].text }),
+    );
+    await waitForClose();
+    await expect(trigger.getBoundingClientRect().width).toBe(240);
+    await expectTruncated(trigger);
+    await expect(args.callback).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 2 }),
+    );
+  },
+};
+
+/**
+ * `buttonClassName` sizes the trigger, and the list is never narrower than it.
+ * By default the trigger is 240px, or the field's width when that is less.
+ */
+export const ButtonWidth: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    items: longItems,
+    defaultSelectedKey: 1,
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-6">
+      <div data-testid="full" className="w-100">
+        <SelectComponent {...args} aria-label="Full" buttonClassName="w-full" />
+      </div>
+      <div data-testid="narrow" className="w-40">
+        <SelectComponent {...args} aria-label="Narrow" />
+      </div>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = (id: string) =>
+      within(canvas.getByTestId(id)).getByRole("button");
+    const listWidth = async (button: HTMLElement) => {
+      const listbox = await openListbox(button);
+      const popover = listbox.closest("[data-trigger]") as HTMLElement;
+      const { width } = popover.getBoundingClientRect();
+      await userEvent.keyboard("{Escape}");
+      await waitForClose();
+      return width;
+    };
+
+    await expect(trigger("full").getBoundingClientRect().width).toBe(400);
+    await expect(await listWidth(trigger("full"))).toBe(400);
+
+    await expect(trigger("narrow").getBoundingClientRect().width).toBe(160);
+    await expectTruncated(trigger("narrow"));
+    await expect(await listWidth(trigger("narrow"))).toBe(240);
   },
 };

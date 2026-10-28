@@ -3,7 +3,7 @@ import type { Key } from "react-aria-components";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
-import { IPreviewArgs, waitForAnimations } from "./utils";
+import { IPreviewArgs, expectTruncated, waitForAnimations } from "./utils";
 
 import DropdownCascaderComponent from "../lib/dropdown/cascader";
 import { Form } from "react-aria-components";
@@ -497,5 +497,49 @@ export const AccessibleName: Story = {
     await expect(trigger("labelledby")).not.toHaveAccessibleName(/\bSelect\b/);
 
     await expect(trigger("fallback")).toHaveAccessibleName(/\bSelect\b/);
+  },
+};
+
+/**
+ * A long label stays on one line inside the button, cut with an ellipsis.
+ * `buttonClassName` sizes the trigger.
+ */
+export const LongLabel: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    items: [
+      {
+        label: "A very long court name that does not fit in the button",
+        itemValue: 1,
+        id: 1,
+      },
+    ],
+    defaultSelectedKey: 1,
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-6">
+      <div data-testid="default">
+        <DropdownCascaderComponent {...args} aria-label="Default" />
+      </div>
+      <div data-testid="full" className="w-100">
+        <DropdownCascaderComponent
+          {...args}
+          aria-label="Full"
+          buttonClassName="w-full"
+        />
+      </div>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = (id: string) => findTrigger(canvas.getByTestId(id));
+
+    await expect(trigger("default").getBoundingClientRect().width).toBe(240);
+    await expectTruncated(trigger("default"));
+    await expect(trigger("default")).toHaveAccessibleName(
+      /A very long court name that does not fit in the button/,
+    );
+    await expect(trigger("full").getBoundingClientRect().width).toBe(400);
   },
 };

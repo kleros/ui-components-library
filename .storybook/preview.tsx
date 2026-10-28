@@ -10,7 +10,7 @@ import {
   resetA11yAudit,
 } from "../src/stories/a11y";
 
-import "../src/styles/global.css";
+import "../src/styles/stories.css";
 
 export type IPreviewArgs = {
   themeUI: "light" | "dark";

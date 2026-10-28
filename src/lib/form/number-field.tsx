@@ -50,6 +50,7 @@ function NumberField({
   placeholder,
   label,
   isDisabled,
+  isReadOnly,
   inputProps,
   showFieldError,
   fieldErrorProps,
@@ -59,6 +60,7 @@ function NumberField({
     <AriaNumberField
       className={cn("flex w-[278px] flex-col", className)}
       isDisabled={isDisabled}
+      isReadOnly={isReadOnly}
       {...props}
     >
       {label && (
@@ -73,7 +75,9 @@ function NumberField({
               placeholder={placeholder}
               {...inputProps}
               className={cn(
-                "hover-medium-blue hover-short-transition bg-klerosUIComponentsWhiteBackground size-full",
+                "hover-short-transition bg-klerosUIComponentsWhiteBackground size-full",
+                // a field that can't be edited doesn't react to hover, as in BigNumberField
+                !isDisabled && !isReadOnly && "hover-medium-blue",
                 "rounded-base border-klerosUIComponentsStroke text-klerosUIComponentsPrimaryText border text-base",
                 "placeholder:text-klerosUIComponentsSecondaryText placeholder:opacity-50",
                 "focus:border-klerosUIComponentsPrimaryBlue focus:shadow-input focus:rounded-base focus:outline-none",
@@ -94,6 +98,7 @@ function NumberField({
                 "animate-fade-in absolute top-0 right-3 hidden h-full w-3.5",
                 isHovered &&
                   !isDisabled &&
+                  !isReadOnly &&
                   "flex flex-col items-center justify-center gap-1",
                 {
                   "right-9": variant && variant !== "info",

@@ -62,6 +62,20 @@ export interface CustomRadioProps
   fieldErrorProps?: FieldErrorProps;
 }
 
+/** Keeps arrow keys pressed in anything nested in the group other than its radios (a field, a
+ *  dropdown's button, a native select) from reaching react-aria's RadioGroup, which would move the
+ *  selection and cancel the key. The element's own handlers have already run. */
+const keepArrowKeysInNestedControls = (
+  e: React.KeyboardEvent<HTMLDivElement>,
+) => {
+  const { target } = e;
+  if (
+    e.key.startsWith("Arrow") &&
+    !(target instanceof HTMLInputElement && target.type === "radio")
+  )
+    e.stopPropagation();
+};
+
 /** A radio group whose options render arbitrary content (cards, tooltip-wrapped labels, ...)
  *  while keeping react-aria's `RadioGroup` semantics (single-select, roving tab-index,
  *  keyboard navigation, `role="radiogroup"`). Pass `items` for simple lists, or `children`
@@ -90,16 +104,19 @@ function CustomRadio({
           {groupLabel}
         </Label>
       )}
-      {children ??
-        items?.map(({ content, className: itemClassName, ...item }) => (
-          <CustomRadioItem
-            key={String(item.value)}
-            {...item}
-            className={itemClassName}
-          >
-            {content}
-          </CustomRadioItem>
-        ))}
+      {/* `contents` keeps the options laid out by the group itself. */}
+      <div className="contents" onKeyDown={keepArrowKeysInNestedControls}>
+        {children ??
+          items?.map(({ content, className: itemClassName, ...item }) => (
+            <CustomRadioItem
+              key={String(item.value)}
+              {...item}
+              className={itemClassName}
+            >
+              {content}
+            </CustomRadioItem>
+          ))}
+      </div>
       <FieldError
         {...fieldErrorProps}
         className={cn(

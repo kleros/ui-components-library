@@ -21,7 +21,9 @@ jobs:
     if: >-
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    # ubuntu-latest is Ubuntu 26.04, which Playwright supports from 1.61; the
+    # repo's 1.56 can't install Chromium there.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout

@@ -24,7 +24,11 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
-/** The visual track whose classes reflect the switch state. */
+/**
+ * The visual track whose classes reflect the switch state. Plays click the
+ * control instead: react-aria ignores the 0×0 pointer events of a synthetic
+ * click on the label. src/native covers real clicks on the track.
+ */
 const getTrack = (canvasElement: HTMLElement) =>
   canvasElement.querySelector("label > span.absolute") as HTMLElement;
 
@@ -46,14 +50,14 @@ export const Switch: Story = {
     );
 
     await step("clicking toggles the switch", async () => {
-      await userEvent.click(getTrack(canvasElement));
+      await userEvent.click(toggle);
       await expect(toggle).toBeChecked();
       await expect(args.onChange).toHaveBeenLastCalledWith(true);
       await expect(getTrack(canvasElement)).toHaveClass(
         "bg-klerosUIComponentsPrimaryBlue",
         "before:translate-x-6",
       );
-      await userEvent.click(getTrack(canvasElement));
+      await userEvent.click(toggle);
       await expect(toggle).not.toBeChecked();
       await expect(args.onChange).toHaveBeenLastCalledWith(false);
     });
@@ -80,7 +84,7 @@ export const SmallSelected: Story = {
     await expect(toggle).toBeChecked();
     await expect(getTrack(canvasElement)).toHaveClass("before:translate-x-4");
     await expect(toggle.closest("label")).toHaveClass("h-4", "w-8");
-    await userEvent.click(getTrack(canvasElement));
+    await userEvent.click(toggle);
     await expect(toggle).not.toBeChecked();
     await expect(args.onChange).toHaveBeenCalledWith(false);
   },
@@ -94,7 +98,7 @@ export const Disabled: Story = {
   play: async ({ canvasElement, args }) => {
     const toggle = within(canvasElement).getByRole("switch");
     await expect(toggle).toBeDisabled();
-    await userEvent.click(getTrack(canvasElement));
+    await userEvent.click(toggle);
     await expect(toggle).not.toBeChecked();
     await expect(args.onChange).not.toHaveBeenCalled();
   },
@@ -142,7 +146,7 @@ export const Controlled: Story = {
     const toggle = canvas.getByRole("switch", { name: "Dark mode" });
     await expect(toggle).toBeChecked();
     await expect(canvas.getByText("On")).toBeVisible();
-    await userEvent.click(getTrack(canvasElement));
+    await userEvent.click(toggle);
     await expect(toggle).not.toBeChecked();
     await expect(canvas.getByText("Off")).toBeVisible();
     await expect(args.onChange).toHaveBeenCalledWith(false);

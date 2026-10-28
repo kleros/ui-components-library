@@ -3,6 +3,7 @@
 !/.yarn/plugins
 !/.yarn/releases
 !/.yarn/sdks
+!/.yarn/patches
 /.pnp.*
 node_modules
 

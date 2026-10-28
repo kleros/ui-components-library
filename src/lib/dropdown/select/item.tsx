@@ -27,10 +27,15 @@ const Item: React.FC<IItem> = ({ text, Icon, icon, dot, ...props }) => {
     <ListBoxItem
       className={cn(
         "hover-short-transition box-border cursor-pointer outline-none",
-        "flex items-center py-[10.5px] pr-4 pl-3.25",
+        // only the text shrinks: an icon or dot keeps its size next to long text
+        "flex items-center py-[10.5px] pr-4 pl-3.25 [&>:not(p)]:shrink-0",
         "hover:bg-klerosUIComponentsMediumBlue focus:bg-klerosUIComponentsMediumBlue",
         "selected:bg-klerosUIComponentsMediumBlue",
         "selected:border-l-klerosUIComponentsPrimaryBlue selected:border-l-3",
+        // several rows can look selected, so keyboard focus gets an outline, as in DraggableList
+        "selection-multiple:focus-visible:outline-klerosUIComponentsPrimaryBlue",
+        "selection-multiple:focus-visible:outline selection-multiple:focus-visible:outline-solid",
+        "selection-multiple:focus-visible:-outline-offset-1",
         "disabled:bg-klerosUIComponentsStroke disabled:cursor-not-allowed",
       )}
       {...props}
@@ -39,11 +44,13 @@ const Item: React.FC<IItem> = ({ text, Icon, icon, dot, ...props }) => {
       {({ isDisabled }) => (
         <>
           {icon ??
-            (Icon && <Icon className="max-h-4 min-h-3 max-w-4 min-w-3" />)}
-          {dot && <Dot className="mr-2" color={dot} />}
+            (Icon && (
+              <Icon className="max-h-4 min-h-3 max-w-4 min-w-3 shrink-0" />
+            ))}
+          {dot && <Dot className="mr-2 shrink-0" color={dot} />}
           <p
             className={clsx(
-              "text-base",
+              "min-w-0 text-base break-words",
               isDisabled
                 ? "text-klerosUIComponentsSecondaryText"
                 : "text-klerosUIComponentsPrimaryText",

@@ -303,3 +303,26 @@ export const Disabled: Story = {
     );
   },
 };
+
+/** A read-only field keeps its value and, as when disabled, does not reveal its steppers, which
+ * could not change the value. */
+export const ReadOnly: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  args: {
+    ...Default.args,
+    label: "Age",
+    defaultValue: 30,
+    isReadOnly: true,
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("textbox", { name: "Age" });
+    await expect(input).toHaveAttribute("readonly");
+    await userEvent.type(input, "5{ArrowUp}");
+    await expect(input).toHaveValue("30");
+    await expect(args.onChange).not.toHaveBeenCalled();
+    await expectHoverRevealsNothing(userEvent, input.parentElement!, () =>
+      canvas.queryByRole("button", { name: /Increase/ }),
+    );
+  },
+};

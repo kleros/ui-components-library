@@ -41,11 +41,13 @@ export const Box: Story = {
     const checkbox = canvas.getByRole("checkbox", { name: "Checkbox" });
     await expect(checkbox).not.toBeChecked();
 
-    await step("clicking the label toggles the checkbox", async () => {
-      await userEvent.click(canvas.getByText("Checkbox"));
+    // Plays click the control: react-aria ignores the 0×0 pointer events of
+    // a synthetic click on the label. src/native covers real label clicks.
+    await step("clicking the checkbox toggles it", async () => {
+      await userEvent.click(checkbox);
       await expect(checkbox).toBeChecked();
       await expect(args.onChange).toHaveBeenLastCalledWith(true);
-      await userEvent.click(canvas.getByText("Checkbox"));
+      await userEvent.click(checkbox);
       await expect(checkbox).not.toBeChecked();
       await expect(args.onChange).toHaveBeenLastCalledWith(false);
     });
@@ -92,7 +94,7 @@ export const Disabled: Story = {
     });
     await expect(checkbox).toBeDisabled();
     await auditA11y(context, "disabled");
-    await userEvent.click(canvas.getByText("Disabled checkbox"));
+    await userEvent.click(checkbox);
     await expect(checkbox).not.toBeChecked();
     await expect(args.onChange).not.toHaveBeenCalled();
     await userEvent.tab();

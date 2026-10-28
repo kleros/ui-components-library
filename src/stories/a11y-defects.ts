@@ -53,13 +53,13 @@ export const ERROR_TEXT_LIGHT = contrastInLight(
 export const SELECT_VALUE_LIGHT = contrastInLight(
   ".react-aria-SelectValue",
   "Library defect: the simple select's value inherits PrimaryBlue text, 2.9:1.",
-  "src/lib/dropdown/select/simple-button.tsx:34",
+  "src/lib/dropdown/select/simple-button.tsx:36",
 );
 
 export const SLIDER_LABEL_LIGHT = contrastInLight(
-  "#slider-label",
-  "Library defect: the slider label defaults to PrimaryBlue text, 2.9:1.",
-  "src/lib/form/slider.tsx:100",
+  '[data-slot="slider-label"]',
+  "Library defect: the slider's value label defaults to PrimaryBlue text, 2.9:1.",
+  "src/lib/form/slider.tsx:150",
 );
 
 export const FOCUSED_DATE_SEGMENT_LIGHT = contrastInLight(
