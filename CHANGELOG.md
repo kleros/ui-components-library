@@ -19,6 +19,7 @@ None.
 - Types: every component's prop and item types are exported under unique names (for example `TabsItem`), and the published declarations keep their JSDoc, with examples on `Button`, `DropdownSelect`, `BigNumberField` and `Tabs`.
 - Tag: `children` render instead of `text`, which stays required and becomes the accessible name. A `toggle` prop announces `active` as `aria-pressed`.
 - Tooltip: a `content` prop takes rich content, which replaces `text`. The `wrapperProps.role` option (default `button`) is documented.
+- TextField: `labelContent` and `description` take rich content for the label and the description slot. `label` and `message` stay strings, and the rich prop wins when both are set.
 - `cn`: the class-name helper the components use (clsx plus tailwind-merge) is exported, so an app's `className` can override a default class.
 
 ### Fixed
