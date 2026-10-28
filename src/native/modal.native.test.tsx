@@ -1,9 +1,10 @@
-import React from "react";
-import { render, screen } from "@testing-library/react";
+import React, { useState } from "react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { userEvent } from "@vitest/browser/context";
 
 import Modal from "../lib/container/modal";
+import DropdownSelect from "../lib/dropdown/select";
 
 const focused = () => document.activeElement?.textContent;
 
@@ -68,5 +69,49 @@ test.each([false, true])(
     // a click outside a dismissable modal also asks it to close
     expect(onOpenChange).toHaveBeenCalledTimes(isDismissable ? 1 : 0);
     wallet.parentElement!.remove();
+  },
+);
+
+// The patched react-aria hides the page with aria-hidden only, so on close it
+// must leave alone an inert the app set itself, such as on its root while its
+// own drawer is open. react-aria-components 1.7.1 never touched inert.
+test.each(["Modal", "DropdownSelect"])(
+  "closing a %s keeps an inert the app set on the page",
+  async (overlay) => {
+    const appRoot = document.createElement("div");
+    appRoot.textContent = "app";
+    document.body.prepend(appRoot);
+    appRoot.inert = true;
+    function Drawer() {
+      const [isOpen, setOpen] = useState(false);
+      return overlay === "Modal" ? (
+        <>
+          <button onClick={() => setOpen(true)}>Open</button>
+          <Modal isOpen={isOpen} onOpenChange={setOpen}>
+            <button onClick={() => setOpen(false)}>Close</button>
+          </Modal>
+        </>
+      ) : (
+        <DropdownSelect
+          aria-label="Open"
+          items={[{ id: 1, text: "one" }]}
+          callback={() => {}}
+        />
+      );
+    }
+    render(<Drawer />);
+
+    await userEvent.click(screen.getByRole("button", { name: /Open/ }));
+    const role = overlay === "Modal" ? "dialog" : "listbox";
+    await screen.findByRole(role);
+    expect(appRoot.getAttribute("aria-hidden")).toBe("true");
+    if (overlay === "Modal")
+      await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    else await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole(role)).toBeNull());
+
+    expect(appRoot.hasAttribute("aria-hidden")).toBe(false);
+    expect(appRoot.inert).toBe(true);
+    appRoot.remove();
   },
 );
