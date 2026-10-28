@@ -303,10 +303,53 @@ describe("useBigNumberField onValueChange", () => {
       expect(onChange).not.toHaveBeenCalled();
     },
   );
+
+  it("unformats formatted text the user edits, which then stops being formatted", () => {
+    const onValueChange = vi.fn();
+    render(<Field defaultValue="1234" onValueChange={onValueChange} />);
+    const input = screen.getByRole("spinbutton");
+    // Blur formats the text
+    fireEvent.blur(input);
+    expect(input).toHaveProperty("value", "1,234");
+
+    fireEvent.change(input, { target: { value: "1,2345" } });
+    expect(input).toHaveProperty("value", "12345");
+    expect(reported(onValueChange)).toEqual(["12345"]);
+
+    // the text is plain now, so a comma is no longer read as a group separator
+    fireEvent.change(input, { target: { value: "12,345" } });
+    expect(input).toHaveProperty("value", "12345");
+    expect(onValueChange).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([".", "-.", "-"])(
+    'empties "%s" on blur and reports it as an emptied input',
+    (text) => {
+      const onChange = vi.fn();
+      const onValueChange = vi.fn();
+      render(
+        <Field
+          defaultValue="5"
+          onChange={onChange}
+          onValueChange={onValueChange}
+        />,
+      );
+      const input = screen.getByRole("spinbutton");
+      fireEvent.change(input, { target: { value: text } });
+      onChange.mockClear();
+      onValueChange.mockClear();
+
+      fireEvent.blur(input);
+
+      expect(input).toHaveProperty("value", "");
+      expect(reported(onChange)).toEqual(["0"]);
+      expect(reported(onValueChange)).toEqual([null]);
+    },
+  );
 });
 
 describe("useBigNumberField required on blur", () => {
-  it.each([".", "-."])(
+  it.each([".", "-.", "-"])(
     'flags a required field whose "%s" blur empties',
     (text) => {
       render(<Field isRequired />);
@@ -447,20 +490,31 @@ describe("useBigNumberField controlled through onValueChange", () => {
 });
 
 describe("useBigNumberField text that holds no number yet, controlled through onChange", () => {
-  const StringEcho = () => {
-    const [amount, setAmount] = React.useState("12");
+  const StringEcho = ({
+    initial = "12",
+    ...props
+  }: BigNumberFieldProps & { initial?: string }) => {
+    const [amount, setAmount] = React.useState(initial);
+    const [, rerender] = React.useReducer((n: number) => n + 1, 0);
     return (
       <>
-        <Field value={amount} onChange={(v) => setAmount(v.toString())} />
+        <Field
+          {...props}
+          value={amount}
+          onChange={(v) => setAmount(v.toString())}
+        />
         <output>{amount}</output>
         <button onClick={() => setAmount("")}>Reset</button>
+        <button onClick={() => setAmount("50")}>Set 50</button>
+        <button onClick={rerender}>Re-render</button>
       </>
     );
   };
 
-  // A new BigNumber on every render, so each echo runs the value sync.
-  const FreshBigNumber = () => {
-    const [amount, setAmount] = React.useState("12");
+  // A new BigNumber on every render, so each echo and each re-render runs the value sync.
+  const FreshBigNumber = ({ initial = "12" }: { initial?: string }) => {
+    const [amount, setAmount] = React.useState(initial);
+    const [, rerender] = React.useReducer((n: number) => n + 1, 0);
     return (
       <>
         <Field
@@ -468,9 +522,13 @@ describe("useBigNumberField text that holds no number yet, controlled through on
           onChange={(v) => setAmount(v.toString())}
         />
         <output>{amount}</output>
+        <button onClick={rerender}>Re-render</button>
       </>
     );
   };
+
+  const rerenderParent = () =>
+    fireEvent.click(screen.getByRole("button", { name: "Re-render" }));
 
   it.each([
     ["string", StringEcho],
@@ -485,10 +543,106 @@ describe("useBigNumberField text that holds no number yet, controlled through on
       fireEvent.change(input, { target: { value: "." } });
       expect(state.textContent).toBe("NaN");
       expect(input).toHaveProperty("value", ".");
+      // a re-render of the parent alone gives the same value again
+      rerenderParent();
+      expect(input).toHaveProperty("value", ".");
 
       fireEvent.change(input, { target: { value: ".5" } });
       expect(state.textContent).toBe("0.5");
       expect(input).toHaveProperty("value", ".5");
+    },
+  );
+
+  it.each([
+    ["string", StringEcho],
+    ["fresh BigNumber", FreshBigNumber],
+  ])(
+    "keeps a lone minus sign when the parent re-renders with the same empty %s value",
+    (_, Harness) => {
+      render(<Harness initial="" />);
+      const input = screen.getByRole("spinbutton");
+      const state = screen.getByRole("status");
+
+      fireEvent.change(input, { target: { value: "-" } });
+      rerenderParent();
+      expect(input).toHaveProperty("value", "-");
+
+      fireEvent.change(input, { target: { value: "-5" } });
+      expect(state.textContent).toBe("-5");
+    },
+  );
+
+  // The field can't tell a parent that still holds 12 from one that sets 12 again, such as a Max
+  // button pressed with Enter, so a number given again replaces any text, as on 3.10.0.
+  it.each(["150", "", "-", "."])(
+    'still replaces "%s" with a number given again as a new BigNumber',
+    (text) => {
+      // A parent that ignores what is typed and builds its value on every render
+      const Ignoring = () => {
+        const [, rerender] = React.useReducer((n: number) => n + 1, 0);
+        return (
+          <>
+            <Field value={new BigNumber("12")} onChange={() => {}} />
+            <button onClick={rerender}>Re-render</button>
+          </>
+        );
+      };
+      render(<Ignoring />);
+      const input = screen.getByRole("spinbutton");
+
+      fireEvent.change(input, { target: { value: text } });
+      expect(input).toHaveProperty("value", text);
+      rerenderParent();
+
+      expect(input).toHaveProperty("value", "12");
+    },
+  );
+
+  it("validates only the parent's answer to blur's report, not the values it sets later", () => {
+    const atMost10 = (value: BigNumber | null) =>
+      value?.isGreaterThan(10) ? "At most 10" : true;
+    render(<StringEcho validate={atMost10} />);
+    const input = screen.getByRole("spinbutton");
+    fireEvent.change(input, { target: { value: "." } });
+    fireEvent.blur(input);
+    expect(input).toHaveProperty("value", "0");
+
+    fireEvent.click(screen.getByRole("button", { name: "Set 50" }));
+
+    expect(input).toHaveProperty("value", "50");
+    // as before, a value from outside is validated on the next blur
+    expect(input.getAttribute("aria-invalid")).toBe("false");
+  });
+
+  it.each([".", "-", "-."])(
+    'validates the 0 that onChange echoes after blur empties "%s"',
+    (text) => {
+      const positive = (value: BigNumber | null) =>
+        value === null || value.isGreaterThan(0) ? true : "Must be over 0";
+      render(<StringEcho validate={positive} />);
+      const input = screen.getByRole("spinbutton");
+
+      fireEvent.change(input, { target: { value: text } });
+      fireEvent.blur(input);
+
+      expect(input).toHaveProperty("value", "0");
+      expect(input.getAttribute("aria-invalid")).toBe("true");
+    },
+  );
+
+  it.each([".", "-"])(
+    'shows the 0 that onChange echoes after blur empties a required field\'s "%s", without an error',
+    (text) => {
+      render(<StringEcho isRequired />);
+      const input = screen.getByRole("spinbutton");
+      const state = screen.getByRole("status");
+
+      fireEvent.change(input, { target: { value: text } });
+      fireEvent.blur(input);
+
+      expect(state.textContent).toBe("0");
+      expect(input).toHaveProperty("value", "0");
+      expect(input.getAttribute("aria-invalid")).toBe("false");
     },
   );
 
@@ -547,4 +701,118 @@ describe("useBigNumberField value set after a formatted text", () => {
 
     expect(input).toHaveProperty("value", "1,234");
   });
+});
+
+describe("useBigNumberField validation of a value set from outside", () => {
+  const atMost10 = (value: BigNumber | null) =>
+    value?.isGreaterThan(10) ? "At most 10" : true;
+
+  it("shows no error for a number the parent sets before any blur", () => {
+    const { rerender } = render(<Field value="" validate={atMost10} />);
+    const input = screen.getByRole("spinbutton");
+
+    rerender(<Field value="50" validate={atMost10} />);
+
+    expect(input.getAttribute("aria-invalid")).toBe("false");
+  });
+});
+
+describe("useBigNumberField errors thrown by change handlers", () => {
+  const appBug = () => {
+    throw new Error("app bug");
+  };
+
+  /** Errors that reached the window, as uncaught errors in event handlers do. */
+  const uncaughtDuring = (run: () => void) => {
+    const errors: unknown[] = [];
+    const onError = (e: ErrorEvent) => {
+      errors.push(e.error);
+      e.preventDefault();
+    };
+    window.addEventListener("error", onError);
+    try {
+      run();
+    } finally {
+      window.removeEventListener("error", onError);
+    }
+    return errors;
+  };
+
+  // An onChange that runs viem's parseUnits throws for ".", and typing has always caught it.
+  it("logs an onChange error while typing, keeps the number and still calls onValueChange", () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const onValueChange = vi.fn();
+    render(<Field onChange={appBug} onValueChange={onValueChange} />);
+    const input = screen.getByRole("spinbutton");
+
+    const uncaught = uncaughtDuring(() =>
+      fireEvent.change(input, { target: { value: "12" } }),
+    );
+
+    expect(uncaught).toEqual([]);
+    expect(consoleError).toHaveBeenCalledWith(
+      "Error in BigNumberField onChange:",
+      expect.objectContaining({ message: "app bug" }),
+    );
+    expect(input.getAttribute("aria-valuenow")).toBe("12");
+    expect(onValueChange).toHaveBeenCalledTimes(1);
+    // blur formats the number instead of emptying a field it thought held none
+    fireEvent.blur(input);
+    expect(input).toHaveProperty("value", "12");
+  });
+
+  it.each([
+    ["onValueChange while typing", { onValueChange: appBug }, "12"],
+    ["onChange on a stepper key, as before", { onChange: appBug }, "ArrowUp"],
+  ])("lets an error thrown by %s reach the app", (_, handlers, input) => {
+    render(<Field {...handlers} />);
+    const field = screen.getByRole("spinbutton");
+
+    const uncaught = uncaughtDuring(() =>
+      input === "ArrowUp"
+        ? fireEvent.keyDown(field, { key: input })
+        : fireEvent.change(field, { target: { value: input } }),
+    );
+
+    expect(uncaught).toContainEqual(
+      expect.objectContaining({ message: "app bug" }),
+    );
+  });
+
+  it("logs an onChange error from the report of a blur that empties the text, which still validates", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const onValueChange = vi.fn();
+    render(
+      <Field
+        isRequired
+        onChange={(value) => value.isZero() && appBug()}
+        onValueChange={onValueChange}
+      />,
+    );
+    const input = screen.getByRole("spinbutton");
+    fireEvent.change(input, { target: { value: "." } });
+    onValueChange.mockClear();
+
+    const uncaught = uncaughtDuring(() => fireEvent.blur(input));
+
+    expect(uncaught).toEqual([]);
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(onValueChange).toHaveBeenCalledWith(null);
+  });
+});
+
+describe("useBigNumberField keyboard shortcuts", () => {
+  it.each(["ctrlKey", "metaKey"])(
+    "lets the select all, copy, paste and cut shortcuts through with %s",
+    (modifier) => {
+      render(<Field defaultValue="12" />);
+      const input = screen.getByRole("spinbutton");
+
+      // fireEvent returns false when the handler prevented the keystroke
+      for (const key of ["a", "c", "v", "x"])
+        expect(fireEvent.keyDown(input, { key, [modifier]: true })).toBe(true);
+    },
+  );
 });

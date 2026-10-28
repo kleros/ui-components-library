@@ -33,9 +33,10 @@ export interface FormatOptions {
 export interface BigNumberFieldProps {
   /** The current value (controlled). `null` or `""` empties the field; `undefined` leaves the field
    * uncontrolled. Pass each change back in the same update: a value relayed later, from an effect or
-   * a transition, can lose a leading `.` or `-`. While the field holds only `-`, `.` or `-.`, a parent
-   * wired through `onValueChange` already holds an empty value, so setting it empty again keeps that
-   * text: remount the field with a `key` to clear it. */
+   * a transition, can lose a leading `.` or `-`. While the field holds only `-`, `.` or `-.`, setting
+   * the value to empty again keeps that text: a parent wired through `onValueChange` already holds an
+   * empty value then, and `new BigNumber("")` is the NaN that `onChange` reported for `.`. Remount the
+   * field with a `key` to clear it. */
   value?: string | BigNumber | null;
   /** The default value (uncontrolled). */
   defaultValue?: string | BigNumber;
@@ -46,7 +47,8 @@ export interface BigNumberFieldProps {
   /** The amount to increment or decrement by. */
   step?: string | BigNumber;
   /** Handler that is called when the value changes. An emptied input is reported as 0, and `.` or
-   * `-.` as NaN; a lone `-` is not reported. `onValueChange` reports each of these as `null`. */
+   * `-.` as NaN; a lone `-` is not reported. Blur empties a `-`, `.` or `-.`, which is then
+   * reported as 0. `onValueChange` reports each of these as `null`. */
   onChange?: (value: BigNumber) => void;
   /** Handler that is called when the value changes, with the same number as `onChange`, or `null`
    * when the input holds none: when it is emptied (where `onChange` gets 0) or holds only `-`, `.`
@@ -191,25 +193,41 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   inputValueRef.current = inputValue;
   const committedInputValueRef = useRef(inputValue);
 
+  // The value given in the previous update, as text, to tell a new value from the same one again
+  const previousValueRef = useRef(value?.toString());
+
+  // Set when blur empties the text and reports it, until the next value comes
+  const blurReportedRef = useRef(false);
+
   // Update internal state when controlled value changes
   useEffect(() => {
+    const previousValue = previousValueRef.current;
+    previousValueRef.current = value?.toString();
+    const answersBlur = blurReportedRef.current;
+    blurReportedRef.current = false;
     if (value !== undefined) {
       // An echo of the field's own onChange or onValueChange keeps the text being typed.
       if (numberValueRef.current?.isEqualTo(value.toString())) return;
       try {
         const parsed = parseValue(value);
-        // So does an empty value that comes in the same update as an edit leaving no number yet,
-        // such as "." (NaN for onChange) or "-" (null for onValueChange).
+        // So does an empty value while the text holds no number yet, such as "." (NaN for
+        // onChange) or "-" (null for onValueChange), if it comes in the same update as the edit
+        // or is the value given before, as value={new BigNumber(amount)} is on every render.
         if (
           parsed === null &&
           numberValueRef.current === null &&
-          inputValueRef.current !== committedInputValueRef.current
+          (inputValueRef.current !== committedInputValueRef.current ||
+            value.toString() === previousValue)
         )
           return;
         // The new text is unformatted, so typing, pasting and the idle formatter treat it as such.
         setInputValue(parsed === null ? "" : value.toString());
         setNumberValue(parsed);
         setIsFormatted(false);
+        // A number that answers blur's report, such as the 0 that onChange gets when blur empties
+        // a "-" or ".", is validated: blur validated the empty text it replaces.
+        if (parsed !== null && answersBlur)
+          setValidationResult(getValidationResultRef.current(parsed));
       } catch (error) {
         console.error("Error updating BigNumber value:", error);
         setInputValue(value.toString());
@@ -283,9 +301,16 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   };
 
   // Report a new value: onChange gets 0 for an emptied input (null), onValueChange gets null
-  // for any value that is not a number.
-  const emitChange = (newValue: BigNumber | null) => {
-    onChange?.(newValue ?? new BigNumber(0));
+  // for any value that is not a number. A change of the text, typed or emptied by blur, logs an
+  // error thrown by onChange instead of throwing it, as typing always has. Apps rely on that: an
+  // onChange that runs viem's parseUnits throws for ".". onValueChange runs either way.
+  const emitChange = (newValue: BigNumber | null, fromText = false) => {
+    try {
+      onChange?.(newValue ?? new BigNumber(0));
+    } catch (error) {
+      if (!fromText) throw error;
+      console.error("Error in BigNumberField onChange:", error);
+    }
     onValueChange?.(newValue?.isNaN() ? null : newValue);
   };
 
@@ -398,102 +423,53 @@ export function useBigNumberField(props: BigNumberFieldProps) {
 
   // Handle input change
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newInputValue = e.target.value;
+    // A formatted text is unformatted first, and is no longer formatted since the user is typing
+    const text = isFormatted ? unformatValue(e.target.value) : e.target.value;
+    if (isFormatted) setIsFormatted(false);
+    if (!isValidInput(text)) return;
 
-    // If the input is formatted, we need to unformat it first
-    if (isFormatted) {
-      // We're no longer in formatted mode since the user is typing
-      setIsFormatted(false);
-
-      // Unformat the value and update the input
-      const unformattedValue = unformatValue(newInputValue);
-      if (isValidInput(unformattedValue)) {
-        try {
-          if (unformattedValue === "" || unformattedValue === "-") {
-            setInputValue(unformattedValue);
-            setNumberValue(null);
-            if (unformattedValue === "") {
-              emitChange(null);
-            } else {
-              emitLoneMinus();
-            }
-            return;
-          }
-
-          const newNumberValue = new BigNumber(unformattedValue);
-          // "." or "-." holds no number yet: keep the text instead of showing "NaN".
-          // onChange still gets NaN, as it always has.
-          if (newNumberValue.isNaN()) {
-            setInputValue(unformattedValue);
-            setNumberValue(null);
-            emitChange(newNumberValue);
-            return;
-          }
-          // Clamp the value to min/max range
-          const clampedValue = clampValue(newNumberValue);
-
-          // Update the input value and state
-          if (!clampedValue.isEqualTo(newNumberValue)) {
-            // If the value was clamped, update the input to show the clamped value
-            setInputValue(clampedValue.toString());
-          } else {
-            setInputValue(unformattedValue);
-          }
-
-          setNumberValue(clampedValue);
-          emitChange(clampedValue);
-        } catch (error) {
-          console.error("Error parsing unformatted value:", error);
-          setInputValue(unformattedValue);
-          setNumberValue(null);
-        }
+    if (text === "" || text === "-") {
+      setInputValue(text);
+      setNumberValue(null);
+      if (text === "") {
+        emitChange(null, true);
+      } else {
+        emitLoneMinus();
       }
       return;
     }
 
-    // Normal case - not formatted
-    if (isValidInput(newInputValue)) {
-      try {
-        if (newInputValue === "" || newInputValue === "-") {
-          setInputValue(newInputValue);
-          setNumberValue(null);
-          if (newInputValue === "") {
-            emitChange(null);
-          } else {
-            emitLoneMinus();
-          }
-          return;
-        }
-
-        const newNumberValue = new BigNumber(newInputValue);
-        // "." or "-." holds no number yet: keep the text instead of showing "NaN".
-        // onChange still gets NaN, as it always has.
-        if (newNumberValue.isNaN()) {
-          setInputValue(newInputValue);
-          setNumberValue(null);
-          emitChange(newNumberValue);
-          return;
-        }
-        // Clamp the value to min/max range
-        const clampedValue = clampValue(newNumberValue);
-
-        // Update the input value and state
-        if (!clampedValue.isEqualTo(newNumberValue)) {
-          // If the value was clamped, update the input to show the clamped value
-          setInputValue(clampedValue.toString());
-        } else {
-          setInputValue(newInputValue);
-        }
-
-        setNumberValue(clampedValue);
-        emitChange(clampedValue);
-      } catch (error) {
-        // If the input can't be parsed as a BigNumber, just update the input value
-        console.error("Error parsing input as BigNumber:", error);
-        setInputValue(newInputValue);
-        setNumberValue(null);
-      }
+    let newNumberValue: BigNumber;
+    try {
+      newNumberValue = new BigNumber(text);
+    } catch (error) {
+      // If the input can't be parsed as a BigNumber, just update the input value
+      console.error("Error parsing input as BigNumber:", error);
+      setInputValue(text);
+      setNumberValue(null);
+      return;
     }
+    // "." or "-." holds no number yet: keep the text instead of showing "NaN".
+    // onChange still gets NaN, as it always has.
+    if (newNumberValue.isNaN()) {
+      setInputValue(text);
+      setNumberValue(null);
+      emitChange(newNumberValue, true);
+      return;
+    }
+    // Clamp the value to min/max range
+    const clampedValue = clampValue(newNumberValue);
+
+    // Update the input value and state
+    if (!clampedValue.isEqualTo(newNumberValue)) {
+      // If the value was clamped, update the input to show the clamped value
+      setInputValue(clampedValue.toString());
+    } else {
+      setInputValue(text);
+    }
+
+    setNumberValue(clampedValue);
+    emitChange(clampedValue, true);
   };
 
   // Handle focus event to unformat the value
@@ -515,17 +491,23 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   const handleBlur = () => {
     // The text left after blur, which the required check sees
     let text = inputValue;
+    // "-", "." or "-." holds no number: blur empties it, and reports that as deleting it would
+    const empties = numberValue === null && inputValue !== "";
     if (numberValue !== null) {
       // Format the number using BigNumber.toFormat
       text = formatBigNumber(numberValue);
       setInputValue(text);
       setIsFormatted(true);
-    } else if (inputValue !== "" && inputValue !== "-") {
+    } else if (empties) {
       text = "";
       setInputValue(text);
     }
 
     setValidationResult(getValidationResult(undefined, text));
+    if (empties) {
+      blurReportedRef.current = true;
+      emitChange(null, true);
+    }
   };
 
   // Handle keyboard events
@@ -549,9 +531,9 @@ export function useBigNumberField(props: BigNumberFieldProps) {
       "End",
     ];
 
-    // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+    // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, and Cmd with them on macOS
     if (
-      (e.ctrlKey && ["a", "c", "v", "x"].includes(e.key)) ||
+      ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key)) ||
       allowedKeys.includes(e.key) ||
       // Allow numbers
       /^\d$/.test(e.key)
@@ -732,6 +714,9 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     }
     return fieldErrorProps;
   };
+  // For the value sync, which runs only when the value changes
+  const getValidationResultRef = useRef(getValidationResult);
+  getValidationResultRef.current = getValidationResult;
 
   // Increment button props
   const getIncrementButtonProps = () => ({
