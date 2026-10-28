@@ -41,68 +41,75 @@ The library includes a wide variety of components, including but not limited to:
 
 ## Usage
 
+> **This is v3.** It is built on Tailwind CSS 4 and react-aria-components. There is no `styled-components`,
+> no `ThemeProvider` and no `lightTheme`/`darkTheme` (those were v2). Check the major in your `package.json`
+> before copying code from older apps. Interactive docs: [Storybook](https://kleros-v2-ui-storybook.netlify.app).
+
 ### Installation
 
-Install the package using your preferred package manager:
-
 ```bash
-# Using yarn
-yarn add @kleros/ui-components-library
-
-# Using npm
 npm install @kleros/ui-components-library
 ```
 
 ### Setup
 
-1. Import the CSS:
+1. Import the CSS once, at the top level of your app.
 
-   a. For Non-tailwind apps, import the CSS at top level of your app.
+   a. Apps without Tailwind:
 
-   ```javascript
+   ```ts
    import "@kleros/ui-components-library/style.css";
    ```
 
-   b. For Tailwind apps, import the theme and mark the library as a source in your global.css file.
+   b. Tailwind 4 apps, in your global CSS file:
 
    ```css
-   @import "../../../node_modules/@kleros/ui-components-library/dist/assets/theme.css";
-   @source "../../../node_modules/@kleros/ui-components-library";
+   @import "tailwindcss";
+   @import "@kleros/ui-components-library/theme.css";
+   @source "../node_modules/@kleros/ui-components-library";
    ```
 
-2. Import and use components in your application:
+2. Dark mode is a `dark` class on the root element: `document.documentElement.classList.add("dark")`.
 
-```jsx
-import { Button, TextField, Alert } from "@kleros/ui-components-library";
+3. Import and use components. Every component's props are exported as `<Name>Props`, and list items as
+   `TabsItem`, `DropdownSelectItem`, `TimelineItem` and so on.
 
-function MyComponent() {
+```tsx
+import { useState } from "react";
+import { AlertMessage, Button, TextField, type DropdownSelectItem, DropdownSelect } from "@kleros/ui-components-library";
+
+const courts: DropdownSelectItem[] = [
+  { id: 1, text: "General Court", itemValue: 1 },
+  { id: 2, text: "Blockchain", itemValue: 2 },
+];
+
+export function MyComponent() {
+  const [name, setName] = useState("");
+  const [court, setCourt] = useState<number>();
+  const [sent, setSent] = useState(false);
   return (
-    <div>
-      <TextField label="Username" placeholder="Enter your username" />
-      <Button>Submit</Button>
-      <Alert type="success">Operation completed successfully!</Alert>
+    <div className="flex flex-col gap-4">
+      <TextField label="Username" placeholder="Enter your username" value={name} onChange={setName} />
+      <DropdownSelect label="Court" items={courts} callback={(item) => setCourt(item.itemValue)} />
+      <Button text="Submit" isDisabled={!name || court === undefined} onPress={() => setSent(true)} />
+      {sent && <AlertMessage variant="success" title="Saved" msg="Operation completed successfully!" />}
     </div>
   );
 }
 ```
 
+Conventions that differ from most React libraries: `Button` takes `text` (no children); handlers are `onPress`
+and `callback`; disabled is `isDisabled`; alerts are `AlertMessage` with `variant`, `title` and `msg`.
+
 ### Theme usage
 
-If you wish the use the library's tailwind theme variables in your tailwind app. You can utilize it by importing the theme file in your `global.css` file.
-
-```css
-@import tailwindcss;
-@import "../../../node_modules/@kleros/ui-components-library/dist/assets/theme.css";
-```
-
-You can find the available theme variables [here](src/styles/theme.css).
-If want to override or edit the defined theme variables, you can do so like this:
+The theme variables are in `theme.css` (prefix `--klerosUIComponents`). Override them like this:
 
 ```css
 :root {
   --klerosUIComponentsWhiteBackground: #832323;
 }
-:root[class="dark"] {
+:root.dark {
   --klerosUIComponentsWhiteBackground: #832323;
 }
 ```
