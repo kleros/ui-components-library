@@ -24,6 +24,7 @@ None.
 - NumberField: `labelContent` and `description` take rich content for the label and the description slot. `label` and `message` stay strings, and the rich prop wins when both are set.
 - Breadcrumb: an item with `href` renders a link (react-aria `Link`) instead of a button. The last item has `aria-current="page"`. `as="nav"` with an `aria-label` (default "Breadcrumb") makes it a navigation landmark; the default stays a `div`.
 - Button: a `title` prop that renders as the native tooltip, a `ref` to the `<button>`, and `children` that render instead of `text`, which stays required and names the button (a caller's `aria-label` wins), so icon-only buttons have a name.
+- Copiable: the copy button has an accessible name (`info`, default "Copy"), and a visually hidden live region announces "Copied" or "Copy failed". New `onCopy` and `onCopyError` callbacks, and `feedbackDuration` (default 2000 ms). A failed clipboard write is no longer swallowed.
 - `cn`: the class-name helper the components use (clsx plus tailwind-merge) is exported, so an app's `className` can override a default class.
 
 ### Fixed
