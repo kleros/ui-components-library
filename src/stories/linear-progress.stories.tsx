@@ -1,5 +1,6 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, within } from "@storybook/test";
+import { expect, waitFor, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
@@ -130,6 +131,42 @@ export const WithoutValueLabel: Story = {
     );
     await expect(getFill(progressbar).getAttribute("stroke-dasharray")).toMatch(
       /^50,/,
+    );
+  },
+};
+
+/** Without `width` the bar fills its container and follows it when it resizes. */
+export const Fluid: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    value: 50,
+    valueLabel: "Deposit required = xETH of 0.01ETH",
+  },
+  decorators: [
+    (Story) => (
+      <div data-testid="container" style={{ width: 300 }}>
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvasElement }) => {
+    const progressbar = within(canvasElement).getByRole("progressbar");
+    await expect(progressbar.querySelector("svg")).toHaveAttribute(
+      "width",
+      "100%",
+    );
+    // half of the 300px container is filled
+    await waitFor(() =>
+      expect(getFill(progressbar).getAttribute("stroke-dasharray")).toMatch(
+        /^150,/,
+      ),
+    );
+    within(canvasElement).getByTestId("container").style.width = "200px";
+    await waitFor(() =>
+      expect(getFill(progressbar).getAttribute("stroke-dasharray")).toMatch(
+        /^100,/,
+      ),
     );
   },
 };

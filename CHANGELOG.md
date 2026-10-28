@@ -6,6 +6,14 @@ Every pull request that changes what a consumer sees adds its entry under **Unre
 
 ## [Unreleased]
 
+### Breaking changes
+
+None.
+
+### Added
+
+- LinearProgress: `width` is optional. Without it the bar fills its container and follows it when it resizes. A number keeps today's fixed width.
+
 ## [3.10.0] - 2026-10-15
 
 ### Breaking changes
