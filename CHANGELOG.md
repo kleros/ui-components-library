@@ -21,6 +21,7 @@ None.
 - Tooltip: a `content` prop takes rich content, which replaces `text`. The `wrapperProps.role` option (default `button`) is documented.
 - TextField: `labelContent` and `description` take rich content for the label and the description slot. `label` and `message` stay strings, and the rich prop wins when both are set.
 - TextArea: `labelContent` and `description` take rich content for the label and the description slot. `label` and `message` stay strings, and the rich prop wins when both are set.
+- NumberField: `labelContent` and `description` take rich content for the label and the description slot. `label` and `message` stay strings, and the rich prop wins when both are set.
 - `cn`: the class-name helper the components use (clsx plus tailwind-merge) is exported, so an app's `className` can override a default class.
 
 ### Fixed

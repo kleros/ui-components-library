@@ -303,3 +303,34 @@ export const Disabled: Story = {
     );
   },
 };
+
+/** `labelContent` and `description` take rich content, used in the label and the description slot. */
+export const RichLabelAndDescription: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  args: {
+    ...Default.args,
+    labelContent: (
+      <>
+        Age <em>(optional)</em>
+      </>
+    ),
+    description: (
+      <>
+        Counted in <strong>whole years</strong>
+      </>
+    ),
+    message: "Plain message, not shown",
+  },
+  play: async ({ canvasElement }) => {
+    const input = within(canvasElement).getByRole("textbox", {
+      name: "Age (optional)",
+    });
+    // the label click focuses the field, so the rich label is the field's label
+    await userEvent.click(within(canvasElement).getByText("(optional)"));
+    await expect(input).toHaveFocus();
+    await expect(input).toHaveAccessibleDescription("Counted in whole years");
+    await expect(
+      within(canvasElement).queryByText("Plain message, not shown"),
+    ).not.toBeInTheDocument();
+  },
+};
