@@ -189,3 +189,20 @@ export const ToneAtCompletion: Story = {
     );
   },
 };
+
+/** A caller's `aria-label` names the progress bar; without one, the percentage does. */
+export const WithAriaLabel: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    value: 76,
+    "aria-label": "Rulings for the challenger",
+  },
+  play: async ({ canvasElement }) => {
+    await expect(
+      within(canvasElement).getByRole("progressbar", {
+        name: "Rulings for the challenger",
+      }),
+    ).toHaveAttribute("aria-valuenow", "76");
+  },
+};

@@ -64,7 +64,7 @@ function Circular({
     <ProgressBar
       {...props}
       {...{ value, minValue, maxValue }}
-      aria-label={progress.toString()}
+      aria-label={props["aria-label"] ?? progress.toString()}
     >
       <svg
         className="mx-auto my-2.5 box-border block"
