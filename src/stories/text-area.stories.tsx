@@ -228,3 +228,34 @@ export const ErrorMessage: Story = {
     );
   },
 };
+
+/** `labelContent` and `description` take rich content, used in the label and the description slot. */
+export const RichLabelAndDescription: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT),
+  args: {
+    ...Default.args,
+    labelContent: (
+      <>
+        Reason <em>(optional)</em>
+      </>
+    ),
+    description: (
+      <>
+        Explain in <strong>one paragraph</strong>
+      </>
+    ),
+    message: "Plain message, not shown",
+  },
+  play: async ({ canvasElement }) => {
+    const input = within(canvasElement).getByRole("textbox", {
+      name: "Reason (optional)",
+    });
+    // the label click focuses the field, so the rich label is the field's label
+    await userEvent.click(within(canvasElement).getByText("(optional)"));
+    await expect(input).toHaveFocus();
+    await expect(input).toHaveAccessibleDescription("Explain in one paragraph");
+    await expect(
+      within(canvasElement).queryByText("Plain message, not shown"),
+    ).not.toBeInTheDocument();
+  },
+};

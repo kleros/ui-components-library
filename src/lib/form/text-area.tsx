@@ -26,6 +26,13 @@ interface TextAreaProps extends TextFieldProps {
    */
   inputProps?: AriaTextAreaProps;
   label?: string;
+  /** Rich label, shown instead of `label` in the field's label. */
+  labelContent?: React.ReactNode;
+  /**
+   * Rich description, shown instead of `message` in the field's description
+   * slot (so it is read with the field). The variant colour and icon still apply.
+   */
+  description?: React.ReactNode;
   /** Allow resizing along x-axis */
   resizeX?: boolean;
   /** Allow resizing along y-axis */
@@ -46,6 +53,8 @@ function TextArea({
   variant,
   className,
   label,
+  labelContent,
+  description,
   placeholder,
   resizeX = false,
   resizeY = false,
@@ -58,9 +67,9 @@ function TextArea({
       className={cn("box-border flex w-fit flex-col", className)}
       {...props}
     >
-      {label && (
+      {(labelContent ?? label) && (
         <Label className="text-klerosUIComponentsSecondaryText mb-1 text-sm">
-          {label}
+          {labelContent ?? label}
         </Label>
       )}
       <AriaTextArea
@@ -85,7 +94,7 @@ function TextArea({
           props.inputProps?.className,
         )}
       />
-      {message && (
+      {(description ?? message) && (
         <Text
           slot="description"
           className={cn(
@@ -110,7 +119,7 @@ function TextArea({
           {variant === "info" && (
             <InfoIcon className="fill-klerosUIComponentsSecondaryText mr-2 max-w-4 min-w-4" />
           )}
-          {message}
+          {description ?? message}
         </Text>
       )}
       {showFieldError && (
