@@ -25,6 +25,11 @@ export interface SelectProps<M extends SelectionMode = "single">
    * order they were picked.
    */
   callback: (value: M extends "multiple" ? IItem[] : IItem) => void;
+  /**
+   * The keys selected at first with `selectionMode="multiple"`. A single
+   * selection ignores it, as it always has: use `defaultSelectedKey`.
+   */
+  defaultValue?: AriaSelectProps<object, M>["defaultValue"];
   simpleButton?: boolean;
   /** When `simpleButton` is `true`, this scales down the dropdown button size. */
   smallButton?: boolean;

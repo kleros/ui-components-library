@@ -62,7 +62,7 @@ const SimpleButton: React.FC<ISimpleButton> = ({
           )}
           <Arrow
             className={cn(
-              "hover-short-transition fill-klerosUIComponentsPrimaryBlue ease-ease ml-2 transition",
+              "hover-short-transition fill-klerosUIComponentsPrimaryBlue ease-ease ml-2 shrink-0 transition",
               small ? "size-2" : "size-4",
               isOpen && "rotate-180",
               isHovered && "fill-klerosUIComponentsSecondaryBlue",

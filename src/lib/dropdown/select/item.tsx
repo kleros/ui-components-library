@@ -32,6 +32,10 @@ const Item: React.FC<IItem> = ({ text, Icon, icon, dot, ...props }) => {
         "hover:bg-klerosUIComponentsMediumBlue focus:bg-klerosUIComponentsMediumBlue",
         "selected:bg-klerosUIComponentsMediumBlue",
         "selected:border-l-klerosUIComponentsPrimaryBlue selected:border-l-3",
+        // several rows can look selected, so keyboard focus gets an outline, as in DraggableList
+        "selection-multiple:focus-visible:outline-klerosUIComponentsPrimaryBlue",
+        "selection-multiple:focus-visible:outline selection-multiple:focus-visible:outline-solid",
+        "selection-multiple:focus-visible:-outline-offset-1",
         "disabled:bg-klerosUIComponentsStroke disabled:cursor-not-allowed",
       )}
       {...props}

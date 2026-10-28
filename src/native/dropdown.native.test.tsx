@@ -119,6 +119,24 @@ test("an icon passed as an element keeps its size beside long text", async () =>
   cleanup();
 });
 
+test("the simple button's arrow keeps its size beside long text", () => {
+  render(
+    <div style={{ width: 160 }}>
+      <DropdownSelect
+        simpleButton
+        aria-label="Sort"
+        items={[{ id: 1, text: "A long option label that wraps in a column" }]}
+        defaultSelectedKey={1}
+        callback={() => {}}
+      />
+    </div>,
+  );
+  const trigger = screen.getByRole("button", { name: /Sort/ });
+
+  expect(trigger.querySelector("svg")!.getBoundingClientRect().width).toBe(16);
+  cleanup();
+});
+
 // curate-v2's chain field passes defaultValue and writes its form value only
 // from callback. react-aria 1.7.1 ignored defaultValue, so the field showed its
 // placeholder until a pick; honouring it would show an item that picking again
@@ -142,6 +160,64 @@ test("a single selection ignores defaultValue, so picking any item reports it", 
   expect(picked).toEqual([1]);
   cleanup();
 });
+
+test("a multiple selection passes callback the items in the order they were picked", async () => {
+  const picked: unknown[][] = [];
+  render(
+    <DropdownSelect
+      aria-label="Chains"
+      selectionMode="multiple"
+      items={[...items, { id: 3, text: "three" }]}
+      callback={(selected) => picked.push(selected.map((item) => item.id))}
+    />,
+  );
+  await userEvent.click(screen.getByRole("button", { name: /Chains/ }));
+  for (const name of ["three", "one", "two"])
+    await userEvent.click(await screen.findByRole("option", { name }));
+
+  expect(picked).toEqual([[3], [3, 1], [3, 1, 2]]);
+  await userEvent.keyboard("{Escape}");
+  cleanup();
+});
+
+// Selected rows look alike, so only an outline tells which one has keyboard
+// focus. A single selection has one selected row and keeps its look.
+test.each([
+  ["multiple", "solid"],
+  ["single", "none"],
+])(
+  "a keyboard-focused selected option in a %s selection has outline %s",
+  async (selectionMode, outline) => {
+    render(
+      selectionMode === "multiple" ? (
+        <DropdownSelect
+          aria-label="Chains"
+          selectionMode="multiple"
+          defaultValue={[1, 2]}
+          items={items}
+          callback={() => {}}
+        />
+      ) : (
+        <DropdownSelect
+          aria-label="Chains"
+          defaultSelectedKey={1}
+          items={items}
+          callback={() => {}}
+        />
+      ),
+    );
+    screen.getByRole("button", { name: /Chains/ }).focus();
+    await userEvent.keyboard("{ArrowDown}");
+    const focused = await screen.findByRole("option", { name: "one" });
+    await waitFor(() => expect(focused).toHaveFocus());
+    const other = screen.getByRole("option", { name: "two" });
+
+    expect(getComputedStyle(focused).outlineStyle).toBe(outline);
+    expect(getComputedStyle(other).outlineStyle).toBe("none");
+    await userEvent.keyboard("{Escape}");
+    cleanup();
+  },
+);
 
 test("a multiple selection starts from defaultValue", () => {
   render(

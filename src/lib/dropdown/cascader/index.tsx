@@ -16,6 +16,8 @@ export interface IDropdownCascader extends AriaSelectProps {
   items: IItem[];
   /** Callback function passes the Item object as argument. */
   callback: (item: IItem) => void;
+  /** Ignored, as it always has been: use `defaultSelectedKey`. */
+  defaultValue?: AriaSelectProps["defaultValue"];
   label?: string;
   /** Classes for the trigger button, merged over its own, e.g. `w-full`. `className` styles the outer wrapper. */
   buttonClassName?: string;
