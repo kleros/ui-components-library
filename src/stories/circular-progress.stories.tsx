@@ -31,6 +31,10 @@ const meta = {
     small: {
       control: "boolean",
     },
+    tone: {
+      control: "select",
+      options: ["success", "warning", "error", "info", "neutral", "accent"],
+    },
   },
 } satisfies Meta<typeof CircularComponent>;
 
@@ -145,5 +149,43 @@ export const Empty: Story = {
     const progressbar = within(canvasElement).getByRole("progressbar");
     await expect(progressbar).toHaveTextContent("0%");
     await expect(progressbar.querySelectorAll("path")).toHaveLength(1);
+  },
+};
+
+/** `tone` sets the fill colour at every value, e.g. for a ruling gauge. */
+export const WithTone: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    value: 76,
+    tone: "warning",
+  },
+  play: async ({ canvasElement }) => {
+    const progressbar = within(canvasElement).getByRole("progressbar");
+    await expect(getFill(progressbar)).toHaveClass(
+      "stroke-klerosUIComponentsWarning",
+    );
+    await expect(getFill(progressbar)).not.toHaveClass(
+      "stroke-klerosUIComponentsPrimaryBlue",
+    );
+  },
+};
+
+/** With a `tone`, a completed progress keeps that colour instead of turning green. */
+export const ToneAtCompletion: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    value: 100,
+    tone: "info",
+  },
+  play: async ({ canvasElement }) => {
+    const progressbar = within(canvasElement).getByRole("progressbar");
+    await expect(getFill(progressbar)).toHaveClass(
+      "stroke-klerosUIComponentsPrimaryBlue",
+    );
+    await expect(getFill(progressbar)).not.toHaveClass(
+      "stroke-klerosUIComponentsSuccess",
+    );
   },
 };

@@ -2,6 +2,24 @@ import React, { useMemo } from "react";
 import { ProgressBar, type ProgressBarProps } from "react-aria-components";
 import clsx from "clsx";
 
+/** Colour of the filled arc. The names match the kit's status tones. */
+export type CircularProgressTone =
+  | "success"
+  | "warning"
+  | "error"
+  | "info"
+  | "neutral"
+  | "accent";
+
+const TONE_STROKE: Record<CircularProgressTone, string> = {
+  success: "stroke-klerosUIComponentsSuccess",
+  warning: "stroke-klerosUIComponentsWarning",
+  error: "stroke-klerosUIComponentsError",
+  info: "stroke-klerosUIComponentsPrimaryBlue",
+  neutral: "stroke-klerosUIComponentsSecondaryText",
+  accent: "stroke-klerosUIComponentsPrimaryPurple",
+};
+
 interface CircularProps
   extends Omit<
     ProgressBarProps,
@@ -13,6 +31,8 @@ interface CircularProps
   value: number;
   /** Whether the progress bas should animate to it's value. */
   animated?: boolean;
+  /** Colour of the filled arc at every value. Leave it out for the default: blue, turning green at 100%. */
+  tone?: CircularProgressTone;
 }
 
 /** Circular progress shows determinate progress of an operation over time in a circular way.*/
@@ -22,6 +42,7 @@ function Circular({
   maxValue = 100,
   small = false,
   animated = true,
+  tone,
   ...props
 }: Readonly<CircularProps>) {
   const progress = useMemo(
@@ -57,9 +78,11 @@ function Circular({
         {progress && (
           <path
             className={clsx(
-              progress < 100
-                ? "stroke-klerosUIComponentsPrimaryBlue"
-                : "stroke-klerosUIComponentsSuccess",
+              tone
+                ? TONE_STROKE[tone]
+                : progress < 100
+                  ? "stroke-klerosUIComponentsPrimaryBlue"
+                  : "stroke-klerosUIComponentsSuccess",
               animated && "animate-progress-fill",
             )}
             // multiplying by a relatively large number to make sure filled part does not repeat

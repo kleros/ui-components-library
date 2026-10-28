@@ -44,6 +44,7 @@ export { default as Breadcrumb } from "../lib/breadcrumb";
 
 export { default as LinearProgress } from "../lib/progress/linear";
 export { default as CircularProgress } from "../lib/progress/circular";
+export type { CircularProgressTone } from "../lib/progress/circular";
 
 export { default as Steps } from "../lib/progress/steps";
 export { default as Timeline } from "../lib/progress/timeline";
