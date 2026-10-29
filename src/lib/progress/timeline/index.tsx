@@ -19,9 +19,12 @@ export interface TimelineProps {
  * line and the text runs from 24px beside it (8px half bullet + the text's 16px
  * margin; 28px from lg, where the margin is 20px). Capping the text at the rest
  * of that half keeps it inside the box; it wraps instead of running out.
+ * The title and party are flex items, which never shrink below their longest
+ * word, and the date sizes to its text: min-w-0 and max-w-full hold them to
+ * the cap, so break-words also wraps an address, a hash or a long word.
  */
 const textBesideSpine =
-  "max-w-[calc(50%_-_24px)] break-words lg:max-w-[calc(50%_-_28px)]";
+  "max-w-[calc(50%_-_24px)] break-words lg:max-w-[calc(50%_-_28px)] [&_h2]:min-w-0 [&_p]:min-w-0 [&_small]:max-w-full";
 
 /** Timeline displays a chronological sequence with bullet points. */
 function Timeline({ items, className, ...props }: Readonly<TimelineProps>) {

@@ -55,6 +55,42 @@ it.each([false, true])(
   },
 );
 
+// A word wider than the half (a full address, a tx hash, a long compound word)
+// wraps inside it too: the title and party shrink below their longest word.
+const ADDRESS = "0x7a16fF8270133F063aAb6C9977183D9e72835428";
+it.each([false, true])(
+  "Timeline in a 360 px box wraps long words inside the box (rightSided: %s)",
+  (rightSided) => {
+    const box = render(
+      <div style={{ width: 360 }}>
+        <Timeline
+          items={[
+            {
+              title: "Deal created",
+              party: ADDRESS,
+              subtitle: "20 Sept 2026, 10:00 UTC",
+              rightSided,
+            },
+            {
+              title: "Schiedsgerichtsverfahrenseröffnung",
+              party: "Seller",
+              subtitle: "8 Oct 2026",
+              rightSided,
+            },
+            {
+              title: "Payment locked",
+              party: "Buyer",
+              subtitle: `Tx ${ADDRESS}`,
+              rightSided,
+            },
+          ]}
+        />
+      </div>,
+    ).container.firstElementChild as HTMLElement;
+    expect(outside(box)).toEqual([]);
+  },
+);
+
 // The spine stays on the box's centre line, and text that fits its half is not
 // wrapped, so wide layouts look as they did before the cap.
 it.each([
