@@ -33,6 +33,7 @@ None.
 - CircularProgress no longer renders a stray `0` next to the label at 0%.
 - CircularProgress keeps a caller's `aria-label` instead of replacing it with the percentage.
 - Timeline keeps its titles, parties and dates inside its box: the text wraps within the half of the box beside the spine, where it ran out of any box narrower than about twice the text. The spine stays centred, and rows whose text already fits look the same. CustomTimeline is unchanged.
+- Steps (horizontal): below `lg`, the first step's title aligns to its bullet's left edge and the last step's title to its bullet's right edge, so neither hangs outside the list. Titles between them, and a single step's title, stay centred under their bullets.
 
 ## [3.10.0] - 2026-10-15
 
