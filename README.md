@@ -118,8 +118,8 @@ The theme variables are in `theme.css` (prefix `--klerosUIComponents`). Override
 
 This library requires the following peer dependencies:
 
-- React 18+
-- React DOM 18+
+- React 18 and React DOM 18. React 19 is not supported yet: the bundle uses React 18 internals, so a React 19
+  app renders a blank page.
 - Tailwind CSS 4+
 
 Make sure these are installed in your project.
