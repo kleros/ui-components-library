@@ -1,8 +1,9 @@
 import React from "react";
 import { render } from "@testing-library/react";
+import { page } from "@vitest/browser/context";
 import { expect, it } from "vitest";
 
-import { Timeline } from "../lib";
+import { Card, Timeline } from "../lib";
 
 /** Text (title, party, date) that reaches outside `box`, with how far, in px. */
 const outside = (box: HTMLElement) => {
@@ -120,3 +121,43 @@ it.each([
     }
   },
 );
+
+// The shifted rows reach half the box past its edge. A rightSided Timeline in
+// a card at the right of a phone screen must not make the page scroll sideways.
+it("rightSided Timeline on a 390 px phone does not widen the page", async () => {
+  const before = { width: window.innerWidth, height: window.innerHeight };
+  await page.viewport(390, 844);
+  try {
+    const { container } = render(
+      <div style={{ padding: 16 }}>
+        <Card fluid className="p-4">
+          <Timeline
+            items={[
+              {
+                title: "Deal created",
+                party: "Buyer (you)",
+                subtitle: "20 Sept 2026, 10:00 UTC",
+                rightSided: true,
+              },
+              {
+                title: "Marked delivered",
+                party: "Seller",
+                subtitle: "8 Oct 2026, 18:20 UTC",
+                rightSided: true,
+              },
+            ]}
+          />
+        </Card>
+      </div>,
+    );
+    const list = container.querySelector("ol") as HTMLElement;
+    expect(document.documentElement.scrollWidth).toBe(
+      document.documentElement.clientWidth,
+    );
+    // clip, not hidden: hidden would make the list a scroll container.
+    expect(getComputedStyle(list).overflowX).toBe("clip");
+    expect(outside(list)).toEqual([]);
+  } finally {
+    await page.viewport(before.width, before.height);
+  }
+});

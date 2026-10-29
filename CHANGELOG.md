@@ -33,6 +33,7 @@ None.
 - CircularProgress no longer renders a stray `0` next to the label at 0%.
 - CircularProgress keeps a caller's `aria-label` instead of replacing it with the percentage.
 - Timeline keeps its titles, parties and dates inside its box: the text wraps within the half of the box beside the spine, where it ran out of any box narrower than about twice the text. A word wider than that half, such as a full address, a transaction hash or a long compound word, wraps too. The spine stays centred, and rows whose text already fits look the same. CustomTimeline is unchanged.
+- Timeline no longer widens the page: its shifted rows reached half the box past one edge (the right with `rightSided`), so a phone could scroll sideways into empty space. The list clips that horizontal overflow (`overflow-x: clip`), with no visible change.
 - Steps (horizontal): below `lg`, the first step's title aligns to its bullet's left edge and the last step's title to its bullet's right edge, so neither hangs outside the list. Titles between them, and a single step's title, stay centred under their bullets.
 - Package: `react`, `react-dom` and `react-is` are `^18` peer dependencies only, no longer also dependencies. A React 19 app now stops at `npm install` with a peer-dependency error, where it installed a second React and rendered a blank page. React 19 is not supported yet.
 

@@ -30,8 +30,11 @@ const textBesideSpine =
 function Timeline({ items, className, ...props }: Readonly<TimelineProps>) {
   const lastItem = items[items.length - 1];
   return (
+    // The shifted rows reach half a box past one edge, with nothing drawn
+    // there. Clipping that overflow keeps it from widening the page (a
+    // sideways scroll on phones) without making the list a scroll container.
     <ol
-      className={cn("box-border flex flex-col", className)}
+      className={cn("box-border flex flex-col overflow-x-clip", className)}
       {...props}
       aria-label="Timeline"
     >
