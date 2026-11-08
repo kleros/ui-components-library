@@ -60,6 +60,7 @@ function Push({
       </div>
       {!small && (
         <Button
+          aria-label="Close"
           onPress={() => callback()}
           className="absolute top-6 right-6 inline-flex size-2 cursor-pointer bg-none p-0"
         >

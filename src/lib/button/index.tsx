@@ -74,6 +74,9 @@ function Button({
         ],
         className,
       )}
+      // Reaches the DOM once react-aria-components forwards global attributes
+      // (it filters them out up to 1.7.x); the label names the button meanwhile.
+      aria-busy={isLoading || undefined}
       {...{ variant, isLoading, isDisabled, ...props }}
     >
       {isLoading && <KlerosSymbol {...{ isDisabled, variant }} />}

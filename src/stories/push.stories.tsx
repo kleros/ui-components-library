@@ -27,16 +27,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta> & IPreviewArgs;
 
-const ICON_ONLY_CLOSE_BUTTON = a11yExceptions({
-  rule: "button-name",
-  selector: "button.absolute",
-  reason:
-    "Library defect: the close button is icon-only and cannot be given an accessible name.",
-  source: "src/lib/messages/push.tsx:62",
-});
-
 export const Push: Story = {
-  parameters: ICON_ONLY_CLOSE_BUTTON,
   args: {
     themeUI: "dark",
     backgroundUI: "light",
@@ -80,7 +71,6 @@ export const SmallPush: Story = {
 };
 
 export const ErrorPush: Story = {
-  parameters: ICON_ONLY_CLOSE_BUTTON,
   args: {
     ...Push.args,
     variant: "error",
