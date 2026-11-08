@@ -37,22 +37,13 @@ const getOptions = (canvasElement: HTMLElement) =>
     within(canvasElement).getByRole("listbox", { name: "Reorderable list" }),
   ).getAllByRole("option");
 
-const DELETE_BUTTON_A11Y = a11yExceptions(
-  {
-    rule: "button-name",
-    selector: '[role="option"] button',
-    reason:
-      "Library defect: the delete button is icon-only and has no accessible name.",
-    source: "src/lib/draggable-list/index.tsx:122",
-  },
-  {
-    rule: "nested-interactive",
-    selector: '[role="option"]',
-    reason:
-      "Library defect: the delete button is rendered inside the focusable option.",
-    source: "src/lib/draggable-list/index.tsx:98",
-  },
-);
+const DELETE_BUTTON_A11Y = a11yExceptions({
+  rule: "nested-interactive",
+  selector: '[role="option"]',
+  reason:
+    "Library defect: the delete button is rendered inside the focusable option.",
+  source: "src/lib/draggable-list/index.tsx:98",
+});
 
 /** react-aria renders collection items after the list itself mounts (in the
  * production Storybook build that Chromatic runs, a tick later than in dev),

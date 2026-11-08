@@ -11,7 +11,9 @@ const ButtonText: React.FC<
       className={cn(
         "button-text",
         "text-klerosUIComponentsWhiteBackground text-center text-base leading-[22px] font-semibold whitespace-pre",
-        isLoading && ["invisible"],
+        // Hidden with opacity rather than `visibility` so the label stays in the
+        // accessibility tree and keeps naming the button while it loads.
+        isLoading && ["opacity-0"],
         isSecondary && ["text-klerosUIComponentsPrimaryBlue"],
         isDisabled && ["text-klerosUIComponentsStroke"],
       )}

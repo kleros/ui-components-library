@@ -69,6 +69,7 @@ function StandardPagination({
       className={cn("box-border flex items-center justify-center", className)}
     >
       <PageButton
+        aria-label="Previous page"
         isDisabled={minPageReached}
         onPress={decrementPage}
         className="hover:enabled:[&>svg]:fill-klerosUIComponentsSecondaryBlue"
@@ -94,6 +95,7 @@ function StandardPagination({
           </PageButton>
         ))}
       <PageButton
+        aria-label="Next page"
         isDisabled={maxPageReached}
         onPress={incrementPage}
         className="hover:enabled:[&>svg]:fill-klerosUIComponentsSecondaryBlue"

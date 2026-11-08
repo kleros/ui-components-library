@@ -5,14 +5,11 @@ import { IPreviewArgs } from "./utils";
 
 import Pagination from "../lib/pagination/standard";
 import React, { useState } from "react";
-import { a11yExceptions } from "./a11y";
-import { ICON_ONLY_PAGE_ARROWS } from "./a11y-defects";
 
 const meta = {
   component: Pagination,
   title: "Pagination/Standard Pagination",
   tags: ["autodocs"],
-  parameters: a11yExceptions(ICON_ONLY_PAGE_ARROWS),
   argTypes: {
     numPages: {
       control: "number",

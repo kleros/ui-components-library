@@ -59,6 +59,7 @@ function CompactPagination({
         </small>
       )}
       <ArrowButton
+        aria-label="Previous page"
         className={clsx(label && "ml-4")}
         isDisabled={minPageReached}
         onPress={decrementPage}
@@ -66,7 +67,11 @@ function CompactPagination({
         <Arrow />
       </ArrowButton>
       {currentPage === numPages && onCloseOnLastPage ? (
-        <ArrowButton className="ml-2" onPress={onCloseOnLastPage}>
+        <ArrowButton
+          aria-label="Close"
+          className="ml-2"
+          onPress={onCloseOnLastPage}
+        >
           <SolidErrorIcon
             className={clsx(
               "fill-klerosUIComponentsPrimaryBlue",
@@ -76,6 +81,7 @@ function CompactPagination({
         </ArrowButton>
       ) : (
         <ArrowButton
+          aria-label="Next page"
           className={"ml-2"}
           isDisabled={maxPageReached}
           onPress={incrementPage}

@@ -120,6 +120,7 @@ function DraggableList({
                 </span>
                 {(isHovered || isSelected) && !deletionDisabled ? (
                   <Button
+                    aria-label={`Remove ${item.name}`}
                     className={"cursor-pointer hover:scale-105"}
                     onPress={() => {
                       remove(item.id);

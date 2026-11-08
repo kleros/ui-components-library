@@ -137,19 +137,15 @@ export const LoadingButton: Story = {
     themeUI: "dark",
     backgroundUI: "light",
   },
-  parameters: a11yExceptions({
-    rule: "button-name",
-    selector: "button[data-disabled]",
-    reason:
-      "Library defect: while loading, the label is `invisible` and the button has no accessible name.",
-    source: "src/lib/button/ButtonText.tsx:14",
-  }),
   play: async ({ canvasElement, args }) => {
-    const button = within(canvasElement).getByRole("button");
+    // the label keeps naming the button while it loads
+    const button = within(canvasElement).getByRole("button", {
+      name: "Loading",
+    });
     await expect(button).toBeDisabled();
     // loading spinner replaces the (hidden) text
     await expect(button.querySelector(".button-loading")).toBeInTheDocument();
-    await expect(within(button).getByText("Loading")).toHaveClass("invisible");
+    await expect(within(button).getByText("Loading")).toHaveClass("opacity-0");
     await userEvent.click(button);
     await expect(args.onPress).not.toHaveBeenCalled();
   },

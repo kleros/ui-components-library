@@ -110,6 +110,9 @@ function FileUploader({
           }}
         >
           <Button
+            // With no file selected the button only holds an icon. Once a file is
+            // selected its name is the visible, and accessible, label.
+            aria-label={fileSelected ? undefined : "Choose a file"}
             className={clsx(
               "box-border size-full cursor-pointer bg-transparent px-2",
               "flex items-center justify-center",

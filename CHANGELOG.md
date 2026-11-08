@@ -6,6 +6,10 @@ Every pull request that changes what a consumer sees adds its entry under **Unre
 
 ## [Unreleased]
 
+### Fixed
+
+- Icon-only buttons have an accessible name: "Previous page" and "Next page" on StandardPagination and CompactPagination, "Close" on CompactPagination's last page and on PushMessage, "Choose a file" on FileUploader before a file is selected, and "Remove {item}" on DraggableList. A loading Button keeps its label in the accessibility tree ([#122](https://github.com/kleros/ui-components-library/issues/122)).
+
 ## [3.10.0] - 2026-10-15
 
 ### Breaking changes

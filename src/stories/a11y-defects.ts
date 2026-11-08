@@ -76,14 +76,6 @@ export const DISABLED_TIMELINE_ITEM = {
   source: "src/lib/progress/timeline/bullet.tsx:36",
 } satisfies A11yException;
 
-export const ICON_ONLY_PAGE_ARROWS = {
-  rule: "button-name",
-  selector: 'button[class*="svg"]',
-  reason: "Library defect: the previous/next arrow buttons are icon-only.",
-  source:
-    "src/lib/pagination/standard.tsx:71, src/lib/pagination/compact.tsx:61",
-} satisfies A11yException;
-
 export const TOOLTIP_TRIGGER_NESTED = {
   rule: "nested-interactive",
   selector: 'div[role="button"]',
