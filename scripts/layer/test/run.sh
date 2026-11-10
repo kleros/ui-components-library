@@ -153,11 +153,11 @@ grep -q "kleros-ui create" "$LIB/README.md" && grep -q "npx kleros-ui init" "$LI
   && grep -qF 'With a theme, `npx kleros-ui theme` adds one line' "$LIB/README.md" && grep -qF '`@import "./theme.css";`' "$LIB/README.md" \
   && grep -q "^An app with colours of its own sets new token values in one theme file, and nowhere else" "$LIB/README.md" \
   && grep -qx "@layer base {" "$LIB/README.md" && grep -q "issues/120" "$LIB/README.md" \
-  && ( for f in "$LIB/dist/ui-components-library.d.ts" "$LIB/dist/lib/index.d.ts" "$LIB"/dist/kit/*.d.ts; do head -1 "$f" | grep -q "kleros-ui create.*agent/AGENTS.md" || exit 1; done ) \
-  && grep -q "kleros-ui create" <(node -p 'require(process.argv[1]).description' "$LIB/package.json") \
+  && ( for f in "$LIB/dist/ui-components-library.d.ts" "$LIB/dist/lib/index.d.ts" "$LIB"/dist/kit/*.d.ts; do head -1 "$f" | grep -q "kleros-ui create.*kleros-ui init.*agent/AGENTS.md" || exit 1; done ) \
+  && grep -q "kleros-ui create.*kleros-ui init" <(node -p 'require(process.argv[1]).description' "$LIB/package.json") \
   && node -e 'const s = require(process.argv[1]).scripts; process.exit(s.build === "kleros-ui check --build && vite build" && !("prebuild" in s) ? 0 : 1)' "$LIB/templates/poc/package.json" \
   && node -e 'const s = require(process.argv[1]).scripts || {}; const want = process.argv[2] === "1"; process.exit(want ? (s.postinstall === "node bin/kleros-ui.mjs postinstall" && Object.keys(s).filter((k) => /install|prepare/.test(k)).length === 1 ? 0 : 1) : (Object.keys(s).some((k) => /install|prepare/.test(k)) ? 1 : 0))' "$LIB/package.json" "$GATE" \
-  && echo "gate: d.10: README Setup step 1 points to create, with the four-line Tailwind entry plus the theme import when the app has a theme, no Apps without Tailwind (D33), and Theme usage sets token values only in the theme file npx kleros-ui theme writes, inside @layer base, with no bare override (D34, T6); the description and every type entry name create and the guide (D31); the starter build runs kleros-ui check --build first; install scripts: $([ "$GATE" = 1 ] && echo 'only the gate postinstall' || echo none)"
+  && echo "gate: d.10: README Setup step 1 points to create, with the four-line Tailwind entry plus the theme import when the app has a theme, no Apps without Tailwind (D33), and Theme usage sets token values only in the theme file npx kleros-ui theme writes, inside @layer base, with no bare override (D34, T6); the description and every type entry name create, init and the guide (D31); the starter build runs kleros-ui check --build first; install scripts: $([ "$GATE" = 1 ] && echo 'only the gate postinstall' || echo none)"
 # d.11 (T6, R1, B5): the guide's Themes section and LOOK.md say where a theme goes; agent/REVIEW.md, the PR reviewers'
 # checklist, ships with its five parts and is named by the README and AGENTS.md; the README no longer says Button
 # takes no children.

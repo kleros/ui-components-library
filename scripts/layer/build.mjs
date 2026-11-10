@@ -13,6 +13,7 @@ const NOTE =
   "// @kleros/ui-components-library: a new app is set up by its CLI, not by hand: " +
   "`npx kleros-ui create .` in the app folder once the package is installed " +
   "(from a tarball: echo {} > package.json, npm install ./x.tgz, then npx kleros-ui create .). " +
+  "An existing app runs `npx kleros-ui init` once, before writing UI. " +
   "Guide: agent/AGENTS.md and agent/CATALOG.md in this package.";
 
 // One replacement per line at most, like sed without the g flag.

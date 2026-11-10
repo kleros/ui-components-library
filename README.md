@@ -18,6 +18,10 @@ The Kleros UI Components Library is a comprehensive collection of React componen
 
 Built with React, TypeScript, and Tailwind CSS, this library offers a wide range of components from basic UI elements to complex interactive widgets. Each component is designed with accessibility, customization, and ease of use in mind.
 
+**Setup, for people and AI coding agents:** a new app runs `npx -p @kleros/ui-components-library kleros-ui create my-app`.
+An existing app runs `npx kleros-ui init` once, before writing UI. Either one points coding agents at
+`agent/AGENTS.md`. Details under [Usage](#usage).
+
 ## Features
 
 - **React-based components**: Built with React 18 and TypeScript for type safety
