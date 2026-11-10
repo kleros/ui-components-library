@@ -175,6 +175,7 @@ Make sure these are installed in your project.
 - **Reviewing a pull request:** nothing stops a setup written by hand, so the review does. `agent/REVIEW.md` is the
   checklist: the setup made by `create` or `init`, `ui:check` passing, tokens redefined only in the theme file, new
   components registered with intent words, and no raw controls.
+
 ## Development
 
 ### Local Setup
@@ -219,6 +220,10 @@ Run checks with:
 yarn check-types    # Type checking
 yarn check-style    # Linting
 ```
+
+`yarn test:layer [pack.tgz]` runs the agent layer's gates (kit, CLI, guide, lint preset, starter) on a pack, or packs the repo first; it needs Node 22.15 or later, and network on its first run for the npm ci in `scripts/layer/test/tools`.
+
+After an interrupted `yarn pack`, run `node scripts/pack-manifest.mjs restore`: `prepack` takes the `prepare` script out of `package.json`, and only `postpack` puts it back.
 
 ### Visual regression testing (Chromatic)
 
