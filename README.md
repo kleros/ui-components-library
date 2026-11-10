@@ -66,7 +66,7 @@ npm install @kleros/ui-components-library
    ```
 
    b. Your Tailwind entry (`src/index.css`): these four lines, plus your theme import when the app has a theme
-   (see "Theme usage"), and nothing else:
+   (see "Theme usage"), and nothing else. The `@source` line needs Tailwind 4.1.17 or later:
 
    ```css
    @import "tailwindcss";
@@ -146,7 +146,7 @@ This library requires the following peer dependencies:
 
 - React 18 and React DOM 18. React 19 is not supported yet: the bundle uses React 18 internals, so a React 19
   app renders a blank page.
-- Tailwind CSS 4+
+- Tailwind CSS 4.1.17 or later: before 4.1, the `@source` line of Setup b can scan none of the kit.
 
 Make sure these are installed in your project.
 
