@@ -113,7 +113,7 @@ import "./index.css"; // then the app's Tailwind
   appends another after yours, which wins.
 
 **It has no Tailwind yet (Court's web app).** Add Tailwind 4, then write new UI with Tailwind only.
-1. `npm install -D tailwindcss@^4.1.0 @tailwindcss/vite@^4.1.0 eslint-plugin-better-tailwindcss@^4.10.0` (in a Yarn
+1. `npm install -D tailwindcss@^4.1.17 @tailwindcss/vite@^4.1.17 eslint-plugin-better-tailwindcss@^4.10.0` (in a Yarn
    workspace, `yarn add -D` the same). These are the starter's versions. The last one runs the lint's class rules.
 2. In the Vite config, `import tailwindcss from "@tailwindcss/vite";` and add `tailwindcss()` to `plugins`.
 3. Create `src/index.css` with the starter's four lines. `@source` is the library's folder as seen from this file.
