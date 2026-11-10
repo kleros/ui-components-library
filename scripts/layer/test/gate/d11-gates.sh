@@ -209,8 +209,16 @@ process.exit(ok ? 0 : 1);') \
     && lintout kleros-ui/no-restricted-syntax no-restricted-imports && $CLI check >o2.txt && grep -qx "ui:check passed" o2.txt \
     && grep -q "^lint: 1 error under no-restricted-syntax or no-restricted-imports in 1 file, not failing: kleros-ui-baseline.json predates the lint preset's own rule ids (it has no \"version\")" o2.txt \
     && $CLI baseline >/dev/null && node -e 'const b = require(process.argv[1]); process.exit(b.version === process.argv[2] && b.lint["src/App.tsx|kleros-ui/no-restricted-syntax"] === 1 && b.lint["src/App.tsx|no-restricted-imports"] === 1 ? 0 : 1)' "$PWD/kleros-ui-baseline.json" "$(node -p 'require(process.argv[1]).version' "$LIB/package.json")" \
-    && lintout kleros-ui/no-restricted-syntax no-restricted-imports no-restricted-imports && ! $CLI check >o3.txt && grep -q '^lint: 1 new (baseline 1):' o3.txt) \
-  && echo "gate: d.11 (B1, D37): the lint preset sets kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports, ESLint's own rules in its plugin, so after init an app's own no-restricted-imports and no-restricted-syntax options still apply; a baseline from before d.11 is read under the new ids (same count passes, one more fails, an app's own core-id error is reported, not failed), and ui:baseline writes \"version\""
+    && lintout kleros-ui/no-restricted-syntax no-restricted-imports no-restricted-imports && ! $CLI check >o3.txt && grep -q '^lint: 1 new (baseline 1):' o3.txt \
+    && node -e 'console.log(JSON.stringify([{ filePath: process.argv[1] + "/src/Panel.tsx", messages: [{ ruleId: null, fatal: true, severity: 2, line: 1, column: 32, message: "Parsing error: Unexpected token :" }] }]))' "$PWD" > eslint-out.json \
+    && cp kleros-ui-baseline.json b0.json && { $CLI baseline >b1.txt 2>&1; test $? -eq 1; } && cmp -s b0.json kleros-ui-baseline.json \
+    && grep -qx "kleros-ui baseline: ESLint cannot parse 1 file, so it checks nothing else in it:" b1.txt && grep -qx "  src/Panel.tsx:1:32 Parsing error: Unexpected token :" b1.txt \
+    && grep -q "^The lint config needs a TypeScript parser, e.g. typescript-eslint's" b1.txt \
+    && echo "{\"version\":\"$(node -p 'require(process.argv[1]).version' "$LIB/package.json")\",\"lint\":{\"src/Panel.tsx|fatal\":1},\"tsc\":{},\"css\":{}}" > kleros-ui-baseline.json \
+    && ! $CLI check >o4.txt && grep -qx "lint: ESLint cannot parse 1 file, so it checks nothing else in it:" o4.txt && grep -qx "  src/Panel.tsx:1:32 Parsing error: Unexpected token :" o4.txt \
+    && grep -q '^ui:check failed (tsc ok, lint failed' o4.txt && rm kleros-ui-baseline.json && touch eslint-fail && ! $CLI check >o5.txt \
+    && grep -qx "lint: ESLint cannot parse 1 file, so it checks nothing else in it:" o5.txt) \
+  && echo "gate: d.11 (B1, D37): the lint preset sets kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports, ESLint's own rules in its plugin, so after init an app's own no-restricted-imports and no-restricted-syntax options still apply; a baseline from before d.11 is read under the new ids (same count passes, one more fails, an app's own core-id error is reported, not failed), and ui:baseline writes \"version\"; a file ESLint cannot parse is never baselined: ui:baseline exits 1 naming it and the TypeScript parser and writes nothing, and check fails on it under a baseline that counted it and with none"
 rm -rf "$A"
 
 # d.11 (CL-B1-1): an eslint-disable comment written for the d.10 preset names no-restricted-syntax, which no longer

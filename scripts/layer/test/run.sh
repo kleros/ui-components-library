@@ -122,20 +122,34 @@ cp "$P"/gate/smoke.mjs "$P"/gate/css-stub-loader.mjs "$CHECK"/
 # 7. CLI: init is idempotent, there is no find, new scaffolds and refuses library names.
 T=$(mktemp -d -p "$WORK"); CLI="node $LIB/bin/kleros-ui.mjs"
 # d.11 r3 fix (D3-5): every agent/*.md the block names is a path from the app (rules 2 and 7 named bare agent/... paths).
-(cd "$T" && echo '{"name":"t","type":"module","scripts":{}}' > package.json && $CLI init >/dev/null && $CLI init >/dev/null \
-  && grep -c "kleros-ui:start" AGENTS.md | grep -qx 1 && grep -q '"ui:check"' package.json && test -f eslint.config.js \
-  && grep -o '[^ ()`]*agent/[A-Z-]*\.md' AGENTS.md | sort -u > agent-paths.txt && test "$(wc -l < agent-paths.txt)" = 4 \
-  && while read -r f; do test -f "$f" || exit 1; done < agent-paths.txt) \
-  && echo "gate: init writes one managed block, ui:check and the lint config; each agent/*.md the block names (AGENTS.md, CATALOG.md, NEW-COMPONENT.md, LOOK.md) is a path that exists from the app (d.11 r3 fix, D3-5)"
+# This app has no lint config, so init warns, each time, that the one it writes sets no TypeScript parser. Under pnpm
+# (node_modules/@kleros/ui-components-library links to a store folder named with a hash of the peers) and in a
+# workspace that hoists the library, the block names the path through node_modules, which a peer bump does not move.
+PN=$(mktemp -d -p "$WORK"); STORE=.pnpm/@kleros+ui-components-library@${VERSION}_0123abcd/node_modules/@kleros/ui-components-library
+mkdir -p "$PN/app/node_modules/$(dirname "$STORE")" "$PN/app/node_modules/@kleros" "$PN/mono/node_modules/@kleros" "$PN/mono/web" \
+  && cp -R "$LIB" "$PN/app/node_modules/$STORE" && ln -s "../$STORE" "$PN/app/node_modules/@kleros/ui-components-library" \
+  && ln -s "$LIB" "$PN/mono/node_modules/@kleros/ui-components-library"
+agent_paths() { grep -o '[^ ()`]*agent/[A-Z-]*\.md' AGENTS.md | sort -u > agent-paths.txt && test "$(wc -l < agent-paths.txt)" = 4 \
+  && while read -r f; do test -f "$f" || return 1; done < agent-paths.txt; }
+WARN='^kleros-ui: warning: eslint.config.js has the Kleros UI preset only (const app = \[\]; .*sets no TypeScript parser'
+(cd "$T" && echo '{"name":"t","type":"module","scripts":{}}' > package.json && $CLI init >i1.txt && $CLI init >i2.txt \
+  && grep -q "$WARN" i1.txt && grep -q "$WARN" i2.txt \
+  && grep -c "kleros-ui:start" AGENTS.md | grep -qx 1 && grep -q '"ui:check"' package.json && test -f eslint.config.js && agent_paths) \
+  && (cd "$PN/app" && echo '{"name":"pn","type":"module","scripts":{}}' > package.json && node node_modules/@kleros/ui-components-library/bin/kleros-ui.mjs init >/dev/null \
+    && grep -qF "look it up in node_modules/@kleros/ui-components-library/agent/CATALOG.md" AGENTS.md && ! grep -q '\.pnpm' AGENTS.md && agent_paths) \
+  && (cd "$PN/mono/web" && echo '{"name":"web","type":"module","scripts":{}}' > package.json && $CLI init >/dev/null \
+    && grep -qF "look it up in ../node_modules/@kleros/ui-components-library/agent/CATALOG.md" AGENTS.md && agent_paths) \
+  && echo "gate: init writes one managed block, ui:check and the lint config, and warns each time when that config has no app config of its own (no TypeScript parser); each agent/*.md the block names (AGENTS.md, CATALOG.md, NEW-COMPONENT.md, LOOK.md) is a path that exists from the app (d.11 r3 fix, D3-5), through node_modules under pnpm (not its store folder) and in a workspace that hoists the library"
+rm -rf "$PN"
 # An existing app (d.3, from the Court pilot): its eslint.config.mjs is wrapped, not shadowed by a new .js, and its
 # component folders are recorded as existing, so check holds only new ones to the rules.
 E=$(mktemp -d -p "$WORK")
 (cd "$E" && echo '{"name":"e","type":"module","scripts":{}}' > package.json && echo 'export default [];' > eslint.config.mjs \
-  && mkdir -p src/components/OldCard && echo 'export default () => null;' > src/components/OldBadge.tsx && $CLI init >/dev/null \
+  && mkdir -p src/components/OldCard && echo 'export default () => null;' > src/components/OldBadge.tsx && $CLI init >i.txt && ! grep -q warning i.txt \
   && test ! -e eslint.config.js && grep -q 'eslint.config.app.mjs' eslint.config.mjs && test -f eslint.config.app.mjs \
   && grep -q '"status": "existing"' kleros-ui.json && grep -q '"file": "src/components/OldBadge.tsx"' kleros-ui.json \
   && grep -q '"ui:baseline"' package.json) \
-  && echo "gate: init in an existing app wraps eslint.config.mjs and records existing component folders and files"
+  && echo "gate: init in an existing app wraps eslint.config.mjs (no parser warning) and records existing component folders and files"
 rm -rf "$E"
 grep -q "kleros-ui create" "$LIB/README.md" && grep -q "npx kleros-ui init" "$LIB/README.md" && grep -q "templates/poc" "$LIB/README.md" \
   && ! grep -q "node_modules/@kleros/ui-components-library/templates" "$LIB/README.md" && grep -q "agent/AGENTS.md" "$LIB/README.md" \

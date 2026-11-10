@@ -82,8 +82,20 @@ function staleTailwindStep() {
   return text !== null && !text.includes("styles its own code with styled-components") && text.includes(NO_TAILWIND_STEP) === hasTailwind();
 }
 
-// Where this package sits as seen from the app: ../node_modules/... when a monorepo hoists it (as Court's does).
-const libPath = () => LIB_PATH || toPosix(relative(process.cwd(), PKG_DIR)) || ".";
+// Where this package sits as seen from the app: the first node_modules/@kleros/ui-components-library from the app's
+// folder up that links to this copy. So ../node_modules/... when a monorepo hoists it (as Court's does), and
+// node_modules/... under pnpm too, not the store folder it links to (node_modules/.pnpm/<name>@<version>_<hash>),
+// whose name changes with any peer's version. This copy's own folder only when none links to it.
+const libPath = () => {
+  if (LIB_PATH) return LIB_PATH;
+  const real = realOrNull(PKG_DIR);
+  for (let d = process.cwd(); ; d = dirname(d)) {
+    const p = join(d, "node_modules", LIB);
+    if (realOrNull(p) === real) return toPosix(relative(process.cwd(), p));
+    if (dirname(d) === d) break;
+  }
+  return toPosix(relative(process.cwd(), PKG_DIR)) || ".";
+};
 
 function block() {
   const lib = libPath();
@@ -235,6 +247,13 @@ function init({ fromCreate = false } = {}) {
   writeJson("package.json", pj);
   const lint = wireLint(pj, { fromCreate });
   console.log(`kleros-ui ${pkg.version}: wrote AGENTS.md block, CLAUDE.md and Cursor pointers, ${CONFIG}, ${lint}, ui:check`);
+  // A managed config with no config of the app's own sets no TypeScript parser, so ESLint cannot parse a .ts or .tsx
+  // file; check fails on each one, and baseline refuses (parseErrors).
+  const lintText = readFileSync(lint, "utf8");
+  if (lintText.startsWith(MANAGED) && /^const app = \[\];$/m.test(lintText))
+    console.log(
+      `kleros-ui: warning: ${lint} has the Kleros UI preset only (const app = []; there was no eslint.config.* here to keep), and the preset sets no TypeScript parser, so ESLint cannot parse a .ts or .tsx file and ui:check fails on each one. ESLint now reads ${lint}, not a .eslintrc* or an eslint.config.* in a folder above (a monorepo root). Set app to the app's own config with typescript-eslint's parser, as the starter's eslint.config.js does: { files: ["**/*.{ts,tsx}"], languageOptions: { parser: tseslint.parser } }. Then run npm run ui:baseline.`,
+    );
   // init adds no packages and leaves the build config alone; the block's step 0 and ui:check say what
   // is missing.
   if (!hasTailwind(pj))
@@ -1676,9 +1695,10 @@ const readBaseline = () => {
 function lintCheck(base) {
   const current = lintCounts();
   if (!current) return false;
+  const parsed = parsedAll(current);
   const stale = staleDisables(current);
   for (const s of stale.notes) console.log(`note: ${s}`);
-  if (!base.legacyLintIds) return newAgainst("lint", base.lint, current);
+  if (!base.legacyLintIds) return newAgainst("lint", base.lint, current) && parsed;
   const own = Object.keys(current.counts).filter((k) => /\|no-restricted-(?:syntax|imports)$/.test(k));
   const n = own.reduce((a, k) => a + current.counts[k], 0);
   if (n)
@@ -1699,7 +1719,7 @@ function lintCheck(base) {
     console.log(
       `lint: ${plural(m, "error")} under an eslint-disable comment that names the old rule id (the notes above), not failing: ${BASELINE} predates the lint preset's own rule ids (it has no "version"). Change those comments, then run npm run ui:baseline once.`,
     );
-  return newAgainst("lint", base.lint, { counts, messages: current.messages });
+  return newAgainst("lint", base.lint, { counts, messages: current.messages }) && parsed;
 }
 // An eslint-disable comment that names no-restricted-syntax or -imports (as one written for the preset under the core
 // ids does) names the app's own rules, so it does not silence the preset (kleros-ui/...) and ESLint calls it unused.
@@ -1784,6 +1804,7 @@ function lintCounts({ quiet = false } = {}) {
   const messages = {};
   const errors = [];
   const stale = [];
+  const parse = [];
   for (const f of results) {
     const file = f.filePath.slice(process.cwd().length + 1);
     for (const m of f.messages) {
@@ -1792,14 +1813,33 @@ function lintCounts({ quiet = false } = {}) {
       for (const old of unused ? [...unused.matchAll(/'([^']+)'/g)].map((x) => x[1]) : [])
         if (RENAMED_LINT_IDS[old]) stale.push({ file, line: m.line, column: m.column, id: old, severity: m.severity });
       if (m.severity !== 2) continue;
+      // A parse error is never counted: see parseErrors.
+      if (m.fatal) {
+        parse.push(`${file}:${m.line}:${m.column} ${m.message}`);
+        continue;
+      }
       const key = `${file}|${m.ruleId ?? "fatal"}`;
       counts[key] = (counts[key] || 0) + 1;
       (messages[key] ||= []).push(`${file}:${m.line}:${m.column} ${m.message} (${m.ruleId ?? "fatal"})`);
       errors.push({ file, key, line: m.line, ruleId: m.ruleId });
     }
   }
-  return { counts, messages, errors, stale };
+  return { counts, messages, errors, stale, parse };
 }
+// ESLint reports nothing else in a file it cannot parse, so a baseline that counted the parse error would pass any
+// look violation in that file. So a parse error is never baselined: baseline refuses, and check fails on it, with a
+// baseline or without. Most often the lint config has no TypeScript parser (init's, in an app with no config of its own).
+const parseErrors = (parse) =>
+  [
+    `ESLint cannot parse ${plural(parse.length, "file")}, so it checks nothing else in ${parse.length === 1 ? "it" : "them"}:`,
+    ...parse.map((p) => `  ${p}`),
+    `The lint config needs a TypeScript parser, e.g. typescript-eslint's, as the starter's eslint.config.js sets it: { files: ["**/*.{ts,tsx}"], languageOptions: { parser: tseslint.parser } }. Or, if it has one, fix the syntax error.`,
+  ].join("\n");
+// Prints the parse errors; true when there are none.
+const parsedAll = (current) => {
+  if (current.parse.length) console.log(`lint: ${parseErrors(current.parse)}`);
+  return !current.parse.length;
+};
 // Type-check baseline (Court had 243 errors, from code it generates at build). Counted per file,
 // error code and message, without line numbers, so editing a file with old errors does not make them new.
 const tsProject = () => (existsSync("tsconfig.app.json") ? "tsconfig.app.json" : "tsconfig.json");
@@ -1823,6 +1863,8 @@ function tscCounts() {
 const total = (counts) => Object.values(counts).reduce((a, b) => a + b, 0);
 function baseline() {
   const lint = lintCounts();
+  if (lint?.parse.length)
+    throw new Error(`kleros-ui baseline: ${parseErrors(lint.parse)}\nNothing was recorded. Fix that, then run npm run ui:baseline again.`);
   const tsc = tscCounts();
   if (!lint || !tsc) process.exit(1);
   const css = cssCounts();
@@ -2219,10 +2261,13 @@ async function check({ build = false } = {}) {
   const base = build ? null : readBaseline();
   const okTsc = base?.tsc ? newAgainst("tsc", base.tsc, tscCounts()) : run("npx", ["--no", "--", "tsc", "--noEmit", "-p", tsProject()]);
   // With no baseline ESLint prints its own report; when it fails, a second run in JSON finds the eslint-disable
-  // comments that name the old ids, so an app with no baseline learns why too.
-  const okLint = base?.lint
-    ? lintCheck(base)
-    : run("npx", ["--no", "--", "eslint", "src"]) || (staleDisables(lintCounts({ quiet: true })).notes.forEach((s) => console.log(`note: ${s}`)), false);
+  // comments that name the old ids and the files ESLint cannot parse, so an app with no baseline learns why too.
+  const lintWhy = (current) => {
+    for (const s of staleDisables(current).notes) console.log(`note: ${s}`);
+    if (current) parsedAll(current);
+    return false;
+  };
+  const okLint = base?.lint ? lintCheck(base) : run("npx", ["--no", "--", "eslint", "src"]) || lintWhy(lintCounts({ quiet: true }));
   const okCss = cssCheck(base, { build });
   // setupProblems' own notes in both modes, after the --build ones.
   const own = [];
