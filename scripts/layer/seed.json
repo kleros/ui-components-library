@@ -128,7 +128,7 @@
     [
       "BigNumberField",
       "big number, token amount input, 18 decimals input, eth input",
-      "onChange(v: BigNumber in display units); use kit parseUnits for wei"
+      "onChange(v: BigNumber in display units): keep v.toFixed() as a string and convert it with kit parseUnits on submit, not in onChange (the field swallows its throw); minValue=\"0\", validate (at most the token's decimals), showFieldError"
     ],
     [
       "Datepicker",
@@ -255,7 +255,7 @@
     [
       "DataTable",
       "table, data table, rows, columns, list table, loading rows, empty table",
-      "columns: DataTableColumn<T>[], rows, rowKey, isLoading, empty, onRowPress"
+      "columns: DataTableColumn<T>[], rows, rowKey, isLoading, empty, onRowPress (a click, or Enter or Space on the focused row; a click on a link or button in the row is left to it)"
     ],
     [
       "ExternalLink",

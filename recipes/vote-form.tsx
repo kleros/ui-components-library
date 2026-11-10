@@ -12,6 +12,15 @@ const OPTIONS = [
 
 async function castVote(_v: { choice: string; justification: string; tipWei: bigint }): Promise<void> {}
 
+// The tip in wei, or null while parseUnits rejects it (more than 18 decimals); the field says why.
+function toWei(amount: string): bigint | null {
+  try {
+    return parseUnits(amount);
+  } catch {
+    return null;
+  }
+}
+
 export interface VoteFormProps {
   isConnected: boolean;
   chainId?: number;
@@ -24,12 +33,13 @@ export default function VoteForm({ isConnected, chainId, onConnect, onSwitchChai
   const [justification, setJustification] = useState("");
   const [tip, setTip] = useState("0");
   const [state, setState] = useState<"idle" | "pending" | "done" | "error">("idle");
+  const tipWei = toWei(tip);
 
   async function onVote() {
-    if (!choice) return;
+    if (!choice || tipWei === null) return;
     setState("pending");
     try {
-      await castVote({ choice, justification, tipWei: parseUnits(tip) });
+      await castVote({ choice, justification, tipWei });
       setState("done");
     } catch {
       setState("error");
@@ -43,8 +53,11 @@ export default function VoteForm({ isConnected, chainId, onConnect, onSwitchChai
         <Radio groupLabel="Your vote" options={OPTIONS} value={choice} onChange={setChoice} />
         <TextArea label="Justification" placeholder="Why this ruling?" value={justification} onChange={setJustification} />
         <HelpTooltip text="Optional tip to the case creator, in ETH.">Tip</HelpTooltip>
-        <BigNumberField aria-label="Tip (ETH)" placeholder="0.0" onChange={(v) => setTip(v.toFixed())} />
-        <Button text="Cast vote" isDisabled={!choice || !justification} isLoading={state === "pending"} onPress={onVote} />
+        <BigNumberField aria-label="Tip (ETH)" placeholder="0.0" minValue="0" showFieldError
+          validate={(v) => (v?.decimalPlaces() ?? 0) <= 18 || "At most 18 decimals"}
+          onChange={(v) => setTip(v.toFixed())} />
+        <Button text="Cast vote" isDisabled={!choice || !justification || tipWei === null}
+          isLoading={state === "pending"} onPress={onVote} />
         {state === "done" && <AlertMessage variant="success" title="Vote cast" msg="Your vote is recorded." />}
         {state === "error" && <AlertMessage variant="error" title="Vote failed" msg="The transaction was rejected." />}
       </Card>

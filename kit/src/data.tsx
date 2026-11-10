@@ -93,7 +93,14 @@ export function formatUnits(value: bigint | string, decimals = 18, maxFractionDi
 
 /**
  * Converts a decimal string in display units to base units: `parseUnits("1.5")` is `1500000000000000000n`.
- * Pair it with the core `BigNumberField`: `onChange={(v) => setWei(parseUnits(v.toFixed()))}`.
+ * With the core `BigNumberField`, keep the amount as a string and call parseUnits on submit, not in `onChange`: the
+ * field swallows a throw from `onChange`, so the app would keep the last amount that parsed. Have the field reject a
+ * negative amount and more decimals than the token has (18 here; a token with other decimals passes them to both
+ * `validate` and parseUnits), and don't send while parseUnits throws.
+ * @example
+ * <BigNumberField label="Amount (ETH)" minValue="0" showFieldError onChange={(v) => setAmount(v.toFixed())}
+ *   validate={(v) => (v?.decimalPlaces() ?? 0) <= 18 || "At most 18 decimals"} />
+ * // on submit: const wei = parseUnits(amount);
  * @throws on more fraction digits than `decimals` or on a non-numeric string
  */
 export function parseUnits(value: string, decimals = 18): bigint {
@@ -148,9 +155,21 @@ export interface DataTableProps<T> {
   isLoading?: boolean;
   /** Shown when `rows` is empty and not loading, e.g. an `EmptyState`. */
   empty?: React.ReactNode;
+  /**
+   * Called on a click on the row, or on Enter or Space while the row has focus (the row joins the tab order).
+   * A click on a link, button or field inside the row is left to that element.
+   */
   onRowPress?: (row: T) => void;
   className?: string;
 }
+
+// A click on one of these inside a pressable row is that element's own action, not a row press.
+const ROW_INTERACTIVE = "a, button, input, select, textarea, label, [role=button], [role=link]";
+// A pressable row: the hover highlight, and on keyboard focus the same highlight with a ring inside the row.
+const ROW_PRESSABLE = cn(
+  "hover:bg-klerosUIComponentsLightGrey cursor-pointer focus-visible:bg-klerosUIComponentsLightGrey",
+  "focus-visible:outline-klerosUIComponentsPrimaryBlue focus-visible:outline-2 focus-visible:-outline-offset-2",
+);
 
 /**
  * Plain typed table (the core has none). Pair it with the core `StandardPagination` below it.
@@ -185,8 +204,26 @@ export function DataTable<T>({ columns, rows, rowKey, isLoading, empty, onRowPre
             : rows.map((row) => (
                 <tr
                   key={rowKey(row)}
-                  onClick={onRowPress ? () => onRowPress(row) : undefined}
-                  className={cn("border-klerosUIComponentsStroke border-t", onRowPress && "hover:bg-klerosUIComponentsLightGrey cursor-pointer")}
+                  tabIndex={onRowPress ? 0 : undefined}
+                  onClick={
+                    onRowPress
+                      ? (e) => {
+                          const hit = (e.target as Element).closest(ROW_INTERACTIVE);
+                          if (!hit || !e.currentTarget.contains(hit)) onRowPress(row);
+                        }
+                      : undefined
+                  }
+                  onKeyDown={
+                    onRowPress
+                      ? (e) => {
+                          // Only while the row itself has focus: Enter on a link inside it is the link's.
+                          if (e.target !== e.currentTarget || (e.key !== "Enter" && e.key !== " ")) return;
+                          e.preventDefault();
+                          onRowPress(row);
+                        }
+                      : undefined
+                  }
+                  className={cn("border-klerosUIComponentsStroke border-t", onRowPress && ROW_PRESSABLE)}
                 >
                   {columns.map((c) => (
                     <td key={c.key} className={cell(c)}>

@@ -135,15 +135,32 @@ async function themeChecks() {
   document.documentElement.classList.remove("dark");
   return r;
 }
+// A pressable DataTable row: a tab stop; Enter, Space and a cell click press it; a click on a link in it does not.
+async function rowPressChecks() {
+  const pressed = [];
+  const link = () => h("a", { href: "#case", onClick: (e) => e.preventDefault() }, "Case 1");
+  const m = await mount(h(kit.DataTable, { rows: [{ id: 1 }], rowKey: (r) => r.id, onRowPress: (r) => pressed.push(r.id),
+    columns: [{ key: "id", header: "Id" }, { key: "link", header: "Case", render: link }] }));
+  const tr = m.div.querySelector("tbody tr");
+  const key = (k) => React.act(async () => tr.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true })));
+  await key("Enter");
+  await key(" ");
+  await React.act(async () => tr.querySelector("a").click());
+  await React.act(async () => tr.querySelector("td").click());
+  const r = { tabIndex: tr.tabIndex, pressed: pressed.join(",") };
+  await m.unmount();
+  return r;
+}
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
-let fixedRun, liveRun, badRun, theme;
+let fixedRun, liveRun, badRun, theme, rowPress;
 try {
   fixedRun = await intervalsWhileMounted(h(kit.Countdown, { deadline: DEADLINE, now: NOW }));
   liveRun = await intervalsWhileMounted(h(kit.Countdown, { deadline: Date.now() + 3_600_000 }));
   badRun = await intervalsWhileMounted(h(kit.Countdown, { deadline: "2026-31-10" }));
   theme = await themeChecks();
+  rowPress = await rowPressChecks();
 } catch (e) { console.log(`FAIL client checks: ${e.message.split("\n")[0]}`); }
-for (const [k, v] of Object.entries({ fixedRun, liveRun, badRun, theme })) console.log(`     ${k} ${JSON.stringify(v)}`);
+for (const [k, v] of Object.entries({ fixedRun, liveRun, badRun, theme, rowPress })) console.log(`     ${k} ${JSON.stringify(v)}`);
 
 const parts = (() => { try { return JSON.parse(html("CountdownParts").replace(/^<output>|<\/output>$/g, "").replaceAll("&quot;", '"')); } catch { return {}; } })();
 const checks = {
@@ -173,10 +190,12 @@ const checks = {
     && theme?.systemDark === "dark/dark" && theme?.systemLight === "light/light" && theme?.noMatchMedia === "light/light"
     && theme?.noWindow === "undefined:light" && theme?.noWindowUntouched === true,
   "ThemeToggle starts from applyInitialTheme": theme?.toggleLightOnDark === false && theme?.toggleDarkOnLight === true,
+  "DataTable onRowPress: a tab stop, Enter and Space press, a link click does not; no tab stop without it":
+    rowPress?.tabIndex === 0 && rowPress?.pressed === "1,1,1" && !html("DataTable").includes("tabindex"),
 };
 const failed = Object.entries(checks).filter(([, pass]) => !pass).map(([name]) => name);
 for (const [name, pass] of Object.entries(checks)) console.log(`${pass ? "ok  " : "FAIL"} ${name}`);
 console.log(ok && !failed.length && !bad
-  ? "ok   ChainGuard gates on chain; KeyValueList, Sparkline (0, 1, flat points, no NaN) and WizardShell (first and last step buttons) render; d.9: Countdown and useCountdown with now give fixed text and start no interval, FormField labels match core labels, Grid fills its row (a lone item takes half), FormStack actions stack full width on a phone, applyInitialTheme follows ?theme= then the system and ThemeToggle starts from it; d.9 review: Grid keeps a min-width floor, actions in one wrapper fill a phone too, an unparseable deadline reads 0s and starts no interval"
+  ? "ok   ChainGuard gates on chain; KeyValueList, Sparkline (0, 1, flat points, no NaN) and WizardShell (first and last step buttons) render; d.9: Countdown and useCountdown with now give fixed text and start no interval, FormField labels match core labels, Grid fills its row (a lone item takes half), FormStack actions stack full width on a phone, applyInitialTheme follows ?theme= then the system and ThemeToggle starts from it; d.9 review: Grid keeps a min-width floor, actions in one wrapper fill a phone too, an unparseable deadline reads 0s and starts no interval; a pressable DataTable row takes Enter and Space and leaves a link click to the link"
   : `FAIL ${[!ok && "ChainGuard gate", bad && `${bad} render error(s)`, ...failed].filter(Boolean).join("; ")}`);
 process.exit(bad || !ok || failed.length ? 1 : 0);
