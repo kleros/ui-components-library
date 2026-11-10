@@ -6,7 +6,7 @@ export type Tone = "success" | "warning" | "error" | "info" | "neutral" | "accen
 
 // Token pairs, all present in theme.css: Success/SuccessLight, Warning/WarningLight, Error/ErrorLight,
 // PrimaryBlue/MediumBlue, SecondaryText/LightGrey, PrimaryText/MediumPurple. Accent text is PrimaryText, not
-// PrimaryPurple: PrimaryPurple on MediumPurple is 2.05:1 in dark (3.10.1-d.2); the dot keeps the purple.
+// PrimaryPurple: PrimaryPurple on MediumPurple is 2.05:1 in dark; the dot keeps the purple.
 const TONE: Record<Tone, string> = {
   success: "text-klerosUIComponentsSuccess bg-klerosUIComponentsSuccessLight",
   warning: "text-klerosUIComponentsWarning bg-klerosUIComponentsWarningLight",

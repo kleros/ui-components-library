@@ -14,7 +14,7 @@ export interface CountdownParts {
 
 // A moment as a Date, milliseconds since the epoch, or an ISO 8601 string. An unparseable string gives NaN, as
 // Date.parse does, and the countdown then reads "0s", the same as an invalid Date: every part 0, isOver false, and no
-// timer (d.9 review: the live interval started, since NaN <= now is false, and was never cleared).
+// timer (a live interval would start, since NaN <= now is false, and never be cleared).
 const toMs = (t: Date | number | string) => (typeof t === "number" ? t : typeof t === "string" ? Date.parse(t) : t.getTime());
 
 function split(deadlineMs: number, nowMs: number): CountdownParts {

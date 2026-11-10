@@ -94,8 +94,8 @@ export function Grid({ minItemWidth = 240, gap = 4, className, style, ...props }
   // `:has()` counts rendered elements, so a fragment or a component that renders several items is not taken for one.
   // The defaults are set on every Grid, so a nested grid never inherits a lone outer grid's values. Without the
   // classes (an app whose Tailwind does not scan the kit), the fallbacks give plain auto-fit.
-  // d.9 review: while a parent sizes the grid to its content, min(100%, ...) has no width to resolve against and the
-  // column took its text's width (78 px for minItemWidth 200). The grid's own min-width, against its parent's width,
+  // While a parent sizes the grid to its content, min(100%, ...) has no width to resolve against, so the column
+  // would take its text's width (78 px for minItemWidth 200). The grid's own min-width, against its parent's width,
   // keeps minItemWidth as a floor there; in a parent of definite width the grid is wider than that and it does nothing.
   return (
     <div
@@ -189,9 +189,9 @@ export interface FormStackProps extends React.HTMLAttributes<HTMLDivElement> {
 export function FormStack({ actions, children, className, ...props }: Readonly<FormStackProps>) {
   // flex-wrap-reverse: a line that wraps goes above the first, so the primary (last) is on top. max-sm:*:grow makes
   // each action fill its line on a phone. Neither fights a class the library emits (a core Button is size-fit), so the
-  // layout holds whatever order the app loads the library's CSS in. d.9 review: actions in one wrapper element (kit
-  // Inline, a div) grew as one block while their buttons stayed at its start, left-aligned on a phone; the wrapper's
-  // own children now grow and wrap the same way. A lone Button renders a <button>, not a div, so it is not touched.
+  // layout holds whatever order the app loads the library's CSS in. Actions in one wrapper element (kit Inline, a
+  // div) would grow as one block while their buttons stayed at its start, left-aligned on a phone, so the wrapper's
+  // own children grow and wrap the same way. A lone Button renders a <button>, not a div, so it is not touched.
   return (
     <div className={cn("flex flex-col gap-4", className)} {...props}>
       {children}
