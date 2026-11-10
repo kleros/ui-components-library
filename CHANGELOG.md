@@ -35,6 +35,7 @@ None.
 ### Changed
 
 - Types and description: the first line of `ui-components-library.d.ts`, `lib/index.d.ts` and each kit type file, and the package description, say that a new app is set up with `npx kleros-ui create` and name the guide.
+- Package: the published `package.json` has no `prepare` script. It ran `husky install`, which sets up this repository's git hooks, and npm listed it as an install script it did not run. `package.json` itself is exported.
 
 ### Fixed
 

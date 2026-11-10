@@ -29,7 +29,8 @@
     },
     "./story-types": {
       "types": "./story-types.d.ts"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "sideEffects": [
     "**/*.css"
@@ -41,6 +42,8 @@
     "check-style": "eslint 'src/**/*.{ts,tsx}' '.storybook/**/*.{ts,tsx}' 'vitest*.config.ts' 'scripts/**/*.mjs'",
     "check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && tsc -p tsconfig.layer.json",
     "clean": "rm -rf dist agent/CATALOG.md agent/catalog.json",
+    "postpack": "node scripts/pack-manifest.mjs restore",
+    "prepack": "yarn build && node scripts/pack-manifest.mjs strip",
     "prepare": "husky install",
     "start": "storybook dev -p 6006",
     "test:stories": "vitest run --project=storybook",
