@@ -19,16 +19,21 @@
       "types": "./dist/ui-components-library.d.ts"
     },
     "./style.css": "./dist/assets/index.css",
-    "./theme.css": "./dist/assets/theme.css"
+    "./theme.css": "./dist/assets/theme.css",
+    "./kit": {
+      "types": "./dist/kit/index.d.ts",
+      "import": "./dist/kit/index.js"
+    }
   },
   "sideEffects": [
     "**/*.css"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && yarn build:layer",
     "build-storybook": "storybook build",
+    "build:layer": "tsc -p kit/tsconfig.json && node scripts/layer/build.mjs",
     "check-style": "eslint 'src/**/*.{ts,tsx}' '.storybook/**/*.{ts,tsx}' 'vitest*.config.ts' 'scripts/**/*.mjs'",
-    "check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && tsc -p tsconfig.layer.json",
     "clean": "rm -rf dist",
     "prepare": "husky install",
     "start": "storybook dev -p 6006",
@@ -138,5 +143,12 @@
     "extends": [
       "plugin:storybook/recommended"
     ]
+  },
+  "typesVersions": {
+    "*": {
+      "kit": [
+        "dist/kit/index.d.ts"
+      ]
+    }
   }
 }

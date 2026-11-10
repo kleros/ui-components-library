@@ -26,6 +26,7 @@ None.
 - Button: a `title` prop that renders as the native tooltip, a `ref` to the `<button>`, and `children` that render instead of `text`, which stays required and names the button (a caller's `aria-label` wins), so icon-only buttons have a name.
 - Copiable: the copy button has an accessible name (`info`, default "Copy"), and a visually hidden live region announces "Copied" or "Copy failed". New `onCopy` and `onCopyError` callbacks, and `feedbackDuration` (default 2000 ms). A failed clipboard write is no longer swallowed.
 - `cn`: the class-name helper the components use (clsx plus tailwind-merge) is exported, so an app's `className` can override a default class.
+- Kit: `@kleros/ui-components-library/kit` adds app-level pieces built only from the library's components and theme tokens: layout (`Stack`, `Inline`, `Grid`, `Section`, `Page`, `FormStack`), loading, empty and error states (`Skeleton`, `Spinner`, `EmptyState`, `InfoCard`, `ErrorState`, `QueryState`), data (`StatCard`, `AddressDisplay`, `TokenAmount`, `DataTable`, `KeyValueList`, `Sparkline`), `StatusBadge`, forms (`FormField`, `WizardShell`), `Countdown`, and app pieces (`ExternalLink`, `HelpTooltip`, `ThemeToggle`, `ChainGuard`), with `useCountdown`, `useDarkMode`, `applyInitialTheme`, `shortenAddress`, `formatUnits`, `parseUnits`, `toneClasses`, `readToken` and `cn`. Its classes reach an app through the Tailwind entry's `@source` line (README, Setup). Under `"moduleResolution": "node"`, TypeScript finds its types through `typesVersions`.
 
 ### Fixed
 

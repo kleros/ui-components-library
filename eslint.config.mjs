@@ -117,6 +117,21 @@ export default [
     },
   },
   {
+    // The agent layer's TypeScript is written for apps: React's automatic JSX
+    // runtime, ESM imports that end in .js, and the package imported by its
+    // own name. The node resolver reads none of those; tsconfig.layer.json
+    // type-checks the imports instead. Prettier does not reformat it: it keeps
+    // the style it was built and reviewed in, so dist/kit stays the code that
+    // was tested.
+    files: ["kit/src/**/*.{ts,tsx}"],
+    rules: {
+      "prettier/prettier": "off",
+      "react/react-in-jsx-scope": "off",
+      "import/no-unresolved": "off",
+      "import/extensions": "off",
+    },
+  },
+  {
     // The node resolver ignores package.json "exports" subpaths (vitest/config);
     // tsconfig.node.json type-checks these imports instead.
     files: [".storybook/**/*.{ts,tsx}", "vitest*.config.ts"],

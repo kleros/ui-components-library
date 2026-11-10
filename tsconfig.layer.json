@@ -1,0 +1,12 @@
+{
+  "extends": "./kit/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@kleros/ui-components-library": ["src/lib/index.ts"]
+    }
+  },
+  "include": ["kit/src", "src/global.d.ts"]
+}
