@@ -6,6 +6,9 @@
 @source not "../../kit";
 @source not "../../scripts/layer";
 @source not "../../eslint";
+@source not "../../agent";
+@source not "../../recipes";
+@source not "../../story-types.d.ts";
 
 @import "./theme.css";
 

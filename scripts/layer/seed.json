@@ -1,0 +1,274 @@
+{
+  "core": [
+    [
+      "Button",
+      "button, action, submit, click, cta, primary, secondary, loading button",
+      "text (required: the label, or the accessible name when children are passed), children (shown instead of text: an icon, a rich label), onPress, variant, isLoading, isDisabled, small, Icon"
+    ],
+    [
+      "Card",
+      "card, panel, box, container, surface, tile",
+      "fluid (sizes to content and container; default fixed 328x200), round, hover; padding with className=\"p-6\""
+    ],
+    [
+      "Box",
+      "box, container, rounded panel",
+      "fixed 328x200 by default: className=\"h-auto w-full\""
+    ],
+    [
+      "Modal",
+      "modal, dialog, popup, overlay, confirm",
+      "isOpen, onOpenChange(open), fluid (sizes to its content; default fixed 328x200); no title prop"
+    ],
+    [
+      "Tag",
+      "tag, chip, label, filter chip, pill",
+      "text (required: the label, or the accessible name when children are passed), children (shown instead of text, e.g. a dot and a label), active, toggle (announces active as pressed), onPress (react-aria Button); for coloured statuses use kit StatusBadge"
+    ],
+    [
+      "Tabs",
+      "tabs, tab bar, sections switch, segmented",
+      "items: {id, text, value, content}[], callback(key, value)"
+    ],
+    [
+      "Tooltip",
+      "tooltip, hint, hover help, info",
+      "text, place, small, children"
+    ],
+    [
+      "Switch",
+      "switch, toggle, on off",
+      "react-aria Switch props (isSelected, onChange), small"
+    ],
+    [
+      "Checkbox",
+      "checkbox, check, tick, agree",
+      "react-aria Checkbox props (isSelected, onChange), label, small"
+    ],
+    [
+      "Radio",
+      "radio, radio group, options, choose one",
+      "options: {label, value}[], groupLabel, onChange(value)"
+    ],
+    [
+      "Steps",
+      "steps, stepper, wizard steps, progress steps",
+      "items: {title, subitems?}[], currentItemIndex. Step indicator only; for a multi-step form use kit WizardShell"
+    ],
+    [
+      "Timeline",
+      "timeline, history, events, activity, period history",
+      "items: {title, party, subtitle, variant?}[] (non-empty)"
+    ],
+    [
+      "CustomTimeline",
+      "custom timeline, timeline with custom items",
+      "items with custom content"
+    ],
+    [
+      "Accordion",
+      "accordion, collapsible, faq, expand, disclosure",
+      "items: {title, body, Icon?}[], defaultExpanded"
+    ],
+    [
+      "Breadcrumb",
+      "breadcrumb, navigation path, trail",
+      "items, callback, clickable, variant"
+    ],
+    [
+      "Copiable",
+      "copy, copy to clipboard, copiable text",
+      "copiableContent, info, iconPlacement, children"
+    ],
+    [
+      "Searchbar",
+      "search, search box, search input, filter text",
+      "label, placeholder, onChange(value: string); 278 px wide: className=\"w-full\" fills the column"
+    ],
+    [
+      "TextField",
+      "text field, input, text input, form field, email, name",
+      "label, onChange(value: string), variant=\"error\", message; 278 px wide: className=\"w-full\" fills the column"
+    ],
+    [
+      "TextArea",
+      "textarea, multiline, long text, description input",
+      "label, onChange(value: string)"
+    ],
+    [
+      "NumberField",
+      "number field, numeric input, amount input",
+      "react-aria NumberField props (value, onChange(number)), label, variant, message"
+    ],
+    [
+      "BigNumberField",
+      "big number, token amount input, 18 decimals input, eth input",
+      "onChange(v: BigNumber in display units); use kit parseUnits for wei"
+    ],
+    [
+      "Datepicker",
+      "date, date picker, calendar, deadline picker",
+      "react-aria DatePicker props (value, onChange), time, label"
+    ],
+    [
+      "DropdownSelect",
+      "dropdown, select, filter, choose, menu select",
+      "items: {id, text, itemValue}[], callback(item); the trigger is 240 px and no prop widens it; its list calls Date.now() (SimpleBar), so a fixed-clock app uses Radio for a short list"
+    ],
+    [
+      "DropdownCascader",
+      "cascader, nested select, court tree, hierarchy select",
+      "items: {label, value, children}[]"
+    ],
+    [
+      "Slider",
+      "slider, range, amount slider",
+      "react-aria Slider props, leftLabel, rightLabel, formatter, callback"
+    ],
+    [
+      "FileUploader",
+      "file upload, upload, attach file, evidence file",
+      "callback(file: File), msg, variant"
+    ],
+    [
+      "FileViewer",
+      "file viewer, document viewer, pdf preview, attachment",
+      "url, fileName"
+    ],
+    [
+      "AlertMessage",
+      "alert, notice, message, warning box, success message, error message, result",
+      "variant (success|warning|error|info), title, msg (required); no children"
+    ],
+    [
+      "PushMessage",
+      "push message, toast-like message, notification",
+      "variant, title, msg, callback"
+    ],
+    [
+      "LinearProgress",
+      "progress bar, bar, percentage bar, funding progress",
+      "value (0-100); width (px) optional: leave it out to fill the container"
+    ],
+    [
+      "CircularProgress",
+      "circular progress, ring, gauge, percentage ring",
+      "value; tone (success|warning|error|info|neutral|accent) sets the fill colour, default blue turning green at 100%; aria-label names it"
+    ],
+    [
+      "StandardPagination",
+      "pagination, pages, page numbers, next page",
+      "currentPage (from 1), numPages, callback(page)"
+    ],
+    [
+      "CompactPagination",
+      "compact pagination, prev next, small pagination",
+      "currentPage, numPages, callback(page)"
+    ],
+    [
+      "ScrollbarContainer",
+      "scroll, scroll area, scrollbar",
+      "children"
+    ],
+    [
+      "DraggableList",
+      "draggable list, reorder, sortable",
+      "items, callback (see its .d.ts)"
+    ],
+    [
+      "DisplayLarge",
+      "display, big number with label, stat display",
+      "text, label, Icon"
+    ],
+    [
+      "DisplaySmall",
+      "display small, label value",
+      "text, label, Icon"
+    ]
+  ],
+  "kit": [
+    [
+      "Skeleton",
+      "skeleton, loading placeholder, shimmer, loading state, loading rows",
+      "count, className; for whole data views prefer QueryState"
+    ],
+    [
+      "Spinner",
+      "spinner, inline loading, busy",
+      "size, label"
+    ],
+    [
+      "EmptyState",
+      "empty, no results, nothing here, empty list, no data, zero state",
+      "title, description, action {text, onPress}, icon"
+    ],
+    [
+      "InfoCard",
+      "info card, callout, explanation box",
+      "children, variant (info|warning|success|error)"
+    ],
+    [
+      "StatCard",
+      "stat card, stat, metric, kpi, total, tile, dashboard number",
+      "label, value, hint, icon, isLoading"
+    ],
+    [
+      "AddressDisplay",
+      "address, wallet address, ens, short address, copy address",
+      "address, chars, explorerUrl, copyInfo"
+    ],
+    [
+      "TokenAmount",
+      "token amount, eth amount, wei, pnk, balance, 18 decimals, format amount",
+      "value (the token's smallest unit, wei for ETH: bigint or integer string; a decimal amount goes through parseUnits first), symbol, decimals, maxFractionDigits"
+    ],
+    [
+      "DataTable",
+      "table, data table, rows, columns, list table, loading rows, empty table",
+      "columns: DataTableColumn<T>[], rows, rowKey, isLoading, empty, onRowPress"
+    ],
+    [
+      "ExternalLink",
+      "external link, explorer link, tx link, etherscan, open in new tab",
+      "href, children"
+    ],
+    [
+      "HelpTooltip",
+      "help, info icon, question mark, explanation tooltip, label help",
+      "text, children, place"
+    ],
+    [
+      "ThemeToggle",
+      "theme toggle, dark mode, light mode, theme switch",
+      "no props; reads the .dark class when it mounts, so call kit applyInitialTheme() in main.tsx before the first render (?theme=light or ?theme=dark, else the system setting)"
+    ],
+    [
+      "ChainGuard",
+      "chain guard, wrong network, switch chain, wallet gate",
+      "isConnected, chainId, requiredChainId, chainName, onConnect, onSwitchChain, children"
+    ]
+  ],
+  "knownGaps": [
+    {
+      "name": "Transaction hash link",
+      "intent": "tx hash, transaction link, explorer, etherscan link",
+      "kind": "ui",
+      "suggest": "TxLink",
+      "compose": "kit ExternalLink with shortenAddress(hash)"
+    },
+    {
+      "name": "Period / status tag with colour",
+      "intent": "period tag, period banner, period badge, status chip, status label, label with colour, evidence commit vote appeal execution",
+      "kind": "ui",
+      "suggest": "PeriodBadge",
+      "compose": "kit StatusBadge with a tone per period (evidence info, commit neutral, vote accent, appeal warning, execution success)"
+    },
+    {
+      "name": "Segmented control",
+      "intent": "segmented control, toggle group, view switch, button group",
+      "kind": "ui",
+      "suggest": "SegmentedControl",
+      "compose": "core Tabs for content switching, or core Radio for a value"
+    }
+  ]
+}

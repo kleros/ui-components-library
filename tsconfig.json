@@ -43,6 +43,9 @@
     "storybook-plays-fixtures-static",
     "vite.config.theme.ts",
     "kit",
-    "eslint"
+    "eslint",
+    "agent",
+    "recipes",
+    "story-types.d.ts"
   ]
 }

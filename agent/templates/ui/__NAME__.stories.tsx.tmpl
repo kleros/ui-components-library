@@ -1,0 +1,10 @@
+// Written only when the app has Storybook: Default, Dark and each state the component has.
+import type { Meta, StoryObj } from "@kleros/ui-components-library/story-types";
+import { __NAME__ } from "./__NAME__";
+
+const meta: Meta<typeof __NAME__> = { title: "App/__NAME__", component: __NAME__ };
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = { args: {} };
+export const Dark: Story = { args: {}, parameters: { theme: "dark" } };

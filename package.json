@@ -26,6 +26,9 @@
     },
     "./eslint": {
       "import": "./eslint/index.mjs"
+    },
+    "./story-types": {
+      "types": "./story-types.d.ts"
     }
   },
   "sideEffects": [
@@ -34,10 +37,10 @@
   "scripts": {
     "build": "vite build && yarn build:layer",
     "build-storybook": "storybook build",
-    "build:layer": "tsc -p kit/tsconfig.json && node scripts/layer/build.mjs",
+    "build:layer": "tsc -p kit/tsconfig.json && node scripts/layer/build.mjs && node scripts/layer/gen-catalog.mjs",
     "check-style": "eslint 'src/**/*.{ts,tsx}' '.storybook/**/*.{ts,tsx}' 'vitest*.config.ts' 'scripts/**/*.mjs'",
     "check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && tsc -p tsconfig.layer.json",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist agent/CATALOG.md agent/catalog.json",
     "prepare": "husky install",
     "start": "storybook dev -p 6006",
     "test:stories": "vitest run --project=storybook",
@@ -50,7 +53,10 @@
   },
   "files": [
     "dist",
-    "eslint"
+    "agent",
+    "eslint",
+    "story-types.d.ts",
+    "recipes"
   ],
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.5",
@@ -153,6 +159,9 @@
     "*": {
       "kit": [
         "dist/kit/index.d.ts"
+      ],
+      "story-types": [
+        "story-types.d.ts"
       ]
     }
   },

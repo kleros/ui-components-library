@@ -1,0 +1,40 @@
+import { useState } from "react";
+import { Button, TextField } from "@kleros/ui-components-library";
+import { FormStack } from "@kleros/ui-components-library/kit";
+
+export interface __NAME__Props {
+  /** Called with the form values on submit. */
+  onSubmit: (values: { name: string }) => Promise<void> | void;
+  /** Extra classes, merged last. */
+  className?: string;
+}
+
+/**
+ * __NAME__: describe the form. Core fields take label, variant="error" and message; Button shows isLoading.
+ */
+export function __NAME__({ onSubmit, className }: Readonly<__NAME__Props>) {
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  return (
+    <FormStack
+      className={className}
+      actions={
+        <Button
+          text="Submit"
+          isLoading={busy}
+          isDisabled={busy || !name}
+          onPress={async () => {
+            setBusy(true);
+            try {
+              await onSubmit({ name });
+            } finally {
+              setBusy(false);
+            }
+          }}
+        />
+      }
+    >
+      <TextField label="Name" value={name} onChange={setName} />
+    </FormStack>
+  );
+}

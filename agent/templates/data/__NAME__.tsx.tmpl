@@ -1,0 +1,35 @@
+import { QueryState, Stack } from "@kleros/ui-components-library/kit";
+
+export interface __NAME__Item {
+  id: string;
+}
+
+export interface __NAME__Props {
+  /** The rows to show; undefined while loading. */
+  data?: __NAME__Item[];
+  /** True while the data is loading; false for mock data. */
+  isLoading?: boolean;
+  /** True when loading failed. */
+  isError?: boolean;
+  /** Called by the error state's Retry button. */
+  onRetry?: () => void;
+  /** Extra classes, merged last. */
+  className?: string;
+}
+
+/**
+ * __NAME__: describe what it shows. QueryState handles loading, empty and error.
+ */
+export function __NAME__({ data, isLoading = false, isError = false, onRetry, className }: Readonly<__NAME__Props>) {
+  return (
+    <QueryState isLoading={isLoading} isError={isError} data={data} onRetry={onRetry} empty={{ title: "Nothing yet" }}>
+      {(items) => (
+        <Stack gap={2} className={className}>
+          {items.map((item) => (
+            <div key={item.id}>{item.id}</div>
+          ))}
+        </Stack>
+      )}
+    </QueryState>
+  );
+}

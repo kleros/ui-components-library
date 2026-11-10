@@ -123,12 +123,16 @@ export default [
     // type-checks the imports instead. Prettier does not reformat it: it keeps
     // the style it was built and reviewed in, so dist/kit stays the code that
     // was tested.
-    files: ["kit/src/**/*.{ts,tsx}"],
+    files: ["kit/src/**/*.{ts,tsx}", "recipes/**/*.tsx", "story-types.d.ts"],
     rules: {
       "prettier/prettier": "off",
       "react/react-in-jsx-scope": "off",
       "import/no-unresolved": "off",
       "import/extensions": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },
+      ],
     },
   },
   {
