@@ -17,7 +17,8 @@
 #   (the repo builds with Tailwind 4.0, and check needs 4.1 or later), React 18.3 (the smoke render uses its act; the
 #   repo's own React is 18.2) and happy-dom. run.sh runs npm ci there when tools/node_modules is missing or was
 #   installed from another lockfile.
-# KEEP=1 keeps the work folder. Heavy without a pack path: the library build runs first.
+# Needs Node 22.15 or later (see the check below; the repo's volta pin, Node 20, is too old) and, on the first run,
+# network for the npm ci in tools/. KEEP=1 keeps the work folder. Heavy without a pack path: the build runs first.
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd -P)
 REPO=$(cd "$HERE/../../.." && pwd -P)
@@ -25,6 +26,10 @@ EXPECTED=44
 TSC=$REPO/node_modules/.bin/tsc
 die() { echo "test:layer: $*" >&2; exit 1; }
 test -x "$TSC" || die "$TSC is missing: run yarn install first"
+# The gates that read the lint preset's config load gate/eslint-stand-in.mjs, which uses registerHooks from node:module
+# (added in Node 22.15 and 23.5). On an older Node those gates print nothing, so stop here and say why.
+node -e 'process.exit(typeof require("node:module").registerHooks === "function" ? 0 : 1)' \
+  || die "needs Node 22.15 or later (gate/eslint-stand-in.mjs uses registerHooks from node:module); this is Node $(node -v)"
 
 # Yarn runs this script in the repo's folder, so a relative pack path is read from the folder yarn was started in.
 TGZ=
