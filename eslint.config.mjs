@@ -21,7 +21,9 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ["src/assets"],
+    // templates/poc is the starter app that `kleros-ui create` copies. It has
+    // its own ESLint config and imports packages the starter installs.
+    ignores: ["src/assets", "templates/"],
   },
   ...fixupConfigRules(
     compat.extends(

@@ -9,5 +9,11 @@
       "@kleros/ui-components-library/kit": ["kit/src/index.ts"]
     }
   },
-  "include": ["kit/src", "src/global.d.ts", "recipes", "story-types.d.ts"]
+  "include": [
+    "kit/src",
+    "src/global.d.ts",
+    "recipes",
+    "templates/poc/src",
+    "story-types.d.ts"
+  ]
 }

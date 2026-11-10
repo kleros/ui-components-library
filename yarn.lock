@@ -2120,6 +2120,8 @@ __metadata:
   peerDependenciesMeta:
     eslint-plugin-better-tailwindcss:
       optional: true
+  bin:
+    kleros-ui: bin/kleros-ui.mjs
   languageName: unknown
   linkType: soft
 

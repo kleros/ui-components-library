@@ -1,7 +1,7 @@
 {
   "name": "@kleros/ui-components-library",
   "version": "3.10.0",
-  "description": "UI components library which implements the Kleros design system.",
+  "description": "UI components library which implements the Kleros design system. New app: set it up with the CLI, not by hand (npx kleros-ui create . once the package is installed); guide: agent/AGENTS.md.",
   "source": "./src/lib/index.ts",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -56,7 +56,9 @@
     "agent",
     "eslint",
     "story-types.d.ts",
-    "recipes"
+    "recipes",
+    "templates",
+    "bin"
   ],
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.5",
@@ -164,6 +166,9 @@
         "story-types.d.ts"
       ]
     }
+  },
+  "bin": {
+    "kleros-ui": "bin/kleros-ui.mjs"
   },
   "peerDependenciesMeta": {
     "eslint-plugin-better-tailwindcss": {

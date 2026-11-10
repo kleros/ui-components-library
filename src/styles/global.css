@@ -9,6 +9,8 @@
 @source not "../../agent";
 @source not "../../recipes";
 @source not "../../story-types.d.ts";
+@source not "../../bin";
+@source not "../../templates";
 
 @import "./theme.css";
 

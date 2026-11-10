@@ -46,6 +46,8 @@
     "eslint",
     "agent",
     "recipes",
-    "story-types.d.ts"
+    "story-types.d.ts",
+    "bin",
+    "templates"
   ]
 }
