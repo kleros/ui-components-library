@@ -6,6 +6,8 @@ Every pull request that changes what a consumer sees adds its entry under **Unre
 
 ## [Unreleased]
 
+## [3.11.0] - 2026-11-10
+
 ### Breaking changes
 
 None.
@@ -77,6 +79,7 @@ None.
 
 Earlier releases are recorded only as git tags; see the [tags](https://github.com/kleros/ui-components-library/tags).
 
-[Unreleased]: https://github.com/kleros/ui-components-library/compare/v3.10.0...HEAD
+[Unreleased]: https://github.com/kleros/ui-components-library/compare/v3.11.0...HEAD
+[3.11.0]: https://github.com/kleros/ui-components-library/compare/v3.10.0...v3.11.0
 [3.10.0]: https://github.com/kleros/ui-components-library/compare/v3.9.0...v3.10.0
 [3.9.0]: https://github.com/kleros/ui-components-library/releases/tag/v3.9.0
