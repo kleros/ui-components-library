@@ -310,7 +310,11 @@ export const Disabled: Story = {
 
 /** `labelContent` and `description` take rich content, used in the label and the description slot. */
 export const RichLabelAndDescription: Story = {
-  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, SECONDARY_TEXT_RICH_LIGHT),
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, SECONDARY_TEXT_RICH_LIGHT, {
+    // the span that wraps the rich description inherits the same colour
+    ...SECONDARY_TEXT_RICH_LIGHT,
+    selector: ".text-klerosUIComponentsSecondaryText > span",
+  }),
   args: {
     ...Default.args,
     labelContent: (
@@ -333,6 +337,11 @@ export const RichLabelAndDescription: Story = {
     await userEvent.click(within(canvasElement).getByText("(optional)"));
     await expect(input).toHaveFocus();
     await expect(input).toHaveAccessibleDescription("Counted in whole years");
+    // the visible text keeps its spaces, so the rich content flows inline
+    await expect(
+      canvasElement.querySelector<HTMLElement>('[slot="description"]')
+        ?.innerText,
+    ).toBe("Counted in whole years");
     await expect(
       within(canvasElement).queryByText("Plain message, not shown"),
     ).not.toBeInTheDocument();

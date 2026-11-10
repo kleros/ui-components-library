@@ -119,7 +119,12 @@ function TextArea({
           {variant === "info" && (
             <InfoIcon className="fill-klerosUIComponentsSecondaryText mr-2 max-w-4 min-w-4" />
           )}
-          {description ?? message}
+          {description === undefined || description === null ? (
+            message
+          ) : (
+            // one flex item, so rich content flows inline beside the icon
+            <span className="min-w-0">{description}</span>
+          )}
         </Text>
       )}
       {showFieldError && (
