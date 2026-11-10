@@ -23,6 +23,9 @@
     "./kit": {
       "types": "./dist/kit/index.d.ts",
       "import": "./dist/kit/index.js"
+    },
+    "./eslint": {
+      "import": "./eslint/index.mjs"
     }
   },
   "sideEffects": [
@@ -46,7 +49,8 @@
     "test:mutation": "stryker run"
   },
   "files": [
-    "dist"
+    "dist",
+    "eslint"
   ],
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.5",
@@ -111,6 +115,7 @@
   },
   "peerDependencies": {
     "@tailwindcss/postcss": "^4.0.11",
+    "eslint-plugin-better-tailwindcss": ">=3",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-is": "^18.0.0",
@@ -149,6 +154,11 @@
       "kit": [
         "dist/kit/index.d.ts"
       ]
+    }
+  },
+  "peerDependenciesMeta": {
+    "eslint-plugin-better-tailwindcss": {
+      "optional": true
     }
   }
 }

@@ -5,6 +5,7 @@
    apps to scan. */
 @source not "../../kit";
 @source not "../../scripts/layer";
+@source not "../../eslint";
 
 @import "./theme.css";
 

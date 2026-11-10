@@ -42,6 +42,7 @@
     "storybook-static",
     "storybook-plays-fixtures-static",
     "vite.config.theme.ts",
-    "kit"
+    "kit",
+    "eslint"
   ]
 }
