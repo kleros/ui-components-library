@@ -36,6 +36,7 @@ None.
 
 - Types and description: the first line of `ui-components-library.d.ts`, `lib/index.d.ts` and each kit type file, and the package description, say that a new app is set up with `npx kleros-ui create` and name the guide.
 - Package: the published `package.json` has no `prepare` script. It ran `husky install`, which sets up this repository's git hooks, and npm listed it as an install script it did not run. `package.json` itself is exported.
+- README: Setup step 1 sends a new app to `kleros-ui create` and shows the Tailwind entry with the dark variant. Theme usage sets token values only in the theme file that `npx kleros-ui theme` writes, inside `@layer base`, where it said to override them anywhere. A new section, "Starting a new app, and AI agents", names the starter, `init`, the agent guide and the reviewers' checklist. It no longer says that `Button` takes no children.
 
 ### Fixed
 

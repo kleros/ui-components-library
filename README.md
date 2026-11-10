@@ -53,21 +53,30 @@ npm install @kleros/ui-components-library
 
 ### Setup
 
-1. Import the CSS once, at the top level of your app.
+1. New app: let the package's CLI write this setup; do not write it by hand. From a tarball, in the new folder:
+   `echo '{}' > package.json`, `npm install ./x.tgz`, then `npx kleros-ui create .` (once a release with the CLI is on
+   npm: `npx -p @kleros/ui-components-library kleros-ui create my-app`). See "Starting a new app, and AI agents" below.
+   Every app styles its UI with Tailwind 4 only, so an existing app without Tailwind adds it first (`agent/AGENTS.md`,
+   "Existing apps"). The two parts `create` writes:
 
-   a. Apps without Tailwind:
+   a. In your JS entry, before your own CSS, so your responsive classes win:
 
    ```ts
    import "@kleros/ui-components-library/style.css";
    ```
 
-   b. Tailwind 4 apps, in your global CSS file:
+   b. Your Tailwind entry (`src/index.css`): these four lines, plus your theme import when the app has a theme
+   (see "Theme usage"), and nothing else:
 
    ```css
    @import "tailwindcss";
    @import "@kleros/ui-components-library/theme.css";
    @source "../node_modules/@kleros/ui-components-library";
+   @custom-variant dark (&:where(.dark, .dark *));
    ```
+
+   With a theme, `npx kleros-ui theme` adds one line right after the library's `theme.css` import:
+   `@import "./theme.css";`.
 
 2. Dark mode is a `dark` class on the root element: `document.documentElement.classList.add("dark")`.
 
@@ -98,21 +107,38 @@ export function MyComponent() {
 }
 ```
 
-Conventions that differ from most React libraries: `Button` takes `text` (no children); handlers are `onPress`
-and `callback`; disabled is `isDisabled`; alerts are `AlertMessage` with `variant`, `title` and `msg`.
+Conventions that differ from most React libraries: `Button` and `Tag` require `text`, which is the label, or the
+accessible name when you pass children to show instead (an icon, a rich label); handlers are `onPress` and
+`callback`; disabled is `isDisabled`; alerts are `AlertMessage` with `variant`, `title` and `msg`.
 
 ### Theme usage
 
-The theme variables are in `theme.css` (prefix `--klerosUIComponents`). Override them like this:
+The theme variables are in `theme.css` (prefix `--klerosUIComponents`), and the `dark` class on `<html>` switches
+them. Use them as Tailwind classes, such as `bg-klerosUIComponentsWhiteBackground` and
+`text-klerosUIComponentsPrimaryText`. `agent/LOOK.md` says which token goes where.
+
+An app with colours of its own sets new token values in one theme file, and nowhere else. `npx kleros-ui theme`
+writes `src/theme.css` (each library token and its value as a commented line), names it under `"theme"` in
+`kleros-ui.json`, and imports it in your Tailwind entry right after the library's `theme.css`. To change a token,
+uncomment its line and set the value: on `:root` for light and on `:root.dark` for dark, inside `@layer base`:
 
 ```css
-:root {
-  --klerosUIComponentsWhiteBackground: #832323;
-}
-:root.dark {
-  --klerosUIComponentsWhiteBackground: #832323;
+@layer base {
+  :root {
+    --klerosUIComponentsPrimaryBlue: #0055aa;
+  }
+  :root.dark {
+    --klerosUIComponentsPrimaryBlue: #66bbff;
+  }
 }
 ```
+
+A token set only on `:root` keeps the library's dark value. `ui:check` and the build that `create` sets up fail on a
+token redefined in any other stylesheet (one set from code, with `style.setProperty`, or by a class such as
+`[--klerosUIComponentsPrimaryBlue:...]`, is the reviewer's to find). In the theme file they fail on a name that `theme.css` does not define, the
+`--color-klerosUIComponents*` alias, another selector, property or at-rule, `!important`, and a rule outside
+`@layer base` (it would leak into dark mode). One theme per app, for the whole page. Its contrast is the app's to check: the library's own light theme has known WCAG AA gaps
+([#120](https://github.com/kleros/ui-components-library/issues/120)). `agent/AGENTS.md`, "Themes", has the rules.
 
 ### Peer Dependencies
 
@@ -124,6 +150,31 @@ This library requires the following peer dependencies:
 
 Make sure these are installed in your project.
 
+### Starting a new app, and AI agents
+
+- **New app:** `npx -p @kleros/ui-components-library kleros-ui create my-app`. It copies the package's starter
+  (`templates/poc`: Vite, React 18, Tailwind 4, ESLint, this library's CSS and the dark-mode variant), sets the library
+  version, runs `npm install` and then `init`. From a tarball, in the new folder: `echo '{}' > package.json`,
+  `npm install ./x.tgz`, then `npx kleros-ui create .` (the empty `package.json` keeps npm in this folder; without
+  one, npm installs into the nearest folder above that has one). Then `npm run ui:check` and `npm run build`. The starter's
+  build runs `kleros-ui check --build` first: the same checks with no baseline (a baselined finding still stops the
+  build), where a needed `sync` or a missing agent block is only a note. When `create` keeps an app's own build
+  script, it adds the check as a `prebuild` (npm, pnpm and Yarn 1 run it; Yarn 2+ and `--ignore-scripts` skip it). When
+  the app has its own `prebuild` too, `create` keeps both and prints whether they run the check.
+- **Existing app, before writing UI:** run `npx kleros-ui init` once. It adds a block to `AGENTS.md` that points coding
+  agents at the guide, a `ui:check` script (type-check, the look lint, the app's CSS and the component registry) and
+  the lint preset. Then follow "Existing apps" in `agent/AGENTS.md`: a Tailwind app imports this library's `style.css`
+  in its JS entry before its own CSS (so its responsive classes win), and an app without Tailwind adds it, because
+  every app styles new UI with Tailwind only. Then run `npm run ui:baseline`, so `ui:check` holds only new code to the
+  rules. Upgrading from 3.10.1-d.10 or earlier: the lint preset's restrictions are now `kleros-ui/no-restricted-syntax`
+  and `kleros-ui/no-restricted-imports`, so an `eslint-disable` comment that names the core `no-restricted-syntax` no
+  longer silences them; `ui:check` names each such comment, unless the app turns off ESLint's report of unused ones
+  (`agent/AGENTS.md`, "Existing apps").
+- **AI coding agents:** read this package's `agent/AGENTS.md` first. `agent/CATALOG.md` lists every component, the kit
+  and the known gaps.
+- **Reviewing a pull request:** nothing stops a setup written by hand, so the review does. `agent/REVIEW.md` is the
+  checklist: the setup made by `create` or `init`, `ui:check` passing, tokens redefined only in the theme file, new
+  components registered with intent words, and no raw controls.
 ## Development
 
 ### Local Setup
