@@ -1,0 +1,13 @@
+/* Tailwind-only gate fixture (build.sh): the entry keeps only Tailwind's directives. body { margin: 0 } in a comment is not a rule. */
+@import "tailwindcss";
+@import "@kleros/ui-components-library/theme.css";
+@source "../node_modules/@kleros/ui-components-library";
+@custom-variant dark (&:where(.dark, .dark *));
+@plugin "@tailwindcss/typography";
+body { margin: 0; }
+@layer components {
+  .card { padding: 4px; }
+  .note { margin: 0; }
+}
+@utility tab-4 { tab-size: 4; }
+@media (min-width: 640px) { .wide { margin: 0; } }

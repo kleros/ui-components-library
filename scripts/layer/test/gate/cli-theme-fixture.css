@@ -1,0 +1,23 @@
+@layer base {
+  :root {
+    --klerosUIComponentsPrimaryText: #101010;
+    --klerosUIComponentsPrimaryBlu: #05a;
+    --color-klerosUIComponentsPrimaryBlue: #05a;
+    color: #101010;
+    --klerosUIComponentsSecondaryText: #666 !important;
+  }
+  :root.dark {
+    --klerosUIComponentsPrimaryBlue: #6bf;
+  }
+  .dark {
+    --klerosUIComponentsPrimaryText: #daf0ff;
+  }
+}
+:root {
+  --klerosUIComponentsStroke: #ddd;
+}
+@media (prefers-contrast: more) {
+  :root {
+    --klerosUIComponentsStroke: #000;
+  }
+}

@@ -23,7 +23,10 @@ export default [
   {
     // templates/poc is the starter app that `kleros-ui create` copies. It has
     // its own ESLint config and imports packages the starter installs.
-    ignores: ["src/assets", "templates/"],
+    // scripts/layer/test holds the agent layer's gates (yarn test:layer): Node
+    // helpers that print their results, and fixtures with deliberate faults.
+    // They are kept as the d.11 build ran them.
+    ignores: ["src/assets", "templates/", "scripts/layer/test/"],
   },
   ...fixupConfigRules(
     compat.extends(

@@ -1,0 +1,15 @@
+/* CSS scan gate fixture (build.sh). Comments are never scanned: #fff, rgb(0 0 0), --klerosUIComponentsPrimaryBlue: red; */
+#root, #app { min-height: 100vh; }
+#abc:hover, #fade > a { color: var(--klerosUIComponentsPrimaryText); }
+:root {
+  --klerosUIComponentsPrimaryBlue: #7950c7; /* line 5: a token override and a colour literal */
+  --brand: rgb(10 20 30);
+}
+@media (max-width: 540px) {
+  .ok { color: currentColor; background: transparent; border-color: inherit; outline-color: var(--klerosUIComponentsStroke, #fff); fill: none; }
+}
+.mix { background: color-mix(in srgb, var(--klerosUIComponentsPrimaryBlue) 20%, transparent); }
+.mix-literal { background: color-mix(in srgb, var(--klerosUIComponentsPrimaryBlue) 20%, white); }
+.icon { background: url("data:image/svg+xml;utf8,<svg fill='%23fff'/>") no-repeat; mask: url(#shape); content: "#fff"; }
+.token { color: rgb(var(--klerosUIComponentsPrimaryBlueRGB) / 0.5); }
+.named { border: 1px solid black; animation-name: tomato; }
