@@ -1,5 +1,5 @@
 #!/bin/bash
-# d.11 gates (build.sh step 10; decision.md §20 AC1): the theme file (T1-T5), the lint preset's ids and the baseline
+# d.11 gates (run.sh step 10): the theme file (T1-T5), the lint preset's ids and the baseline
 # (B1), new --intent (B2), types under "moduleResolution": "node" and new's React import (B4), the library as the app
 # sees it (B7) and the JS entry's style.css order (B8). Each prints one "gate: d.11 ..." line when it holds and nothing
 # when it does not. No network and no real install: eslint and tsc are stubbed in each fixture that runs check or
@@ -28,7 +28,7 @@ app() {
     && (cd "$1" && printf "$TOOLS\n" "$(basename "$1")" > package.json && $CLI init >/dev/null && mkdir -p src \
       && cp "$LIB/templates/poc/src/index.css" "$LIB/templates/poc/src/main.tsx" src/)
 }
-# The probe's theme (decision.md §20): PrimaryText in light only, PrimaryBlue in light and dark, inside @layer base.
+# The probe's theme: PrimaryText in light only, PrimaryBlue in light and dark, inside @layer base.
 probe() { printf '@layer base {\n  :root {\n    --klerosUIComponentsPrimaryText: #101010;\n    --klerosUIComponentsPrimaryBlue: #05a;\n  }\n  :root.dark {\n    --klerosUIComponentsPrimaryBlue: #6bf;\n  }\n}\n' > "$1"; }
 CSS0='css: 0 findings (0 token overrides, 0 colour literals, 0 Tailwind-only, 0 !important, 0 library internals, 0 theme) in 2 files scanned'
 
@@ -65,7 +65,7 @@ process.exit(shape === "@layer base { :root { } :root.dark { } }" && same(":root
   && echo "gate: d.11 (T1, T2): npx kleros-ui theme writes src/theme.css as @layer base { :root { } :root.dark { } } with every library token and its light or dark value as a comment, sets \"theme\" and imports it on the line after the library's theme.css, and the app passes; run again it refuses, names the file and writes nothing; the key and the import are written once; a \"theme\" key's own path is used"
 rm -rf "$A"
 
-# T3: in the declared theme file each case §20 lists is one css-theme finding, named at its line
+# T3: in the declared theme file each case below is one css-theme finding, named at its line
 # (gate/cli-theme-fixture.css, one case each: an unknown token, the --color- alias, another property, !important, a
 # .dark selector, a rule outside @layer base, another at-rule); the valid lines around them are not findings, and
 # nothing inside a wrong rule or at-rule counts again. The probe's theme has 0 findings and ui:check passes. ui:baseline
@@ -169,7 +169,7 @@ app "$A/app" && app "$A/plain" \
 rm -rf "$A"
 
 # B1 (D37): the lint preset's restrictions are kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports,
-# ESLint's own rules registered again in its plugin (from eslint/use-at-your-own-risk; build.sh has no ESLint, so
+# ESLint's own rules registered again in its plugin (from eslint/use-at-your-own-risk; run.sh has no ESLint, so
 # cli-lint-load.mjs gives the preset gate/eslint-stand-in.mjs). After init wraps an app config that sets its own
 # no-restricted-imports and no-restricted-syntax, the rules ESLint applies to src/App.tsx keep the app's options under
 # the core ids and the preset's (styled-components, raw <button>) under the kleros-ui ids. A baseline from before d.11
@@ -302,7 +302,7 @@ node -e 'const t = require(process.argv[1]).typesVersions?.["*"]; process.exit(J
   && echo "gate: d.11 (B4, D26, D27, CL-B4-1): typesVersions maps /kit and /story-types, and under \"moduleResolution\": \"node\" and \"jsx\": \"react\" (from an extended config) new writes import React first, and tsc compiles its components and real /kit and /story-types types; with react-jsx new writes no React import; \"jsx\": \"react\" is read from a tsconfig.json saved with a byte-order mark and from a package's config (its \"tsconfig\" field, or a subpath such as @acme/tsconfig/react), not its JS main; without esModuleInterop (AC6's plain fixture) new writes import * as React and tsc compiles it with /kit, whose types import React as a namespace"
 rm -rf "$A"
 
-# d.11 r3 (R3-1, decision.md §20.2; B7, D28): check no longer models how Tailwind walks files; it asks the app's own
+# d.11 r3 (R3-1; B7, D28): check no longer models how Tailwind walks files; it asks the app's own
 # Tailwind. It compiles the entry with @tailwindcss/node, runs @tailwindcss/oxide's Scanner on the sources
 # @tailwindcss/postcss builds, and fails when a dist/kit/*.js file of the library the app resolves is not among the
 # files listed. These fixtures link the real tailwindcss, @tailwindcss/node and @tailwindcss/oxide 4.3.5 (the try app's
@@ -451,7 +451,7 @@ app "$A/app" \
 rm -rf "$A"
 
 # d.11 r2 (L2-1..L2-5): the stale-disable notes, on what ESLint 9.39.5 prints for these files (measured with the d.11
-# preset in a scratch copy of d10-try/new-app; the stub replays it), under a baseline from before d.11:
+# preset in a scratch copy of an app made by the d.10 create; the stub replays it), under a baseline from before d.11:
 # - a block disable's note also names its eslint-enable, whose old id would no longer end the renamed disable (L2-1);
 # - a comment naming two unused rules ("... from 'no-restricted-syntax' or 'no-restricted-imports'") gets its note (L2-2);
 # - a next-line comment on line 1 after a byte-order mark covers the next line only, so new errors below fail (L2-3);

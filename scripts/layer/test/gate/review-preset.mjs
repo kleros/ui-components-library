@@ -1,7 +1,7 @@
-// Gate (d.9 review): the lint preset's fixes, read from the config it builds. build.sh has no ESLint, so the preset is
+// Gate (d.9 review): the lint preset's fixes, read from the config it builds. run.sh has no ESLint, so the preset is
 // copied next to a stand-in for eslint-plugin-better-tailwindcss (an empty plugin), which makes it emit its Tailwind
 // class rules, and each class is tested against their patterns the way that plugin tests them (as a RegExp). The same
-// classes and the Card selector ran with ESLint 9 and the real plugin in s4/d9-notes/fix.md.
+// classes and the Card selector ran with ESLint 9 and the real plugin when the fixes were made.
 // - .js and .jsx files are linted, with JSX parsing on (cli F7).
 // - Card round: the library's Card only, so an app's RoundCard round={2} passes (guide F3).
 // - Spacing and radius are allow-lists, and dark: colour classes are caught after other variants (guide F6).

@@ -1,4 +1,4 @@
-// CLI-5 gate (build.sh): load an app's flat config the way ESLint 9 does, without ESLint. ESLint takes the first of
+// CLI-5 gate (run.sh): load an app's flat config the way ESLint 9 does, without ESLint. ESLint takes the first of
 // eslint.config.{js,mjs,cjs} in the folder (then the TypeScript names, which need jiti and are not tried here) and
 // import()s it, so Node's module type rules decide whether it loads: a .js file is an ES module only under
 // "type": "module". Prints the file it loaded; exits 1 when it does not load or does not carry the Kleros UI preset.

@@ -1,4 +1,4 @@
-/* D22 gate fixture (build.sh): a copy of pilot 5 Argon's src/index.css (tests/ui-cells/cells/s9-p5-argon/app, read only). */
+/* D22 gate fixture (run.sh): a copy of pilot 5 Argon's src/index.css, as that app had it. */
 @import "tailwindcss";
 @import "@kleros/ui-components-library/theme.css";
 @source "../node_modules/@kleros/ui-components-library";

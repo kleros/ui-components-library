@@ -1,6 +1,6 @@
 // Gate (d.9, guide): the starter as it ships.
 // - D18: src/main.tsx imports the library's compiled CSS before the app's Tailwind entry, so the app's responsive
-//   classes win over the library's plain ones (proven on pilot 5 Claude's app: s4/d9-notes/guide.md, section 1). Not as
+//   classes win over the library's plain ones (proven on pilot 5 Claude's app). Not as
 //   an @import in index.css, which would add a second copy.
 // - D8: main.tsx calls the kit's applyInitialTheme() before createRoot(...).render.
 // - Tailwind only: src/index.css is exactly the four directives, and the page is themed by classes on <html> and

@@ -71,7 +71,7 @@ for (const [name, el] of Object.entries(cases)) {
 }
 console.log(kit.formatUnits(1234567890000000000000n), kit.parseUnits("1.5").toString(), kit.shortenAddress("0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"));
 const ok = renderToString(cases.ChainGuard).includes("Switch to Arbitrum One") && !renderToString(cases.ChainGuard).includes("secret");
-// d.8 kit additions. build.sh prints only the last line, so every check is folded into it.
+// d.8 kit additions. run.sh prints only the last line, so every check is folded into it.
 const html = (name) => { try { return renderToString(cases[name]); } catch { return ""; } };
 // React escapes & and > in attributes; the class checks read the unescaped markup.
 const raw = (name) => html(name).replaceAll("&amp;", "&").replaceAll("&gt;", ">");

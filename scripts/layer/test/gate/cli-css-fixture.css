@@ -1,4 +1,4 @@
-/* CSS scan gate fixture (build.sh). Comments are never scanned: #fff, rgb(0 0 0), --klerosUIComponentsPrimaryBlue: red; */
+/* CSS scan gate fixture (run.sh). Comments are never scanned: #fff, rgb(0 0 0), --klerosUIComponentsPrimaryBlue: red; */
 #root, #app { min-height: 100vh; }
 #abc:hover, #fade > a { color: var(--klerosUIComponentsPrimaryText); }
 :root {

@@ -1,7 +1,7 @@
 #!/bin/bash
 # yarn test:layer [pack.tgz]: the agent layer's gates (kit, CLI, agent guide, lint preset, starter), run on a packed
 # package. Without an argument it packs this repo first with yarn pack, whose prepack runs the build. These are the
-# gates the d.11 build ran on its pack (its build.sh steps 5 to 10, gate/cli-gates.sh and gate/d11-gates.sh). Each
+# gates the d.11 build ran on its pack (its build's steps 5 to 10, gate/cli-gates.sh and gate/d11-gates.sh). Each
 # prints one "gate: ..." line when it holds and nothing when it does not, so the run fails unless all EXPECTED lines
 # print and the kit's smoke render passes.
 #
@@ -145,7 +145,7 @@ grep -q "kleros-ui create" "$LIB/README.md" && grep -q "npx kleros-ui init" "$LI
 # d.10: D33, D31, the starter's prebuild, and the install gate only in the GATE=1 pack.
 # d.11 (T6): D34's text is now the theme file: Theme usage sets token values only there, in @layer base, through
 # npx kleros-ui theme (still no bare "Override them like this"), and Setup 1b's entry is the four lines plus the theme
-# import when the app has a theme. d.11 builds no GATE pack (§20), so its line ends "install scripts: none".
+# import when the app has a theme. d.11 builds no GATE pack, so its line ends "install scripts: none".
 ! grep -q "Apps without Tailwind" "$LIB/README.md" && ! grep -q "Override them like this" "$LIB/README.md" \
   && grep -q "^1. New app: let the package.s CLI write this setup; do not write it by hand" "$LIB/README.md" \
   && grep -qx "   @custom-variant dark (&:where(.dark, .dark \*));" "$LIB/README.md" \
@@ -274,13 +274,13 @@ printf '<!doctype html>\n<!-- <style> .old { color: #101010; } </style> -->\n<st
   && echo "gate: the CSS scan flags the --color- alias of a token, skips a commented-out <style> block and broken or looping links, and exits 2 on a missing path"
 rm -rf "$X"
 
-# 9. d.9 CLI gates (decision.md §16 and §16a): CLI-4, CLI-5, Tailwind only (D25), !important and library internals (D22),
+# 9. d.9 CLI gates: CLI-4, CLI-5, Tailwind only (D25), !important and library internals (D22),
 # the baseline, the one block for an app without Tailwind, and D13. One line each, from gate/cli-gates.sh.
 G9=$(mktemp -d -p "$WORK")
 bash "$P/gate/cli-gates.sh" "$LIB" "$G9" "$P"
 rm -rf "$G9"
 
-# 10. d.11 gates (decision.md §20 AC1): the theme file (T1-T5), the lint ids and the baseline (B1), new --intent (B2),
+# 10. d.11 gates: the theme file (T1-T5), the lint ids and the baseline (B1), new --intent (B2),
 # typesVersions and new's React import (B4), the library as the app sees it (B7) and style.css first (B8). One line
 # each, from gate/d11-gates.sh. Its fixtures sit in the work folder, so B4's tsc finds the work folder's
 # node_modules/@types.

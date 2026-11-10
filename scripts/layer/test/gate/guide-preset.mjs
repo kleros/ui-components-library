@@ -3,7 +3,7 @@
 // - Every styled-components use is its own report (kleros-ui/no-styled-components is on), so the per-file baseline
 //   counts uses; imports of CSS-in-JS libraries are restricted.
 // - D6: Card round is flagged in every app; inline style that sets colour, spacing or type is flagged.
-// - Its rule code is exercised on a fixture in s4/d9-notes/guide.md (section 10), with the app's ESLint.
+// - Its rule code was exercised on a fixture with the app's ESLint when it was written; these gates have no ESLint.
 // usage: node guide-preset.mjs <eslint/index.mjs>
 // d.11 (B1): the preset sets kleros-ui/no-restricted-syntax and -imports only when ESLint's rules load; see the helper.
 import "./eslint-stand-in.mjs";

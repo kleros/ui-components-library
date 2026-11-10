@@ -1,5 +1,5 @@
 #!/bin/bash
-# d.9 CLI gates (build.sh step 9; decision.md §16 and §16a). Each prints one "gate:" line when it holds and nothing
+# d.9 CLI gates (run.sh step 9). Each prints one "gate:" line when it holds and nothing
 # when it does not. No network and no real install: tsc and eslint are stubbed in each fixture that runs check or
 # baseline (npx --no runs the fixture's own node_modules/.bin), so those gates test the CSS and setup steps.
 # usage: cli-gates.sh <the packed library, extracted> <work folder for fixtures> <scripts/layer/test, which holds gate/ and tools/>
@@ -121,7 +121,7 @@ stubs "$B"
   && echo "gate: ui:baseline records the Tailwind-only findings per file, check then passes, and one new rule in the entry, one new rule in an old CSS file or one new CSS file fails it"
 rm -rf "$B"
 
-# Tailwind only for all (§16a): an app with styled-components and no Tailwind gets the one block with step 0 pointing
+# Tailwind only for all: an app with styled-components and no Tailwind gets the one block with step 0 pointing
 # to "Existing apps"; sync rewrites an old styled-components block; init drops styled: true from a managed config;
 # check names the missing Tailwind; once tailwindcss is declared, check asks for sync, and after ui:baseline (the last
 # step of "Existing apps", which rewrites the stale block) it passes.
@@ -144,7 +144,7 @@ rm -rf "$N"
 
 # D13: new writes <Name>.stories.tsx only when the app has Storybook (a storybook or @storybook/* package, or a
 # .storybook folder), and check asks for it only then; index.ts and the registry entry for every app.
-# d.11 (B2, X1-C1; §20 asks this gate to match): the components are made with --intent, the entry holds the words, and
+# d.11 (B2, X1-C1): the components are made with --intent, the entry holds the words, and
 # check passes with no intent note (an entry without words is a note, gated in d11-gates.sh).
 S=$(mktemp -d -p "$WORK")
 stubs "$S"

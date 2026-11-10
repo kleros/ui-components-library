@@ -1,4 +1,4 @@
-/* Tailwind-only gate fixture (build.sh): the entry keeps only Tailwind's directives. body { margin: 0 } in a comment is not a rule. */
+/* Tailwind-only gate fixture (run.sh): the entry keeps only Tailwind's directives. body { margin: 0 } in a comment is not a rule. */
 @import "tailwindcss";
 @import "@kleros/ui-components-library/theme.css";
 @source "../node_modules/@kleros/ui-components-library";
