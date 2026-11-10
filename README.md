@@ -53,9 +53,10 @@ npm install @kleros/ui-components-library
 
 ### Setup
 
-1. New app: let the package's CLI write this setup; do not write it by hand. From a tarball, in the new folder:
-   `echo '{}' > package.json`, `npm install ./x.tgz`, then `npx kleros-ui create .` (once a release with the CLI is on
-   npm: `npx -p @kleros/ui-components-library kleros-ui create my-app`). See "Starting a new app, and AI agents" below.
+1. New app: let the package's CLI write this setup; do not write it by hand:
+   `npx -p @kleros/ui-components-library kleros-ui create my-app`. From a tarball, in the new folder:
+   `echo '{}' > package.json`, `npm install ./x.tgz`, then `npx kleros-ui create .`. See "Starting a new app, and AI
+   agents" below.
    Every app styles its UI with Tailwind 4 only, so an existing app without Tailwind adds it first (`agent/AGENTS.md`,
    "Existing apps"). The two parts `create` writes:
 
@@ -66,7 +67,8 @@ npm install @kleros/ui-components-library
    ```
 
    b. Your Tailwind entry (`src/index.css`): these four lines, plus your theme import when the app has a theme
-   (see "Theme usage"), and nothing else. The `@source` line needs Tailwind 4.1.17 or later:
+   (see "Theme usage"), and nothing else. Use Tailwind 4.1.17 or later: before 4.1 the `@source` line can scan none of
+   the kit, and the lint preset's plugin needs 4.1.17:
 
    ```css
    @import "tailwindcss";
@@ -146,7 +148,8 @@ This library requires the following peer dependencies:
 
 - React 18 and React DOM 18. React 19 is not supported yet: the bundle uses React 18 internals, so a React 19
   app renders a blank page.
-- Tailwind CSS 4.1.17 or later: before 4.1, the `@source` line of Setup b can scan none of the kit.
+- Tailwind CSS 4.1.17 or later: before 4.1, the `@source` line of Setup b can scan none of the kit, and the lint
+  preset's plugin (`eslint-plugin-better-tailwindcss`) needs 4.1.17.
 
 Make sure these are installed in your project.
 
@@ -221,7 +224,7 @@ yarn check-types    # Type checking
 yarn check-style    # Linting
 ```
 
-`yarn test:layer [pack.tgz]` runs the agent layer's gates (kit, CLI, guide, lint preset, starter) on a pack, or packs the repo first; it needs Node 22.15 or later, and network on its first run for the npm ci in `scripts/layer/test/tools`.
+`yarn test:layer [pack.tgz]` runs the agent layer's gates (kit, CLI, guide, lint preset, starter) on a pack, or packs the repo first; it needs Node 22.15 or later (23.5 or later on Node 23), and network on its first run for the npm ci in `scripts/layer/test/tools`.
 
 After an interrupted `yarn pack`, run `node scripts/pack-manifest.mjs restore`: `prepack` takes the `prepare` script out of `package.json`, and only `postpack` puts it back.
 
