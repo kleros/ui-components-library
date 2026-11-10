@@ -51,6 +51,21 @@
       "options: {label, value}[], groupLabel, onChange(value)"
     ],
     [
+      "CustomRadio",
+      "custom radio, radio cards, card options, rich radio options, choose one card",
+      "items: {value, content (a node, or (renderProps) => node)}[], or children (CustomRadioItem elements, with a field or tooltip beside them), groupLabel, value, onChange(value). For options that are a label only, use Radio"
+    ],
+    [
+      "CustomRadioItem",
+      "custom radio option, radio card option",
+      "value, children ((renderProps) => node); one option among CustomRadio's children. It renders a <label>: put a field or a tooltip beside it, not inside"
+    ],
+    [
+      "RadioIndicator",
+      "radio circle, radio dot, radio indicator",
+      "the library's radio circle for CustomRadio content: spread the option's render props (isSelected, isHovered, isFocusVisible, ...), small, focusRing={false} when the option shows its own focus ring"
+    ],
+    [
       "Steps",
       "steps, stepper, wizard steps, progress steps",
       "items: {title, subitems?}[], currentItemIndex. Step indicator only; for a multi-step form use kit WizardShell"
@@ -71,6 +86,11 @@
       "items: {title, body, Icon?}[], defaultExpanded"
     ],
     [
+      "CustomAccordion",
+      "custom accordion, accordion with custom title, rich accordion header, custom expand button",
+      "items: {title (any node), body, expandButton?}[], defaultExpanded, expandButton({expanded, toggle}) for every item. For a text title with an icon use Accordion. The expand button sits inside the header's button, so return an icon, not a Button"
+    ],
+    [
       "Breadcrumb",
       "breadcrumb, navigation path, trail",
       "items, callback, clickable, variant"
@@ -79,6 +99,11 @@
       "Copiable",
       "copy, copy to clipboard, copiable text",
       "copiableContent, info, iconPlacement, children"
+    ],
+    [
+      "Form",
+      "form, submit form, form validation, required fields, field errors",
+      "react-aria Form props (onSubmit, validationErrors, validationBehavior); fields with name, a Button with type=\"submit\", and kit FormStack for the layout. Inside a kit WizardShell step, no Form: the shell is the form"
     ],
     [
       "Searchbar",
@@ -184,6 +209,11 @@
       "DisplaySmall",
       "display small, label value",
       "text, label, Icon"
+    ],
+    [
+      "DisplayIcon",
+      "display with icon, stat with icon, icon tile, figure with icon",
+      "text, label, Icon (required, in a small card on the left); fixed 288x80 px like DisplayLarge. For an app's stat row prefer kit StatCard"
     ]
   ],
   "kit": [
