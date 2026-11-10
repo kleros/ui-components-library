@@ -19,7 +19,8 @@ The Kleros UI Components Library is a comprehensive collection of React componen
 Built with React, TypeScript, and Tailwind CSS, this library offers a wide range of components from basic UI elements to complex interactive widgets. Each component is designed with accessibility, customization, and ease of use in mind.
 
 **Setup, for people and AI coding agents:** a new app runs `npx -p @kleros/ui-components-library kleros-ui create my-app`.
-An existing app runs `npx kleros-ui init` once, before writing UI. Either one points coding agents at
+An existing app installs it (`npm install @kleros/ui-components-library`), then runs `npx kleros-ui init` once,
+before writing UI. Either one points coding agents at
 `agent/AGENTS.md`. Details under [Usage](#usage).
 
 ## Features
@@ -168,10 +169,10 @@ Make sure these are installed in your project.
   build), where a needed `sync` or a missing agent block is only a note. When `create` keeps an app's own build
   script, it adds the check as a `prebuild` (npm, pnpm and Yarn 1 run it; Yarn 2+ and `--ignore-scripts` skip it). When
   the app has its own `prebuild` too, `create` keeps both and prints whether they run the check.
-- **Existing app, before writing UI:** run `npx kleros-ui init` once. It adds a block to `AGENTS.md` that points coding
+- **Existing app, before writing UI:** after `npm install @kleros/ui-components-library`, run `npx kleros-ui init` once. It adds a block to `AGENTS.md` that points coding
   agents at the guide, a `ui:check` script (type-check, the look lint, the app's CSS and the component registry) and
-  the lint preset. Then follow "Existing apps" in `agent/AGENTS.md`: a Tailwind app imports this library's `style.css`
-  in its JS entry before its own CSS (so its responsive classes win), and an app without Tailwind adds it, because
+  the lint preset. Then follow "Existing apps" in `agent/AGENTS.md`: a Tailwind app gives its Tailwind entry the starter's four lines
+  and imports this library's `style.css` in its JS entry before its own CSS (so its responsive classes win), and an app without Tailwind adds it, because
   every app styles new UI with Tailwind only. Then run `npm run ui:baseline`, so `ui:check` holds only new code to the
   rules. Apps whose `eslint-disable` comments name `no-restricted-syntax` or `no-restricted-imports`: the lint preset's
   restrictions are `kleros-ui/no-restricted-syntax` and `kleros-ui/no-restricted-imports`, so such a comment does not

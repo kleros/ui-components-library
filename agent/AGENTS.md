@@ -101,7 +101,12 @@ Tailwind 4, and before 4.1 an `@source` on the library's folder scans none of it
 takes no `children`); `node16` and `nodenext` are not supported (the core's types use paths without extensions). The
 starter uses `bundler`.
 
-**It has Tailwind.** One change, in the JS entry (`src/main.tsx`): import the library's compiled CSS before the app's own.
+**It has Tailwind.** Two changes.
+1. Its Tailwind entry (the CSS file with `@import "tailwindcss"`) gets the starter's four lines, shown in step 3 of the
+   next part, with `@source` on the library's folder as seen from that file. `ui:check` fails without the `@source`,
+   and the lint without the `theme.css` import. If that file is not `src/index.css`, put its path in `"cssEntry"` in
+   `kleros-ui.json` and in the `cssEntry` that the managed `eslint.config.*` passes to the preset.
+2. In the JS entry (`src/main.tsx`), import the library's compiled CSS before the app's own.
 ```ts
 import "@kleros/ui-components-library/style.css"; // first
 import "./index.css"; // then the app's Tailwind
@@ -231,8 +236,10 @@ Project-specific components stay in your app. When a second app needs one, propo
 - `Tag` is a pill of fixed height that wraps a long label out of its box. Keep its labels to a word or two; show a file
   name or an address with another part. Like `Button`, `text` is required, and children (a dot next to a label) show
   instead of it, with `text` as the accessible name. `toggle` announces `active` as pressed.
-- `BigNumberField`: `onChange(v)` gives a bignumber.js `BigNumber` in display units (ETH, not wei).
-  Use `parseUnits(v.toFixed())` from the kit to get wei as a `bigint`. Show wei with kit `TokenAmount`.
+- `BigNumberField`: `onChange(v)` gives a bignumber.js `BigNumber` in display units (ETH, not wei). Keep `v.toFixed()`
+  as a string and convert it with kit `parseUnits` on submit, not in `onChange` (the field swallows its throw on too
+  many decimals). Give the field `minValue="0"`, `showFieldError` and a `validate` that allows at most the token's
+  decimals (`recipes/vote-form.tsx`). Show wei with kit `TokenAmount`.
 - Kit `TokenAmount`: `value` is the amount in the token's smallest unit (wei for ETH), as a `bigint` or an integer
   string; a decimal string such as `"1.5"` throws. Put a decimal ETH amount through kit `parseUnits` first:
   `<TokenAmount value={parseUnits("1.5")} symbol="ETH" />`. A token with other decimals passes them to both:

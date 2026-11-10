@@ -17,7 +17,7 @@ branch with `main`: use the pull request's base branch if it is another.
   `src/app.tsx`) imports `@kleros/ui-components-library/style.css` first, then the Tailwind entry (`./index.css`).
 - The Tailwind entry (`src/index.css`) is the starter's four lines: the `tailwindcss` import, the library's
   `theme.css` import, `@source` and the `dark` variant. `create` writes them in a new app; an existing app writes the
-  same four by hand (`agent/AGENTS.md`, "Existing apps", step 3), where `@source` is the library's folder as seen from
+  same four by hand (`agent/AGENTS.md`, "Existing apps": "It has Tailwind" step 1, or step 3 without Tailwind), where `@source` is the library's folder as seen from
   the entry: `../../node_modules/@kleros/ui-components-library` in a workspace that hoists it, as Court's does. Plus
   `@import "./theme.css";` right after the library's `theme.css` import when the app has a theme. Nothing else.
 
