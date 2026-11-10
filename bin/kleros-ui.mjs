@@ -1,24 +1,24 @@
 #!/usr/bin/env node
-// kleros-ui: the library's own CLI (design.md revision 1: it ships inside @kleros/ui-components-library).
+// kleros-ui: the library's own CLI, shipped inside @kleros/ui-components-library so it matches the installed version.
 //   npx -p @kleros/ui-components-library kleros-ui create <dir> [--lib <spec>] [--no-install]
-//                                      a new app: copy the starter, set the library spec, npm install, then init (d.8)
+//                                      a new app: copy the starter, set the library spec, npm install, then init
 //   npx kleros-ui init                 wire the app: agent block + pointers, kleros-ui.json, lint preset, ui:check
 //   npx kleros-ui new <Name> [--kind ui|data|form] [--intent "words, more words"]   scaffold an app component with props,
-//                                      index.ts and a registry entry, and stories when the app has Storybook (d.9, D13);
-//                                      --intent fills the entry's intent words (d.11, B2)
+//                                      index.ts and a registry entry, and stories when the app has Storybook;
+//                                      --intent fills the entry's intent words
 //   npx kleros-ui check [--build]      tsc + lint + app CSS + setup checks (the definition of done); --build is what
-//                                      the starter's build runs first (d.10): a stale or missing agent block is a
+//                                      the starter's build runs first: a stale or missing agent block is a
 //                                      note, and no baseline applies
-//   npx kleros-ui css [path ...]       the app CSS scan alone: redefined library tokens and colour literals (d.8); Tailwind
-//                                      only, !important and library internals (d.9, D25 and D22); the theme file's
-//                                      shape and its import in the entry (d.11, T3-T5)
-//   npx kleros-ui theme                set up the app's one theme file (d.11, T2): writes src/theme.css (or the path
+//   npx kleros-ui css [path ...]       the app CSS scan alone: redefined library tokens and colour literals; Tailwind
+//                                      only, !important and library internals; the theme file's
+//                                      shape and its import in the entry
+//   npx kleros-ui theme                set up the app's one theme file: writes src/theme.css (or the path
 //                                      kleros-ui.json's "theme" names) with the library's token names as comments, sets
 //                                      "theme", and imports it in the Tailwind entry right after the library's theme.css
 //   npx kleros-ui baseline             record an existing app's lint, type and CSS findings, so check fails only on new ones
 //   npx kleros-ui sync                 rewrite the agent block for the installed version
-//   kleros-ui postinstall              the setup gate (d.10, test only): inert unless the package's manifest runs it
-// Node built-ins only. check also loads the app's own @tailwindcss/node and @tailwindcss/oxide, from the app (d.11 r3).
+//   kleros-ui postinstall              the setup gate (test only): inert unless the package's manifest runs it
+// Node built-ins only. check also loads the app's own @tailwindcss/node and @tailwindcss/oxide, from the app.
 import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -36,8 +36,8 @@ const STEPS = "0.5 1 2 3 4 6 8 12 16";
 
 const readJson = (f, d) => (existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : d);
 const writeJson = (f, v) => writeFileSync(f, JSON.stringify(v, null, 2) + "\n");
-// d.11 (CL-CSS-1): a kleros-ui.json that is not strict JSON (a trailing comma), or (r3, L3-4) not an object, is one line
-// that names the file, not a stack; `css <path>` reads it for the theme since d.11, where d.10 never read it.
+// A kleros-ui.json that is not strict JSON (a trailing comma), or not an object, is one line that names the file, not
+// a stack. `css <path>` reads it too, for the theme.
 const config = () => {
   try {
     const c = readJson(CONFIG, { componentsDir: "src/components", components: [] });
@@ -50,11 +50,11 @@ const config = () => {
 const declared = (pj, name) => Boolean(pj.dependencies?.[name] || pj.devDependencies?.[name]);
 const toPosix = (p) => p.split(sep).join("/");
 
-// Tailwind only for all (d.9, DM 2742): every app styles with Tailwind, Court included, so there is one block and one
+// Tailwind only for all: every app styles with Tailwind, Court included, so there is one block and one
 // set of checks. An app without Tailwind yet (Court styles with styled-components) is told to add it first, and
 // ui:check reports it until it is there; its existing styled-components code and CSS pass through the baseline.
 // "Has Tailwind": tailwindcss in dependencies or devDependencies. "Has Storybook": storybook or any @storybook/*
-// package there, or a .storybook folder at the app root (D13).
+// package there, or a .storybook folder at the app root.
 const deps = (pj) => ({ ...pj?.dependencies, ...pj?.devDependencies });
 const hasTailwind = (pj = readJson("package.json", {})) => Boolean(deps(pj).tailwindcss);
 const hasStorybook = (pj = readJson("package.json", {})) =>
@@ -63,7 +63,7 @@ const hasStorybook = (pj = readJson("package.json", {})) =>
 const EXISTING_APPS = '"Existing apps"';
 
 // Where the block says the library is. create --no-install from the npx cache sets it to the path the library will
-// have once the app installs it, instead of the cache's own path (d.8).
+// have once the app installs it, instead of the cache's own path.
 let LIB_PATH = null;
 
 // Step 0 of the block, only while the app has no Tailwind; check and baseline look for its first words.
@@ -82,7 +82,7 @@ function staleTailwindStep() {
   return text !== null && !text.includes("styles its own code with styled-components") && text.includes(NO_TAILWIND_STEP) === hasTailwind();
 }
 
-// Where this package sits as seen from the app: ../node_modules/... when a monorepo hoists it (d.5, Court pilot).
+// Where this package sits as seen from the app: ../node_modules/... when a monorepo hoists it (as Court's does).
 const libPath = () => LIB_PATH || toPosix(relative(process.cwd(), PKG_DIR)) || ".";
 
 function block() {
@@ -96,12 +96,12 @@ function block() {
           `${NO_TAILWIND_STEP} (tailwindcss is not in package.json): add it first, with the steps in ${lib}/agent/AGENTS.md ${EXISTING_APPS}. \`npm run ui:check\` fails until it is there. The app's existing styled-components code and CSS stay as they are; new UI is Tailwind only.`,
         ]),
     `1. Before writing any UI piece, look it up in ${lib}/agent/CATALOG.md and in kleros-ui.json. Use or compose what is there; never hand-roll a near-copy.`,
-    // d.11 (B2, X1-G1): the guide's reuse rule, which the block had cut to "Not there: new" (pilot 8, P3 X1).
+    // The guide's whole reuse rule (AGENTS.md "Workflow", step 2), not only "Not there: new".
     `2. Not there, or a piece you show in two or more places (a COMPOSE included): make it one named component with \`npx kleros-ui new <Name> --kind ui|data|form --intent "words"\` (or the steps in ${lib}/agent/NEW-COMPONENT.md), fill it in, and use that component in each place. Don't copy the markup. --intent takes what someone would search for, comma-separated.`,
-    // d.11 (T2, T6): the theme file is the one stylesheet besides the entry, and the theme import the one line the entry
+    // The theme file is the one stylesheet besides the entry, and the theme import the one line the entry
     // gains (rule 4).
     `3. Tailwind only: utility classes in className, and Stack/Inline/Grid/Section/Page/FormStack from /kit for layout. No CSS of your own: src/index.css stays as create (or AGENTS.md ${EXISTING_APPS}) wrote it, plus the theme import of rule 4, and no other .css (the theme file aside), <style> or CSS-in-JS; inline style only for a computed size. Spacing steps ${STEPS} only; no arbitrary values.`,
-    // d.11 (T, A1): apps will bring their own themes, so the ban on redefining a token became one supported theme file.
+    // Apps bring their own themes, so a token is redefined in one supported place: the theme file.
     '4. Colour: klerosUIComponents* tokens or a StatusBadge tone. No palette classes, no hex (in .css files too), no dark: overrides (.dark flips tokens). A new look is a theme: `npx kleros-ui theme` writes the app\'s one theme file (src/theme.css; kleros-ui.json "theme" names it) and imports it. It is the only place to redefine a --klerosUIComponents* token, hex values included: inside its @layer base, on :root (light) and :root.dark (dark), with the library\'s own token names only. Nowhere else.',
     "5. Every data view, real or mock: QueryState (a mock passes isLoading={false}; no fake delay or error). Forms: core fields' label/variant/message, Button isLoading, AlertMessage for the result.",
     "6. Don't invent tokens or a palette. If the scale lacks a value, say so in your summary.",
@@ -126,7 +126,7 @@ function pointer(file, line) {
 const LINT_CONFIGS = ["eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "eslint.config.ts", "eslint.config.mts", "eslint.config.cts"];
 const MANAGED = "// Managed by kleros-ui init: the app's previous config plus the Kleros UI preset.";
 // ESLint reads eslint.config.js as its package's type says: as an ES module only under "type": "module", as CommonJS
-// anywhere else (CLI-5, D16: create into a "type": "commonjs" package wrote ESM .js configs that failed to load).
+// anywhere else (an ESM eslint.config.js in a "type": "commonjs" package fails to load).
 const looksEsm = (text) => /^\s*(?:import\s*[\w{*"']|export\s)/m.test(text);
 
 function managedConfig(appFile) {
@@ -144,9 +144,9 @@ function managedConfig(appFile) {
 // The managed config is eslint.config.js in a "type": "module" package and eslint.config.mjs anywhere else; it imports
 // the app's own config, which keeps its syntax (a .js one the package's type cannot load becomes .mjs or .cjs). A
 // leftover eslint.config.js is removed, since ESLint would load it first. A config init wrote is kept, edits included,
-// and rewritten only when stale, with a line that says so (d.9 review): `styled: true` is dropped, and an ESM .js
+// and rewritten only when stale, with a line that says so: `styled: true` is dropped, and an ESM .js
 // outside a module package moves to .mjs. A config the app wired to the preset by hand is left alone.
-// d.11 (B9, D36): from create, the config init wraps is the starter's own, so the message does not call it "your".
+// From create, the config init wraps is the starter's own, so the message does not call it "your".
 function wireLint(pj, { fromCreate = false } = {}) {
   const current = LINT_CONFIGS.find((f) => existsSync(f));
   const text = current ? readFileSync(current, "utf8") : "";
@@ -190,7 +190,7 @@ function wireLint(pj, { fromCreate = false } = {}) {
       app = [current, ext === ".cjs" ? "eslint.config.app.cjs" : appName(`eslint.config.app${ext}`, text)];
       target = ext === ".mjs" ? current : plain;
     } else {
-      app = [current, `eslint.config.app${ext}`]; // .ts or .mts, as d.8 did
+      app = [current, `eslint.config.app${ext}`]; // .ts or .mts: the app's keeps its extension
       target = current;
     }
   } else target = plain;
@@ -217,7 +217,7 @@ function init({ fromCreate = false } = {}) {
   pointer(".cursor/rules/kleros-ui.mdc", "---\nalwaysApply: true\n---\nFollow the kleros-ui block in AGENTS.md for all UI work.");
   if (!existsSync(CONFIG)) {
     // An existing app's components predate the rules: record them as existing, so check holds only new ones to them.
-    // Folders and single files alike (d.4: Court keeps most of its components as one .tsx file each).
+    // Folders and single files alike (Court keeps most of its components as one .tsx file each).
     const dir = "src/components";
     const existing = existsSync(dir)
       ? readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
@@ -235,17 +235,17 @@ function init({ fromCreate = false } = {}) {
   writeJson("package.json", pj);
   const lint = wireLint(pj, { fromCreate });
   console.log(`kleros-ui ${pkg.version}: wrote AGENTS.md block, CLAUDE.md and Cursor pointers, ${CONFIG}, ${lint}, ui:check`);
-  // d.9 (DM 2742): init adds no packages and leaves the build config alone; the block's step 0 and ui:check say what
+  // init adds no packages and leaves the build config alone; the block's step 0 and ui:check say what
   // is missing.
   if (!hasTailwind(pj))
     console.log(`kleros-ui: this app has no Tailwind (tailwindcss is not in package.json). Add it first: ${libPath()}/agent/AGENTS.md ${EXISTING_APPS}. npm run ui:check fails until it is there.`);
-  // d.8 (D7): said even when the app already declared the plugin.
+  // Said even when the app already declared the plugin.
   if (!declared(pj, "eslint-plugin-better-tailwindcss"))
     console.log("kleros-ui: the lint preset's Tailwind rules need eslint-plugin-better-tailwindcss as a devDependency");
   if (!fromCreate) console.log("kleros-ui: in an existing app, run `npm run ui:baseline` once, so check holds only new code to the look");
 }
 
-// ---- create (d.8, from the new-project pilot: all three agents wrote the setup by hand, and one skipped init) ----
+// ---- create: a new app's setup in one command, so no one writes it by hand or skips init ----
 const STARTER = join(PKG_DIR, "templates/poc");
 const PLACEHOLDER_NAME = "kleros-poc";
 // npm leaves .gitignore out of a package, so the starter ships it as gitignore.
@@ -265,17 +265,17 @@ const npmName = (dir) =>
   basename(dir).toLowerCase().replace(/[^a-z0-9._~-]+/g, "-").replace(/^[._-]+/, "").replace(/-+$/, "") || "kleros-app";
 
 // A URL or another scheme (https:, git+ssh:, github:, npm:) is npm's to resolve, never a local path, even when it ends
-// in .tgz (d.8 review). Two letters at least, so a Windows drive (C:\x.tgz) still counts as a path.
+// in .tgz. Two letters at least, so a Windows drive (C:\x.tgz) still counts as a path.
 const hasScheme = (s) => /^[a-z][a-z0-9+.-]+:/i.test(s) && !/^file:/i.test(s);
 const isLocalSpec = (s) => !hasScheme(s) && (/^(file:|\.{1,2}[\\/])/.test(s) || isAbsolute(s) || /\.(tgz|tar\.gz)$/.test(s));
 
 // The library spec for the app's package.json. A relative tarball or folder path becomes file:<path from the app>, as
-// npm itself writes it; an absolute one stays absolute, so the app still finds it after a move (d.8 review). A URL is
+// npm itself writes it; an absolute one stays absolute, so the app still finds it after a move. A URL is
 // written as given.
 function libSpec(given, dir) {
   if (given) {
-    // The npm install form, `--lib @kleros/ui-components-library@3.10.1`: npm reads a dependency value with a slash as
-    // a folder, so keep only the version or range (d.8 review).
+    // The npm install form, `--lib @kleros/ui-components-library@3.11.0`: npm reads a dependency value with a slash as
+    // a folder, so keep only the version or range.
     if (given === LIB) return "latest";
     if (given.startsWith(`${LIB}@`)) given = given.slice(LIB.length + 1);
     if (!isLocalSpec(given)) return given;
@@ -308,11 +308,11 @@ function parseCreate(args) {
   return o;
 }
 
-// ---- React 18 only (d.9, CLI-4 / D15: `create .` into a React 19 package.json wrote the starter, then npm install
-// failed with ERESOLVE). A small semver reader, Node built-ins only: || alternatives, hyphen ranges, ^ ~ >= > <= < =,
+// ---- React 18 only (`create .` into a React 19 package.json would write the starter, then npm install would
+// fail with ERESOLVE). A small semver reader, Node built-ins only: || alternatives, hyphen ranges, ^ ~ >= > <= < =,
 // x-ranges and npm: aliases. It answers only whether a range leaves out every 18.x release; a spec it cannot read
 // (file:, a URL, git, workspace:, a dist-tag) is not judged, so a valid create is never refused by a guess.
-// d.9 review: dist-tags (latest, next, ...) are not judged either. npm installs a tag next to the library's React 18
+// Dist-tags (latest, next, ...) are not judged either. npm installs a tag next to the library's React 18
 // peer range as it installs "*": `latest` locks react 18.3.1, even with a lockfile already on 19.
 // [major, minor, patch, 1 for a release or 0 for a prerelease, which sorts before it]
 const cmpVersion = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2] || a[3] - b[3];
@@ -393,7 +393,7 @@ const taken = (p) => {
     return false;
   }
 };
-// What create writes into dir and what there would stop it. d.10: a function, so the install gate names the same files
+// What create writes into dir and what there would stop it. A function, so the install gate names the same files
 // in its message (an app whose configs were written by hand first is told to move them before `create .`).
 // What a build or prebuild script runs: the build check (no baseline), or ui:check / plain `kleros-ui check` (baseline).
 const BUILD_CHECK = /\bkleros-ui check --build\b/;
@@ -403,25 +403,25 @@ const validScripts = (s) =>
   Object.fromEntries(Object.entries(s && typeof s === "object" && !Array.isArray(s) ? s : {}).filter(([, v]) => typeof v === "string" && v.trim()));
 
 function starterPlan(dir, old) {
-  // CLI-5 (D16): the starter's eslint.config.js is an ES module, which ESLint loads as one only in a "type": "module"
+  // The starter's eslint.config.js is an ES module, which ESLint loads as one only in a "type": "module"
   // package (a merge adds "type": "module" when the package.json has no type). Elsewhere it is written as .mjs.
   const renamed = old?.type && old.type !== "module" ? { ...RENAMED, "eslint.config.js": "eslint.config.mjs" } : RENAMED;
   const files = listFiles(STARTER)
     .filter((f) => f !== "package.json")
     .map((f) => ({ from: f, to: f.split("/").map((p) => renamed[p] || p).join("/") }));
-  // Refuse only what would be overwritten: a pilot cell already holds .git, vendor/ and .prompt.txt, and an
+  // Refuse only what would be overwritten: a new app's folder may already hold .git, vendor/ or notes, and an
   // `npm install ./vendor/x.tgz` leaves a package.json, which is merged below. A file (or a broken link) where the
-  // starter needs a folder, such as a file named src, counts too, so a refused create still writes nothing (d.8 review).
+  // starter needs a folder, such as a file named src, counts too, so a refused create still writes nothing.
   const notFolder = (p) => taken(p) && !(existsSync(p) && statSync(p).isDirectory());
   const folders = [...new Set(files.flatMap((f) => f.to.split("/").slice(0, -1).map((_, i, a) => a.slice(0, i + 1).join("/"))))];
   const clash = [
     ...folders.filter((d) => notFolder(join(dir, d))).map((d) => `${d} (not a folder)`),
     ...files.filter((f) => !OPTIONAL.has(f.to) && taken(join(dir, f.to))).map((f) => f.to),
   ];
-  // d.9 review: the starter brings its own lint config, and ESLint loads only the first eslint.config.* it finds. Since
-  // CLI-5 writes the starter's as .mjs outside a module package, an app's eslint.config.js or .cjs no longer had the
-  // same name, so init wrapped the app's file and wrote over the starter's (its TypeScript parser lost), or the app's
-  // stayed on disk unread. An app's lint config of any name is refused, as d.8 refused the same name.
+  // The starter brings its own lint config, and ESLint loads only the first eslint.config.* it finds. The starter's
+  // is written as .mjs outside a module package, so an app's eslint.config.js or .cjs does not have the same name:
+  // init would wrap the app's file and write over the starter's (its TypeScript parser lost), or the app's would stay
+  // on disk unread. So an app's lint config of any name is refused, not only one of the same name.
   const starterLint = files.find((f) => f.from === "eslint.config.js")?.to;
   const lintClash = LINT_CONFIGS.filter((f) => f !== starterLint && taken(join(dir, f)));
   return { files, clash, lintClash, starterLint };
@@ -439,7 +439,7 @@ function create({ dir: target, lib, install }) {
   } catch (e) {
     throw new Error(`kleros-ui create: ${toPosix(relative(here, pjFile))} is not valid JSON (${e.message}); fix it, then run create again`);
   }
-  // CLI-4 (D15): refused before anything is written, so the folder stays as it was.
+  // React 18 only: refused before anything is written, so the folder stays as it was.
   const conflicts = reactConflicts(old);
   if (conflicts.length) {
     console.error(
@@ -476,11 +476,11 @@ function create({ dir: target, lib, install }) {
     pj.scripts = { ...starter.scripts, ...ownScripts };
     for (const [name, cmd] of Object.entries(starter.scripts || {}))
       if (ownScripts[name] !== undefined && ownScripts[name] !== cmd) keptScripts.push(`${name} (the starter's is ${cmd})`);
-    // d.10: the starter's build runs `kleros-ui check --build` first. An app's own build is kept, so the check goes in a
+    // The starter's build runs `kleros-ui check --build` first. An app's own build is kept, so the check goes in a
     // prebuild, which npm, pnpm, Yarn 1 and bun run before `build` (Yarn 2+ and --ignore-scripts do not). An app's own
     // prebuild is kept too, and then nothing runs the check at build time: create says so. Only the --build check
     // counts (plain `kleros-ui check` or ui:check honours the baseline), and a script that is not a string is no
-    // script (d.10 re-review).
+    // script.
     if (ownScripts.build !== undefined) {
       const [b, p] = [ownScripts.build, ownScripts.prebuild].map(scriptText);
       if (!BUILD_CHECK.test(b) && !BUILD_CHECK.test(p)) {
@@ -534,7 +534,7 @@ function create({ dir: target, lib, install }) {
       process.exit(1);
     }
     // npm can exit 0 and still not install the library: it reads a spec it cannot use as a folder path and links a
-    // folder that does not exist (d.8 review). A library hoisted to a parent's node_modules (a workspace) is fine.
+    // folder that does not exist. A library hoisted to a parent's node_modules (a workspace) is fine.
     const own = join(dir, "node_modules", LIB);
     if (!existsSync(join(own, "package.json")) && (taken(own) || !installedAbove(dir))) {
       console.error(
@@ -575,7 +575,7 @@ function create({ dir: target, lib, install }) {
   console.log("Coding agents: read the kleros-ui block in AGENTS.md before writing UI.");
 }
 
-// A path as it can be pasted into a shell: quoted when it has a space or any other special character (d.8 review).
+// A path as it can be pasted into a shell: quoted when it has a space or any other special character.
 const shellQuote = (p) => (/^[\w@%+=:,./-]+$/.test(p) ? p : `'${p.replace(/'/g, `'\\''`)}'`);
 
 // True when a folder above `dir` has the library in its node_modules (a workspace root that hoists it).
@@ -586,7 +586,7 @@ function installedAbove(dir) {
 
 // `npm install ./x.tgz` in a folder with no package.json installs into the nearest folder above it that has one (or a
 // node_modules): it changes that project's package.json, lockfile and node_modules, and `npx kleros-ui` then runs
-// that copy. Said before anything is written, so the user knows what to undo (d.8 review).
+// that copy. Said before anything is written, so the user knows what to undo.
 function warnAncestorInstall(dir, target, lib) {
   if (lib || existsSync(join(dir, "package.json")) || libSpec(undefined, dir) !== `^${pkg.version}`) return;
   const at = PKG_DIR.lastIndexOf(`${sep}node_modules${sep}`);
@@ -608,7 +608,7 @@ function warnAncestorInstall(dir, target, lib) {
 }
 
 // ---- new ----
-// d.11 (B2, X1-C1): `new <Name> [--kind ui|data|form] [--intent "words, more words"]`. --intent is comma-separated,
+// `new <Name> [--kind ui|data|form] [--intent "words, more words"]`. --intent is comma-separated,
 // as the guide shows it; each part, trimmed, is one intent word (a phrase is one word: "period badge"). Words left
 // unquoted (`--intent period badge`) would be read as extra arguments, so anything new does not take is refused.
 function parseNew(args) {
@@ -630,12 +630,12 @@ function parseNew(args) {
   return o;
 }
 
-// d.11 (B4, D27): tsconfig files are JSON with comments and trailing commas. The text with both removed, parsed; null
+// tsconfig files are JSON with comments and trailing commas. The text with both removed, parsed; null
 // when it cannot be read.
 function readJsonc(file) {
   let src;
   try {
-    // d.11 (CL-B4-1): a leading byte-order mark (a file saved on Windows) made JSON.parse fail, so jsx went unread.
+    // A leading byte-order mark (a file saved on Windows) would make JSON.parse fail, and jsx go unread.
     src = readFileSync(file, "utf8").replace(/^﻿/, "");
   } catch {
     return null;
@@ -663,7 +663,7 @@ function readJsonc(file) {
     return null;
   }
 }
-// d.11 (CL-B4-1): the files an `extends` of a package name can mean, in TypeScript's order: the package's own folder
+// The files an `extends` of a package name can mean, in TypeScript's order: the package's own folder
 // (found up the tree from the config) with its package.json "tsconfig" field, then its tsconfig.json; for a subpath,
 // <sub> itself, <sub>.json, then <sub>/tsconfig.json; last, what the package's exports map gives (Node's resolution).
 // tsOptions keeps only .json files, so a package's JS main is never read as a config.
@@ -705,8 +705,8 @@ function tsOptions(file, seen = new Set()) {
     const from = dirname(file);
     const relativeSpec = /^\.{1,2}[\\/]|^[\\/]/.test(spec) || isAbsolute(spec);
     const tries = relativeSpec ? [resolve(from, spec), resolve(from, `${spec}.json`)] : extendsCandidates(from, spec);
-    // d.11 (CL-B4-1): a package's config is a .json file; require.resolve(spec) gave the package's JS main, which then
-    // failed to parse, so "jsx" was never read.
+    // A package's config is a .json file; require.resolve(spec) gives the package's JS main, which does not parse as
+    // one, so "jsx" would go unread.
     const parent = tries.find((p) => (relativeSpec || p.endsWith(".json")) && existsSync(p) && statSync(p).isFile());
     if (parent) options = { ...options, ...tsOptions(parent, seen) };
   }
@@ -760,9 +760,9 @@ function newComponent({ name, kind, intent }) {
   if (!["ui", "data", "form"].includes(kind)) throw new Error("kleros-ui new: --kind is ui, data or form");
   mkdirSync(dir, { recursive: true });
   const tdir = join(PKG_DIR, "agent/templates", kind);
-  // D13 (d.9): stories only when the app has Storybook; one written for an app without it is never run.
+  // Stories only when the app has Storybook; one written for an app without it is never run.
   const stories = hasStorybook();
-  // d.11 (D27): the component file only, the one template file with JSX (a stories file has none, and an unused React
+  // The component file only, the one template file with JSX (a stories file has none, and an unused React
   // import fails an app with noUnusedLocals, as Court has).
   const react = reactImport();
   const written = [];
@@ -793,8 +793,8 @@ function newComponent({ name, kind, intent }) {
 // A component file in componentsDir: Name.tsx, not a story or a test.
 const COMPONENT_FILE = /^[A-Z][A-Za-z0-9]*\.tsx$/;
 
-// ---- app CSS (d.8, from the new-project pilot: a plain-CSS app redefined --klerosUIComponents* tokens and brought
-// its own palette, and the TS/TSX lint could not see it). Declaration values only: never selectors (#root) or comments.
+// ---- app CSS (an app's CSS can redefine --klerosUIComponents* tokens or bring its own palette, which the TS/TSX lint
+// cannot see). Declaration values only: never selectors (#root) or comments.
 const CSS_TOKEN = "kleros-ui/css-token";
 const CSS_COLOUR = "kleros-ui/css-colour";
 const NAMED = new Set(
@@ -846,8 +846,8 @@ function stripComments(src, scss) {
       else if (c === quote || c === "\n") quote = null;
       continue;
     }
-    // d.11 r2 (L2-7): an unquoted url(...) is one token in CSS, so a /* in it starts no comment (Tailwind and Vite read
-    // url(/*) as a URL; read as a comment here, it hid a rule from the theme scan).
+    // An unquoted url(...) is one token in CSS, so a /* in it starts no comment (Tailwind and Vite read url(/*) as a
+    // URL; read as a comment here, it would hide a rule from the theme scan).
     if ((c === "u" || c === "U") && !/[\w-]/.test(src[i - 1] ?? "") && /^url\(\s*[^\s"')]/i.test(src.slice(i, i + 64))) {
       const end = src.indexOf(")", i);
       const stop = end < 0 ? src.length : end + 1;
@@ -945,7 +945,7 @@ function colourLiterals(prop, value) {
 
 // index.html with everything outside its <style> blocks blanked (newlines kept), so the scan reports index.html lines,
 // and the offset of each <style> tag. A <style> block inside an HTML comment is not CSS the page uses, so it is
-// blanked too and not counted (d.8 review). d.9 review: also the offset of each <link rel="stylesheet"> to a local
+// blanked too and not counted. Also the offset of each <link rel="stylesheet"> to a local
 // file (public/extra.css, /src/x.css; a stylesheet from another site, such as a font's, is not one) and of each
 // style="" attribute, outside comments and <script> blocks.
 function htmlStyles(html) {
@@ -974,16 +974,16 @@ function htmlStyles(html) {
   return { css, tags, links, attrs };
 }
 
-// ---- Tailwind only (d.9: D25 and D22; decision.md §15 and §16a, DM 2725 and DM 2742). An app's CSS is one entry file
+// ---- Tailwind only (agent/AGENTS.md, "Styling: Tailwind only"). An app's CSS is one entry file
 // that imports tailwindcss and holds only Tailwind's directives. A style rule or another at-rule in the entry, any other
 // stylesheet, a <style> block, a local stylesheet link or a style attribute in index.html, an !important and a
 // selector that reaches into the library are findings, counted per file and rule like the rest of the scan, so
-// ui:baseline records an existing app's CSS (Court's) and check fails only on new ones. d.9 review: a stylesheet
+// ui:baseline records an existing app's CSS (Court's) and check fails only on new ones. A stylesheet
 // outside the entry counts each of its rules too, so a new rule in an old file (Court's base-elements.css) fails.
 const CSS_TW = "kleros-ui/css-tailwind-only";
 const CSS_IMPORTANT = "kleros-ui/css-important";
 const CSS_INTERNALS = "kleros-ui/css-internals";
-// What the entry may hold, besides comments: Tailwind 4's directives, and v3's @tailwind. d.9 review: @import only of
+// What the entry may hold, besides comments: Tailwind 4's directives, and v3's @tailwind; @import only of
 // tailwindcss and the library's theme.css, and @plugin and @config only of a package: a local file brings CSS of its own.
 const TW_DIRECTIVES = new Set(["import", "source", "custom-variant", "plugin", "config", "reference", "tailwind"]);
 const TW_ENTRY = /@import\s+(?:url\(\s*)?["']?tailwindcss(?:\/[^"'\s);]*)?["']?|@tailwind\s/i;
@@ -991,8 +991,8 @@ const ENTRY_IMPORTS = /^(?:tailwindcss(?:\/.*)?|@kleros\/ui-components-library\/
 // The first argument of an @import, @plugin or @config: "x", 'x' or url(x).
 const atTarget = (prelude) => prelude.match(/^@[\w-]+\s+(?:url\(\s*)?(?:"([^"]*)"|'([^']*)'|([^\s"');]+))/i)?.slice(1).find((x) => x !== undefined) ?? "";
 const isPackage = (spec) => /^(?:@[\w.-]+\/)?[\w.-]+(?:\/.*)?$/.test(spec) && !/^\.{1,2}(?:\/|$)/.test(spec);
-// Every stylesheet Vite compiles: CSS, PostCSS's own extensions and the preprocessors (d.9 review: a .pcss file compiled
-// with no extra package and was not read). The indented syntaxes have no braces, so each line at column 0 is a rule.
+// Every stylesheet Vite compiles: CSS, PostCSS's own extensions and the preprocessors (a .pcss file compiles with no
+// extra package, so it is read too). The indented syntaxes have no braces, so each line at column 0 is a rule.
 const STYLESHEET = /\.(?:css|scss|sass|less|styl|stylus|pcss|postcss|sss)$/i;
 const SLASH_COMMENTS = /\.(?:scss|sass|less|styl|stylus)$/i;
 const INDENTED = /\.(?:sass|styl|stylus)$/i;
@@ -1000,11 +1000,11 @@ const INDENTED = /\.(?:sass|styl|stylus)$/i;
 // @layer or @media is a new finding; an empty one counts once.
 const GROUPING = new Set(["media", "supports", "layer", "container", "scope", "starting-style", "document"]);
 const USE_CLASSES = "Use Tailwind classes instead; for page-level setup, classes on <html> and <body>, as the starter does.";
-// d.11 (DO-3): d.10's "no stylesheet besides the one entry" left out the theme file, the one other stylesheet allowed.
+// The theme file is the one stylesheet allowed besides the entry, so the reason names it when the app has one.
 const outsideWhy = (theme) =>
   `Tailwind only, so no stylesheet besides the one entry that imports tailwindcss (src/index.css as create writes it) and ${theme?.file ? `the theme file ${theme.file} (kleros-ui.json "theme")` : "one theme file for new token values, which npx kleros-ui theme sets up"}.`;
 const ENTRY_HOLDS = "which keeps only @import, @source, @custom-variant, @plugin, @config and @reference (Tailwind only).";
-// The library's internals, as a selector reaches them (D22, Argon's label[data-rac] overrides in pilot 5): react-aria's
+// The library's internals, as a selector reaches them (such as an app's label[data-rac] overrides): react-aria's
 // data attributes (data-rac, and the states the library's CSS keys on) and class names, and the library's own
 // klerosUIComponents* classes. Inside :not() they keep a rule off the library instead, so they do not count there.
 const INTERNALS = new RegExp(
@@ -1031,9 +1031,9 @@ function withoutNot(sel) {
 }
 
 // The blocks and @-statements of comment-free CSS, in order: { prelude, at, parent, block, end }. prelude is the text
-// before "{" (a selector or an at-rule) or before ";" (an @-statement such as @import); at is its offset. d.11 (T2,
-// T3): end is the offset of a block's "}" or a statement's ";" (the text's length when it has none), so the theme scan
-// can tell which rule a declaration is in, and `theme` can add its import right after the library's.
+// before "{" (a selector or an at-rule) or before ";" (an @-statement such as @import); at is its offset. end is the
+// offset of a block's "}" or a statement's ";" (the text's length when it has none), so the theme scan can tell which
+// rule a declaration is in, and `theme` can add its import right after the library's.
 function cssBlocks(text) {
   const out = [];
   const stack = [];
@@ -1080,13 +1080,14 @@ function cssBlocks(text) {
 
 // The Tailwind-only findings of a stylesheet: each style rule, at any depth, and each at-rule. The insides of a
 // non-grouping at-rule (@utility, @theme, @font-face, @keyframes, @custom-variant's block) are not counted again, nor
-// is an at-rule nested in a style rule. In the entry, Tailwind's directives are allowed; d.9 review: an @import only of
+// is an at-rule nested in a style rule. In the entry, Tailwind's directives are allowed: an @import only of
 // tailwindcss or the library's theme.css, and an @plugin or @config only of a package (a local file brings CSS of its
 // own). In any other stylesheet (`outside` names it) nothing is allowed, and each rule counts, so a rule added to an
 // old file is a new finding; a file with no rule (empty, or only comments) counts once.
-// d.11 (T4): when kleros-ui.json declares a theme (`theme` is themeInfo()), the entry may also import that file, once,
+// When kleros-ui.json declares a theme (`theme` is themeInfo()), the entry may also import that file, once,
 // plainly, and after the library's theme.css (the import order decides which values win in @layer base); the entry
-// kleros-ui.json names must import it. `file` is the entry's path from the app root. With no theme, as in d.10.
+// kleros-ui.json names must import it. `file` is the entry's path from the app root. With no theme declared, only the
+// two imports above pass.
 function entryFindings(blocks, { outside = null, theme = null, file = "" } = {}) {
   const findings = [];
   const themed = Boolean(!outside && theme?.file);
@@ -1096,7 +1097,7 @@ function entryFindings(blocks, { outside = null, theme = null, file = "" } = {})
   const themeImport = (b, target) => {
     const rest = b.prelude.replace(/^@import\s+(?:url\(\s*)?(?:"[^"]*"|'[^']*'|[^\s"');]+)\s*\)?/i, "").trim();
     if (++themeImports > 1) return `@import "${target}" again: the Tailwind entry imports the theme file ${theme.file} once.`;
-    // d.11 (TH-1): the loop treats a grouping at-rule as transparent, so an import inside @layer components { } passed.
+    // The block walk treats a grouping at-rule as transparent, so an import inside @layer components { } would pass.
     // Tailwind builds that as @layer components.base, which beats the library's :root.dark, so a light-only value leaks
     // into dark mode; inside @media print or @supports the theme applies only where that condition holds.
     if (b.parent) {
@@ -1152,7 +1153,7 @@ function entryFindings(blocks, { outside = null, theme = null, file = "" } = {})
     findings.push({ rule: CSS_TW, at: b.at, message: outside ? `${what} in ${outside}: ${outsideWhy(theme)} ${USE_CLASSES}` : `${what} in the Tailwind entry, ${ENTRY_HOLDS} ${USE_CLASSES}` });
   }
   if (outside && !findings.length) findings.push({ rule: CSS_TW, at: 0, message: `${outside[0].toUpperCase()}${outside.slice(1)}: ${outsideWhy(theme)} ${USE_CLASSES}` });
-  // d.11 (DO-2): theme writes a new file only, so "npx kleros-ui theme adds it" held only while the file is missing.
+  // theme writes a new file only, so "npx kleros-ui theme adds it" holds only while the file is missing.
   if (themed && !themeImports && file === theme.entry)
     findings.push({
       rule: CSS_THEME,
@@ -1162,11 +1163,10 @@ function entryFindings(blocks, { outside = null, theme = null, file = "" } = {})
   return findings;
 }
 
-// ---- themes (d.11, decision.md §20 T1-T5; the operator's A1). kleros-ui.json "theme" names the one theme file, which
-// the Tailwind entry imports right after the library's theme.css. In it the scan allows only @layer base rules on
-// :root and :root.dark that declare names the library's theme.css defines, with any value (§20's probe: unlayered, a
-// light value leaks into dark mode; on a subtree, it misses the app's classes). Elsewhere a token redefinition is a
-// css-token finding, as in d.10, and its message names the theme file.
+// ---- themes. kleros-ui.json "theme" names the one theme file, which the Tailwind entry imports right after the
+// library's theme.css. In it the scan allows only @layer base rules on :root and :root.dark that declare names the
+// library's theme.css defines, with any value (unlayered, a light value leaks into dark mode; on a subtree, it misses
+// the app's classes). Elsewhere a token redefinition is a css-token finding, and its message names the theme file.
 const CSS_THEME = "kleros-ui/css-theme";
 const DEFAULT_THEME = "src/theme.css";
 const LIB_THEME = `${LIB}/theme.css`;
@@ -1205,7 +1205,7 @@ function libraryTokens(file) {
       }
   return out;
 }
-// What the scan needs to know about the app's theme, or null when kleros-ui.json declares none (the d.10 scan).
+// What the scan needs to know about the app's theme, or null when kleros-ui.json declares none.
 // { file: its path from the app root (null when "theme" is not a path or names a folder), folder, given, entry: the
 // Tailwind entry's path, names: the library's token names (null when they cannot be read), why: the reason they cannot }.
 function themeInfo() {
@@ -1229,7 +1229,7 @@ function themeInfo() {
   return { file: appPath(c.theme), given: c.theme, entry, names, why };
 }
 
-// T3: every finding in the declared theme file, one rule id (css-theme), counted per file like the rest of the scan.
+// Every finding in the declared theme file, one rule id (css-theme), counted per file like the rest of the scan.
 // A rule or at-rule that is wrong as a whole is one finding, and what is inside it is not counted again; in a :root or
 // :root.dark rule each declaration counts, so a new token line in a baselined theme is a new finding.
 function themeFindings(clean, blocks, theme) {
@@ -1253,8 +1253,8 @@ function themeFindings(clean, blocks, theme) {
       add(b.at, `${shortSel(b.prelude)}${b.parent ? ` (in ${quoted(b.parent.prelude)})` : ""} in the theme file ${file}: ${THEME_SHAPE}, so no other at-rule${n === "layer" ? " (only the base layer, as one block)" : ""}.`);
       continue;
     }
-    // d.11 (TH-4): a selector list counts when each selector in it is one of the two (`:root, :root.dark` sets a token in
-    // both modes); the whole prelude was matched before, so that list was a false finding.
+    // A selector list counts when each selector in it is one of the two (`:root, :root.dark` sets a token in both
+    // modes); matching the whole prelude would make that list a false finding.
     if (!b.prelude.split(",").every((s) => THEME_ROOTS.has(s.trim())) || (b.parent && !atName(b.parent.prelude))) {
       done.add(b);
       add(
@@ -1290,8 +1290,8 @@ function themeFindings(clean, blocks, theme) {
     const bang = blankValue(d.value).search(/!\s*important\b/i);
     if (bang >= 0) add(d.valueAt + bang, `!important in ${d.prop} in the theme file ${file}: the theme wins by its import order after the library's theme.css; !important would also beat :root.dark, so a light value leaks into dark mode.`);
   }
-  // d.11 (TH-2): CSS reads an escape as the plain letter (c\olor is color, !\important is !important), so one hid a
-  // property or an !important from the checks above, and the build emitted it. Token names and values need none, so
+  // CSS reads an escape as the plain letter (c\olor is color, !\important is !important), so one would hide a
+  // property or an !important from the checks above, and the build would emit it. Token names and values need none, so
   // each backslash outside a string is a finding (none counted again inside a rule that already has one).
   const strings = clean.replace(/(["'])(?:\\.|(?!\1)[^\\\n])*\1?/g, (m) => " ".repeat(m.length));
   for (const m of strings.matchAll(/\\/g)) {
@@ -1302,20 +1302,18 @@ function themeFindings(clean, blocks, theme) {
   return findings;
 }
 
-// T5: the message for a token redefined outside the theme file (css-token), naming the theme file or the command that
-// sets one up.
-// d.11 (T5, gates): §20 asks the message to name the theme file and npx kleros-ui theme, and AGENTS.md "Themes" says
-// it does; with a theme declared it named the file only, so it now names the command that sets that file up too.
+// The message for a token redefined outside the theme file (css-token). AGENTS.md "Themes" says it names the theme
+// file and npx kleros-ui theme, so it names the command that sets the file up even when a theme is declared.
 function tokenMessage(prop, theme) {
   const alias = prop.match(/^--color-(klerosUIComponents\w*)$/)?.[1];
   const what = alias ? `${prop} redefines a library token through Tailwind's alias of --${alias}` : `${prop} redefines a library token`;
   const set = alias ? `--${alias} itself, never the alias,` : "tokens";
   if (theme?.file)
     return `${what} outside the theme file: set ${set} only in ${theme.file} (kleros-ui.json "theme", the file npx kleros-ui theme sets up), on :root or :root.dark inside its @layer base.`;
-  // d.11 (DO-2): theme writes a new file only, so with an undeclared src/theme.css already there "run npx kleros-ui
-  // theme" led to its refusal; the message names the two lines to add instead.
+  // theme writes a new file only, so with an undeclared src/theme.css already there "run npx kleros-ui theme" would
+  // lead to its refusal; the message names the two lines to add instead.
   if (taken(DEFAULT_THEME)) {
-    // d.11 r2 (L2-6): `css <path>` scans on with a kleros-ui.json that is not JSON (CL-CSS-1), so this read must not throw.
+    // `css <path>` scans on with a kleros-ui.json that is not JSON, so this read must not throw.
     let cssEntry;
     try {
       cssEntry = config().cssEntry;
@@ -1329,13 +1327,13 @@ function tokenMessage(prop, theme) {
 }
 
 // Every finding in one stylesheet, or in index.html's <style> blocks, local stylesheet links and style attributes.
-// d.11: `theme` is themeInfo(); the declared theme file gets only its own findings (T3), and every other file's token
-// messages name it (T5). With no theme declared, the findings are d.10's.
+// `theme` is themeInfo(); the declared theme file gets only its own findings, and every other file's token messages
+// name it. With no theme declared, every file gets the same findings.
 function scanCss(text, { file = "", theme = null } = {}) {
   const html = /\.html?$/i.test(file);
   const page = html ? htmlStyles(text) : null;
-  // d.11 (TH-3): Tailwind inlines the theme file as plain CSS whatever its extension, where // starts no comment, so it is
-  // read that way here too (a "theme" path ending in .scss hid `// } .x { color: red; }` from the scan).
+  // Tailwind inlines the theme file as plain CSS whatever its extension, where // starts no comment, so it is read
+  // that way here too (a "theme" path ending in .scss would hide `// } .x { color: red; }` from the scan).
   const isTheme = Boolean(!page && theme?.file && file === theme.file);
   const clean = stripComments(page ? page.css : text, SLASH_COMMENTS.test(file) && !isTheme);
   const starts = [0];
@@ -1358,7 +1356,7 @@ function scanCss(text, { file = "", theme = null } = {}) {
       : cssBlocks(clean);
   const name = file || "index.html";
   const placed = (list) => list.sort((a, b) => a.at - b.at).map((f) => ({ ...f, pos: where(f.at) }));
-  // d.11 (T3): the declared theme file is not a stylesheet outside the entry, and its colour literals are its values.
+  // The declared theme file is not a stylesheet outside the entry, and its colour literals are its values.
   if (isTheme) return placed(themeFindings(clean, blocks, theme));
   if (page) {
     for (const at of page.tags) findings.push({ rule: CSS_TW, at, message: `<style> block in ${name}: Tailwind only, so no <style>. ${USE_CLASSES}` });
@@ -1380,12 +1378,12 @@ function scanCss(text, { file = "", theme = null } = {}) {
   }
   for (const d of declarations(clean)) {
     // Tailwind's alias (--color-klerosUIComponentsPrimaryBlue) feeds every klerosUIComponents* utility, so redefining it
-    // overrides the token too (d.8 review). d.11 (T5): still a finding everywhere but the theme file; the message names
+    // overrides the token too. It is a finding everywhere but the theme file; the message names
     // the theme file, or npx kleros-ui theme when the app has none.
     const token = /^--(color-)?klerosUIComponents/.test(d.prop);
     if (token) findings.push({ rule: CSS_TOKEN, at: d.at, message: tokenMessage(d.prop, theme) });
-    // d.11 (DO-3): on a token's own line "use a token, not a new colour" sent the agent to set the token to itself; a
-    // new value is fine in the theme file, so the message points there (still counted, as in d.10).
+    // On a token's own line "use a token, not a new colour" would send the agent to set the token to itself; a new
+    // value is fine in the theme file, so the message points there (still counted as a colour literal).
     for (const [i, lit] of colourLiterals(d.prop, d.value))
       findings.push({
         rule: CSS_COLOUR,
@@ -1405,11 +1403,11 @@ function scanCss(text, { file = "", theme = null } = {}) {
   return placed(findings);
 }
 
-// What the scan reads. d.9 review: every stylesheet Vite compiles (STYLESHEET) under kleros-ui.json's cssDirs, by
+// What the scan reads: every stylesheet Vite compiles (STYLESHEET) under kleros-ui.json's cssDirs, by
 // default the app root, skipping node_modules, dist, dot folders and the folders .gitignore names; plus index.html at
 // the app root or in src/ (Court's Vite root). `named` are the paths someone chose (the css command's arguments, or
-// cssDirs): one that does not exist is reported (d.8 review).
-// d.11 (T3, TH-3, r2 L2-8): the declared theme file (`keep`) is always read, whatever its folder or extension, named
+// cssDirs): one that does not exist is reported.
+// The declared theme file (`keep`) is always read, whatever its folder or extension, named
 // or not, since Tailwind inlines any file an @import names.
 function cssTargets(args = []) {
   if (args.length) {
@@ -1446,7 +1444,7 @@ function gitIgnored() {
   return { names, paths };
 }
 // Links are followed, once per real folder, so a link back up the tree ends; a broken link or an entry that cannot be
-// read is skipped instead of stopping the whole check (d.8 review).
+// read is skipped instead of stopping the whole check.
 function cssFiles(paths, keep = []) {
   const out = [];
   const missing = [];
@@ -1490,8 +1488,8 @@ function cssCounts(targets = cssTargets()) {
   const { files, missing } = cssFiles(targets.paths, targets.keep);
   const lost = missing.filter((p) => targets.named.includes(p));
   for (const p of lost) console.error(`kleros-ui: ${p} does not exist, so the CSS scan skipped it (${targets.why})`);
-  // d.11 (CL-CSS-1): `css <path>` scanned the named files in d.10 whatever kleros-ui.json held; with a broken one it
-  // still does, without a theme, and says why in one line. The whole-app scan (check, baseline, css) stops on it.
+  // `css <path>` scans the named files whatever kleros-ui.json holds; with a broken one it scans them without a theme
+  // and says why in one line. The whole-app scan (check, baseline, css) stops on it.
   let theme = null;
   try {
     theme = themeInfo();
@@ -1511,7 +1509,7 @@ function cssCounts(targets = cssTargets()) {
     const rel = toPosix(relative(process.cwd(), f)) || f;
     for (const x of scanCss(text, { file: rel, theme })) count(rel, x);
   }
-  // d.11 (T1): a "theme" key that is not a path, or names no file, is a finding on the whole-app scan, not a silent pass.
+  // A "theme" key that is not a path, or names no file, is a finding on the whole-app scan, not a silent pass.
   if (theme && targets.all) {
     if (theme.folder)
       count(theme.folder, { rule: CSS_THEME, pos: [1, 1], message: `${theme.folder} is a folder, and "theme" in ${CONFIG} names it: set the key to the theme file's path, such as "${DEFAULT_THEME}".` });
@@ -1523,15 +1521,15 @@ function cssCounts(targets = cssTargets()) {
   return { counts, messages, lines, files: files.length, lost: lost.length, theme: Boolean(theme) };
 }
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
-// d.11: an app that declares a theme gets one more count, "N theme", for its css-theme findings (T3, T4); with no theme
-// declared, the line is d.10's, word for word.
+// An app that declares a theme gets one more count, "N theme", for its css-theme findings; with no theme declared,
+// the line has no such count.
 function cssSummary(r) {
   const n = total(r.counts);
   const of = (rule) => Object.entries(r.counts).reduce((a, [k, v]) => a + (k.endsWith(`|${rule}`) ? v : 0), 0);
   return `css: ${plural(n, "finding")} (${plural(of(CSS_TOKEN), "token override")}, ${plural(of(CSS_COLOUR), "colour literal")}, ${of(CSS_TW)} Tailwind-only, ${of(CSS_IMPORTANT)} !important, ${of(CSS_INTERNALS)} library internals${r.theme ? `, ${of(CSS_THEME)} theme` : ""}) in ${plural(r.files, "file")} scanned`;
 }
 // Exit 1 on a finding, 2 when a path named on the command line does not exist (a typo is not a clean scan).
-// d.10 (D29): exitCode, not exit(), so a report written to a pipe is not cut off before Node has flushed it.
+// exitCode, not exit(), so a report written to a pipe is not cut off before Node has flushed it.
 function cssCommand(paths) {
   const r = cssCounts(cssTargets(paths));
   for (const line of r.lines) console.log(line);
@@ -1539,7 +1537,7 @@ function cssCommand(paths) {
   process.exitCode = paths.length && r.lost ? 2 : total(r.counts) ? 1 : 0;
 }
 
-// ---- theme (d.11, T1 and T2) ----
+// ---- theme ----
 // Sets up the app's one theme file: the scaffold (the library's token names and values from the theme.css the app
 // resolves, as comments in @layer base { :root { } :root.dark { } }), kleros-ui.json's "theme" key, and the import in
 // the Tailwind entry right after the library's theme.css. The path is the key's when it is set, else src/theme.css.
@@ -1649,14 +1647,14 @@ function run(cmd, args) {
   return r.status === 0;
 }
 
-// Lint baseline (d.3, from the Court pilot): error counts per file and rule, so an existing app's code passes as it is
+// Lint baseline: error counts per file and rule, so an existing app's code (Court's, say) passes as it is
 // and check fails only where a file gains errors. Works on any ESLint 9 (bulk suppressions need 9.24).
 const BASELINE = "kleros-ui-baseline.json";
-// d.4: { lint, tsc }; d.8 adds css. A d.3 baseline is the lint counts alone.
-// d.11 (B1, D37): the preset's two restrictions report as kleros-ui/no-restricted-syntax and
-// kleros-ui/no-restricted-imports, so an app's own no-restricted-* options are no longer replaced. ui:baseline now
-// writes "version"; a baseline without it is from before d.11, and its counts under the core ids were the preset's, so
-// they are read under the new ids (`legacyLintIds` marks it for check).
+// The file is { version, lint, tsc, css }; an older one may lack css or tsc, or be the lint counts alone.
+// The preset's two restrictions report as kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports, so an
+// app's own no-restricted-* options are not replaced. ui:baseline writes "version"; a baseline without it was recorded
+// before the preset took these ids, and its counts under the core ids were the preset's, so they are read under the
+// new ids (`legacyLintIds` marks it for check).
 const RENAMED_LINT_IDS = { "no-restricted-syntax": "kleros-ui/no-restricted-syntax", "no-restricted-imports": "kleros-ui/no-restricted-imports" };
 const readBaseline = () => {
   const raw = readJson(BASELINE, null);
@@ -1671,10 +1669,10 @@ const readBaseline = () => {
   }
   return { ...b, lint: b.lint && lint, legacyLintIds: true };
 };
-// d.11 (B1): with a baseline from before d.11, errors under the core no-restricted-syntax and no-restricted-imports come
-// from the app's own config (the d.10 preset replaced its options, so they were never counted) or from a preset that
-// fell back to the core ids. They are reported, not failed, until ui:baseline records them, as cssCheck does for a
-// baseline from before the CSS scan, so an upgrade does not stop an existing app (Court) on its existing code.
+// With a baseline from before the rename, errors under the core no-restricted-syntax and no-restricted-imports come
+// from the app's own config (the preset under the core ids replaced its options, so they were never counted) or from a
+// preset that fell back to the core ids. They are reported, not failed, until ui:baseline records them, as cssCheck
+// does for a baseline from before the CSS scan, so an upgrade does not stop an existing app on its existing code.
 function lintCheck(base) {
   const current = lintCounts();
   if (!current) return false;
@@ -1689,8 +1687,8 @@ function lintCheck(base) {
     );
   const counts = { ...current.counts };
   for (const k of own) delete counts[k];
-  // d.11 (CL-B1-1): a preset error that an old comment no longer silences is the rename's doing too, so with a baseline
-  // from before d.11 it is reported (the notes above name each comment), not failed.
+  // A preset error that an old comment no longer silences is the rename's doing too, so with a baseline from before
+  // the rename it is reported (the notes above name each comment), not failed.
   let m = 0;
   for (const [k, c] of stale.covered) {
     const cut = Math.min(c, counts[k] || 0);
@@ -1703,12 +1701,12 @@ function lintCheck(base) {
     );
   return newAgainst("lint", base.lint, { counts, messages: current.messages });
 }
-// d.11 (CL-B1-1): an eslint-disable comment written for the d.10 preset names no-restricted-syntax or -imports, since
-// d.11 the app's own rules, so it no longer silences the preset (kleros-ui/...) and ESLint calls it unused. For each
+// An eslint-disable comment that names no-restricted-syntax or -imports (as one written for the preset under the core
+// ids does) names the app's own rules, so it does not silence the preset (kleros-ui/...) and ESLint calls it unused.
 // such comment over a preset error: a note naming the comment, the error and the id to write, and `covered`, the count
 // per error key (and per unused-directive error, when the app makes those errors) that the comment meant to hide.
-// d.11 r2 (L2-4): the rule ids an eslint-enable comment that starts on lines[i] names ([] for a bare one), or null when
-// none starts there. r3 (L3-2): as ESLint 9 reads it: a block comment only (it ignores `// eslint-enable`), read to its
+// The rule ids an eslint-enable comment that starts on lines[i] names ([] for a bare one), or null when none starts
+// there, as ESLint 9 reads it: a block comment only (it ignores `// eslint-enable`), read to its
 // */ across lines, the " -- " description cut from the whole comment, and quotes around an id dropped.
 const enableIds = (lines, i) => {
   const at = lines[i].search(/\/\*\s*eslint-enable(?![\w-])/);
@@ -1720,7 +1718,7 @@ function staleDisables(current) {
   const covered = new Map();
   const notes = [];
   const fatal = new Set();
-  // d.11 r3 (L3-3): an error under two old comments is excused once.
+  // An error under two old comments is excused once.
   const seen = new Set();
   for (const s of current?.stale ?? []) {
     const id = RENAMED_LINT_IDS[s.id];
@@ -1730,7 +1728,7 @@ function staleDisables(current) {
     } catch {
       continue;
     }
-    // From the comment's start to the end of the file, so a /* */ comment that spans lines reads whole. d.11 r2 (L2-3):
+    // From the comment's start to the end of the file, so a /* */ comment that spans lines reads whole.
     // ESLint's column does not count a byte-order mark on line 1, and a comment this cannot read covers nothing here
     // (it was read as a block disable, to the end of the file).
     const text = lines.slice(s.line - 1).join("\n").replace(/^\uFEFF/, "").slice(s.column - 1);
@@ -1745,7 +1743,7 @@ function staleDisables(current) {
       const close = text.startsWith("/*") ? text.indexOf("*/") : 0;
       from = to = s.line + 1 + (text.slice(0, Math.max(close, 0)).match(/\n/g)?.length ?? 0);
     } else if (form === "") {
-      // d.11 r2 (L2-4): only an eslint-enable that names this id, or no rule at all, ends it, as in ESLint.
+      // Only an eslint-enable that names this id, or no rule at all, ends it, as in ESLint.
       let ids = null;
       const on = lines.findIndex((l, i) => i >= s.line && (ids = enableIds(lines, i)) && (!ids.length || ids.includes(s.id)));
       to = on < 0 ? Infinity : on + 1;
@@ -1753,15 +1751,15 @@ function staleDisables(current) {
     }
     const hits = current.errors.filter((e) => e.file === s.file && e.ruleId === id && e.line >= from && e.line <= to);
     if (!hits.length) continue;
-    // d.11 r2 (L2-5): the unused directive's own error (the app's reportUnusedDisableDirectives "error") is the rename's
-    // doing only when the comment silenced something under d.10; one per comment, whichever ids it names.
+    // The unused directive's own error (the app's reportUnusedDisableDirectives "error") is the rename's doing only
+    // when the comment covers a preset error; one per comment, whichever ids it names.
     const at = `${s.file}:${s.line}:${s.column}`;
     if (s.severity === 2 && !fatal.has(at)) {
       fatal.add(at);
       covered.set(`${s.file}|fatal`, (covered.get(`${s.file}|fatal`) || 0) + 1);
     }
     for (const e of hits) if (!seen.has(e)) seen.add(e) && covered.set(e.key, (covered.get(e.key) || 0) + 1);
-    // d.11 r2 (L2-1): renaming the disable alone leaves its eslint-enable naming the old id, so the new disable then runs
+    // Renaming the disable alone leaves its eslint-enable naming the old id, so the new disable then runs
     // to the end of the file.
     const write = enable ? `Write ${id} in that comment and in the eslint-enable at ${enable} instead` : `Write ${id} in that comment instead`;
     notes.push(
@@ -1770,8 +1768,8 @@ function staleDisables(current) {
   }
   return { covered, notes };
 }
-// npx --no -- : never download a missing eslint or tsc, and keep their flags away from npm (d.5).
-// d.11 (CL-B1-1): also each error's place (`errors`) and each unused eslint-disable directive that names a renamed id
+// npx --no -- : never download a missing eslint or tsc, and keep their flags away from npm.
+// Also each error's place (`errors`) and each unused eslint-disable directive that names a renamed id
 // (`stale`, a warning by ESLint 9's default, an error when the app sets reportUnusedDisableDirectives to "error").
 function lintCounts({ quiet = false } = {}) {
   const r = spawnSync("npx", ["--no", "--", "eslint", "src", "-f", "json"], { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
@@ -1789,7 +1787,7 @@ function lintCounts({ quiet = false } = {}) {
   for (const f of results) {
     const file = f.filePath.slice(process.cwd().length + 1);
     for (const m of f.messages) {
-      // d.11 r2 (L2-2): a comment naming several unused rules is one message, "... from 'a' or 'b')." (or "'a', 'b', or 'c'").
+      // A comment naming several unused rules is one message, "... from 'a' or 'b')." (or "'a', 'b', or 'c'").
       const unused = m.ruleId ? null : String(m.message).match(/^Unused eslint-disable directive \(no problems were reported from ('.*')\)/)?.[1];
       for (const old of unused ? [...unused.matchAll(/'([^']+)'/g)].map((x) => x[1]) : [])
         if (RENAMED_LINT_IDS[old]) stale.push({ file, line: m.line, column: m.column, id: old, severity: m.severity });
@@ -1802,7 +1800,7 @@ function lintCounts({ quiet = false } = {}) {
   }
   return { counts, messages, errors, stale };
 }
-// Type-check baseline (d.4, from the Court pilot: 243 errors from code the app generates at build). Counted per file,
+// Type-check baseline (Court had 243 errors, from code it generates at build). Counted per file,
 // error code and message, without line numbers, so editing a file with old errors does not make them new.
 const tsProject = () => (existsSync("tsconfig.app.json") ? "tsconfig.app.json" : "tsconfig.json");
 function tscCounts() {
@@ -1828,12 +1826,12 @@ function baseline() {
   const tsc = tscCounts();
   if (!lint || !tsc) process.exit(1);
   const css = cssCounts();
-  // d.11 (B1): "version" says the lint counts use the d.11 rule ids (readBaseline).
+  // "version" says the lint counts use the kleros-ui/ rule ids (readBaseline).
   writeJson(BASELINE, { version: pkg.version, lint: lint.counts, tsc: tsc.counts, css: css.counts });
   console.log(
     `kleros-ui: recorded ${total(lint.counts)} existing lint errors, ${total(tsc.counts)} type errors and ${total(css.counts)} CSS findings in ${BASELINE}; check now fails only on new ones`,
   );
-  // AGENTS.md "Existing apps" ends with ui:baseline after adding Tailwind: the block's step 0 goes with it (d.9).
+  // AGENTS.md "Existing apps" ends with ui:baseline after adding Tailwind: the block's step 0 goes with it.
   if (staleTailwindStep()) {
     writeBlock("AGENTS.md");
     console.log(`kleros-ui: rewrote the AGENTS.md block, which ${hasTailwind() ? "still said this app has no Tailwind" : "lacked the step that says this app has no Tailwind"}`);
@@ -1851,10 +1849,10 @@ function newAgainst(label, base, current) {
   }
   return ok;
 }
-// The app's CSS: with no baseline (a new app) every finding fails; with a d.8 baseline only new ones do. A baseline
-// from before the CSS scan has no css counts: report, don't fail, so an existing app such as Court is not blocked by
-// an upgrade; `ui:baseline` records them.
-// d.10: `check --build` (the starter's build runs it first) ignores the baseline, here and for lint and tsc (check()),
+// The app's CSS: with no baseline (a new app) every finding fails; with a baseline that has css counts, only new ones
+// do. A baseline from before the CSS scan has no css counts: report, don't fail, so an existing app such as Court is
+// not blocked by an upgrade; `ui:baseline` records them.
+// `check --build` (the starter's build runs it first) ignores the baseline, here and for lint and tsc (check()),
 // so a new app's findings cannot be baselined away before its build. init does not add it, so Court is unchanged.
 function cssCheck(base, { build = false } = {}) {
   const css = cssCounts();
@@ -1866,22 +1864,22 @@ function cssCheck(base, { build = false } = {}) {
   }
   return newAgainst("css", base?.css || {}, css);
 }
-// d.9 review: an @source that points at no folder makes Tailwind scan nothing there, with no error, so the kit's
+// An @source that points at no folder makes Tailwind scan nothing there, with no error, so the kit's
 // layout classes are left out of the CSS (Court hoists the library: ../../node_modules/..., not ../node_modules/...).
 // Each @source path (up to its first glob) must exist from the entry's folder.
-// d.11 (B7, D28): the library is the app's own copy (appLibraryDir), not this CLI's folder (npx -p <tgz> runs another).
-// d.11 r3 (R3-1, decision.md §20.2): whether Tailwind scans the kit is asked of the app's own Tailwind; rounds 1 and 2
-// modelled its walk by hand and kept missing cases. check loads @tailwindcss/node and @tailwindcss/oxide as the app
-// resolves them (r3, S3-3: or as its @tailwindcss/vite or @tailwindcss/postcss does, where pnpm puts them), compiles the
-// entry, builds the scanner's sources as @tailwindcss/postcss and @tailwindcss/vite do, and fails when a dist/kit/*.js
-// file of the library is not among the files the scanner lists (by real path).
+// The library is the app's own copy (appLibraryDir), not this CLI's folder (npx -p <tgz> runs another).
+// Whether Tailwind scans the kit is asked of the app's own Tailwind; a model of its walk written by hand kept missing
+// cases. check loads @tailwindcss/node and @tailwindcss/oxide as the app resolves them (or as its @tailwindcss/vite or
+// @tailwindcss/postcss does, where pnpm puts them), compiles the entry, builds the scanner's sources as
+// @tailwindcss/postcss and @tailwindcss/vite do, and fails when a dist/kit/*.js file of the library is not among the
+// files the scanner lists (by real path).
 // - Base: with no source(...) on the tailwindcss import (root null), Tailwind's own detection starts at Vite's root,
 //   taken to be the app folder. An app whose Vite config sets another root (Court's sets "src") is a known limit.
 // - Trust: compile() runs the code the entry's @plugin and @config lines name, as the build does; ui:check already runs
 //   the app's ESLint config and tsc.
-// - The app's Tailwind not loading, older than 4.1 (r3, S3-1: its compile() gives no sources), or the entry not
+// - The app's Tailwind not loading, older than 4.1 (its compile() gives no sources), or the entry not
 //   compiling here (an @import through a Vite alias): a note, never a failure.
-// - No timeout; a compile and scan over 3 s gets one note. On an npm ci of the try app's lockfile (no git), the starter's
+// - No timeout; a compile and scan over 3 s gets one note. On an npm ci of a starter app's lockfile (no git), the starter's
 //   entry lists 296 files in 0.2 s, an entry with no @source 13 (Tailwind's detection skips node_modules without git
 //   too), and @source "../node_modules" 25,651 (2.8 s).
 const SLOW_SCAN_MS = 3000;
@@ -1963,7 +1961,7 @@ async function sourceProblems(notes = []) {
   }
   const missed = [...unseen.values()];
   if (missed.length) {
-    // d.11 r3 (D3-1): with the library's folder named and an @source not taking the files back out, the fix is that line.
+    // With the library's folder named and an @source not taking the files back out, the fix is that line.
     const all = missed.length === kit.length;
     const named = given.some((g) => resolve(from, g) === lib);
     const nots = [...text.matchAll(/@source\s+not\s+("[^"]*"|'[^']*')/g)].map((m) => `@source not ${m[1]}`);
@@ -1990,7 +1988,7 @@ const realOrNull = (p) => {
     return null;
   }
 };
-// d.11 (B7, D28): the library as the app resolves it: node_modules/@kleros/ui-components-library in the app's folder or
+// The library as the app resolves it: node_modules/@kleros/ui-components-library in the app's folder or
 // the nearest folder above it that has one (a workspace that hoists it, as Court's does), as the path through any link
 // (pnpm links it from its store); null when the app has none.
 function appLibraryDir() {
@@ -2001,11 +1999,11 @@ function appLibraryDir() {
   }
 }
 
-// d.11 (B8, log 23): the library's style.css must load before the Tailwind entry: the library's JS imports it too, so
+// The library's style.css must load before the Tailwind entry: the library's JS imports it too, so
 // without that line it lands after the app's Tailwind, and its plain classes (flex-col, px-4) beat the app's sm:, lg:
 // ones. Scripts: the app's .js/.ts/.jsx/.tsx files (not node_modules, dist, dot folders or what .gitignore names); an
 // import of the entry by a relative path, or "/src/index.css" as Vite allows. A note when none imports it.
-// d.11 (CL-B8-1): ES modules run their imports in order, depth first, and Vite emits the CSS in that order, so check
+// ES modules run their imports in order, depth first, and Vite emits the CSS in that order, so check
 // walks the static imports in order from the JS entry (index.html's module script, else main.* or index.*, then any
 // script nothing imports) and reports a script that reaches the entry before style.css along that walk.
 const SCRIPT_FILE = /\.(?:[cm]?[jt]sx?)$/;
@@ -2037,7 +2035,7 @@ function styleOrder(entry, notes) {
     if (!specsOf.has(file)) {
       let text = "";
       try {
-        // d.11 r2 (S2-6): a byte-order mark hid the first import from the line-start match; Vite ignores it.
+        // A byte-order mark would hide the first import from the line-start match; Vite ignores it.
         text = readFileSync(file, "utf8").replace(/^\uFEFF/, "");
       } catch {
         // unreadable: no imports
@@ -2090,8 +2088,8 @@ function styleOrder(entry, notes) {
   const problems = [];
   const visited = new Set();
   const why = `so the library's CSS lands after the app's Tailwind and its plain classes (flex-col, hidden, px-4) beat the app's sm:, lg: and @sm: ones`;
-  // d.11 r2 (S2-5): an alias ("@/App", "~/App" or "#app" through resolve.alias, vite-tsconfig-paths or package.json
-  // imports; Court's "components/...", a name in src/ or the app root that is no installed package; r3, L3-1: "@app/App",
+  // An alias ("@/App", "~/App" or "#app" through resolve.alias, vite-tsconfig-paths or package.json
+  // imports; Court's "components/...", a name in src/ or the app root that is no installed package; "@app/App",
   // a scoped name no node_modules up the tree has) is not resolved here, though its target runs at that point.
   // Before style.css, the walk stops there with a note. And once any walk has met one, what a later walk reports is a
   // note: the file it starts from may run through the alias, after style.css or before it (vite build gave both a
@@ -2148,21 +2146,21 @@ function styleOrder(entry, notes) {
   return problems;
 }
 
-// d.11: `notes` collects what check prints as a note and never fails on: a registry entry with no intent words (B2,
-// X1-C1) and, from styleOrder, no script found that imports the Tailwind entry (B8).
-// d.11 r3 (R3-1): async only because sourceProblems awaits the app's Tailwind compile(); sourceProblems adds its notes.
+// `notes` collects what check prints as a note and never fails on: a registry entry with no intent words and, from
+// styleOrder, no script found that imports the Tailwind entry.
+// Async only because sourceProblems awaits the app's Tailwind compile(); sourceProblems adds its notes.
 async function setupProblems(notes = []) {
   const c = config();
   const problems = [];
   const agents = existsSync("AGENTS.md") ? readFileSync("AGENTS.md", "utf8") : "";
   const m = agents.match(/<!-- kleros-ui:start ([^ ]+) -->/);
   const tailwind = hasTailwind();
-  // Tailwind only for all (d.9, DM 2742): an app without Tailwind fails setup until it adds it; init does not add it.
+  // Tailwind only for all: an app without Tailwind fails setup until it adds it; init does not add it.
   if (!tailwind)
     problems.push(`no Tailwind: tailwindcss is not in package.json. Add it with the steps in ${libPath()}/agent/AGENTS.md ${EXISTING_APPS}; new UI is Tailwind only, and the app's existing styled-components code and CSS stay, through ui:baseline`);
   else {
     problems.push(...(await sourceProblems(notes)));
-    // B8 only with a Tailwind entry to import (an app without Tailwind, Court today, is told to add it above).
+    // style.css order only with a Tailwind entry to import (an app without Tailwind, Court today, is told to add it).
     const entry = c.cssEntry || "src/index.css";
     let css = "";
     try {
@@ -2179,7 +2177,7 @@ async function setupProblems(notes = []) {
   else if (tailwind && staleTailwindStep()) problems.push("AGENTS.md block still says this app has no Tailwind: run npx kleros-ui sync (ui:baseline does it too)");
   const dir = c.componentsDir || "src/components";
   const existing = new Set((c.components || []).filter((x) => x.status === "existing").map((x) => x.name));
-  // D13 (d.9): stories only when the app has Storybook; index.ts and the registry entry for every app.
+  // Stories only when the app has Storybook; index.ts and the registry entry for every app.
   const stories = hasStorybook();
   if (existsSync(dir))
     for (const name of readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory() && !existing.has(d.name)).map((d) => d.name)) {
@@ -2192,14 +2190,14 @@ async function setupProblems(notes = []) {
         problems.push(`${main}: export a ${name}Props type with JSDoc on each prop`);
       if (!(c.components || []).some((x) => x.name === name)) problems.push(`${base}: not in ${CONFIG}; add {name, status: "local", intent, importPath}`);
     }
-  // d.4: a new single-file component needs its registry entry too.
+  // A new single-file component needs its registry entry too.
   if (existsSync(dir))
     for (const f of readdirSync(dir).filter((f) => COMPONENT_FILE.test(f))) {
       const name = f.replace(/\.tsx$/, "");
       if (!existing.has(name) && !(c.components || []).some((x) => x.name === name))
         problems.push(`${join(dir, f)}: not in ${CONFIG}; add {name, status: "local", intent, importPath}`);
     }
-  // d.11 (B2, X1-C1): an entry with no intent words is one the next lookup in kleros-ui.json cannot find by what it does.
+  // An entry with no intent words is one the next lookup in kleros-ui.json cannot find by what it does.
   // A note, never a failure, under --build too. Entries init recorded as "existing" (Court's) have none and are skipped.
   const hasWords = (v) => (Array.isArray(v) ? v : [v]).some((w) => typeof w === "string" && w.trim());
   for (const x of c.components || [])
@@ -2207,26 +2205,26 @@ async function setupProblems(notes = []) {
       notes.push(`${CONFIG}: ${x.name} has no intent words, so the next lookup cannot find it by what it does. Add what someone would search for to its "intent" array, e.g. ["period badge", "status chip"] (npx kleros-ui new <Name> --intent "words" writes them)`);
   return problems;
 }
-// d.10: `--build` is what the starter's build runs first (`kleros-ui check --build && vite build`; create adds it as a
+// `--build` is what the starter's build runs first (`kleros-ui check --build && vite build`; create adds it as a
 // prebuild when it keeps an app's own build). The same checks, with two differences:
 // - an agent block that only needs `sync` (a library upgrade), or no agent block at all (a build context without
 //   AGENTS.md, such as a Docker image that leaves out *.md), is a note, not a failure;
-// - no baseline applies (d.10 review): lint, tsc and CSS findings all stop the build, so `ui:baseline` cannot switch
+// - no baseline applies: lint, tsc and CSS findings all stop the build, so `ui:baseline` cannot switch
 //   the build check off in a new app.
-// D29: exitCode, so a piped report is complete.
+// exitCode, not exit(), so a piped report is complete.
 const BUILD_NOTES = /run npx kleros-ui sync|ui:baseline does it too|has no kleros-ui block/;
-// d.11 r3 (R3-1): async for setupProblems alone. tsc, lint and css still run first and in order, and the output order
+// Async for setupProblems alone. tsc, lint and css still run first and in order, and the output order
 // and exit code are as before.
 async function check({ build = false } = {}) {
   const base = build ? null : readBaseline();
   const okTsc = base?.tsc ? newAgainst("tsc", base.tsc, tscCounts()) : run("npx", ["--no", "--", "tsc", "--noEmit", "-p", tsProject()]);
-  // d.11 (CL-B1-1): with no baseline ESLint prints its own report; when it fails, a second run in JSON finds the
-  // eslint-disable comments that name the old ids, so an app made by d.10's create (no baseline) learns why too.
+  // With no baseline ESLint prints its own report; when it fails, a second run in JSON finds the eslint-disable
+  // comments that name the old ids, so an app with no baseline learns why too.
   const okLint = base?.lint
     ? lintCheck(base)
     : run("npx", ["--no", "--", "eslint", "src"]) || (staleDisables(lintCounts({ quiet: true })).notes.forEach((s) => console.log(`note: ${s}`)), false);
   const okCss = cssCheck(base, { build });
-  // d.11: setupProblems' own notes (B2, B8) in both modes, after the --build ones.
+  // setupProblems' own notes in both modes, after the --build ones.
   const own = [];
   const all = await setupProblems(own);
   const notes = build ? all.filter((p) => BUILD_NOTES.test(p)) : [];
@@ -2242,12 +2240,12 @@ async function check({ build = false } = {}) {
   process.exitCode = ok ? 0 : 1;
 }
 
-// ---- postinstall: the setup gate (d.10, test only; decision.md §17.3 P1 with the refuter's lockfile amendment) ----
+// ---- postinstall: the setup gate (test only; the published package does not run it) ----
 // A package.json written by hand (scripts, this library listed or installed by path, no ui:check, no source file, no
 // lockfile that names the library) stops at its first npm install. Everything else passes: create's install, the
 // tarball recipe, an app that ran init, an existing app, a reinstall, npx and global installs, npm init's "test" only,
 // a workspace root, a copy npm resolved from a registry. Any surprise fails open. Only a manifest with "postinstall":
-// "node bin/kleros-ui.mjs postinstall" runs it (d.10's GATE pack; none since d.11). npm only, in effect (§18 review).
+// "node bin/kleros-ui.mjs postinstall" runs it, and the published one has none. npm only, in effect.
 const SOURCE_FILE = /\.(?:[cm]?[jt]sx?|vue|svelte|astro)$/;
 const NOT_SOURCE_DIRS = new Set(["node_modules", "vendor", "dist", "build", "coverage"]);
 const LOCKFILES = ["package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "pnpm-lock.yaml", "bun.lock", "bun.lockb"];
@@ -2280,14 +2278,14 @@ function postinstallGate() {
     const pkgReal = realpathSync(PKG_DIR);
     if (!pkgReal.startsWith(join(appReal, "node_modules") + sep)) return;
     const pj = readJson(join(app, "package.json"), null);
-    // d.10 re-review: npm init's default "test" script is not a setup, and at a workspace root the gate cannot tell
+    // npm init's default "test" script is not a setup, and at a workspace root the gate cannot tell
     // which member asked, so both pass.
     const own = Object.entries(validScripts(pj?.scripts)).filter(([k, v]) => !(k === "test" && /no test specified/.test(v)));
     if (!pj || pj.workspaces || !own.length || pj.scripts["ui:check"] || hasSource(app)) return;
     let spec = pj.dependencies?.[LIB] ?? pj.devDependencies?.[LIB];
     // What npm installed, as `file:<abs path>` for a tarball or folder ("null" on a rebuild with no lockfile).
     const resolved = /^file:/.test(process.env.npm_package_resolved || "") ? process.env.npm_package_resolved : "";
-    // d.10 review: `npm install ./vendor/x.tgz` runs this before npm writes the dependency into package.json, so a
+    // `npm install ./vendor/x.tgz` runs this before npm writes the dependency into package.json, so a
     // library installed by path is not listed yet. It is this app's own copy when it sits at node_modules/<LIB> and npm
     // installed it from a path. A registry copy there passes, whether it came in through another dependency or by name
     // (`npm install @kleros/ui-components-library` into a hand-written manifest): the by-name case is not gated.
@@ -2296,7 +2294,7 @@ function postinstallGate() {
       spec = resolved;
     }
     if (typeof spec !== "string") return;
-    // d.10 re-review: a listed spec that is not the path npm installed from (^3.10.0, latest, an old tarball) would
+    // A listed spec that is not the path npm installed from (^3.10.0, latest, an old tarball) would
     // send create to the wrong copy, so the message names the installed tarball and passes it as --lib, which create
     // writes over the listed spec.
     const absOf = (s) => {
@@ -2312,7 +2310,7 @@ function postinstallGate() {
       spec = resolved;
       lib = true;
     }
-    // d.10 review: only a lockfile that already names the library shows an earlier install here (npm ci, a Docker
+    // Only a lockfile that already names the library shows an earlier install here (npm ci, a Docker
     // dependency layer, a reinstall); a lockfile from installing other packages first does not.
     for (const f of LOCKFILES) {
       try {
@@ -2328,7 +2326,7 @@ function postinstallGate() {
       from = rel ? `./${toPosix(rel)}` : abs;
     } else if (/^[a-z][a-z+.-]*:/i.test(spec)) from = spec; // a URL or git spec, as npm resolved it
     else from = spec ? `${LIB}@${spec}` : "<the library's .tgz>";
-    // d.10 review: create refuses files it would overwrite, so the message names the ones already here.
+    // create refuses files it would overwrite, so the message names the ones already here.
     const { clash, lintClash } = starterPlan(app, pj);
     const move = [...clash, ...lintClash];
     stop = [

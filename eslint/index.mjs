@@ -1,10 +1,10 @@
-// @kleros/ui-components-library/eslint: the Kleros look as lint rules (design.md, G3 "Checks").
+// @kleros/ui-components-library/eslint: the Kleros look (agent/LOOK.md) as lint rules.
 // Usage (flat config): import klerosUI from "@kleros/ui-components-library/eslint";
 //   export default [...yourConfig, ...klerosUI({ cssEntry: "src/index.css" })];
 // Needs eslint >= 9. The Tailwind class rules need eslint-plugin-better-tailwindcss (optional peer dependency) and are
 // skipped without it.
-// d.9: every app styles with Tailwind only (agent/AGENTS.md, "Styling: Tailwind only"), so there is one set of rules
-// for all apps. The `styled` option of d.3-d.8 (for apps on styled-components without Tailwind) is still accepted, so
+// Every app styles with Tailwind only (agent/AGENTS.md, "Styling: Tailwind only"), so there is one set of rules for
+// all apps. A `styled` option (once for apps on styled-components without Tailwind) is still accepted, so
 // an existing config such as `klerosUI({ styled: true })` loads, but it is ignored and changes nothing. Its px radius
 // and spacing rules for styled-components CSS are gone: every styled-components use is now reported by itself.
 // - kleros-ui/no-styled-components reports each use of a name imported from styled-components (styled.x`...`,
@@ -15,7 +15,7 @@
 //   @stitches/*, @vanilla-extract/*, styled-jsx).
 // - Inline style={{ ... }} that sets colour, spacing or type is reported; a computed size (width, height, transform)
 //   is allowed. A style object passed by name (style={box}) is not seen.
-// d.9 review:
+// Also:
 // - files defaults to src/**/*.{js,jsx,ts,tsx}: a styled component in a .js or .jsx file was not linted at all. The
 //   preset turns on JSX parsing for its .js and .jsx files, so an app whose own config parses only TypeScript still
 //   parses them.
@@ -25,12 +25,12 @@
 // - Card round is flagged on the library's Card only (<Card round>, <UI.Card round>), not on an app's own *Card with
 //   a round prop (an appeal round). An arbitrary colour class is one whose value is not a number or a length, so
 //   stroke-[1.5] and border-[1.5px] pass.
-// d.11 (B1, D37): the preset's restrictions are kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports:
+// The preset's restrictions are kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports:
 // ESLint's own rules, registered again in the preset's plugin from eslint/use-at-your-own-risk. A flat config keeps one
 // set of options per rule id and the preset comes last, so under the core ids its options replaced an app's own
 // no-restricted-syntax and no-restricted-imports options, and the app's patterns stopped reporting. Now both report.
 // use-at-your-own-risk exports builtinRules in ESLint 8 to 10 (read in 9.15.0, 9.39.5 and 10.11.0). Where it does not
-// load, as when the app's ESLint is not reachable from this folder, the preset sets the core ids as d.10 did and says so.
+// load, as when the app's ESLint is not reachable from this folder, the preset falls back to the core ids and says so.
 const betterTailwind = await import("eslint-plugin-better-tailwindcss").then((m) => m.default, () => null);
 const RESTRICTED = ["no-restricted-syntax", "no-restricted-imports"];
 const builtin = await import("eslint/use-at-your-own-risk").then((m) => m.builtinRules ?? m.default?.builtinRules, (e) => e);
@@ -57,7 +57,7 @@ const LIB_NAMES = [
   "Breadcrumb", "Copiable", "Searchbar", "TextField", "TextArea", "NumberField", "Datepicker", "DropdownSelect", "FileUploader",
   "AlertMessage", "LinearProgress", "CircularProgress", "StandardPagination", "CompactPagination",
 ];
-// build.sh gates that every kit component in the catalogue is listed here (d.8 review).
+// Every kit component in the catalogue must be listed here (the repo's yarn test:layer checks it).
 const KIT_NAMES = [
   "Skeleton", "Spinner", "EmptyState", "ErrorState", "QueryState", "StatusBadge", "StatCard", "TokenAmount", "AddressDisplay",
   "DataTable", "HelpTooltip", "ThemeToggle", "Countdown", "Stack", "Inline", "Grid", "Section", "Page", "FormStack", "FormField",
@@ -137,7 +137,7 @@ const noStyledComponents = {
 };
 
 // One plugin object for every call, so a config that calls klerosUI() twice does not redefine the plugin.
-// d.11 (B1): it also carries ESLint's no-restricted-syntax and no-restricted-imports when they loaded (see the top).
+// It also carries ESLint's no-restricted-syntax and no-restricted-imports when they loaded (see the top).
 const plugin = {
   meta: { name: "@kleros/ui-components-library/eslint" },
   rules: { "no-styled-components": noStyledComponents, ...(own ? coreRules : {}) },
@@ -192,10 +192,10 @@ export default function klerosUI({ cssEntry = "src/index.css", files = ["src/**/
             selector: `JSXOpeningElement[name.name="${el}"]`,
             message: `Raw <${el}>: use ${lib} from @kleros/ui-components-library (see agent/CATALOG.md).`,
           })),
-          // d.11 (DO-3): the theme file is the one stylesheet besides the entry now.
+          // The theme file is the one stylesheet besides the entry.
           { selector: "JSXOpeningElement[name.name=\"style\"]", message: "A <style> block: " + TAILWIND_WAY + ". The app's CSS is src/index.css as create writes it, plus the theme file npx kleros-ui theme sets up for new token values." },
-          // D6 (d.6 Court pilot, d.9 for every app): a `Card round` at 18px drifted from the 3px cards around it. The
-          // library's Card only (d.9 review): an app's RoundCard round={2} is an appeal round, not a radius.
+          // A `Card round` at 18px drifts from the 3px cards around it. The library's Card only: an app's
+          // RoundCard round={2} is an appeal round, not a radius.
           { selector: "JSXOpeningElement:matches([name.name='Card'], [name.property.name='Card']) > JSXAttribute[name.name='round']:not([value.expression.raw='false'])", message: "Card round draws an 18px radius; Kleros cards are a plain Card (3px, rounded-base). Remove round." },
           {
             selector: `JSXAttribute[name.name='style'] > JSXExpressionContainer > ObjectExpression > Property:matches([key.name=/${INLINE_VISUAL}/], [key.value=/${INLINE_VISUAL}/])`,
