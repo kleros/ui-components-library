@@ -171,7 +171,7 @@ rm -f "$WORK/themes.md"
 # d.11 (DO-1, DO-5, CL-B1-1): a token set from code (a style object or style.setProperty) is named in AGENTS.md, the
 # README and REVIEW.md part 3, whose command, run as printed on a sample diff, lists those added lines and skips a var()
 # use, a class name and a context line; REVIEW.md part 1 gives the hoisted @source an existing app writes by hand; the
-# README and AGENTS.md tell an app upgrading from d.10 about its eslint-disable comments.
+# README and AGENTS.md tell an app whose eslint-disable comments name the core ids that they do not silence the preset.
 REVIEW_AWK=$(awk '/^## 3\./ { on = 1 } on && /git diff main\.\.\.HEAD/ { print; exit }' "$LIB/agent/REVIEW.md" | sed 's/^ *//; s/^git diff [^|]*| //')
 # d.11 r2 (D2-2): it skips Tailwind's bg-(--token) read too, lists a class that sets a token, and the class route is
 # named in AGENTS.md, the README and part 3, which also says to run the command in the app's folder.
@@ -184,13 +184,14 @@ test "$(sh -c "$REVIEW_AWK" < "$WORK/diff.txt" | grep -c 'setProperty\|--color-k
   && grep -qF '[--klerosUIComponentsPrimaryBlue:' "$LIB/agent/REVIEW.md" && grep -qF '[--klerosUIComponentsPrimaryBlue:' "$LIB/agent/AGENTS.md" && grep -qF '[--klerosUIComponentsPrimaryBlue:' "$LIB/README.md" \
   && grep -q "Run this in the app.s folder (where .kleros-ui.json. is" "$LIB/agent/REVIEW.md" \
   && awk '/^## 1\./ { on = 1; next } /^## / { on = 0 } on' "$LIB/agent/REVIEW.md" | grep -q '\.\./\.\./node_modules/@kleros/ui-components-library' \
-  && grep -q "Upgrading from 3.10.1-d.10" "$LIB/agent/AGENTS.md" && grep -q "Upgrading from 3.10.1-d.10" "$LIB/README.md" \
+  && grep -qF 'Apps whose `eslint-disable` comments name `no-restricted-syntax` or `no-restricted-imports`' "$LIB/agent/AGENTS.md" \
+  && grep -qF 'Apps whose `eslint-disable` comments name `no-restricted-syntax` or `no-restricted-imports`' "$LIB/README.md" \
   && UPGRADE_GREP=$(grep -o "grep -rnE '[^']*' src" "$LIB/agent/AGENTS.md") && mkdir -p "$WORK/upgrade/src" \
   && printf '%s\n' '/* eslint-disable no-restricted-syntax */' 'x' '/* eslint-enable no-restricted-syntax */' '/* eslint-disable kleros-ui/no-restricted-syntax */' '/* eslint-enable kleros-ui/no-restricted-syntax */' '// eslint-disable-next-line kleros-ui/no-restricted-syntax, no-restricted-imports' > "$WORK/upgrade/src/Old.tsx" \
   && test "$(cd "$WORK/upgrade" && sh -c "$UPGRADE_GREP" | cut -d: -f2 | tr '\n' ' ')" = "1 3 6 " \
   && awk '/^## 1\./ { on = 1; next } /^## / { on = 0 } on' "$LIB/agent/REVIEW.md" | grep -q 'eslint.config.\*.*`\.mts`' \
   && awk '/^## Existing apps$/ { on = 1; next } /^## / { on = 0 } on' "$LIB/agent/AGENTS.md" | grep -q "Tailwind 3 or 4.0: move to 4.1.17 or later" \
-  && echo "gate: d.11 (DO-1, DO-5, CL-B1-1, D2-2; r3 fix D3-2, D3-4, S3-1): AGENTS.md, the README and REVIEW.md part 3 name a token set from code (style.setProperty) or by a class ([--token:...]), and part 3's command, run as printed in the app's folder, lists those added lines and skips var() and bg-(--token) uses; part 1 gives the hoisted @source an existing app writes and names the .ts and .mts lint configs init manages; the README and AGENTS.md tell an app upgrading from d.10 about its eslint-disable comments, and AGENTS.md's grep, run as printed, lists the old-id disable, its eslint-enable and a mixed line, and skips rewritten ones; Existing apps sets Tailwind 4.1.17 as the floor"
+  && echo "gate: d.11 (DO-1, DO-5, CL-B1-1, D2-2; r3 fix D3-2, D3-4, S3-1): AGENTS.md, the README and REVIEW.md part 3 name a token set from code (style.setProperty) or by a class ([--token:...]), and part 3's command, run as printed in the app's folder, lists those added lines and skips var() and bg-(--token) uses; part 1 gives the hoisted @source an existing app writes and names the .ts and .mts lint configs init manages; the README and AGENTS.md tell an app whose eslint-disable comments name the core ids about them, and AGENTS.md's grep, run as printed, lists the old-id disable, its eslint-enable and a mixed line, and skips rewritten ones; Existing apps sets Tailwind 4.1.17 as the floor"
 rm -rf "$WORK/diff.txt" "$WORK/upgrade"
 (cd "$T" && ! $CLI find progress bar >/dev/null 2>&1 && grep -q "^| LinearProgress" "$LIB/agent/CATALOG.md" \
   && grep -q "^| CircularProgress.*tone" "$LIB/agent/CATALOG.md") && echo "gate: no find command; CATALOG.md lists LinearProgress and CircularProgress with tone"

@@ -166,10 +166,10 @@ Make sure these are installed in your project.
   the lint preset. Then follow "Existing apps" in `agent/AGENTS.md`: a Tailwind app imports this library's `style.css`
   in its JS entry before its own CSS (so its responsive classes win), and an app without Tailwind adds it, because
   every app styles new UI with Tailwind only. Then run `npm run ui:baseline`, so `ui:check` holds only new code to the
-  rules. Upgrading from 3.10.1-d.10 or earlier: the lint preset's restrictions are now `kleros-ui/no-restricted-syntax`
-  and `kleros-ui/no-restricted-imports`, so an `eslint-disable` comment that names the core `no-restricted-syntax` no
-  longer silences them; `ui:check` names each such comment, unless the app turns off ESLint's report of unused ones
-  (`agent/AGENTS.md`, "Existing apps").
+  rules. Apps whose `eslint-disable` comments name `no-restricted-syntax` or `no-restricted-imports`: the lint preset's
+  restrictions are `kleros-ui/no-restricted-syntax` and `kleros-ui/no-restricted-imports`, so such a comment does not
+  silence them; `ui:check` names each one, unless the app turns off ESLint's report of unused ones (`agent/AGENTS.md`,
+  "Existing apps").
 - **AI coding agents:** read this package's `agent/AGENTS.md` first. `agent/CATALOG.md` lists every component, the kit
   and the known gaps.
 - **Reviewing a pull request:** nothing stops a setup written by hand, so the review does. `agent/REVIEW.md` is the

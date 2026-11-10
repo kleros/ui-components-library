@@ -143,17 +143,17 @@ import "./index.css"; // then the app's Tailwind
 Existing pages keep their look. The library's `style.css` already carries Tailwind's reset (its `@layer base`), so
 adding Tailwind adds no new one, and the app's layered CSS keeps its place.
 
-**Upgrading from 3.10.1-d.10 or earlier.** The lint preset now reports its restrictions as
-`kleros-ui/no-restricted-syntax` and `kleros-ui/no-restricted-imports`, and the core `no-restricted-syntax` and
-`no-restricted-imports` are the app's own rules again. So an `eslint-disable` comment that names `no-restricted-syntax`
-no longer silences the preset (ESLint calls it unused, and `--fix` deletes it). `ui:check` prints a note for each one,
-with the id to write instead (`kleros-ui/no-restricted-syntax`); a baseline from before the upgrade keeps such errors
-from failing until `npm run ui:baseline` runs again. For a block comment (`/* eslint-disable no-restricted-syntax */`),
-write the new id in its `eslint-enable` too (the note names that line): an enable that still names the old id no
-longer ends the disable, which then runs to the end of the file. The notes come from ESLint's report of unused
-`eslint-disable` comments, so an app whose lint config sets `reportUnusedDisableDirectives` to `"off"` gets none, and
-those errors fail: find the comments, their `eslint-enable` lines included, with
-`grep -rnE 'eslint-(disable|enable).*[^/]no-restricted-' src`.
+**Apps whose `eslint-disable` comments name `no-restricted-syntax` or `no-restricted-imports`.** The lint preset
+reports its restrictions as `kleros-ui/no-restricted-syntax` and `kleros-ui/no-restricted-imports`, and the core
+`no-restricted-syntax` and `no-restricted-imports` stay the app's own rules. So an `eslint-disable` comment that names
+`no-restricted-syntax` does not silence the preset (ESLint calls it unused, and `--fix` deletes it). `ui:check` prints
+a note for each one, with the id to write instead (`kleros-ui/no-restricted-syntax`); a baseline with no `"version"`
+(recorded before the preset used these ids) keeps such errors from failing until `npm run ui:baseline` runs again. For
+a block comment (`/* eslint-disable no-restricted-syntax */`), write the `kleros-ui/` id in its `eslint-enable` too
+(the note names that line): an enable that still names the core id does not end the disable, which then runs to the
+end of the file. The notes come from ESLint's report of unused `eslint-disable` comments, so an app whose lint config
+sets `reportUnusedDisableDirectives` to `"off"` gets none, and those errors fail: find the comments, their
+`eslint-enable` lines included, with `grep -rnE 'eslint-(disable|enable).*[^/]no-restricted-' src`.
 
 ## One package, three layers
 | Layer | Import from | Contents |
