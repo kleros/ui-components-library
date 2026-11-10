@@ -207,7 +207,7 @@ process.exit(ok ? 0 : 1);') \
     && $CLI check | grep -qx "ui:check passed" \
     && lintout kleros-ui/no-restricted-syntax kleros-ui/no-restricted-syntax && ! $CLI check >o1.txt && grep -q '^lint: 1 new (baseline 1):' o1.txt \
     && lintout kleros-ui/no-restricted-syntax no-restricted-imports && $CLI check >o2.txt && grep -qx "ui:check passed" o2.txt \
-    && grep -q '^lint: 1 error under no-restricted-syntax or no-restricted-imports in 1 file, not failing: kleros-ui-baseline.json predates d.11' o2.txt \
+    && grep -q "^lint: 1 error under no-restricted-syntax or no-restricted-imports in 1 file, not failing: kleros-ui-baseline.json predates the lint preset's own rule ids (it has no \"version\")" o2.txt \
     && $CLI baseline >/dev/null && node -e 'const b = require(process.argv[1]); process.exit(b.version === process.argv[2] && b.lint["src/App.tsx|kleros-ui/no-restricted-syntax"] === 1 && b.lint["src/App.tsx|no-restricted-imports"] === 1 ? 0 : 1)' "$PWD/kleros-ui-baseline.json" "$(node -p 'require(process.argv[1]).version' "$LIB/package.json")" \
     && lintout kleros-ui/no-restricted-syntax no-restricted-imports no-restricted-imports && ! $CLI check >o3.txt && grep -q '^lint: 1 new (baseline 1):' o3.txt) \
   && echo "gate: d.11 (B1, D37): the lint preset sets kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports, ESLint's own rules in its plugin, so after init an app's own no-restricted-imports and no-restricted-syntax options still apply; a baseline from before d.11 is read under the new ids (same count passes, one more fails, an app's own core-id error is reported, not failed), and ui:baseline writes \"version\""
@@ -220,7 +220,7 @@ rm -rf "$A"
 # stub prints what ESLint 9 prints for src/Legacy.tsx (an unused directive at the comment, the error on the next line).
 A=$(mktemp -d -p "$WORK")
 VER=$(node -p 'require(process.argv[1]).version' "$LIB/package.json")
-NOTE='^note: src/Legacy.tsx:3 eslint-disable-next-line names no-restricted-syntax, which no longer silences the lint preset: since d.11 it reports src/Legacy.tsx:4 as kleros-ui/no-restricted-syntax. Write kleros-ui/no-restricted-syntax in that comment instead'
+NOTE='^note: src/Legacy.tsx:3 eslint-disable-next-line names no-restricted-syntax, which does not silence the lint preset: it reports src/Legacy.tsx:4 as kleros-ui/no-restricted-syntax. Write kleros-ui/no-restricted-syntax in that comment instead'
 app "$A/app" \
   && (cd "$A/app" && printf '%s\n' 'export const Legacy = () => (' '  <div>' '    {/* eslint-disable-next-line no-restricted-syntax */}' '    <button type="button">Go</button>' '  </div>' ');' > src/Legacy.tsx \
     && node -e 'console.log(JSON.stringify([{ filePath: process.argv[1] + "/src/Legacy.tsx", messages: [
@@ -228,7 +228,7 @@ app "$A/app" \
   { ruleId: "kleros-ui/no-restricted-syntax", severity: 2, line: 4, column: 5, message: "Raw <button>: use Button from @kleros/ui-components-library (see agent/CATALOG.md)." },
 ] }]))' "$PWD" > eslint-out.json \
     && echo '{"lint":{},"tsc":{},"css":{}}' > kleros-ui-baseline.json && $CLI check >o1.txt && grep -qx "ui:check passed" o1.txt && grep -q "$NOTE" o1.txt \
-    && grep -q '^lint: 1 error under an eslint-disable comment that names the old rule id (the notes above), not failing: kleros-ui-baseline.json predates d.11' o1.txt \
+    && grep -q "^lint: 1 error under an eslint-disable comment that names the old rule id (the notes above), not failing: kleros-ui-baseline.json predates the lint preset's own rule ids (it has no \"version\")\. Change those comments" o1.txt \
     && echo "{\"version\":\"$VER\",\"lint\":{},\"tsc\":{},\"css\":{}}" > kleros-ui-baseline.json && ! $CLI check >o2.txt && grep -q "$NOTE" o2.txt && grep -q '^lint: 1 new (baseline 0):' o2.txt \
     && rm kleros-ui-baseline.json && touch eslint-fail && ! $CLI check >o3.txt && grep -q "$NOTE" o3.txt && grep -q '^ui:check failed (tsc ok, lint failed' o3.txt) \
   && echo "gate: d.11 (CL-B1-1): an eslint-disable comment that names no-restricted-syntax over a preset error is a note naming the comment, the error's line and kleros-ui/no-restricted-syntax, in check with an old baseline (reported, not failed), a d.11 one (failed) and none (failed)"

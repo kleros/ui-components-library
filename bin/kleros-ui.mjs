@@ -299,7 +299,7 @@ function parseCreate(args) {
     if (a === "--no-install") o.install = false;
     else if (a === "--lib" || a.startsWith("--lib=")) {
       o.lib = a === "--lib" ? args[++i] : a.slice("--lib=".length);
-      if (!o.lib) throw new Error("kleros-ui create: --lib needs a spec, e.g. --lib ./vendor/x.tgz or --lib 3.10.1");
+      if (!o.lib) throw new Error("kleros-ui create: --lib needs a spec, e.g. --lib ./vendor/x.tgz or --lib 3.11.0");
     } else if (a.startsWith("-")) throw new Error(`kleros-ui create: unknown option ${a}`);
     else if (o.dir === undefined) o.dir = a;
     else throw new Error(`kleros-ui create: one folder only (got ${o.dir} and ${a})`);
@@ -1685,7 +1685,7 @@ function lintCheck(base) {
   const n = own.reduce((a, k) => a + current.counts[k], 0);
   if (n)
     console.log(
-      `lint: ${plural(n, "error")} under no-restricted-syntax or no-restricted-imports in ${plural(own.length, "file")}, not failing: ${BASELINE} predates d.11, whose lint preset reports its own as kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports and keeps the app's own options for the core rules. Run npm run ui:baseline once; check then fails on new ones.`,
+      `lint: ${plural(n, "error")} under no-restricted-syntax or no-restricted-imports in ${plural(own.length, "file")}, not failing: ${BASELINE} predates the lint preset's own rule ids (it has no "version"): the preset reports its errors as kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports and keeps the app's own options for the core rules. Run npm run ui:baseline once; check then fails on new ones.`,
     );
   const counts = { ...current.counts };
   for (const k of own) delete counts[k];
@@ -1699,7 +1699,7 @@ function lintCheck(base) {
   }
   if (m)
     console.log(
-      `lint: ${plural(m, "error")} under an eslint-disable comment that names the old rule id (the notes above), not failing: ${BASELINE} predates d.11. Change those comments, then run npm run ui:baseline once.`,
+      `lint: ${plural(m, "error")} under an eslint-disable comment that names the old rule id (the notes above), not failing: ${BASELINE} predates the lint preset's own rule ids (it has no "version"). Change those comments, then run npm run ui:baseline once.`,
     );
   return newAgainst("lint", base.lint, { counts, messages: current.messages });
 }
@@ -1765,7 +1765,7 @@ function staleDisables(current) {
     // to the end of the file.
     const write = enable ? `Write ${id} in that comment and in the eslint-enable at ${enable} instead` : `Write ${id} in that comment instead`;
     notes.push(
-      `${s.file}:${s.line} eslint-disable${form} names ${s.id}, which no longer silences the lint preset: since d.11 it reports ${hits.map((e) => `${s.file}:${e.line}`).join(", ")} as ${id}. ${write}, or better, use what the lint message names (a reviewer asks about every eslint-disable on a raw control: agent/REVIEW.md, part 5).`,
+      `${s.file}:${s.line} eslint-disable${form} names ${s.id}, which does not silence the lint preset: it reports ${hits.map((e) => `${s.file}:${e.line}`).join(", ")} as ${id}. ${write}, or better, use what the lint message names (a reviewer asks about every eslint-disable on a raw control: agent/REVIEW.md, part 5).`,
     );
   }
   return { covered, notes };
