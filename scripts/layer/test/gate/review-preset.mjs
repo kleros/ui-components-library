@@ -50,7 +50,15 @@ for (const cls of clean) if (hits(cls).length) fails.push(`${cls} is flagged (${
 
 const main = config.find((c) => c.rules?.["kleros-ui/no-styled-components"]);
 const files = main?.files ?? [];
-if (!files.some((f) => /\{[^}]*\bjs\b[^}]*\bjsx\b[^}]*\bts\b[^}]*\btsx\b[^}]*\}/.test(f))) fails.push(`files does not cover .js, .jsx, .ts and .tsx: ${JSON.stringify(files)}`);
+// A {...} group in a glob whose words include js, jsx, ts and tsx in that order (word by word, not one regex with five
+// [^}]* runs, which backtracks super-linearly on a long glob).
+const EXTS = ["js", "jsx", "ts", "tsx"];
+const coversExts = (glob) => [...glob.matchAll(/\{([^}]*)\}/g)].some(([, group]) => {
+  let next = 0;
+  for (const word of group.match(/\w+/g) ?? []) if (word === EXTS[next]) next++;
+  return next === EXTS.length;
+});
+if (!files.some(coversExts)) fails.push(`files does not cover .js, .jsx, .ts and .tsx: ${JSON.stringify(files)}`);
 if (!config.some((c) => c.languageOptions?.parserOptions?.ecmaFeatures?.jsx === true && JSON.stringify(c.files) === JSON.stringify(files)))
   fails.push("no JSX parsing for the preset's files");
 const round = (main?.rules?.["kleros-ui/no-restricted-syntax"] ?? []).slice(1).find((r) => r.selector?.includes("JSXAttribute[name.name='round']"));

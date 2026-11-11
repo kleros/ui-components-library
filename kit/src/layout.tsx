@@ -118,28 +118,38 @@ export function Grid({ minItemWidth = 240, gap = 4, className, style, ...props }
 export interface SectionProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   /** Heading text. */
   title?: React.ReactNode;
-  /** Muted line under the heading. */
+  /** Muted line under the heading and actions row, the full width of the section. */
   description?: React.ReactNode;
-  /** Buttons or links shown top-right, level with the heading. */
+  /** Buttons or links shown top-right, on the heading's row and centred on it (as in `Page`'s header). */
   actions?: React.ReactNode;
 }
 
 /**
  * Titled block of a page: heading, optional description and actions, then content.
+ * The heading and the actions share one row and are centred on each other, as in `Page`'s header; the description
+ * goes under that row. Actions without a title still sit on the right.
  * @intent section, heading, block, panel header, title with actions, group of content
  * @example <Section title="Active cases" actions={<Button text="New" />}><DataTable ... /></Section>
  */
 export function Section({ title, description, actions, children, className, ...props }: Readonly<SectionProps>) {
-  const hasHeader = title !== undefined || description !== undefined || actions !== undefined;
+  const hasHeadingRow = title !== undefined || actions !== undefined;
   return (
     <div className={cn("flex flex-col gap-4", className)} {...props}>
-      {hasHeader && (
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="flex min-w-0 flex-col gap-1">
-            {title !== undefined && <h2 className="text-klerosUIComponentsPrimaryText text-lg font-semibold">{title}</h2>}
-            {description !== undefined && <p className="text-klerosUIComponentsSecondaryText text-sm">{description}</p>}
-          </div>
-          {actions !== undefined && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {(hasHeadingRow || description !== undefined) && (
+        <div className="flex flex-col gap-1">
+          {hasHeadingRow && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {title !== undefined && (
+                <h2 className="text-klerosUIComponentsPrimaryText min-w-0 text-lg font-semibold">{title}</h2>
+              )}
+              {actions !== undefined && (
+                <div className={cn("flex flex-wrap items-center gap-2", title === undefined && "ml-auto")}>
+                  {actions}
+                </div>
+              )}
+            </div>
+          )}
+          {description !== undefined && <p className="text-klerosUIComponentsSecondaryText text-sm">{description}</p>}
         </div>
       )}
       {children}

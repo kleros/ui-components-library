@@ -1,4 +1,5 @@
 // Written only when the app has Storybook: Default, Dark and each state the component has.
+import { createElement, Fragment, useLayoutEffect, type ReactNode } from "react";
 import type { Meta, StoryObj } from "@kleros/ui-components-library/story-types";
 import { __NAME__ } from "./__NAME__";
 
@@ -6,8 +7,26 @@ const meta: Meta<typeof __NAME__> = { title: "App/__NAME__", component: __NAME__
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+// The Dark story's wrapper: puts the `dark` class on <html> while the story is shown, and puts the class back as it
+// was when the story goes. The theme tokens switch on that class, not on a wrapping element. It needs no setting in
+// the app's Storybook preview. It sets the class again after every render, so a preview `beforeEach` that resets the
+// theme on a Controls or toolbar change does not turn the story light; a preview decorator that sets the class itself
+// in an effect runs after it and wins, so such a decorator must leave this story alone.
+// No JSX in this file, so it compiles under any "jsx" setting (Court's classic runtime included).
+function DarkHtml({ children }: { children?: ReactNode }) {
+  useLayoutEffect(() => {
+    const html = document.documentElement;
+    const wasDark = html.classList.contains("dark");
+    html.classList.add("dark");
+    return () => {
+      html.classList.toggle("dark", wasDark);
+    };
+  }); // no dependency list: Storybook re-renders a story on an args or globals change without remounting it
+  return createElement(Fragment, null, children);
+}
+
 export const Default: Story = { args: {} };
-export const Dark: Story = { args: {}, parameters: { theme: "dark" } };
+export const Dark: Story = { args: {}, render: (args) => createElement(DarkHtml, null, createElement(__NAME__, args)) };
 export const Loading: Story = { args: { isLoading: true } };
 export const Empty: Story = { args: { data: [] } };
 export const LoadError: Story = { args: { isError: true } };

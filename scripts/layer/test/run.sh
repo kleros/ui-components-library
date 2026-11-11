@@ -22,10 +22,10 @@
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd -P)
 REPO=$(cd "$HERE/../../.." && pwd -P)
-EXPECTED=44
+EXPECTED=45
 TSC=$REPO/node_modules/.bin/tsc
 die() { echo "test:layer: $*" >&2; exit 1; }
-test -x "$TSC" || die "$TSC is missing: run yarn install first"
+[[ -x "$TSC" ]] || die "$TSC is missing: run yarn install first"
 # The gates that read the lint preset's config load gate/eslint-stand-in.mjs, which uses registerHooks from node:module
 # (added in Node 22.15 and 23.5). On an older Node those gates print nothing, so stop here and say why.
 node -e 'process.exit(typeof require("node:module").registerHooks === "function" ? 0 : 1)' \
@@ -33,14 +33,14 @@ node -e 'process.exit(typeof require("node:module").registerHooks === "function"
 
 # Yarn runs this script in the repo's folder, so a relative pack path is read from the folder yarn was started in.
 TGZ=
-if [ $# -gt 0 ]; then
+if [[ $# -gt 0 ]]; then
   case $1 in /*) TGZ=$1 ;; *) TGZ=${INIT_CWD:-$PWD}/$1 ;; esac
-  test -f "$TGZ" || die "no pack at $TGZ"
+  [[ -f "$TGZ" ]] || die "no pack at $TGZ"
 fi
 
 WORK=$(mktemp -d "${TMPDIR:-/tmp}/kleros-ui-test-layer.XXXXXX") || die "mktemp failed in ${TMPDIR:-/tmp}"
 WORK=$(cd "$WORK" && pwd -P)
-if [ "${KEEP:-0}" = 1 ]; then echo "test:layer: KEEP=1, so the work folder stays: $WORK"; else trap 'rm -rf "$WORK"' EXIT; fi
+if [[ "${KEEP:-0}" == "1" ]]; then echo "test:layer: KEEP=1, so the work folder stays: $WORK"; else trap 'rm -rf "$WORK"' EXIT; fi
 case $WORK/ in "$REPO"/*) die "the work folder $WORK is inside the repo: set TMPDIR to a folder outside it" ;; esac
 git -C "$WORK" rev-parse --git-dir >/dev/null 2>&1 \
   && die "the work folder $WORK is inside a git repo, and one gate needs a fixture outside git: set TMPDIR elsewhere"
@@ -49,31 +49,33 @@ git -C "$WORK" rev-parse --git-dir >/dev/null 2>&1 \
 d=$(dirname "$WORK")
 while :; do
   for m in tailwindcss @tailwindcss/node @tailwindcss/oxide eslint @kleros/ui-components-library; do
-    test -e "$d/node_modules/$m" && die "$d/node_modules/$m is above the work folder, so the fixtures would find it: set TMPDIR elsewhere"
+    [[ -e "$d/node_modules/$m" ]] && die "$d/node_modules/$m is above the work folder, so the fixtures would find it: set TMPDIR elsewhere"
   done
-  test -e "$d/.gitignore" && echo "test:layer: note: $d/.gitignore is above the work folder; if it ignores that folder, the @source gates fail" >&2
-  [ "$d" = / ] && break
+  [[ -e "$d/.gitignore" ]] && echo "test:layer: note: $d/.gitignore is above the work folder; if it ignores that folder, the @source gates fail" >&2
+  [[ "$d" == "/" ]] && break
   d=$(dirname "$d")
 done
 
-if [ -z "$TGZ" ]; then
+if [[ -z "$TGZ" ]]; then
   echo "test:layer: packing the repo (yarn pack, which builds first)"
   (cd "$REPO" && yarn pack --out "$WORK/package.tgz") >"$WORK/pack.log" 2>&1 || { tail -30 "$WORK/pack.log" >&2; die "yarn pack failed"; }
   TGZ=$WORK/package.tgz
 fi
-echo "pack: $TGZ ($(wc -c <"$TGZ") bytes, md5 $(md5sum <"$TGZ" | cut -c1-32))"
+echo "pack: $TGZ ($(wc -c <"$TGZ") bytes, sha256 $(sha256sum <"$TGZ" | cut -c1-64))"
 
 # Under yarn test:layer, Yarn puts a folder of this repo's own bins (eslint, tsc, vite, kleros-ui) first on PATH and sets
 # npm_* variables. The gates stand for an app's own shell, so both go.
-if [ -n "${BERRY_BIN_FOLDER:-}" ]; then PATH=$(printf '%s\n' "$PATH" | tr ':' '\n' | grep -vxF "$BERRY_BIN_FOLDER" | paste -sd: -); fi
+if [[ -n "${BERRY_BIN_FOLDER:-}" ]]; then PATH=$(printf '%s\n' "$PATH" | tr ':' '\n' | grep -vxF "$BERRY_BIN_FOLDER" | paste -sd: -); fi
 unset BERRY_BIN_FOLDER INIT_CWD PROJECT_CWD npm_execpath npm_node_execpath npm_config_user_agent npm_package_name \
   npm_package_version npm_package_json npm_lifecycle_event npm_lifecycle_script
 
 TOOLS=$HERE/tools
-LOCKSUM=$(md5sum <"$TOOLS/package-lock.json" | cut -c1-32)
-if [ "$(cat "$TOOLS/node_modules/.lock-md5" 2>/dev/null)" != "$LOCKSUM" ]; then
+# .lock-sha256 holds the sha256 of the lockfile tools/node_modules was installed from. No package in that lockfile has an
+# install script (Tailwind's oxide binary comes in an optional platform package), so npm ci runs none.
+LOCKSUM=$(sha256sum <"$TOOLS/package-lock.json" | cut -c1-64)
+if [[ "$(cat "$TOOLS/node_modules/.lock-sha256" 2>/dev/null)" != "$LOCKSUM" ]]; then
   echo "test:layer: installing tools/ from its lockfile (npm ci: Tailwind 4.3.5, React 18.3, happy-dom)"
-  (cd "$TOOLS" && npm ci --no-audit --no-fund) >"$WORK/tools.log" 2>&1 && echo "$LOCKSUM" >"$TOOLS/node_modules/.lock-md5" \
+  (cd "$TOOLS" && npm ci --no-audit --no-fund --ignore-scripts) >"$WORK/tools.log" 2>&1 && echo "$LOCKSUM" >"$TOOLS/node_modules/.lock-sha256" \
     || { tail -20 "$WORK/tools.log" >&2; die "npm ci in $TOOLS failed"; }
 fi
 
@@ -84,7 +86,7 @@ tar -xzf "$TGZ" -C "$CHECK/node_modules/@kleros" && mv "$CHECK/node_modules/@kle
 LIB=$CHECK/node_modules/@kleros/ui-components-library
 VERSION=$(node -p 'require(process.argv[1]).version' "$LIB/package.json") || die "the pack has no readable package.json"
 link() { # <package> <the node_modules folder it comes from>
-  test -e "$2/$1" || die "$1 is not in $2: run yarn install, or delete $TOOLS/node_modules"
+  [[ -e "$2/$1" ]] || die "$1 is not in $2: run yarn install, or delete $TOOLS/node_modules"
   mkdir -p "$WORK/node_modules/$(dirname "$1")" && ln -s "$2/$1" "$WORK/node_modules/$1"
 }
 for m in $(node -p 'Object.keys(require(process.argv[1]).dependencies || {}).join("\n")' "$LIB/package.json") @types/react @types/react-dom; do
@@ -110,7 +112,9 @@ for kind in ui data form; do
     b=$(basename "$t" .tmpl); sed "s/__NAME__/Gate${kind^}/g" "$t" > "$CHECK/src/t-$kind/${b/__NAME__/Gate${kind^}}"
   done
 done
-(cd "$CHECK" && nice "$TSC" --noEmit --strict --jsx react-jsx --skipLibCheck --target es2020 --module esnext \
+# The compile also writes them as JavaScript to out/, where the smoke render (step 6) mounts the recipes and the
+# templates' Dark stories.
+(cd "$CHECK" && nice "$TSC" --outDir out --strict --jsx react-jsx --skipLibCheck --target es2020 --module esnext \
   --moduleResolution bundler --esModuleInterop --lib dom,es2020 --typeRoots ../node_modules/@types \
   src/*.tsx src/t-*/*.ts src/t-*/*.tsx) \
   && echo "gate: recipes, template, kit fixture and new-component templates compile against the packed tarball"
@@ -129,12 +133,12 @@ PN=$(mktemp -d -p "$WORK"); STORE=.pnpm/@kleros+ui-components-library@${VERSION}
 mkdir -p "$PN/app/node_modules/$(dirname "$STORE")" "$PN/app/node_modules/@kleros" "$PN/mono/node_modules/@kleros" "$PN/mono/web" \
   && cp -R "$LIB" "$PN/app/node_modules/$STORE" && ln -s "../$STORE" "$PN/app/node_modules/@kleros/ui-components-library" \
   && ln -s "$LIB" "$PN/mono/node_modules/@kleros/ui-components-library"
-agent_paths() { grep -o '[^ ()`]*agent/[A-Z-]*\.md' AGENTS.md | sort -u > agent-paths.txt && test "$(wc -l < agent-paths.txt)" = 4 \
-  && while read -r f; do test -f "$f" || return 1; done < agent-paths.txt; }
+agent_paths() { grep -o '[^ ()`]*agent/[A-Z-]*\.md' AGENTS.md | sort -u > agent-paths.txt && [[ "$(wc -l < agent-paths.txt)" == "4" ]] \
+  && while read -r f; do [[ -f "$f" ]] || return 1; done < agent-paths.txt; }
 WARN='^kleros-ui: warning: eslint.config.js has the Kleros UI preset only (const app = \[\]; .*sets no TypeScript parser'
 (cd "$T" && echo '{"name":"t","type":"module","scripts":{}}' > package.json && $CLI init >i1.txt && $CLI init >i2.txt \
   && grep -q "$WARN" i1.txt && grep -q "$WARN" i2.txt \
-  && grep -c "kleros-ui:start" AGENTS.md | grep -qx 1 && grep -q '"ui:check"' package.json && test -f eslint.config.js && agent_paths) \
+  && grep -c "kleros-ui:start" AGENTS.md | grep -qx 1 && grep -q '"ui:check"' package.json && [[ -f eslint.config.js ]] && agent_paths) \
   && (cd "$PN/app" && echo '{"name":"pn","type":"module","scripts":{}}' > package.json && node node_modules/@kleros/ui-components-library/bin/kleros-ui.mjs init >/dev/null \
     && grep -qF "look it up in node_modules/@kleros/ui-components-library/agent/CATALOG.md" AGENTS.md && ! grep -q '\.pnpm' AGENTS.md && agent_paths) \
   && (cd "$PN/mono/web" && echo '{"name":"web","type":"module","scripts":{}}' > package.json && $CLI init >/dev/null \
@@ -146,7 +150,7 @@ rm -rf "$PN"
 E=$(mktemp -d -p "$WORK")
 (cd "$E" && echo '{"name":"e","type":"module","scripts":{}}' > package.json && echo 'export default [];' > eslint.config.mjs \
   && mkdir -p src/components/OldCard && echo 'export default () => null;' > src/components/OldBadge.tsx && $CLI init >i.txt && ! grep -q warning i.txt \
-  && test ! -e eslint.config.js && grep -q 'eslint.config.app.mjs' eslint.config.mjs && test -f eslint.config.app.mjs \
+  && [[ ! -e eslint.config.js ]] && grep -q 'eslint.config.app.mjs' eslint.config.mjs && [[ -f eslint.config.app.mjs ]] \
   && grep -q '"status": "existing"' kleros-ui.json && grep -q '"file": "src/components/OldBadge.tsx"' kleros-ui.json \
   && grep -q '"ui:baseline"' package.json) \
   && echo "gate: init in an existing app wraps eslint.config.mjs (no parser warning) and records existing component folders and files"
@@ -155,7 +159,9 @@ grep -q "kleros-ui create" "$LIB/README.md" && grep -q "npx kleros-ui init" "$LI
   && ! grep -q "node_modules/@kleros/ui-components-library/templates" "$LIB/README.md" && grep -q "agent/AGENTS.md" "$LIB/README.md" \
   && grep -q "React 19 is not supported" "$LIB/README.md" \
   && node -e 'const p = require(process.argv[1]); if (["react", "react-dom", "react-is"].some((k) => k in (p.dependencies || {}) || !(k in p.peerDependencies)) || "prepare" in (p.scripts || {})) process.exit(1)' "$LIB/package.json" \
-  && echo "gate: README leads with create and names the starter, init, the agent guide and React 18; React is a peer only; no prepare script"
+  && node -e 'const p = require(process.argv[1]).peerDependencies; process.exit(["tailwindcss", "@tailwindcss/postcss"].every((k) => p[k] === "^4.0.11") ? 0 : 1)' "$LIB/package.json" \
+  && grep -qF 'Tailwind CSS 4 (peer range `^4.0.11`)' "$LIB/README.md" && grep -qF 'The kit and the lint preset need' "$LIB/README.md" && grep -qF '4.1.17 or later: before 4.1, the' "$LIB/README.md" \
+  && echo "gate: README leads with create and names the starter, init, the agent guide and React 18; React is a peer only; the Tailwind peers stay ^4.0.11 (no break for core-only apps) and the README names the kit's 4.1.17 floor; no prepare script"
 # d.10: D33, D31, the starter's prebuild, and the install gate only in the GATE=1 pack.
 # d.11 (T6): D34's text is now the theme file: Theme usage sets token values only there, in @layer base, through
 # npx kleros-ui theme (still no bare "Override them like this"), and Setup 1b's entry is the four lines plus the theme
@@ -171,11 +177,11 @@ grep -q "kleros-ui create" "$LIB/README.md" && grep -q "npx kleros-ui init" "$LI
   && grep -q "kleros-ui create.*kleros-ui init" <(node -p 'require(process.argv[1]).description' "$LIB/package.json") \
   && node -e 'const s = require(process.argv[1]).scripts; process.exit(s.build === "kleros-ui check --build && vite build" && !("prebuild" in s) ? 0 : 1)' "$LIB/templates/poc/package.json" \
   && node -e 'const s = require(process.argv[1]).scripts || {}; const want = process.argv[2] === "1"; process.exit(want ? (s.postinstall === "node bin/kleros-ui.mjs postinstall" && Object.keys(s).filter((k) => /install|prepare/.test(k)).length === 1 ? 0 : 1) : (Object.keys(s).some((k) => /install|prepare/.test(k)) ? 1 : 0))' "$LIB/package.json" "$GATE" \
-  && echo "gate: d.10: README Setup step 1 points to create, with the four-line Tailwind entry plus the theme import when the app has a theme, no Apps without Tailwind (D33), and Theme usage sets token values only in the theme file npx kleros-ui theme writes, inside @layer base, with no bare override (D34, T6); the description and every type entry name create, init and the guide (D31); the starter build runs kleros-ui check --build first; install scripts: $([ "$GATE" = 1 ] && echo 'only the gate postinstall' || echo none)"
+  && echo "gate: d.10: README Setup step 1 points to create, with the four-line Tailwind entry plus the theme import when the app has a theme, no Apps without Tailwind (D33), and Theme usage sets token values only in the theme file npx kleros-ui theme writes, inside @layer base, with no bare override (D34, T6); the description and every type entry name create, init and the guide (D31); the starter build runs kleros-ui check --build first; install scripts: $([[ "$GATE" == "1" ]] && echo 'only the gate postinstall' || echo none)"
 # d.11 (T6, R1, B5): the guide's Themes section and LOOK.md say where a theme goes; agent/REVIEW.md, the PR reviewers'
 # checklist, ships with its five parts and is named by the README and AGENTS.md; the README no longer says Button
 # takes no children.
-test "$(grep -c '^## [1-5]\. ' "$LIB/agent/REVIEW.md" 2>/dev/null)" = 5 && grep -q "agent/REVIEW.md" "$LIB/README.md" && grep -q "agent/REVIEW.md" "$LIB/agent/AGENTS.md" \
+[[ "$(grep -c '^## [1-5]\. ' "$LIB/agent/REVIEW.md" 2>/dev/null)" == "5" ]] && grep -q "agent/REVIEW.md" "$LIB/README.md" && grep -q "agent/REVIEW.md" "$LIB/agent/AGENTS.md" \
   && awk '/^## Themes$/ { on = 1; next } /^## / { on = 0 } on' "$LIB/agent/AGENTS.md" > "$WORK/themes.md" \
   && grep -q "npx kleros-ui theme" "$WORK/themes.md" && grep -q "keeps the library.s dark value" "$WORK/themes.md" \
   && grep -q "#120" "$WORK/themes.md" && grep -q "One theme per app" "$WORK/themes.md" \
@@ -193,7 +199,7 @@ printf '%s\n' '+  el.style.setProperty("--klerosUIComponentsPrimaryBlue", "#05a"
   '+  <p className="text-klerosUIComponentsPrimaryText" style={{ color: "var(--klerosUIComponentsPrimaryText)" }} />' ' const old = "--klerosUIComponentsStroke";' \
   '+  <p className="bg-(--klerosUIComponentsPrimaryBlue) text-(--color-klerosUIComponentsPrimaryText)" />' \
   '+  <p className="[--klerosUIComponentsPrimaryBlue:var(--klerosUIComponentsSecondaryBlue)]" />' > "$WORK/diff.txt"
-test "$(sh -c "$REVIEW_AWK" < "$WORK/diff.txt" | grep -c 'setProperty\|--color-klerosUIComponentsPrimaryText\|\[--klerosUIComponentsPrimaryBlue:')" = 3 && test "$(sh -c "$REVIEW_AWK" < "$WORK/diff.txt" | wc -l)" = 3 \
+[[ "$(sh -c "$REVIEW_AWK" < "$WORK/diff.txt" | grep -c 'setProperty\|--color-klerosUIComponentsPrimaryText\|\[--klerosUIComponentsPrimaryBlue:')" == "3" ]] && [[ "$(sh -c "$REVIEW_AWK" < "$WORK/diff.txt" | wc -l)" == "3" ]] \
   && grep -q "style.setProperty" "$LIB/agent/REVIEW.md" && grep -q "style.setProperty" "$LIB/agent/AGENTS.md" && grep -q "style.setProperty" "$LIB/README.md" \
   && grep -qF '[--klerosUIComponentsPrimaryBlue:' "$LIB/agent/REVIEW.md" && grep -qF '[--klerosUIComponentsPrimaryBlue:' "$LIB/agent/AGENTS.md" && grep -qF '[--klerosUIComponentsPrimaryBlue:' "$LIB/README.md" \
   && grep -q "Run this in the app.s folder (where .kleros-ui.json. is" "$LIB/agent/REVIEW.md" \
@@ -202,13 +208,21 @@ test "$(sh -c "$REVIEW_AWK" < "$WORK/diff.txt" | grep -c 'setProperty\|--color-k
   && grep -qF 'Apps whose `eslint-disable` comments name `no-restricted-syntax` or `no-restricted-imports`' "$LIB/README.md" \
   && UPGRADE_GREP=$(grep -o "grep -rnE '[^']*' src" "$LIB/agent/AGENTS.md") && mkdir -p "$WORK/upgrade/src" \
   && printf '%s\n' '/* eslint-disable no-restricted-syntax */' 'x' '/* eslint-enable no-restricted-syntax */' '/* eslint-disable kleros-ui/no-restricted-syntax */' '/* eslint-enable kleros-ui/no-restricted-syntax */' '// eslint-disable-next-line kleros-ui/no-restricted-syntax, no-restricted-imports' > "$WORK/upgrade/src/Old.tsx" \
-  && test "$(cd "$WORK/upgrade" && sh -c "$UPGRADE_GREP" | cut -d: -f2 | tr '\n' ' ')" = "1 3 6 " \
+  && [[ "$(cd "$WORK/upgrade" && sh -c "$UPGRADE_GREP" | cut -d: -f2 | tr '\n' ' ')" == "1 3 6 " ]] \
   && awk '/^## 1\./ { on = 1; next } /^## / { on = 0 } on' "$LIB/agent/REVIEW.md" | grep -q 'eslint.config.\*.*`\.mts`' \
   && awk '/^## Existing apps$/ { on = 1; next } /^## / { on = 0 } on' "$LIB/agent/AGENTS.md" | grep -q "Tailwind 3 or 4.0: move to 4.1.17 or later" \
   && echo "gate: d.11 (DO-1, DO-5, CL-B1-1, D2-2; r3 fix D3-2, D3-4, S3-1): AGENTS.md, the README and REVIEW.md part 3 name a token set from code (style.setProperty) or by a class ([--token:...]), and part 3's command, run as printed in the app's folder, lists those added lines and skips var() and bg-(--token) uses; part 1 gives the hoisted @source an existing app writes and names the .ts and .mts lint configs init manages; the README and AGENTS.md tell an app whose eslint-disable comments name the core ids about them, and AGENTS.md's grep, run as printed, lists the old-id disable, its eslint-enable and a mixed line, and skips rewritten ones; Existing apps sets Tailwind 4.1.17 as the floor"
 rm -rf "$WORK/diff.txt" "$WORK/upgrade"
 (cd "$T" && ! $CLI find progress bar >/dev/null 2>&1 && grep -q "^| LinearProgress" "$LIB/agent/CATALOG.md" \
   && grep -q "^| CircularProgress.*tone" "$LIB/agent/CATALOG.md") && echo "gate: no find command; CATALOG.md lists LinearProgress and CircularProgress with tone"
+# 3.11 review (CodeRabbit): a "|" inside a CATALOG.md cell is written "\|", so no row gains a column. Each component row
+# has the 5 unescaped "|" of its 4 cells, each known-gap row 4, and there is one row per catalog.json entry.
+awk -v want="$(node -p 'const c = require(process.argv[1]); c.components.length + c.knownGaps.length' "$LIB/agent/catalog.json")" '
+  /^\| Component \|/ { t = 5; next } /^\| Need \|/ { t = 4; next } /^\|---/ { next }
+  /^\| / { s = $0; gsub(/\\\|/, "", s); if (gsub(/\|/, "", s) != t) bad++; rows++ }
+  END { exit (bad || rows != want) }' "$LIB/agent/CATALOG.md" \
+  && grep -qF '| value; tone (success\|warning\|error\|info\|neutral\|accent) sets' "$LIB/agent/CATALOG.md" \
+  && echo "gate: 3.11 review: CATALOG.md writes a | inside a cell as \\| (CircularProgress's tones), so every component row keeps its 4 cells and every known gap its 3, one row per catalog.json entry"
 # d.8 review: a kit component missing from AGENTS.md or from the lint's KIT_NAMES is one agents re-declare unnoticed.
 node "$P/gate/kit-names.mjs" "$LIB/agent/catalog.json" "$LIB/agent/AGENTS.md" "$LIB/eslint/index.mjs" >/dev/null \
   && echo "gate: every kit component in the catalogue is named in agent/AGENTS.md and in the lint preset's KIT_NAMES"
@@ -225,8 +239,8 @@ node "$P/gate/review-preset.mjs" "$LIB/eslint/index.mjs" "$RP" >/dev/null \
 rm -rf "$RP"
 # d.9 (D13): this app has no Storybook, so new writes no stories file; stories with Storybook are gated in step 9.
 # d.11 (B2): new takes --intent, and the entry holds its words (an entry without them is gated in step 10).
-(cd "$T" && $CLI new VoteTallyBar --kind data --intent "vote tally, vote count bar" >/dev/null && test -f src/components/VoteTallyBar/VoteTallyBar.tsx \
-  && test -f src/components/VoteTallyBar/index.ts && test ! -e src/components/VoteTallyBar/VoteTallyBar.stories.tsx \
+(cd "$T" && $CLI new VoteTallyBar --kind data --intent "vote tally, vote count bar" >/dev/null && [[ -f src/components/VoteTallyBar/VoteTallyBar.tsx ]] \
+  && [[ -f src/components/VoteTallyBar/index.ts ]] && [[ ! -e src/components/VoteTallyBar/VoteTallyBar.stories.tsx ]] \
   && ! $CLI new Button >/dev/null 2>&1 && grep -q '"name": "VoteTallyBar"' kleros-ui.json \
   && node -e 'const c = require(process.argv[1]).components.find((x) => x.name === "VoteTallyBar"); process.exit(JSON.stringify(c.intent) === JSON.stringify(["vote tally", "vote count bar"]) ? 0 : 1)' "$T/kleros-ui.json") \
   && echo "gate: new scaffolds files and a registry entry with its --intent words (no stories without Storybook), and refuses library names"
@@ -238,7 +252,7 @@ CREATE="env -u npm_config_package $CLI create"
 # after the folder, the library spec is ^VERSION (or --lib, as file: from the app), init runs; a second create refuses.
 C=$(mktemp -d -p "$WORK")
 (cd "$C" && mkdir "My App" && touch "My App/.prompt.txt" && $CREATE "My App" --no-install >/dev/null \
-  && for f in package.json index.html vite.config.ts tsconfig.json eslint.config.js src/main.tsx src/index.css src/App.tsx .gitignore; do test -f "My App/$f" || exit 1; done \
+  && for f in package.json index.html vite.config.ts tsconfig.json eslint.config.js src/main.tsx src/index.css src/App.tsx .gitignore; do [[ -f "My App/$f" ]] || exit 1; done \
   && grep -c "kleros-ui:start" "My App/AGENTS.md" | grep -qx 1 \
   && node -e 'const p = require(process.argv[1]); process.exit(p.name === "my-app" && p.dependencies["@kleros/ui-components-library"] === "^" + process.argv[2] && p.scripts["ui:check"] ? 0 : 1)' "$C/My App/package.json" "$VERSION" \
   && $CREATE lib-app --lib ./vendor/x.tgz --no-install >/dev/null && grep -q '"@kleros/ui-components-library": "file:../vendor/x.tgz"' lib-app/package.json \
@@ -246,7 +260,7 @@ C=$(mktemp -d -p "$WORK")
   && $CREATE url-app --lib https://example.com/x.tgz --no-install >/dev/null && grep -qF '"@kleros/ui-components-library": "https://example.com/x.tgz"' url-app/package.json \
   && $CREATE name-app --lib @kleros/ui-components-library@3.10.1 --no-install >/dev/null && grep -qF '"@kleros/ui-components-library": "3.10.1"' name-app/package.json \
   && ! $CREATE "My App" --no-install >refused.txt 2>&1 && grep -q "src/App.tsx" refused.txt \
-  && mkdir src-file && touch src-file/src && ! $CREATE src-file --no-install >/dev/null 2>&1 && test "$(ls -A src-file)" = "src") \
+  && mkdir src-file && touch src-file/src && ! $CREATE src-file --no-install >/dev/null 2>&1 && [[ "$(ls -A src-file)" == "src" ]]) \
   && echo "gate: create writes the starter into a non-empty folder, names it, sets ^$VERSION (or --lib: a relative path as file: from the app, an absolute path or a URL as given, name@version as the version), runs init, and refuses to overwrite, a file where a folder goes included"
 rm -rf "$C"
 # (b) After `npm install ./vendor/x.tgz` in an empty folder (all three pilot-4 agents did that): create . merges the
@@ -254,7 +268,7 @@ rm -rf "$C"
 M=$(mktemp -d -p "$WORK")
 mkdir "$M/cell"
 (cd "$M/cell" && echo '{"dependencies":{"@kleros/ui-components-library":"file:vendor/x.tgz","react":"^18.2.0"}}' > package.json \
-  && $CREATE . --no-install >/dev/null && test -f src/App.tsx && grep -c "kleros-ui:start" AGENTS.md | grep -qx 1 \
+  && $CREATE . --no-install >/dev/null && [[ -f src/App.tsx ]] && grep -c "kleros-ui:start" AGENTS.md | grep -qx 1 \
   && node -e 'const p = require(process.argv[1]); const d = p.dependencies, v = p.devDependencies; process.exit(p.name === "cell" && p.type === "module" && d["@kleros/ui-components-library"] === "file:vendor/x.tgz" && d.react === "^18.2.0" && d["react-dom"] && v.vite && v.eslint && p.scripts.build && p.scripts["ui:check"] ? 0 : 1)' "$M/cell/package.json") \
   && echo "gate: create . merges into an existing package.json, keeps its library spec and React, adds the rest and runs init"
 rm -rf "$M"
@@ -267,8 +281,8 @@ mkdir "$S/src" && cp "$P/gate/cli-css-fixture.css" "$S/src/fixture.css"
 (cd "$S" && ! $CLI css >out.txt \
   && grep -qx "css: 14 findings (1 token override, 4 colour literals, 9 Tailwind-only, 0 !important, 0 library internals) in 1 file scanned" out.txt \
   && grep -q "^src/fixture.css:5:3 --klerosUIComponentsPrimaryBlue redefines a library token" out.txt \
-  && test "$(grep -v 'css-tailwind-only)$' out.txt | grep -o '^src/fixture.css:[0-9]*' | cut -d: -f2 | tr '\n' ' ')" = "5 5 6 12 15 " \
-  && test "$(grep 'css-tailwind-only)$' out.txt | grep -o '^src/fixture.css:[0-9]*' | cut -d: -f2 | tr '\n' ' ')" = "2 3 4 9 11 12 13 14 15 " \
+  && [[ "$(grep -v 'css-tailwind-only)$' out.txt | grep -o '^src/fixture.css:[0-9]*' | cut -d: -f2 | tr '\n' ' ')" == "5 5 6 12 15 " ]] \
+  && [[ "$(grep 'css-tailwind-only)$' out.txt | grep -o '^src/fixture.css:[0-9]*' | cut -d: -f2 | tr '\n' ' ')" == "2 3 4 9 11 12 13 14 15 " ]] \
   && cd "$LIB/templates/poc" && $CLI css | grep -qx "css: 0 findings (0 token overrides, 0 colour literals, 0 Tailwind-only, 0 !important, 0 library internals) in 2 files scanned") \
   && echo "gate: the CSS scan flags a redefined token and 4 colour literals, not #ids in selectors or comments, and finds 0 in the starter's CSS"
 rm -rf "$S"
@@ -282,9 +296,9 @@ printf ':root {\n  --color-klerosUIComponentsPrimaryBlue: var(--klerosUIComponen
 printf '<!doctype html>\n<!-- <style> .old { color: #101010; } </style> -->\n<style> .ok { color: var(--klerosUIComponentsPrimaryText); } </style>\n' > "$X/index.html"
 (cd "$X" && ! $CLI css >out.txt 2>&1 \
   && grep -qx "css: 3 findings (1 token override, 0 colour literals, 2 Tailwind-only, 0 !important, 0 library internals) in 2 files scanned" out.txt \
-  && test "$(grep -c '^index.html:' out.txt)" = 1 && grep -q '^index.html:3:1 <style> block' out.txt \
+  && [[ "$(grep -c '^index.html:' out.txt)" == "1" ]] && grep -q '^index.html:3:1 <style> block' out.txt \
   && grep -q "^src/alias.css:2:3 --color-klerosUIComponentsPrimaryBlue redefines a library token" out.txt \
-  && { $CLI css nope.css >/dev/null 2>&1; test $? -eq 2; }) \
+  && { $CLI css nope.css >/dev/null 2>&1; [[ $? -eq 2 ]]; }) \
   && echo "gate: the CSS scan flags the --color- alias of a token, skips a commented-out <style> block and broken or looping links, and exits 2 on a missing path"
 rm -rf "$X"
 
@@ -311,4 +325,4 @@ gates | tee "$WORK/gates.log"
 N=$(grep -c '^gate:' "$WORK/gates.log")
 SMOKE=FAILED; grep -q '^ok   ChainGuard gates on chain' "$WORK/gates.log" && SMOKE=ok
 echo "test:layer: $N of $EXPECTED gate lines, kit smoke render $SMOKE, on $VERSION"
-[ "$N" = "$EXPECTED" ] && [ "$SMOKE" = ok ]
+[[ "$N" == "$EXPECTED" ]] && [[ "$SMOKE" == "ok" ]]

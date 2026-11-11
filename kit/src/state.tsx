@@ -1,6 +1,6 @@
 import React from "react";
 import { AlertMessage, Button } from "@kleros/ui-components-library";
-import { EmptyState, Skeleton } from "./feedback.js";
+import { EmptyState, Skeleton, type EmptyStateProps } from "./feedback.js";
 import { cn } from "./cn.js";
 
 export interface ErrorStateProps {
@@ -40,8 +40,13 @@ export interface QueryStateProps<T> {
   isEmpty?: (data: T) => boolean;
   /** Replaces the default skeleton rows while loading. */
   loading?: React.ReactNode;
-  /** Shown when there is no data; omit `empty` to get a generic "Nothing here yet". */
-  empty?: { title: string; description?: string; action?: React.ReactNode };
+  /**
+   * Shown when there is no data; omit `empty` to get a generic "Nothing here yet". `action` takes what `EmptyState`'s
+   * `action` takes (`{ text, onPress }` or a node) and sits in the same place, under the description.
+   */
+  empty?: { title: string; description?: string; action?: EmptyStateProps["action"] };
+  /** Title of the error state. @default "Something went wrong" */
+  errorTitle?: string;
   /** Shows a Retry button in the error state. */
   onRetry?: () => void;
   /** Renders the loaded, non-empty data. */
@@ -57,7 +62,7 @@ export interface QueryStateProps<T> {
  *   {(cases) => <DataTable rows={cases} rowKey={(c) => c.id} columns={columns} />}
  * </QueryState>
  */
-export function QueryState<T>({ isLoading, isError, error, data, isEmpty, loading, empty, onRetry, children }: Readonly<QueryStateProps<T>>) {
+export function QueryState<T>({ isLoading, isError, error, data, isEmpty, loading, empty, errorTitle, onRetry, children }: Readonly<QueryStateProps<T>>) {
   if (isLoading) {
     return (
       <>
@@ -70,15 +75,18 @@ export function QueryState<T>({ isLoading, isError, error, data, isEmpty, loadin
     );
   }
   if (isError) {
-    return <ErrorState message={error instanceof Error ? error.message : undefined} onRetry={onRetry} />;
+    return (
+      <ErrorState title={errorTitle} message={error instanceof Error ? error.message : undefined} onRetry={onRetry} />
+    );
   }
   const isEmptyData = data === undefined || (isEmpty ? isEmpty(data) : Array.isArray(data) && data.length === 0);
   if (isEmptyData) {
     return (
-      <div className="flex flex-col items-center gap-3">
-        <EmptyState title={empty?.title ?? "Nothing here yet"} description={empty?.description} />
-        {empty?.action}
-      </div>
+      <EmptyState
+        title={empty?.title ?? "Nothing here yet"}
+        description={empty?.description}
+        action={empty?.action}
+      />
     );
   }
   return <>{children(data)}</>;

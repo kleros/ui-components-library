@@ -53,15 +53,15 @@ const same = (sel) => decls(block(lib, sel)).length > 0 && JSON.stringify(decls(
 const c = JSON.parse(fs.readFileSync("kleros-ui.json", "utf8"));
 process.exit(shape === "@layer base { :root { } :root.dark { } }" && same(":root") && same(":root\\.dark") && c.theme === "src/theme.css" ? 0 : 1);
 ' \
-    && test "$(grep -n '' src/index.css | grep -F '@import "./theme.css";' | cut -d: -f1)" = "$(( $(grep -n '' src/index.css | grep -F '@import "@kleros/ui-components-library/theme.css";' | cut -d: -f1) + 1 ))" \
-    && test "$(wc -l < src/index.css)" = 5 \
+    && [[ "$(grep -n '' src/index.css | grep -F '@import "./theme.css";' | cut -d: -f1)" == "$(( $(grep -n '' src/index.css | grep -F '@import "@kleros/ui-components-library/theme.css";' | cut -d: -f1) + 1 ))" ]] \
+    && [[ "$(wc -l < src/index.css)" == "5" ]] \
     && $CLI css | grep -qxF "$CSS0" && $CLI check | grep -qx "ui:check passed" \
-    && B=$(snapshot .) && { $CLI theme >"$A/o2.txt" 2>&1; test $? -eq 1; } && test "$(snapshot .)" = "$B" \
+    && B=$(snapshot .) && { $CLI theme >"$A/o2.txt" 2>&1; [[ $? -eq 1 ]]; } && [[ "$(snapshot .)" == "$B" ]] \
     && grep -q "src/theme.css already exists, and theme writes a new file only" "$A/o2.txt" && grep -q "Nothing was written" "$A/o2.txt" \
     && rm src/theme.css && $CLI theme >o3.txt && grep -q 'kept "theme" in kleros-ui.json; src/index.css already imports it' o3.txt \
-    && test -f src/theme.css && test "$(grep -c '"theme"' kleros-ui.json)" = 1 && test "$(grep -cF '@import "./theme.css";' src/index.css)" = 1) \
+    && [[ -f src/theme.css ]] && [[ "$(grep -c '"theme"' kleros-ui.json)" == "1" ]] && [[ "$(grep -cF '@import "./theme.css";' src/index.css)" == "1" ]]) \
   && (cd "$A/brand" && node -e 'const f = "kleros-ui.json", fs = require("fs"); const c = JSON.parse(fs.readFileSync(f)); c.theme = "src/styles/brand.css"; fs.writeFileSync(f, JSON.stringify(c))' \
-    && $CLI theme >/dev/null && test -f src/styles/brand.css && grep -qxF '@import "./styles/brand.css";' src/index.css && $CLI check | grep -qx "ui:check passed") \
+    && $CLI theme >/dev/null && [[ -f src/styles/brand.css ]] && grep -qxF '@import "./styles/brand.css";' src/index.css && $CLI check | grep -qx "ui:check passed") \
   && echo "gate: d.11 (T1, T2): npx kleros-ui theme writes src/theme.css as @layer base { :root { } :root.dark { } } with every library token and its light or dark value as a comment, sets \"theme\" and imports it on the line after the library's theme.css, and the app passes; run again it refuses, names the file and writes nothing; the key and the import are written once; a \"theme\" key's own path is used"
 rm -rf "$A"
 
@@ -72,9 +72,9 @@ rm -rf "$A"
 # records css-theme findings per file like the rest of the scan: one more fails check, and check --build ignores it.
 A=$(mktemp -d -p "$WORK")
 app "$A/app" \
-  && (cd "$A/app" && $CLI theme >/dev/null && cp "$P/gate/cli-theme-fixture.css" src/theme.css && { $CLI css >o1.txt; test $? -eq 1; } \
+  && (cd "$A/app" && $CLI theme >/dev/null && cp "$P/gate/cli-theme-fixture.css" src/theme.css && { $CLI css >o1.txt; [[ $? -eq 1 ]]; } \
     && grep -qx "css: 7 findings (0 token overrides, 0 colour literals, 0 Tailwind-only, 0 !important, 0 library internals, 7 theme) in 2 files scanned" o1.txt \
-    && test "$(grep -c '(kleros-ui/css-theme)$' o1.txt)" = 7 \
+    && [[ "$(grep -c '(kleros-ui/css-theme)$' o1.txt)" == "7" ]] \
     && grep -q '^src/theme.css:4:5 --klerosUIComponentsPrimaryBlu is not a library token' o1.txt \
     && grep -q "^src/theme.css:5:5 --color-klerosUIComponentsPrimaryBlue is Tailwind's alias of the token --klerosUIComponentsPrimaryBlue in the theme file src/theme.css: redefine --klerosUIComponentsPrimaryBlue itself" o1.txt \
     && grep -q '^src/theme.css:6:5 color in the theme file src/theme.css' o1.txt \
@@ -98,19 +98,19 @@ rm -rf "$A"
 A=$(mktemp -d -p "$WORK")
 app "$A/app" \
   && (cd "$A/app" && $CLI theme >/dev/null \
-    && printf '@layer base {\n  :root {\n    c\\olor: red;\n    --klerosUIComponentsPrimaryBlue: #05a !\\important;\n  }\n}\n' > src/theme.css && { $CLI css >o1.txt; test $? -eq 1; } \
+    && printf '@layer base {\n  :root {\n    c\\olor: red;\n    --klerosUIComponentsPrimaryBlue: #05a !\\important;\n  }\n}\n' > src/theme.css && { $CLI css >o1.txt; [[ $? -eq 1 ]]; } \
     && grep -qx "css: 2 findings (0 token overrides, 0 colour literals, 0 Tailwind-only, 0 !important, 0 library internals, 2 theme) in 2 files scanned" o1.txt \
     && grep -q '^src/theme.css:3:6 A backslash (a CSS escape) in the theme file src/theme.css: CSS reads it as the plain letter' o1.txt \
     && grep -q '^src/theme.css:4:44 A backslash (a CSS escape) in the theme file src/theme.css' o1.txt \
     && printf '@layer base {\n  :root, :root.dark {\n    --klerosUIComponentsPrimaryBlue: #05a;\n  }\n}\n' > src/theme.css && $CLI css | grep -qxF "$CSS0" \
-    && sed -i 's#^  :root, :root.dark {#  :root, .dark {#' src/theme.css && { $CLI css >o2.txt; test $? -eq 1; } \
+    && sed -i 's#^  :root, :root.dark {#  :root, .dark {#' src/theme.css && { $CLI css >o2.txt; [[ $? -eq 1 ]]; } \
     && grep -q '^src/theme.css:2:3 Selector ":root, .dark" in the theme file src/theme.css: only :root (light) and :root.dark (dark)' o2.txt \
     && rm src/theme.css && node -e 'const f = "kleros-ui.json", fs = require("fs"); const c = JSON.parse(fs.readFileSync(f)); c.theme = "src/theme.scss"; fs.writeFileSync(f, JSON.stringify(c))' \
     && sed -i 's#^@import "./theme.css";#@import "./theme.scss";#' src/index.css \
-    && printf '@layer base {\n  :root {\n    // } .x { color: red; }\n    --klerosUIComponentsPrimaryBlue: #05a;\n  }\n}\n' > src/theme.scss && { $CLI css >o3.txt; test $? -eq 1; } \
+    && printf '@layer base {\n  :root {\n    // } .x { color: red; }\n    --klerosUIComponentsPrimaryBlue: #05a;\n  }\n}\n' > src/theme.scss && { $CLI css >o3.txt; [[ $? -eq 1 ]]; } \
     && grep -q '^src/theme.scss:3:10 Selector ".x" in the theme file src/theme.scss' o3.txt \
     && mv src/theme.scss src/brand.theme && node -e 'const f = "kleros-ui.json", fs = require("fs"); const c = JSON.parse(fs.readFileSync(f)); c.theme = "src/brand.theme"; fs.writeFileSync(f, JSON.stringify(c))' \
-    && sed -i 's#^@import "./theme.scss";#@import "./brand.theme";#' src/index.css && { $CLI css >o4.txt; test $? -eq 1; } \
+    && sed -i 's#^@import "./theme.scss";#@import "./brand.theme";#' src/index.css && { $CLI css >o4.txt; [[ $? -eq 1 ]]; } \
     && grep -q '^src/brand.theme:3:10 Selector ".x" in the theme file src/brand.theme' o4.txt) \
   && echo "gate: d.11 (TH-2, TH-3, TH-4): a backslash outside a string in the theme file (c\\olor, !\\important) is a css-theme finding at its place; :root, :root.dark passes and a list with another selector does not; a theme file named .scss is read as plain CSS, where // starts no comment, and one with another extension is read too"
 rm -rf "$A"
@@ -121,7 +121,7 @@ rm -rf "$A"
 # in d.10, and the @import message names the theme file.
 A=$(mktemp -d -p "$WORK")
 entry() { # <sed script for src/index.css> <the finding's line, from its start> <its count, as the summary shows it>
-  cp "$A/good.css" src/index.css && sed -i "$1" src/index.css && { $CLI css >o.txt; test $? -eq 1; } && grep -q "^$2" o.txt \
+  cp "$A/good.css" src/index.css && sed -i "$1" src/index.css && { $CLI css >o.txt; [[ $? -eq 1 ]]; } && grep -q "^$2" o.txt \
     && grep -qx "css: 1 finding (0 token overrides, 0 colour literals, $3) in 2 files scanned" o.txt
 }
 app "$A/app" \
@@ -152,18 +152,18 @@ app "$A/app" && app "$A/plain" \
   && (cd "$A/app" && $CLI theme >/dev/null && probe src/theme.css \
     && printf ':root {\n  --klerosUIComponentsPrimaryText: var(--klerosUIComponentsTint);\n}\n' >> src/index.css \
     && printf ':root {\n  --color-klerosUIComponentsPrimaryBlue: var(--klerosUIComponentsTint);\n}\n' > src/alias.css \
-    && { $CLI css >o.txt; test $? -eq 1; } \
+    && { $CLI css >o.txt; [[ $? -eq 1 ]]; } \
     && grep -qx "css: 4 findings (2 token overrides, 0 colour literals, 2 Tailwind-only, 0 !important, 0 library internals, 0 theme) in 3 files scanned" o.txt \
     && grep -qF 'src/index.css:7:3 --klerosUIComponentsPrimaryText redefines a library token outside the theme file: set tokens only in src/theme.css (kleros-ui.json "theme", the file npx kleros-ui theme sets up)' o.txt \
     && grep -qF "src/alias.css:2:3 --color-klerosUIComponentsPrimaryBlue redefines a library token through Tailwind's alias of --klerosUIComponentsPrimaryBlue outside the theme file: set --klerosUIComponentsPrimaryBlue itself, never the alias, only in src/theme.css (kleros-ui.json \"theme\", the file npx kleros-ui theme sets up)" o.txt \
     && grep -q '^src/index.css:6:1 Style rule ":root" in the Tailwind entry' o.txt \
     && grep -qF 'src/alias.css:1:1 Style rule ":root" in a .css file outside the Tailwind entry: Tailwind only, so no stylesheet besides the one entry that imports tailwindcss (src/index.css as create writes it) and the theme file src/theme.css (kleros-ui.json "theme").' o.txt) \
-  && (cd "$A/plain" && probe src/theme.css && { $CLI css >o.txt; test $? -eq 1; } \
+  && (cd "$A/plain" && probe src/theme.css && { $CLI css >o.txt; [[ $? -eq 1 ]]; } \
     && grep -qx "css: 8 findings (3 token overrides, 3 colour literals, 2 Tailwind-only, 0 !important, 0 library internals) in 2 files scanned" o.txt \
     && grep -qF 'src/theme.css:2:3 Style rule ":root" (in @layer base) in a .css file outside the Tailwind entry: Tailwind only, so no stylesheet besides the one entry that imports tailwindcss (src/index.css as create writes it) and one theme file for new token values, which npx kleros-ui theme sets up.' o.txt \
     && grep -qF 'src/theme.css:3:5 --klerosUIComponentsPrimaryText redefines a library token, and kleros-ui.json declares no theme file. src/theme.css is there, so npx kleros-ui theme would refuse to write it: declare it with "theme": "src/theme.css" in kleros-ui.json, add @import "./theme.css"; to src/index.css right after @import "@kleros/ui-components-library/theme.css";, then set tokens only there.' o.txt \
     && grep -qF 'src/theme.css:3:38 Colour literal #101010 in --klerosUIComponentsPrimaryText: a token'"'"'s new value, a hex included, goes only in the theme file that npx kleros-ui theme sets up (src/theme.css); the css-token finding on this line says how.' o.txt \
-    && mv src/theme.css src/brand.css && { $CLI css >o2.txt; test $? -eq 1; } \
+    && mv src/theme.css src/brand.css && { $CLI css >o2.txt; [[ $? -eq 1 ]]; } \
     && grep -qF 'src/brand.css:3:5 --klerosUIComponentsPrimaryText redefines a library token, and this app has no theme file: run npx kleros-ui theme (it writes src/theme.css and imports it), then set tokens only there.' o2.txt) \
   && echo "gate: d.11 (T5, DO-2, DO-3): a token redefined outside the declared theme file, the --color- alias included, is still a css-token finding, and its message names the theme file and npx kleros-ui theme; a theme-like src/theme.css kleros-ui.json does not declare gets d.10's findings and summary, and the message names the key and the import to add (theme would refuse that file); with no such file it says to run npx kleros-ui theme; a colour on a token's line points to the theme file, and the outside-the-entry message names it"
 rm -rf "$A"
@@ -193,7 +193,7 @@ EOF
 # eslint -f json as the stub prints it: one file, src/App.tsx, with an error under each rule id given.
 lintout() { node -e 'const [dir, ...ids] = process.argv.slice(1); console.log(JSON.stringify([{ filePath: dir + "/src/App.tsx", messages: ids.map((ruleId, i) => ({ severity: 2, ruleId, line: i + 1, column: 1, message: "stub error under " + ruleId })) }]))' "$PWD" "$@" > eslint-out.json; }
 (cd "$A/lint" && $CLI init >/dev/null && grep -q '^import app from "./eslint.config.app.mjs";' eslint.config.mjs \
-  && node "$P/gate/cli-lint-load.mjs" . src/App.tsx >rules.txt && test "$(head -1 rules.txt)" = eslint.config.mjs \
+  && node "$P/gate/cli-lint-load.mjs" . src/App.tsx >rules.txt && [[ "$(head -1 rules.txt)" == "eslint.config.mjs" ]] \
   && tail -1 rules.txt | node -e '
 const m = JSON.parse(require("fs").readFileSync(0, "utf8")); const r = m.rules;
 const ok = r["no-restricted-imports"]?.[1]?.patterns?.[0]?.message === "APP RULE: no lodash." && r["no-restricted-imports"].length === 2
@@ -211,7 +211,7 @@ process.exit(ok ? 0 : 1);') \
     && $CLI baseline >/dev/null && node -e 'const b = require(process.argv[1]); process.exit(b.version === process.argv[2] && b.lint["src/App.tsx|kleros-ui/no-restricted-syntax"] === 1 && b.lint["src/App.tsx|no-restricted-imports"] === 1 ? 0 : 1)' "$PWD/kleros-ui-baseline.json" "$(node -p 'require(process.argv[1]).version' "$LIB/package.json")" \
     && lintout kleros-ui/no-restricted-syntax no-restricted-imports no-restricted-imports && ! $CLI check >o3.txt && grep -q '^lint: 1 new (baseline 1):' o3.txt \
     && node -e 'console.log(JSON.stringify([{ filePath: process.argv[1] + "/src/Panel.tsx", messages: [{ ruleId: null, fatal: true, severity: 2, line: 1, column: 32, message: "Parsing error: Unexpected token :" }] }]))' "$PWD" > eslint-out.json \
-    && cp kleros-ui-baseline.json b0.json && { $CLI baseline >b1.txt 2>&1; test $? -eq 1; } && cmp -s b0.json kleros-ui-baseline.json \
+    && cp kleros-ui-baseline.json b0.json && { $CLI baseline >b1.txt 2>&1; [[ $? -eq 1 ]]; } && cmp -s b0.json kleros-ui-baseline.json \
     && grep -qx "kleros-ui baseline: ESLint cannot parse 1 file, so it checks nothing else in it:" b1.txt && grep -qx "  src/Panel.tsx:1:32 Parsing error: Unexpected token :" b1.txt \
     && grep -q "^The lint config needs a TypeScript parser, e.g. typescript-eslint's" b1.txt \
     && echo "{\"version\":\"$(node -p 'require(process.argv[1]).version' "$LIB/package.json")\",\"lint\":{\"src/Panel.tsx|fatal\":1},\"tsc\":{},\"css\":{}}" > kleros-ui-baseline.json \
@@ -254,10 +254,10 @@ app "$A/app" \
     && $CLI new Bare --kind data >/dev/null \
     && $CLI check >o3.txt && grep -qx "ui:check passed" o3.txt && grep -q '^note: kleros-ui.json: Bare has no intent words' o3.txt && ! grep -q 'PeriodBadge has no' o3.txt \
     && $CLI check --build >o4.txt && grep -qx "kleros-ui check --build passed" o4.txt && grep -q '^note: kleros-ui.json: Bare has no intent words' o4.txt \
-    && B=$(snapshot .) && { $CLI new Loose --intent period badge >"$A/o5.txt" 2>&1; test $? -eq 1; } && test "$(snapshot .)" = "$B" \
+    && B=$(snapshot .) && { $CLI new Loose --intent period badge >"$A/o5.txt" 2>&1; [[ $? -eq 1 ]]; } && [[ "$(snapshot .)" == "$B" ]] \
     && grep -q 'unexpected badge; quote the intent words as one argument: --intent "period badge, status chip"' "$A/o5.txt") \
   && app "$A/gap" && GAP=$(grep -o '`npx kleros-ui new TxLink [^`]*`' "$LIB/agent/CATALOG.md" | tr -d '`') \
-  && test "$(grep -c 'npx kleros-ui new ' "$LIB/agent/CATALOG.md")" = "$(grep -c 'npx kleros-ui new [A-Za-z]* --kind [a-z]* --intent "' "$LIB/agent/CATALOG.md")" \
+  && [[ "$(grep -c 'npx kleros-ui new ' "$LIB/agent/CATALOG.md")" == "$(grep -c 'npx kleros-ui new [A-Za-z]* --kind [a-z]* --intent "' "$LIB/agent/CATALOG.md")" ]] \
   && (cd "$A/gap" && eval "$CLI ${GAP#npx kleros-ui }" >/dev/null \
     && node -e 'const c = require(process.argv[1]).components.find((x) => x.name === "TxLink"); process.exit(c?.intent?.includes("tx hash") ? 0 : 1)' "$PWD/kleros-ui.json" \
     && $CLI check >o.txt && grep -qx "ui:check passed" o.txt && ! grep -q "no intent words" o.txt) \
@@ -280,8 +280,8 @@ echo '{"name":"auto","type":"module"}' > "$A/auto/package.json"
 echo '{ "compilerOptions": { "jsx": "react-jsx" } }' > "$A/auto/tsconfig.json"
 node -e 'const t = require(process.argv[1]).typesVersions?.["*"]; process.exit(JSON.stringify(t) === JSON.stringify({ kit: ["dist/kit/index.d.ts"], "story-types": ["story-types.d.ts"] }) ? 0 : 1)' "$LIB/package.json" \
   && (cd "$A/classic" && $CLI new ClassicForm --kind form --intent "classic form" >o1.txt && $CLI new ClassicCard --kind ui --intent "classic card" >/dev/null \
-    && test "$(head -1 src/components/ClassicForm/ClassicForm.tsx)" = 'import React, { useState } from "react";' \
-    && test "$(head -1 src/components/ClassicCard/ClassicCard.tsx)" = 'import React from "react";' \
+    && [[ "$(head -1 src/components/ClassicForm/ClassicForm.tsx)" == 'import React, { useState } from "react";' ]] \
+    && [[ "$(head -1 src/components/ClassicCard/ClassicCard.tsx)" == 'import React from "react";' ]] \
     && grep -q 'ClassicForm.tsx starts with import React from "react";, since tsconfig.json (or a config it extends) sets "jsx": "react"' o1.txt \
     && printf '%s\n' 'import React from "react";' 'import { Stack } from "@kleros/ui-components-library/kit";' 'import type { Meta } from "@kleros/ui-components-library/story-types";' \
       'import { ClassicCard } from "./components/ClassicCard";' 'import { ClassicForm } from "./components/ClassicForm";' '' \
@@ -289,7 +289,7 @@ node -e 'const t = require(process.argv[1]).typesVersions?.["*"]; process.exit(J
       'export const Uses = () => (' '  <Stack gap={2} className="p-4">' '    <ClassicCard />' '    <ClassicForm onSubmit={() => undefined} />' \
       '    {/* @ts-expect-error: Stack has no prop nope, so /kit resolved to its real types, not any */}' '    <Stack nope />' '  </Stack>' ');' > src/uses.tsx \
     && nice "$TSC" -p tsconfig.json) \
-  && (cd "$A/auto" && $CLI new AutoCard --kind ui --intent "auto card" >o1.txt && test "$(head -1 src/components/AutoCard/AutoCard.tsx)" = 'import { Stack } from "@kleros/ui-components-library/kit";' \
+  && (cd "$A/auto" && $CLI new AutoCard --kind ui --intent "auto card" >o1.txt && [[ "$(head -1 src/components/AutoCard/AutoCard.tsx)" == 'import { Stack } from "@kleros/ui-components-library/kit";' ]] \
     && ! grep -q 'import React' src/components/AutoCard/AutoCard.tsx o1.txt) \
   && mkdir -p "$A/bom" "$A/field/node_modules/@acme/tsconfig" "$A/sub/node_modules/@acme/tsconfig" \
   && for d in bom field sub; do echo "{\"name\":\"$d\",\"type\":\"module\"}" > "$A/$d/package.json"; done \
@@ -299,11 +299,11 @@ node -e 'const t = require(process.argv[1]).typesVersions?.["*"]; process.exit(J
   && for d in field sub; do echo 'module.exports = {};' > "$A/$d/node_modules/@acme/tsconfig/index.js" \
     && echo '{ "compilerOptions": { "jsx": "react", "esModuleInterop": true } }' > "$A/$d/node_modules/@acme/tsconfig/react.json"; done \
   && echo '{ "extends": "@acme/tsconfig" }' > "$A/field/tsconfig.json" && echo '{ "extends": "@acme/tsconfig/react" }' > "$A/sub/tsconfig.json" \
-  && ( for d in bom field sub; do (cd "$A/$d" && $CLI new PlainCard --kind ui --intent "plain card" >/dev/null && test "$(head -1 src/components/PlainCard/PlainCard.tsx)" = 'import React from "react";') || exit 1; done ) \
+  && ( for d in bom field sub; do (cd "$A/$d" && $CLI new PlainCard --kind ui --intent "plain card" >/dev/null && [[ "$(head -1 src/components/PlainCard/PlainCard.tsx)" == 'import React from "react";' ]]) || exit 1; done ) \
   && mkdir -p "$A/nointerop/node_modules/@kleros" && ln -s "$LIB" "$A/nointerop/node_modules/@kleros/ui-components-library" \
   && echo '{"name":"nointerop","type":"module"}' > "$A/nointerop/package.json" \
   && echo '{ "compilerOptions": { "jsx": "react", "moduleResolution": "node", "module": "esnext", "target": "es2020", "lib": ["dom", "es2020"], "strict": true, "noUnusedLocals": true, "skipLibCheck": true, "noEmit": true }, "include": ["src"] }' > "$A/nointerop/tsconfig.json" \
-  && (cd "$A/nointerop" && $CLI new PlainBar --kind ui --intent "plain bar" >/dev/null && test "$(head -1 src/components/PlainBar/PlainBar.tsx)" = 'import * as React from "react";' \
+  && (cd "$A/nointerop" && $CLI new PlainBar --kind ui --intent "plain bar" >/dev/null && [[ "$(head -1 src/components/PlainBar/PlainBar.tsx)" == 'import * as React from "react";' ]] \
     && printf '%s\n' 'import * as React from "react";' 'import { Stack } from "@kleros/ui-components-library/kit";' 'import { PlainBar } from "./components/PlainBar";' '' \
       'export const Uses = () => (' '  <Stack gap={2} className="p-4">' '    <PlainBar />' '    {/* @ts-expect-error: Stack has no prop nope, so /kit resolved to its real types, not any */}' '    <Stack nope />' '  </Stack>' ');' > src/uses.tsx \
     && ! grep -q '^import React\b' "$LIB"/dist/kit/*.d.ts && nice "$TSC" -p tsconfig.json) \
@@ -367,10 +367,10 @@ rm -rf "$A"
 A=$(mktemp -d -p "$WORK")
 app "$A/app" \
   && (cd "$A/app" && sed -i 's#"components": \[\]#"components": [],#' kleros-ui.json && ! node -e 'JSON.parse(require("fs").readFileSync("kleros-ui.json", "utf8"))' 2>/dev/null \
-    && printf '.x {\n  color: red;\n}\n' > x.css && { $CLI css x.css >o1.txt 2>e1.txt; test $? -eq 1; } \
-    && grep -q '^css: 2 findings (0 token overrides, 1 colour literal, 1 Tailwind-only' o1.txt && test "$(wc -l < e1.txt)" = 1 \
+    && printf '.x {\n  color: red;\n}\n' > x.css && { $CLI css x.css >o1.txt 2>e1.txt; [[ $? -eq 1 ]]; } \
+    && grep -q '^css: 2 findings (0 token overrides, 1 colour literal, 1 Tailwind-only' o1.txt && [[ "$(wc -l < e1.txt)" == "1" ]] \
     && grep -q '^kleros-ui: kleros-ui.json is not valid JSON (.*). Fix it (no comments, no trailing commas), then run the command again. This scan of the files named reads no theme from it.$' e1.txt \
-    && { $CLI check >o2.txt 2>&1; test $? -eq 1; } && test "$(wc -l < o2.txt)" = 1 \
+    && { $CLI check >o2.txt 2>&1; [[ $? -eq 1 ]]; } && [[ "$(wc -l < o2.txt)" == "1" ]] \
     && grep -q '^kleros-ui: kleros-ui.json is not valid JSON (.*). Fix it (no comments, no trailing commas), then run the command again.$' o2.txt) \
   && echo "gate: d.11 (CL-CSS-1): a kleros-ui.json that is not valid JSON stops check with one line naming the file and the fix, no stack; css with paths still scans them and says on one line that it reads no theme"
 rm -rf "$A"
@@ -400,7 +400,7 @@ own "$A/own" && app "$A/notw" \
     && grep -qF "$PART 11 of the kit's 12 files in node_modules/@kleros/ui-components-library/dist/kit/ (app.js, chart.js, cn.js, data.js, feedback.js, form.js, index.js, state.js, status.js, time.js, tokens.js). Add @source \"$L\";" o2.txt \
     && entry '@import "tailwindcss";' "$TH" "@SOURCE \"$L\";" && ! $CLI check >o3.txt && grep -qF "$ALL12" o3.txt \
     && grep -q '@SOURCE is not read by Tailwind, which reads @source in lower case only$' o3.txt) \
-  && (cd "$A/notw" && $CLI check >o4.txt && grep -qx "ui:check passed" o4.txt && ! grep -q '^setup:' o4.txt && test "$(grep -c '^note: src/index.css' o4.txt)" = 1 \
+  && (cd "$A/notw" && $CLI check >o4.txt && grep -qx "ui:check passed" o4.txt && ! grep -q '^setup:' o4.txt && [[ "$(grep -c '^note: src/index.css' o4.txt)" == "1" ]] \
     && grep -qF "note: src/index.css: check could not load this app's @tailwindcss/node and @tailwindcss/oxide (Cannot find module '@tailwindcss/node'), so it did not check that Tailwind scans the kit's files." o4.txt \
     && grep -q "reinstall with the app's package manager$" o4.txt && ! grep -q "npm install" o4.txt) \
   && echo "gate: d.11 r3 (R3-1, D3-1): with the real Tailwind, @source not \"../node_modules\" after the starter's line fails naming all 12 kit files and that @source not line, not the line already there; one on time.js names it and time.js; source(none) with an @source on one kit file fails saying only part is reached and naming the other 11; @SOURCE fails saying Tailwind reads lower case only; an app whose @tailwindcss/node and @tailwindcss/oxide do not resolve gets one note, which says to reinstall with the app's package manager, and passes"
@@ -427,7 +427,7 @@ own "$A/pnpm" && app "$A/tw40" \
     && echo 'exports.compile = async () => ({ globs: [], root: null, features: 0, build: () => "" });' > node_modules/@tailwindcss/node/index.js \
     && echo '{"name":"@tailwindcss/oxide","version":"4.0.17","main":"index.js"}' > node_modules/@tailwindcss/oxide/package.json \
     && echo 'exports.Scanner = class { constructor() { throw new Error("4.0 scanner"); } };' > node_modules/@tailwindcss/oxide/index.js \
-    && $CLI check >o1.txt && grep -qx "ui:check passed" o1.txt && test "$(grep -c '^note: src/index.css' o1.txt)" = 1 \
+    && $CLI check >o1.txt && grep -qx "ui:check passed" o1.txt && [[ "$(grep -c '^note: src/index.css' o1.txt)" == "1" ]] \
     && grep -qF "note: src/index.css: this app's Tailwind is 4.0.17, and check needs 4.1 or later to ask it which files it scans, so it did not check the kit's. Before 4.1, an @source on a folder in node_modules (the starter's line) scans none of it" o1.txt \
     && grep -qF "tailwindcss@^4.1.17 and @tailwindcss/vite@^4.1.17" o1.txt && ! grep -q "Vite aliases" o1.txt) \
   && echo "gate: d.11 r3 fix (S3-1, S3-3): with @tailwindcss/node and @tailwindcss/oxide only beside @tailwindcss/vite, as pnpm installs them, check runs the app's Tailwind from there (the starter passes, and without its @source fails naming all 12 kit files); a Tailwind 4.0 whose compile() gives no sources gets one note naming its version and 4.1.17, not a Vite alias, and passes"
@@ -489,8 +489,8 @@ console.log(JSON.stringify([
     && grep -q '^note: src/Combo.tsx:3 eslint-disable-next-line names no-restricted-syntax, .* reports src/Combo.tsx:4 as' o1.txt \
     && grep -q '^note: src/Bom.tsx:1 eslint-disable-next-line names no-restricted-syntax, .* reports src/Bom.tsx:2 as' o1.txt \
     && grep -q '^note: src/Inner.tsx:1 eslint-disable names no-restricted-syntax, .* reports src/Inner.tsx:2, src/Inner.tsx:6 as' o1.txt \
-    && test "$(grep -c '^note: .*eslint-disable' o1.txt)" = 5 && grep -q '^lint: 6 errors under an eslint-disable comment that names the old rule id' o1.txt \
-    && grep -q '^lint: 2 new (baseline 0):' o1.txt && grep -q '^lint: 1 new (baseline 1):' o1.txt && test "$(grep -c '^lint: [0-9]* new' o1.txt)" = 2) \
+    && [[ "$(grep -c '^note: .*eslint-disable' o1.txt)" == "5" ]] && grep -q '^lint: 6 errors under an eslint-disable comment that names the old rule id' o1.txt \
+    && grep -q '^lint: 2 new (baseline 0):' o1.txt && grep -q '^lint: 1 new (baseline 1):' o1.txt && [[ "$(grep -c '^lint: [0-9]* new' o1.txt)" == "2" ]]) \
   && echo "gate: d.11 r2 (L2-1, L2-2, L2-3, L2-4, L2-5): under a baseline from before d.11, a block disable's note names its eslint-enable too; a comment naming two unused rules gets its note; a byte-order mark no longer turns a line-1 next-line comment into a file-wide one; another rule's eslint-enable does not end a block disable; an unused old comment that silenced nothing excuses no error"
 rm -rf "$A"
 
@@ -526,7 +526,7 @@ console.log(JSON.stringify([
     && grep -q '^note: src/Desc.tsx:3 eslint-disable names no-restricted-syntax, .* reports src/Desc.tsx:4 as kleros-ui/no-restricted-syntax. Write kleros-ui/no-restricted-syntax in that comment and in the eslint-enable at src/Desc.tsx:5 instead' o1.txt \
     && grep -q '^note: src/Quoted.tsx:3 eslint-disable names no-restricted-syntax, .* reports src/Quoted.tsx:4 as kleros-ui/no-restricted-syntax. Write kleros-ui/no-restricted-syntax in that comment and in the eslint-enable at src/Quoted.tsx:5 instead' o1.txt \
     && grep -q '^lint: 7 errors under an eslint-disable comment that names the old rule id' o1.txt \
-    && test "$(grep -c '^lint: 1 new (baseline 1):$' o1.txt)" = 2 && test "$(grep -c '^lint: [0-9]* new' o1.txt)" = 2 \
+    && [[ "$(grep -c '^lint: 1 new (baseline 1):$' o1.txt)" == "2" ]] && [[ "$(grep -c '^lint: [0-9]* new' o1.txt)" == "2" ]] \
     && grep -q '^  src/Dup.tsx:9:5 ' o1.txt && grep -q '^  src/Lf.tsx:7:5 ' o1.txt && ! grep -q '^  src/LineEnable.tsx' o1.txt) \
   && echo "gate: d.11 r3 fix (L3-2, L3-3): under a baseline from before d.11, a // eslint-enable, which ESLint ignores, does not end a block disable, so the code d.10 passed still passes; an enable whose -- description runs onto the next line, or that quotes the id, ends it, and the note names that enable; an error under two old disables is excused once, so a new raw control after them fails"
 rm -rf "$A"
@@ -538,12 +538,12 @@ rm -rf "$A"
 A=$(mktemp -d -p "$WORK")
 app "$A/broken" && app "$A/url" && app "$A/txt" \
   && (cd "$A/broken" && printf '{ "cssEntry": "src/index.css", }\n' > kleros-ui.json && touch src/theme.css \
-    && printf '.x { --klerosUIComponentsPrimaryBlue: #123456; }\n' > src/other.css && { $CLI css src/other.css >o1.txt 2>e1.txt; test $? -eq 1; } \
-    && grep -q '^css: 3 findings (1 token override, 1 colour literal, 1 Tailwind-only' o1.txt && test "$(wc -l < e1.txt)" = 1 \
-    && echo null > kleros-ui.json && { $CLI css src/other.css >o2.txt 2>e2.txt; test $? -eq 1; } \
-    && grep -q '^css: 3 findings (1 token override, 1 colour literal, 1 Tailwind-only' o2.txt && test "$(wc -l < e2.txt)" = 1 \
+    && printf '.x { --klerosUIComponentsPrimaryBlue: #123456; }\n' > src/other.css && { $CLI css src/other.css >o1.txt 2>e1.txt; [[ $? -eq 1 ]]; } \
+    && grep -q '^css: 3 findings (1 token override, 1 colour literal, 1 Tailwind-only' o1.txt && [[ "$(wc -l < e1.txt)" == "1" ]] \
+    && echo null > kleros-ui.json && { $CLI css src/other.css >o2.txt 2>e2.txt; [[ $? -eq 1 ]]; } \
+    && grep -q '^css: 3 findings (1 token override, 1 colour literal, 1 Tailwind-only' o2.txt && [[ "$(wc -l < e2.txt)" == "1" ]] \
     && grep -q '^kleros-ui: kleros-ui.json is not valid JSON (null is not an object)' e2.txt \
-    && { $CLI check >o3.txt 2>&1; test $? -eq 1; } && test "$(wc -l < o3.txt)" = 1 && grep -q '^kleros-ui: kleros-ui.json is not valid JSON (null is not an object)' o3.txt) \
+    && { $CLI check >o3.txt 2>&1; [[ $? -eq 1 ]]; } && [[ "$(wc -l < o3.txt)" == "1" ]] && grep -q '^kleros-ui: kleros-ui.json is not valid JSON (null is not an object)' o3.txt) \
   && (cd "$A/url" && $CLI theme >/dev/null \
     && printf '@layer base { :root { --klerosUIComponentsPrimaryBlue: url(/*); } } .hidden-a { color: rgb(1, 2, 3) !important; } @layer base { :root { --klerosUIComponentsPrimaryBlue: url(*/); } }\n' > src/theme.css \
     && ! $CLI css >o1.txt && grep -q '^src/theme.css:1:.* Selector ".hidden-a" in the theme file src/theme.css' o1.txt) \

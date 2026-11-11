@@ -230,12 +230,12 @@
     [
       "EmptyState",
       "empty, no results, nothing here, empty list, no data, zero state",
-      "title, description, action {text, onPress}, icon"
+      "title, description, action ({text, onPress} for a small Button, or a node rendered as given), icon"
     ],
     [
       "InfoCard",
       "info card, callout, explanation box",
-      "children, variant (info|warning|success|error)"
+      "children, variant (info|warning|success|error; also sets its icon and the word screen readers hear first)"
     ],
     [
       "StatCard",
@@ -245,17 +245,17 @@
     [
       "AddressDisplay",
       "address, wallet address, ens, short address, copy address",
-      "address, chars, explorerUrl, copyInfo"
+      "address, chars, explorerUrl (adds a \u2197 link to the explorer beside the address), copyInfo"
     ],
     [
       "TokenAmount",
       "token amount, eth amount, wei, pnk, balance, 18 decimals, format amount",
-      "value (the token's smallest unit, wei for ETH: bigint or integer string; a decimal amount goes through parseUnits first), symbol, decimals, maxFractionDigits"
+      "value (the token's smallest unit, wei for ETH: bigint or integer string; a decimal amount goes through parseUnits first), symbol, decimals, maxFractionDigits (default 4; a non-zero amount below its last digit shows as <0.0001, <0.01 for 2, not 0)"
     ],
     [
       "DataTable",
       "table, data table, rows, columns, list table, loading rows, empty table",
-      "columns: DataTableColumn<T>[], rows, rowKey, isLoading, empty, onRowPress (a click, or Enter or Space on the focused row; a click on a link or button in the row is left to it)"
+      "columns: DataTableColumn<T>[] (key, header, render, align, width: px or a CSS width, so columns keep their place while loading), rows, rowKey, isLoading, empty, onRowPress (a click, or Enter or Space on the focused row; a click on a link or button in the row is left to it)"
     ],
     [
       "ExternalLink",
@@ -265,17 +265,17 @@
     [
       "HelpTooltip",
       "help, info icon, question mark, explanation tooltip, label help",
-      "text, children, place"
+      "text, children (a plain-text label also names the \"?\": \"About\" and the label), place"
     ],
     [
       "ThemeToggle",
       "theme toggle, dark mode, light mode, theme switch",
-      "no props; reads the .dark class when it mounts, so call kit applyInitialTheme() in main.tsx before the first render (?theme=light or ?theme=dark, else the system setting)"
+      "no props; follows the .dark class (useDarkMode), so it stays in step with other code; the word Dark toggles it too; call kit applyInitialTheme() in main.tsx before the first render (?theme=light or ?theme=dark, else the system setting)"
     ],
     [
       "ChainGuard",
       "chain guard, wrong network, switch chain, wallet gate",
-      "isConnected, chainId, requiredChainId, chainName, onConnect, onSwitchChain, children"
+      "isConnected, isConnecting (a spinner instead of the connect or switch prompt while the wallet connects or reconnects), chainId, requiredChainId, chainName, onConnect, onSwitchChain, children"
     ]
   ],
   "knownGaps": [

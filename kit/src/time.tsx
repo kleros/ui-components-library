@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "./cn.js";
 
 export interface CountdownParts {
@@ -15,7 +15,16 @@ export interface CountdownParts {
 // A moment as a Date, milliseconds since the epoch, or an ISO 8601 string. An unparseable string gives NaN, as
 // Date.parse does, and the countdown then reads "0s", the same as an invalid Date: every part 0, isOver false, and no
 // timer (a live interval would start, since NaN <= now is false, and never be cleared).
-const toMs = (t: Date | number | string) => (typeof t === "number" ? t : typeof t === "string" ? Date.parse(t) : t.getTime());
+type Moment = Date | number | string;
+function toMs(t: Moment): number {
+  if (typeof t === "number") return t;
+  if (typeof t === "string") return Date.parse(t);
+  return t.getTime();
+}
+
+// A layout effect in the browser, so a new deadline gets the current clock before the first paint; a plain effect
+// on the server, where layout effects warn and never run.
+const useClockEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 function split(deadlineMs: number, nowMs: number): CountdownParts {
   if (!Number.isFinite(deadlineMs - nowMs)) return { msLeft: 0, days: 0, hours: 0, minutes: 0, seconds: 0, isOver: false };
@@ -37,6 +46,8 @@ function split(deadlineMs: number, nowMs: number): CountdownParts {
  * With `now`, the time left is computed from that fixed moment instead of the clock, and no interval or timer starts:
  * use it for mocks, stories, tests and screenshots with a fixed clock, and for a server render that must hydrate to the
  * same values. The result follows `now` when it changes. Leave `now` out (or `undefined`) for the live clock.
+ * The hook stores the clock, not the result, so a new `deadline` shows in the same render: a live countdown that has
+ * ended and gets a later deadline (a refetch that extends a period) does not read as over for a frame.
  * @param deadline a `Date`, milliseconds since the epoch, or an ISO 8601 string
  * @param now a fixed "now" in the same forms, for a fixed clock; leave it out for the live clock
  * @intent countdown, deadline, time left, timer, remaining time, hook, fixed clock, fixed now, mock time
@@ -48,20 +59,25 @@ export function useCountdown(deadline: Date | number | string, now?: Date | numb
   // null is treated as "no now" too, so a plain-JS caller passing null gets the live clock rather than a crash.
   const fixedMs = now == null ? undefined : toMs(now);
   const fixed = fixedMs !== undefined;
-  // Live state only. With a fixed now it is never read, and Date.now() is never called.
-  const [parts, setParts] = useState(() => split(deadlineMs, fixed ? fixedMs : Date.now()));
-  useEffect(() => {
+  // The live clock, not the parts: they are derived below from the current deadline, so they never lag a new one.
+  // The stored clock stops when the countdown ends, so it can be far behind when a later deadline arrives; the layout
+  // effect below sets it again before that render is painted. It is never ahead of the real one, so it never shows
+  // isOver for a deadline still to come. With a fixed now it is never read, and Date.now() is never called (NaN until a
+  // live clock starts, which split reads as "0s", not over).
+  const [clock, setClock] = useState(() => (fixed ? Number.NaN : Date.now()));
+  useClockEffect(() => {
     if (fixed) return;
-    setParts(split(deadlineMs, Date.now()));
-    if (!Number.isFinite(deadlineMs) || deadlineMs <= Date.now()) return;
+    const start = Date.now();
+    setClock(start);
+    if (!Number.isFinite(deadlineMs) || deadlineMs <= start) return;
     const id = setInterval(() => {
-      const next = split(deadlineMs, Date.now());
-      setParts(next);
-      if (next.isOver) clearInterval(id);
+      const t = Date.now();
+      setClock(t);
+      if (t >= deadlineMs) clearInterval(id);
     }, 1000);
     return () => clearInterval(id);
   }, [deadlineMs, fixed]);
-  return fixed ? split(deadlineMs, fixedMs) : parts;
+  return split(deadlineMs, fixed ? fixedMs : clock);
 }
 
 export interface CountdownProps {
@@ -69,7 +85,11 @@ export interface CountdownProps {
   deadline: Date | number | string;
   /** A fixed "now" (a `Date`, milliseconds or an ISO 8601 string) for mocks, stories, tests and screenshots: the text is computed from it, and no interval or timer starts. Leave it out for the live clock. */
   now?: Date | number | string;
-  /** "short" is `2d 4h 12m`, "long" is `2 days 4 hours`. @default "short" */
+  /**
+   * "short" shows three units in a row from the largest non-zero one (`2d 4h 12m`, `1d 0h 3m`, `5m 0s`), "long" shows
+   * two (`2 days 4 hours`, `1 day 0 hours`). A zero unit between them is kept, so no unit is skipped; under a minute
+   * it is just seconds. @default "short"
+   */
   format?: "short" | "long";
   /** Text shown after the deadline. @default "Ended" */
   overText?: string;
@@ -87,10 +107,11 @@ function formatParts(p: CountdownParts, format: "short" | "long"): string {
     [p.minutes, "m", "minute"],
     [p.seconds, "s", "second"],
   ];
-  // Show the two most significant non-zero units; under a minute that is just seconds.
-  const shown = units.filter(([n]) => n > 0).slice(0, format === "long" ? 2 : 3);
+  // From the largest non-zero unit, show the next three units in a row (short) or two (long), zeros included, so
+  // 1 d 0 h 3 min reads "1d 0h 3m", not "1d 3m". Under a minute that is just seconds; at 0, "0s".
   const first = units.findIndex(([n]) => n > 0);
-  const list: Array<[number, string, string]> = first === -1 ? [[0, "s", "second"]] : shown;
+  const count = format === "long" ? 2 : 3;
+  const list: Array<[number, string, string]> = first === -1 ? [[0, "s", "second"]] : units.slice(first, first + count);
   return list.map(([n, short, long]) => (format === "long" ? plural(n, long) : `${n}${short}`)).join(" ");
 }
 

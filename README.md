@@ -153,8 +153,9 @@ This library requires the following peer dependencies:
 
 - React 18 and React DOM 18. React 19 is not supported yet: the bundle uses React 18 internals, so a React 19
   app renders a blank page.
-- Tailwind CSS 4.1.17 or later: before 4.1, the `@source` line of Setup b can scan none of the kit, and the lint
-  preset's plugin (`eslint-plugin-better-tailwindcss`) needs 4.1.17.
+- Tailwind CSS 4 (peer range `^4.0.11`), which is enough for the core components. The kit and the lint preset need
+  4.1.17 or later: before 4.1, the `@source` line of Setup b can scan none of the kit, and the lint preset's plugin
+  (`eslint-plugin-better-tailwindcss`) needs 4.1.17. `npx kleros-ui check` says so in an app on Tailwind before 4.1.
 
 Make sure these are installed in your project.
 

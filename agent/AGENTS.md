@@ -165,7 +165,7 @@ sets `reportUnusedDisableDirectives` to `"off"` gets none, and those errors fail
 |---|---|---|
 | Core primitives | `@kleros/ui-components-library` | 43 components, plus `<Name>Props` and item types (`TabsItem`, `DropdownSelectItem`, `TimelineItem`) |
 | App kit (shared by Kleros apps) | `@kleros/ui-components-library/kit` | Layout: `Page`, `Section`, `Stack`, `Inline`, `Grid`, `FormStack`. State: `QueryState`, `Skeleton`, `Spinner`, `EmptyState`, `ErrorState`, `InfoCard`. Status: `StatusBadge` (tones). Data: `StatCard`, `AddressDisplay`, `TokenAmount`, `DataTable`, `KeyValueList`, `Countdown`/`useCountdown`. Charts: `Sparkline`. Forms: `FormField`, `WizardShell`. App: `ExternalLink`, `HelpTooltip`, `ThemeToggle`, `applyInitialTheme`, `ChainGuard`. Helpers: `parseUnits`, `formatUnits`, `shortenAddress`, `useDarkMode`, `readToken`, `toneClasses`, `cn` |
-| Recipes (copy, then edit) | `recipes/*.tsx` in this package | `evidence-list.tsx`: search, paginated list, loading and empty states, submit modal. `vote-form.tsx`: radio group, 18-decimal amount, async submit, result. `case-page.tsx`: stat row, tabs, timeline, address, dark mode |
+| Recipes (copy, then edit) | `recipes/*.tsx` in this package | `evidence-list.tsx`: search, paginated list through `QueryState` (loading, error with Retry, empty), submit modal with a `FormStack`. `vote-form.tsx`: radio group, 18-decimal amount, async submit, result, in a `FormStack` in a fluid `Card`. `case-page.tsx`: `Page`, a `Grid` stat row, `QueryState` per data view with mock data, tabs, timeline, address, dark mode |
 
 Recipes compile against this exact version. Copy one into your app and change it; never import from `recipes/`.
 Project-specific components stay in your app. When a second app needs one, propose it for the kit.
@@ -179,7 +179,9 @@ Project-specific components stay in your app. When a second app needs one, propo
   `<QueryState isLoading isError data onRetry empty={{ title }}>{(data) => ...}</QueryState>`, which shows Skeleton
   rows, ErrorState or EmptyState for you. A real query passes its own flags and `refetch` as `onRetry`. Mock data
   passes its array with `isLoading={false}`: no fake delay and no fake error. The empty state shows whenever the
-  array is empty, a filter with no match included.
+  array is empty, a filter with no match included. `empty={{ title, description, action }}` takes an `action` as
+  `{ text, onPress }` (a small Button) or a node, shown under the description; `errorTitle` replaces "Something went
+  wrong".
 - Coloured status or period: `<StatusBadge tone="success|warning|error|info|neutral|accent">`. Court periods:
   evidence info, commit neutral, vote accent, appeal warning, execution success. Never pick a colour per screen.
 - Votes, tallies, rulings and appeals: list ruling 0, "Refuse to arbitrate", with its count and share, even at 0
@@ -191,20 +193,22 @@ Project-specific components stay in your app. When a second app needs one, propo
   `useCountdown(deadline, NOW)`. Both compute the time left from that moment and start no timer.
 - Charts: kit `Sparkline` for a small trend line. On your own SVG chart, colour with `stroke-`/`fill-klerosUIComponents*`
   token classes (they follow dark mode with no JavaScript). `readToken("SecondaryText")` only for canvas and chart
-  libraries that need a colour string; re-read it on theme change.
+  libraries that need a colour string; re-read it on theme change (`useDarkMode()` re-renders when the class changes).
 
 ## Before you write UI by hand
 - Stat tile: kit `StatCard`. Loading: kit `Skeleton` (lists, cards), kit `Spinner` (inline), `Button isLoading` (buttons).
 - Facts as label and value rows (deal details, a review step): kit `KeyValueList`.
 - Small trend chart of one series: kit `Sparkline`.
 - Multi-step form (steps bar, Back/Next, a check per step, Submit): kit `WizardShell`. Its steps hold fields, not a form: the shell is the form.
-- No results: kit `EmptyState`. Table: kit `DataTable`, with core `StandardPagination` under it.
+- No results: kit `EmptyState`. Table: kit `DataTable`, with core `StandardPagination` under it. Give its columns a
+  `width` (px or a CSS width), all but one, so they keep their place while the table loads.
 - Address: kit `AddressDisplay` (short form, copy, full address in a tooltip). Token amount: kit `TokenAmount`, which
   takes the amount in the token's smallest unit (see "Shapes and traps").
 - Notice: core `AlertMessage` (`variant`, `title`, `msg`), or kit `InfoCard` for free content.
-- Label with help icon: kit `HelpTooltip`. Wallet or chain gate: kit `ChainGuard`. Dark mode switch: kit `ThemeToggle`.
-  First theme (`?theme=light|dark`, else the system setting): kit `applyInitialTheme()` before the first render, as
-  the starter's `main.tsx` does.
+- Label with help icon: kit `HelpTooltip`. Wallet or chain gate: kit `ChainGuard`; pass `isConnecting` (wagmi
+  `isConnecting || isReconnecting`) so no prompt flashes while the wallet reconnects. Dark mode switch: kit
+  `ThemeToggle`. First theme (`?theme=light|dark`, else the system setting): kit `applyInitialTheme()` before the
+  first render, as the starter's `main.tsx` does.
 - Modal: core `Modal`. Step indicator only: core `Steps`. Select: core `DropdownSelect` (under a fixed clock, core
   `Radio` for a short list; see "Shapes and traps"). Radio group: core `Radio`.
   Date: core `Datepicker`. Progress: core `LinearProgress` or `CircularProgress`. Copy button: core `Copiable`.
@@ -243,7 +247,8 @@ Project-specific components stay in your app. When a second app needs one, propo
 - Kit `TokenAmount`: `value` is the amount in the token's smallest unit (wei for ETH), as a `bigint` or an integer
   string; a decimal string such as `"1.5"` throws. Put a decimal ETH amount through kit `parseUnits` first:
   `<TokenAmount value={parseUnits("1.5")} symbol="ETH" />`. A token with other decimals passes them to both:
-  `parseUnits("12.5", 6)` and `decimals={6}`.
+  `parseUnits("12.5", 6)` and `decimals={6}`. A non-zero amount too small for `maxFractionDigits` (default 4) shows
+  as `<0.0001`, while `formatUnits` returns `"0"` for it.
 - `FileUploader`: `callback(file: File)`, plus `msg` and `variant`. `AlertMessage` takes no children.
 - `LinearProgress` needs `value`; leave `width` (px) out to fill the container. `CircularProgress` needs `value`;
   `tone` sets its fill colour (default blue, green at 100%) and `aria-label` names it.

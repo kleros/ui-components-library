@@ -6,12 +6,34 @@
 // - Tailwind only: src/index.css is exactly the four directives, and the page is themed by classes on <html> and
 //   <body> in index.html (background, text colour, colour scheme per theme), with no <style> block.
 // usage: node guide-starter.mjs <templates/poc>
-// Exit 0 when all hold; otherwise it lists what failed on stderr and exits 1.
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+// Exit 0 when all hold; otherwise it lists what failed on stderr and exits 1. Exits 2 when the argument is not the
+// templates/poc folder of a copy of @kleros/ui-components-library.
+import { readFileSync, realpathSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, relative, sep } from "node:path";
 
-const dir = process.argv[2];
-const read = (f) => readFileSync(join(dir, f), "utf8");
+// The path comes from the command line, so it must resolve (links followed) to a package's templates/poc folder, and
+// each file read must resolve inside that folder.
+const starterDir = (arg) => {
+  try {
+    const dir = realpathSync(arg);
+    const ok = basename(dir) === "poc" && basename(dirname(dir)) === "templates"
+      && JSON.parse(readFileSync(join(dirname(dirname(dir)), "package.json"), "utf8")).name === "@kleros/ui-components-library";
+    return ok ? dir : null;
+  } catch {
+    return null;
+  }
+};
+const dir = process.argv[2] ? starterDir(process.argv[2]) : null;
+if (!dir) {
+  console.error(`guide-starter: ${process.argv[2] ?? "no path given"}: not the templates/poc folder of @kleros/ui-components-library`);
+  process.exit(2);
+}
+const read = (f) => {
+  const file = realpathSync(join(dir, f));
+  const rel = relative(dir, file);
+  if (!rel || rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) throw new Error(`${f} resolves outside ${dir}`);
+  return readFileSync(file, "utf8");
+};
 const fails = [];
 const main = read("src/main.tsx");
 const css = read("src/index.css");

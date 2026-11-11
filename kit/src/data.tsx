@@ -47,7 +47,7 @@ export interface AddressDisplayProps {
   address: string;
   /** Characters kept on each side. @default 4 */
   chars?: number;
-  /** When set, the address links to `${explorerUrl}/address/${address}`. */
+  /** When set, a "↗" link to `${explorerUrl}/address/${address}` follows the address (outside the tooltip's trigger). */
   explorerUrl?: string;
   /** Tooltip on the copy icon. @default "Copy address" */
   copyInfo?: string;
@@ -56,21 +56,30 @@ export interface AddressDisplayProps {
 
 /**
  * Shortened address with a copy button (core `Copiable`), a tooltip with the full address and an optional explorer link.
+ * With `explorerUrl`, a "↗" link named "View <address> on the explorer" follows the address. It sits beside the
+ * tooltip's trigger, not inside it, so the link is never inside the trigger's `role="button"`.
  * @example <AddressDisplay address={juror} explorerUrl="https://etherscan.io" />
  */
 export function AddressDisplay({ address, chars = 4, explorerUrl, copyInfo = "Copy address", className }: Readonly<AddressDisplayProps>) {
   const short = shortenAddress(address, chars);
   return (
     <Copiable copiableContent={address} info={copyInfo} className={cn("font-mono text-sm", className)}>
-      <Tooltip text={address}>
-        {explorerUrl ? (
-          <a href={`${explorerUrl}/address/${address}`} target="_blank" rel="noopener noreferrer" className="text-klerosUIComponentsPrimaryBlue">
-            {short}
-          </a>
-        ) : (
+      <span className="inline-flex items-center gap-1">
+        <Tooltip text={address}>
           <span className="text-klerosUIComponentsPrimaryText">{short}</span>
-        )}
-      </Tooltip>
+        </Tooltip>
+        {explorerUrl ? (
+          <a
+            href={`${explorerUrl}/address/${address}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`View ${address} on the explorer`}
+            className="text-klerosUIComponentsPrimaryBlue font-sans hover:underline"
+          >
+            ↗
+          </a>
+        ) : null}
+      </span>
     </Copiable>
   );
 }
@@ -79,7 +88,8 @@ export function AddressDisplay({ address, chars = 4, explorerUrl, copyInfo = "Co
  * Formats an integer amount in base units (wei) for display: `formatUnits(1500000000000000000n)` is `"1.5"`.
  * @param value bigint or decimal string in base units
  * @param decimals token decimals. @default 18
- * @param maxFractionDigits digits kept after the point (truncated). @default 4
+ * @param maxFractionDigits digits kept after the point (truncated): a non-zero amount below the last digit kept comes
+ *   out as 0, which `TokenAmount` shows as `<0.0001` instead. @default 4
  */
 export function formatUnits(value: bigint | string, decimals = 18, maxFractionDigits = 4): string {
   const v = BigInt(value);
@@ -87,8 +97,12 @@ export function formatUnits(value: bigint | string, decimals = 18, maxFractionDi
   const abs = neg ? -v : v;
   const base = 10n ** BigInt(decimals);
   const whole = (abs / base).toLocaleString("en-US");
-  const frac = (abs % base).toString().padStart(decimals, "0").slice(0, maxFractionDigits).replace(/0+$/, "");
-  return `${neg ? "-" : ""}${whole}${frac ? `.${frac}` : ""}`;
+  let frac = (abs % base).toString().padStart(decimals, "0").slice(0, maxFractionDigits);
+  let end = frac.length;
+  while (end > 0 && frac[end - 1] === "0") end--;
+  frac = frac.slice(0, end);
+  const sign = neg ? "-" : "";
+  return frac ? `${sign}${whole}.${frac}` : `${sign}${whole}`;
 }
 
 /**
@@ -119,19 +133,30 @@ export interface TokenAmountProps {
   symbol?: string;
   /** @default 18 */
   decimals?: number;
-  /** @default 4 */
+  /**
+   * Digits kept after the point (truncated, as in `formatUnits`). A non-zero amount below the last digit shows as
+   * `<0.0001` (`-<0.0001` when negative), built from this value: `<0.01` for 2, `<1` for 0. @default 4
+   */
   maxFractionDigits?: number;
   className?: string;
 }
 
 /**
- * Displays a token amount held in base units.
+ * Displays a token amount held in base units. A non-zero amount too small for `maxFractionDigits` shows as `<0.0001`,
+ * not `0`.
  * @example <TokenAmount value={stakeWei} symbol="PNK" />
  */
 export function TokenAmount({ value, symbol, decimals = 18, maxFractionDigits = 4, className }: Readonly<TokenAmountProps>) {
+  const v = BigInt(value);
+  let text = formatUnits(v, decimals, maxFractionDigits);
+  // Truncation reads 0.00005 ETH as "0" (Sparkline's default format handles the same case): show the smallest step.
+  if (v !== 0n && /^-?0$/.test(text)) {
+    const step = maxFractionDigits > 0 ? "0." + "0".repeat(maxFractionDigits - 1) + "1" : "1";
+    text = (v < 0n ? "-<" : "<") + step;
+  }
   return (
     <span className={cn("tabular-nums", className)}>
-      {formatUnits(value, decimals, maxFractionDigits)}
+      {text}
       {symbol && ` ${symbol}`}
     </span>
   );
@@ -144,6 +169,13 @@ export interface DataTableColumn<T> {
   /** Cell content; defaults to `String(row[key])`. */
   render?: (row: T) => React.ReactNode;
   align?: "left" | "right";
+  /**
+   * Width of the column, set on its header cell: a number is px, a string any CSS width ("8rem", "20%"). Unset, the
+   * column sizes to its content, so it moves when rows arrive after the loading or empty table (whose widths come from
+   * the headers alone). Give every column but one a width to keep them in place. A cell wider than this still widens
+   * the column.
+   */
+  width?: number | string;
 }
 
 export interface DataTableProps<T> {
@@ -166,13 +198,16 @@ export interface DataTableProps<T> {
 // A click on one of these inside a pressable row is that element's own action, not a row press.
 const ROW_INTERACTIVE = "a, button, input, select, textarea, label, [role=button], [role=link]";
 // A pressable row: the hover highlight, and on keyboard focus the same highlight with a ring inside the row.
+// MediumBlue is the core's hover colour for Select options and shows in both themes; LightGrey (#fafafa) did not show
+// on a light page or card.
 const ROW_PRESSABLE = cn(
-  "hover:bg-klerosUIComponentsLightGrey cursor-pointer focus-visible:bg-klerosUIComponentsLightGrey",
+  "hover:bg-klerosUIComponentsMediumBlue cursor-pointer focus-visible:bg-klerosUIComponentsMediumBlue",
   "focus-visible:outline-klerosUIComponentsPrimaryBlue focus-visible:outline-2 focus-visible:-outline-offset-2",
 );
 
 /**
  * Plain typed table (the core has none). Pair it with the core `StandardPagination` below it.
+ * Columns size to their content; set `width` on the columns to keep them in place while loading and when rows arrive.
  * @example
  * <DataTable rows={cases} rowKey={(c) => c.id} isLoading={isLoading} empty={<EmptyState title="No cases" />}
  *   columns={[{ key: "id", header: "Case" }, { key: "court", header: "Court" },
@@ -186,7 +221,7 @@ export function DataTable<T>({ columns, rows, rowKey, isLoading, empty, onRowPre
         <thead className="bg-klerosUIComponentsLightBackground text-klerosUIComponentsSecondaryText">
           <tr>
             {columns.map((c) => (
-              <th key={c.key} className={cn(cell(c), "font-medium")}>
+              <th key={c.key} className={cn(cell(c), "font-medium")} style={{ width: c.width }}>
                 {c.header}
               </th>
             ))}

@@ -28,12 +28,12 @@ touch "$R/cell/vendor/x.tgz" "$R/cell/.prompt.txt"
 echo '{"name":"n","devDependencies":{"react-dom":"19.1.0"}}' > "$R/new19/package.json"
 echo '{"dependencies":{"react":"^18.2.0 || ^19.0.0"}}' > "$R/ok/package.json"
 B1=$(snapshot "$R/cell"); B2=$(snapshot "$R/new19")
-(cd "$R/cell" && { $CREATE . --no-install >"$R/o1.txt" 2>&1; test $? -eq 1; }) \
-  && (cd "$R" && { $CREATE new19 --no-install >"$R/o2.txt" 2>&1; test $? -eq 1; }) \
-  && test "$(snapshot "$R/cell")" = "$B1" && test "$(snapshot "$R/new19")" = "$B2" \
+(cd "$R/cell" && { $CREATE . --no-install >"$R/o1.txt" 2>&1; [[ $? -eq 1 ]]; }) \
+  && (cd "$R" && { $CREATE new19 --no-install >"$R/o2.txt" 2>&1; [[ $? -eq 1 ]]; }) \
+  && [[ "$(snapshot "$R/cell")" == "$B1" ]] && [[ "$(snapshot "$R/new19")" == "$B2" ]] \
   && grep -q "package.json asks for react ^19.0.0 and react-dom ^19.0.0, which leaves out React 18" "$R/o1.txt" \
   && grep -q "new19/package.json asks for react-dom 19.1.0" "$R/o2.txt" && grep -q "react-dom to ^18.3.1" "$R/o2.txt" \
-  && (cd "$R/ok" && $CREATE . --no-install >/dev/null && test -f src/App.tsx) \
+  && (cd "$R/ok" && $CREATE . --no-install >/dev/null && [[ -f src/App.tsx ]]) \
   && echo "gate: CLI-4: create . and create <dir> refuse a React 19 package.json (exit 1, naming React 18) and write nothing; a range with 18 in it is not refused"
 rm -rf "$R"
 
@@ -56,14 +56,14 @@ echo '{"name":"d8","type":"commonjs","scripts":{}}' > "$L/d8/package.json"
 printf '%s\nimport app from "./eslint.config.app.js";\nimport klerosUI from "@kleros/ui-components-library/eslint";\n\nexport default [...app, ...klerosUI({ cssEntry: "src/index.css", styled: true })];\n' \
   "// Managed by kleros-ui init: the app's previous config plus the Kleros UI preset." > "$L/d8/eslint.config.js"
 echo 'export default [];' > "$L/d8/eslint.config.app.js"
-(cd "$L/cjs" && $CREATE . --no-install >/dev/null && test ! -e eslint.config.js && test ! -e eslint.config.app.js \
+(cd "$L/cjs" && $CREATE . --no-install >/dev/null && [[ ! -e eslint.config.js ]] && [[ ! -e eslint.config.app.js ]] \
   && grep -q '^import app from "./eslint.config.app.mjs";' eslint.config.mjs && grep -q '^import tseslint' eslint.config.app.mjs \
-  && test "$(node "$P/gate/cli-lint-load.mjs" .)" = eslint.config.mjs) \
-  && (cd "$L/typeless" && $CLI init >/dev/null && test ! -e eslint.config.js && grep -q module.exports eslint.config.app.cjs \
-  && test "$(node "$P/gate/cli-lint-load.mjs" .)" = eslint.config.mjs) \
-  && (cd "$L/d8" && ! node "$P/gate/cli-lint-load.mjs" . >/dev/null 2>&1 && $CLI init >/dev/null && test ! -e eslint.config.js \
-  && test ! -e eslint.config.app.js && test -f eslint.config.app.mjs && ! grep -q styled eslint.config.mjs \
-  && test "$(node "$P/gate/cli-lint-load.mjs" .)" = eslint.config.mjs) \
+  && [[ "$(node "$P/gate/cli-lint-load.mjs" .)" == "eslint.config.mjs" ]]) \
+  && (cd "$L/typeless" && $CLI init >/dev/null && [[ ! -e eslint.config.js ]] && grep -q module.exports eslint.config.app.cjs \
+  && [[ "$(node "$P/gate/cli-lint-load.mjs" .)" == "eslint.config.mjs" ]]) \
+  && (cd "$L/d8" && ! node "$P/gate/cli-lint-load.mjs" . >/dev/null 2>&1 && $CLI init >/dev/null && [[ ! -e eslint.config.js ]] \
+  && [[ ! -e eslint.config.app.js ]] && [[ -f eslint.config.app.mjs ]] && ! grep -q styled eslint.config.mjs \
+  && [[ "$(node "$P/gate/cli-lint-load.mjs" .)" == "eslint.config.mjs" ]]) \
   && echo "gate: CLI-5: the lint config loads in a commonjs package after create . (eslint.config.mjs), after init over a CommonJS eslint.config.js with no type, and after init over d.8's broken ESM .js (styled: true dropped)"
 rm -rf "$L"
 
@@ -74,7 +74,7 @@ mkdir -p "$T/src"
 cp "$P/gate/cli-tw-fixture.css" "$T/src/index.css"
 printf '.extra { margin: 0; }\n' > "$T/src/extra.css"
 printf '<!doctype html>\n<!-- <style> .old { margin: 0; } </style> -->\n<style> body { margin: 0; } </style>\n' > "$T/index.html"
-(cd "$T" && { $CLI css >out.txt 2>&1; test $? -eq 1; } \
+(cd "$T" && { $CLI css >out.txt 2>&1; [[ $? -eq 1 ]]; } \
   && grep -qx "css: 7 findings (0 token overrides, 0 colour literals, 7 Tailwind-only, 0 !important, 0 library internals) in 3 files scanned" out.txt \
   && grep -q '^src/index.css:7:1 Style rule "body" in the Tailwind entry, which keeps only @import' out.txt \
   && grep -q '^src/index.css:9:3 Style rule ".card" (in @layer components) in the Tailwind entry' out.txt \
@@ -82,7 +82,7 @@ printf '<!doctype html>\n<!-- <style> .old { margin: 0; } </style> -->\n<style> 
   && grep -q '^src/index.css:13:29 Style rule ".wide" (in @media (min-width: 640px))' out.txt \
   && grep -q '^src/extra.css:1:1 Style rule ".extra" in a .css file outside the Tailwind entry' out.txt \
   && grep -q '^index.html:3:1 <style> block in index.html' out.txt && grep -q 'classes on <html> and <body>, as the starter does' out.txt \
-  && test "$(grep -c '^index.html' out.txt)" = 1 \
+  && [[ "$(grep -c '^index.html' out.txt)" == "1" ]] \
   && cd "$LIB/templates/poc" && $CLI css | grep -qx "css: 0 findings (0 token overrides, 0 colour literals, 0 Tailwind-only, 0 !important, 0 library internals) in 2 files scanned") \
   && echo "gate: Tailwind only (D25): the scan names each style rule, @layer and @media rule and @utility in the entry, another .css file and a <style> block in index.html, and finds 0 in the starter"
 rm -rf "$T"
@@ -94,11 +94,11 @@ I=$(mktemp -d -p "$WORK")
 mkdir -p "$I/argon/src" "$I/not/src"
 cp "$P/gate/cli-argon-index.css" "$I/argon/src/index.css"
 printf 'h1:not([class*="klerosUIComponents"]) { margin: 0; }\n' > "$I/not/src/base.css"
-(cd "$I/argon" && { $CLI css >out.txt 2>&1; test $? -eq 1; } \
+(cd "$I/argon" && { $CLI css >out.txt 2>&1; [[ $? -eq 1 ]]; } \
   && grep -qx "css: 11 findings (0 token overrides, 0 colour literals, 2 Tailwind-only, 7 !important, 2 library internals) in 1 file scanned" out.txt \
   && grep -q '^src/index.css:7:1 Selector "label\[data-rac\] > span:has(> input\[type="checkbox"\]), .*reaches into the library (\[data-rac\])' out.txt \
   && grep -q '^src/index.css:9:12 !important in inset' out.txt \
-  && cd ../not && { $CLI css >not.txt 2>&1; test $? -eq 1; } \
+  && cd ../not && { $CLI css >not.txt 2>&1; [[ $? -eq 1 ]]; } \
   && grep -qx "css: 1 finding (0 token overrides, 0 colour literals, 1 Tailwind-only, 0 !important, 0 library internals) in 1 file scanned" not.txt) \
   && echo "gate: !important and library internals (D22): Argon's pilot 5 index.css gives 2 Tailwind-only, 7 !important and 2 [data-rac] findings; a library class inside :not() is not one"
 rm -rf "$I"
@@ -149,14 +149,14 @@ rm -rf "$N"
 S=$(mktemp -d -p "$WORK")
 stubs "$S"
 (cd "$S" && printf "$TOOLS\n" s > package.json && $CLI init >/dev/null && $CLI new NoStory --kind ui --intent "plain card" >/dev/null \
-  && test -f src/components/NoStory/NoStory.tsx && test -f src/components/NoStory/index.ts && test ! -e src/components/NoStory/NoStory.stories.tsx \
+  && [[ -f src/components/NoStory/NoStory.tsx ]] && [[ -f src/components/NoStory/index.ts ]] && [[ ! -e src/components/NoStory/NoStory.stories.tsx ]] \
   && node -e 'const c = require(process.argv[1]).components.find((x) => x.name === "NoStory"); process.exit(c && !("stories" in c) && JSON.stringify(c.intent) === "[\"plain card\"]" ? 0 : 1)' "$S/kleros-ui.json" \
   && $CLI check >c0.txt && grep -qx "ui:check passed" c0.txt && ! grep -q "intent" c0.txt \
   && mv src/components/NoStory/index.ts index.ts.kept && ! $CLI check >o0.txt 2>&1 && grep -q "src/components/NoStory: no index.ts" o0.txt \
   && mv index.ts.kept src/components/NoStory/index.ts \
   && mkdir .storybook && ! $CLI check >o1.txt 2>&1 && grep -q "src/components/NoStory: no NoStory.stories.tsx" o1.txt && rmdir .storybook \
   && node -e 'const f = process.argv[1], fs = require("fs"); const p = JSON.parse(fs.readFileSync(f)); p.devDependencies["@storybook/react-vite"] = "^8.6.0"; fs.writeFileSync(f, JSON.stringify(p))' "$S/package.json" \
-  && $CLI new WithStory --kind form --intent "story form" >/dev/null && test -f src/components/WithStory/WithStory.stories.tsx \
+  && $CLI new WithStory --kind form --intent "story form" >/dev/null && [[ -f src/components/WithStory/WithStory.stories.tsx ]] \
   && grep -q '"stories": "src/components/WithStory/WithStory.stories.tsx"' kleros-ui.json \
   && ! $CLI check >o2.txt 2>&1 && grep -q "src/components/NoStory: no NoStory.stories.tsx" o2.txt && ! grep -q "WithStory: no" o2.txt && ! grep -q "intent" o2.txt) \
   && echo "gate: D13: new writes stories only when the app has Storybook (package or .storybook folder) and check asks for them only then; index.ts and the registry entry, with its --intent words, for every app"
@@ -176,7 +176,7 @@ stubs "$V"
   && printf '.c { margin: 0; }\n' > dist/x.css && printf '.d { margin: 0; }\n' > build/x.css && echo build > .gitignore \
   && sed -i 's#</head>#<link rel="stylesheet" href="/extra.css" /><link rel="stylesheet" href="https://fonts.example/x.css" /></head>#; s#<body #<body style="margin: 0" #' index.html \
   && printf '@plugin "./p.js";\n@config "./c.js";\n@import "../styles/global.css";\n@plugin "@tailwindcss/typography";\n' >> src/index.css \
-  && { $CLI css >o1.txt; test $? -eq 1; } \
+  && { $CLI css >o1.txt; [[ $? -eq 1 ]]; } \
   && grep -qx "css: 8 findings (0 token overrides, 0 colour literals, 8 Tailwind-only, 0 !important, 0 library internals) in 5 files scanned" o1.txt \
   && grep -q '^src/theme.pcss:1:1 Style rule "body" in a .pcss file outside the Tailwind entry' o1.txt \
   && grep -q '^styles/global.css:1:1 Style rule ".a"' o1.txt && grep -q '^public/extra.css:1:1 Style rule ".b"' o1.txt \
@@ -205,10 +205,10 @@ ln -s "$LIB" "$Q/mono/node_modules/@kleros/ui-components-library"
 mkdir -p "$Q/mono/node_modules/@tailwindcss" && for t in tailwindcss @tailwindcss/node @tailwindcss/oxide; do ln -s "$P/tools/node_modules/$t" "$Q/mono/node_modules/$t"; done
 stubs "$Q/mono/web" && rm -rf "$Q/mono/web/node_modules/@kleros"
 C1=$(snapshot "$Q/lintjs"); C2=$(snapshot "$Q/lintcjs")
-(cd "$Q/lintjs" && { $CREATE . --no-install >"$Q/o1.txt" 2>&1; test $? -eq 1; }) && test "$(snapshot "$Q/lintjs")" = "$C1" \
+(cd "$Q/lintjs" && { $CREATE . --no-install >"$Q/o1.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$Q/lintjs")" == "$C1" ]] \
   && grep -q "already has eslint.config.js; create writes the starter's own lint config (eslint.config.mjs) and ESLint reads only one, so eslint.config.js would be dropped" "$Q/o1.txt" \
-  && (cd "$Q/lintcjs" && { $CREATE . --no-install >/dev/null 2>&1; test $? -eq 1; }) && test "$(snapshot "$Q/lintcjs")" = "$C2" \
-  && (cd "$Q/latest" && $CREATE . --no-install >/dev/null && test -f src/App.tsx) \
+  && (cd "$Q/lintcjs" && { $CREATE . --no-install >/dev/null 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$Q/lintcjs")" == "$C2" ]] \
+  && (cd "$Q/latest" && $CREATE . --no-install >/dev/null && [[ -f src/App.tsx ]]) \
   && (cd "$Q/managed" && printf "$TOOLS\n" m > package.json && $CLI init >/dev/null \
     && sed -i 's#^export default \[#export default [{ ignores: ["src/generated/**"] }, #' eslint.config.js && cp eslint.config.js edited.js \
     && $CLI init >i2.txt && cmp -s eslint.config.js edited.js && ! grep -q "rewrote" i2.txt \

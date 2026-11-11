@@ -53,8 +53,8 @@ export function Sparkline({
   const points = values.filter((v) => Number.isFinite(v));
   const n = points.length;
   const h = Math.max(height, 2 * PAD + 2);
-  const min = n ? points.reduce((a, v) => (v < a ? v : a)) : 0;
-  const max = n ? points.reduce((a, v) => (v > a ? v : a)) : 0;
+  const min = n ? points.reduce((a, v) => Math.min(a, v), points[0]) : 0;
+  const max = n ? points.reduce((a, v) => Math.max(a, v), points[0]) : 0;
   let lo = zeroBased ? Math.min(min, 0) : min;
   let hi = zeroBased ? Math.max(max, 0) : max;
   if (hi === lo) {

@@ -20,6 +20,9 @@ const split = (s) =>
     .split(",")
     .map((w) => w.trim())
     .filter(Boolean);
+// A CATALOG.md table cell built from data: a "|" would end the cell (inside a code span too) and shift the rest of
+// the row, so it is written as "\|", which GitHub's tables show as "|".
+const cell = (s) => String(s ?? "").replaceAll("|", "\\|");
 
 const components = [
   ...seed.core.map(([name, intent, props]) => ({
@@ -49,7 +52,7 @@ for (const f of readdirSync(srcDir).filter((f) => /\.tsx?$/.test(f))) {
       doc
         .split("\n")
         .map((l) => l.replace(/^\s*\*\s?/, ""))
-        .filter((l) => l && !l.startsWith("@"))[0] || "";
+        .find((l) => l && !l.startsWith("@")) || "";
     components.push({
       name: m[2],
       importPath: "@kleros/ui-components-library/kit",
@@ -76,7 +79,7 @@ const md = [
   "|---|---|---|---|",
   ...components.map(
     (c) =>
-      `| ${c.name} | \`${c.importPath}\` | ${c.intent.join(", ")} | ${c.props || c.description || ""} |`,
+      `| ${cell(c.name)} | \`${c.importPath}\` | ${cell(c.intent.join(", "))} | ${cell(c.props || c.description)} |`,
   ),
   "",
   "## Known gaps (not in the library; apps build these by hand)",
@@ -87,7 +90,7 @@ const md = [
   ...knownGaps.map((g) => {
     const need = `${g.name} (${g.intent.slice(0, 4).join(", ")})`;
     const command = `npx kleros-ui new ${g.suggest} --kind ${g.kind} --intent "${g.intent.join(", ")}"`;
-    return `| ${need} | ${g.compose || "–"} | \`${command}\` |`;
+    return `| ${cell(need)} | ${cell(g.compose || "–")} | \`${cell(command)}\` |`;
   }),
   "",
 ].join("\n");

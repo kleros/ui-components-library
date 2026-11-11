@@ -25,7 +25,7 @@ const factsProps: KeyValueListProps = { items: facts, className: "max-w-md" };
 const trend: SparklineProps = { values: [3, 5, 4, 8], label: "Escrow", startLabel: "1 Oct", endLabel: "Today", formatValue: (v) => `${v} ETH`, height: 48, zeroBased: false };
 const steps: WizardStep[] = [
   { title: "Terms", content: <TextField label="Title" />, validate: () => true },
-  { title: "Payment", content: <TextField label="Amount" />, validate: async () => wei > 0n },
+  { title: "Payment", content: <TextField label="Amount" />, validate: () => Promise.resolve(wei > 0n) },
   { title: "Review", content: <KeyValueList {...factsProps} /> },
 ];
 const wizard: WizardShellProps = { steps, onSubmit: async () => {}, onCancel: () => {}, submitText: "Create" };
