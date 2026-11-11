@@ -299,7 +299,7 @@ async function recipeChecks() {
     await React.act(async () => byText(m.div, "button", "Submit evidence")?.click());
     await tick();
     const dialog = document.querySelector('[role="dialog"]');
-    r.evidenceModal = `${!!dialog?.classList.contains("h-auto")}/${!!(dialog && byText(dialog, "button", "Submit")?.closest(".justify-end"))}`;
+    r.evidenceModal = `${!!dialog?.classList.contains("h-auto")}/${!!(dialog && byText(dialog, "button", "Submit")?.closest(".justify-end"))}/${!!dialog?.querySelector("textarea.w-full")}`;
     await m.unmount();
   } catch (e) { r.evidence = `threw ${e.message.split("\n")[0]}`; }
   r.unhandled = unhandled;
@@ -313,6 +313,7 @@ async function recipeChecks() {
     const { default: VoteForm } = await import("./out/vote-form.js");
     const t = renderToString(h(VoteForm, { isConnected: true, chainId: 42161, onConnect() {}, onSwitchChain() {} }));
     r.voteForm = /class="[^"]*\bjustify-end\b[^"]*"><button[^>]*>(?:<[^>]*>)*Cast vote/.test(t);
+    r.voteTipName = /<input[^>]*aria-label="Tip \(ETH\)"/.test(t);
   } catch (e) { r.voteForm = `threw ${e.message.split("\n")[0]}`; }
   return r;
 }
@@ -408,10 +409,10 @@ const checks = {
     && /<div class="[^"]*\bml-auto\b[^"]*"><button>Go<\/button>/.test(raw("SectionActions")),
   "new's Dark story: dark on <html> while shown, the class put back after (ui, data, form)": ["ui", "data", "form"]
     .every((k) => darkStory?.[k] === "true/scheme-x true/dark scheme-x"),
-  "evidence-list recipe: a failed load shows the error with Retry, which loads again; a fluid modal with a FormStack":
-    recipes?.evidenceError === "true/true/0" && recipes?.evidenceRetry === true && recipes?.evidenceModal === "true/true" && recipes?.unhandled === 0,
+  "evidence-list recipe: a failed load shows the error with Retry, which loads again; a fluid modal with a FormStack and a full-width text area":
+    recipes?.evidenceError === "true/true/0" && recipes?.evidenceRetry === true && recipes?.evidenceModal === "true/true/true" && recipes?.unhandled === 0,
   "case-page recipe: kit Page and Grid, full-width Steps": recipes?.casePage === "true/true/true",
-  "vote-form recipe: Cast vote in FormStack's actions row": recipes?.voteForm === true,
+  "vote-form recipe: Cast vote in FormStack's actions row; the tip input is named": recipes?.voteForm === true && recipes?.voteTipName === true,
 };
 const failed = Object.entries(checks).filter(([, pass]) => !pass).map(([name]) => name);
 for (const [name, pass] of Object.entries(checks)) console.log(`${pass ? "ok  " : "FAIL"} ${name}`);

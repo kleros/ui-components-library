@@ -1,7 +1,7 @@
 // Recipe: a searchable, paginated evidence list with loading, error and empty states (QueryState) and a submit modal.
 // Copy into your app and replace `fetchEvidence` / `submitEvidence` with your data layer. With a query library, pass
 // its isLoading, isError and data to QueryState, and its refetch as onRetry, instead of the state kept here.
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertMessage, Button, Card, FileUploader, Modal, Searchbar, StandardPagination, TextArea, TextField } from "@kleros/ui-components-library";
 import { AddressDisplay, FormStack, QueryState, Section, Skeleton } from "@kleros/ui-components-library/kit";
 
@@ -41,7 +41,12 @@ export default function EvidenceList() {
   const numPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const shown = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  // The core Button's isLoading only shows a spinner: the button stays pressable, so a submission in flight disables
+  // it and this ref drops a second press that lands before the re-render.
+  const sending = useRef(false);
   async function onSubmit() {
+    if (sending.current) return;
+    sending.current = true;
     setStatus("sending");
     try {
       await submitEvidence({ title, description, file });
@@ -49,6 +54,8 @@ export default function EvidenceList() {
       setIsOpen(false);
     } catch {
       setStatus("failed");
+    } finally {
+      sending.current = false;
     }
   }
 
@@ -75,12 +82,14 @@ export default function EvidenceList() {
           actions={
             <>
               <Button variant="secondary" text="Cancel" onPress={() => setIsOpen(false)} />
-              <Button text="Submit" isDisabled={!title} isLoading={status === "sending"} onPress={onSubmit} />
+              <Button text="Submit" isDisabled={!title || status === "sending"} isLoading={status === "sending"}
+                onPress={onSubmit} />
             </>
           }
         >
           <TextField label="Title" value={title} onChange={setTitle} />
-          <TextArea label="Description" value={description} onChange={setDescription} />
+          <TextArea label="Description" value={description} onChange={setDescription} className="w-full"
+            inputProps={{ className: "w-full" }} />
           <FileUploader callback={setFile} selectedFile={file} msg="PDF or image, up to 10 MB." variant="info" />
           {status === "failed" && <AlertMessage variant="error" title="Could not submit" msg="Try again." />}
         </FormStack>

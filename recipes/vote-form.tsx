@@ -1,6 +1,6 @@
 // Recipe: a vote form behind a wallet/chain gate: radio group, justification, an 18-decimal amount, async submit.
 // Copy into your app; pass wallet state from wagmi/AppKit and replace `castVote` with your contract call.
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AlertMessage, BigNumberField, Button, Card, Radio, TextArea } from "@kleros/ui-components-library";
 import { ChainGuard, FormStack, HelpTooltip, parseUnits } from "@kleros/ui-components-library/kit";
 
@@ -38,15 +38,21 @@ export default function VoteForm({ isConnected, isConnecting, chainId, onConnect
   const [tip, setTip] = useState("0");
   const [state, setState] = useState<"idle" | "pending" | "done" | "error">("idle");
   const tipWei = toWei(tip);
+  // The core Button's isLoading only shows a spinner: the button stays pressable, so a vote in flight disables it
+  // and this ref drops a second press that lands before the re-render.
+  const sending = useRef(false);
 
   async function onVote() {
-    if (!choice || tipWei === null) return;
+    if (sending.current || !choice || tipWei === null) return;
+    sending.current = true;
     setState("pending");
     try {
       await castVote({ choice, justification, tipWei });
       setState("done");
     } catch {
       setState("error");
+    } finally {
+      sending.current = false;
     }
   }
 
@@ -56,7 +62,7 @@ export default function VoteForm({ isConnected, isConnecting, chainId, onConnect
       <Card fluid className="max-w-xl p-6">
         <FormStack
           actions={
-            <Button text="Cast vote" isDisabled={!choice || !justification || tipWei === null}
+            <Button text="Cast vote" isDisabled={state === "pending" || !choice || !justification || tipWei === null}
               isLoading={state === "pending"} onPress={onVote} />
           }
         >
@@ -64,7 +70,8 @@ export default function VoteForm({ isConnected, isConnecting, chainId, onConnect
           <TextArea label="Justification" placeholder="Why this ruling?" value={justification}
             onChange={setJustification} className="w-full" inputProps={{ className: "w-full" }} />
           <HelpTooltip text="Optional tip to the case creator, in ETH.">Tip</HelpTooltip>
-          <BigNumberField aria-label="Tip (ETH)" placeholder="0.0" minValue="0" showFieldError
+          {/* BigNumberField names its input through inputProps, not a top-level aria-label. */}
+          <BigNumberField inputProps={{ "aria-label": "Tip (ETH)" }} placeholder="0.0" minValue="0" showFieldError
             validate={(v) => (v?.decimalPlaces() ?? 0) <= 18 || "At most 18 decimals"}
             onChange={(v) => setTip(v.toFixed())} />
           {state === "done" && <AlertMessage variant="success" title="Vote cast" msg="Your vote is recorded." />}
