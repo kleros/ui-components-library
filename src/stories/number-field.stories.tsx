@@ -14,7 +14,11 @@ import Telegram from "../assets/svgs/telegram.svg";
 import { Form } from "react-aria-components";
 import Button from "../lib/button";
 import { a11yExceptions } from "./a11y";
-import { SECONDARY_TEXT_LIGHT, WHITE_ON_BLUE_LIGHT } from "./a11y-defects";
+import {
+  SECONDARY_TEXT_LIGHT,
+  SECONDARY_TEXT_RICH_LIGHT,
+  WHITE_ON_BLUE_LIGHT,
+} from "./a11y-defects";
 
 const meta = {
   component: NumberFieldComponent,
@@ -301,5 +305,45 @@ export const Disabled: Story = {
     await expectHoverRevealsNothing(userEvent, input.parentElement!, () =>
       canvas.queryByRole("button", { name: /Increase/ }),
     );
+  },
+};
+
+/** `labelContent` and `description` take rich content, used in the label and the description slot. */
+export const RichLabelAndDescription: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, SECONDARY_TEXT_RICH_LIGHT, {
+    // the span that wraps the rich description inherits the same colour
+    ...SECONDARY_TEXT_RICH_LIGHT,
+    selector: ".text-klerosUIComponentsSecondaryText > span",
+  }),
+  args: {
+    ...Default.args,
+    labelContent: (
+      <>
+        Age <em>(optional)</em>
+      </>
+    ),
+    description: (
+      <>
+        Counted in <strong>whole years</strong>
+      </>
+    ),
+    message: "Plain message, not shown",
+  },
+  play: async ({ canvasElement }) => {
+    const input = within(canvasElement).getByRole("textbox", {
+      name: "Age (optional)",
+    });
+    // the label click focuses the field, so the rich label is the field's label
+    await userEvent.click(within(canvasElement).getByText("(optional)"));
+    await expect(input).toHaveFocus();
+    await expect(input).toHaveAccessibleDescription("Counted in whole years");
+    // the visible text keeps its spaces, so the rich content flows inline
+    await expect(
+      canvasElement.querySelector<HTMLElement>('[slot="description"]')
+        ?.innerText,
+    ).toBe("Counted in whole years");
+    await expect(
+      within(canvasElement).queryByText("Plain message, not shown"),
+    ).not.toBeInTheDocument();
   },
 };

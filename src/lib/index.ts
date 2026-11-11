@@ -44,6 +44,7 @@ export { default as Breadcrumb } from "../lib/breadcrumb";
 
 export { default as LinearProgress } from "../lib/progress/linear";
 export { default as CircularProgress } from "../lib/progress/circular";
+export type { CircularProgressTone } from "../lib/progress/circular";
 
 export { default as Steps } from "../lib/progress/steps";
 export { default as Timeline } from "../lib/progress/timeline";
@@ -59,3 +60,8 @@ export { default as Copiable } from "../lib/copiable";
 export { default as DraggableList } from "../lib/draggable-list";
 
 export { default as FileViewer } from "../lib/file-viewer";
+
+export type * from "./types";
+
+/** Joins class names (clsx) and resolves conflicting Tailwind classes (tailwind-merge), so a later class wins. */
+export { cn } from "../utils";

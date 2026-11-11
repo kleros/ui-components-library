@@ -9,9 +9,8 @@ function Box({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
         "box-border rounded-[18px]",
         className,
       )}
-    >
-      {props.children}
-    </div>
+      {...props}
+    />
   );
 }
 export default Box;

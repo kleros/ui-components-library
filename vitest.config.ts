@@ -16,9 +16,13 @@ const { dependencies } = JSON.parse(
 
 // Vite skips its import scan on a warm cache, so a dependency first imported
 // by a new test file re-optimizes and reloads mid-run unless it is listed here.
+// React is a peer and a dev dependency, not a dependency, so it is listed by name.
 const browserDeps = {
   include: [
     ...Object.keys(dependencies),
+    "react",
+    "react-dom",
+    "react-is",
     "@storybook/test",
     "@testing-library/react",
     "axe-core",

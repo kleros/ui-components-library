@@ -1,6 +1,19 @@
 @import "tailwindcss";
 @plugin "tailwindcss-react-aria-components";
 
+/* The library's own CSS comes from the library alone. The agent layer ships for
+   apps to scan, and the docs name classes in their examples. */
+@source not "../../kit";
+@source not "../../scripts/layer";
+@source not "../../eslint";
+@source not "../../agent";
+@source not "../../recipes";
+@source not "../../story-types.d.ts";
+@source not "../../bin";
+@source not "../../templates";
+@source not "../../README.md";
+@source not "../../CHANGELOG.md";
+
 @import "./theme.css";
 
 @layer base {

@@ -17,6 +17,9 @@ const meta = {
     round: {
       control: "boolean",
     },
+    fluid: {
+      control: "boolean",
+    },
   },
 } satisfies Meta<typeof CardComponent>;
 
@@ -62,5 +65,33 @@ export const HoverableCard: Story = {
     await expect(card).not.toHaveClass("rounded-[18px]");
     await userEvent.click(card);
     await expect(args.onClick).toHaveBeenCalledTimes(1);
+  },
+};
+
+/** `fluid` sizes the card to its content and its container instead of 328×200. */
+export const FluidCard: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    round: true,
+    fluid: true,
+    children: (
+      <span className="text-klerosUIComponentsPrimaryText">Card content</span>
+    ),
+  },
+  decorators: [
+    (Story) => (
+      <div style={{ width: 400 }}>
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvasElement }) => {
+    const card = within(canvasElement).getByText("Card content")
+      .parentElement as HTMLElement;
+    await expect(card).toHaveClass("w-full", "h-auto");
+    await expect(card).not.toHaveClass("w-[328px]", "h-[200px]");
+    await expect(card.getBoundingClientRect().width).toBe(400);
+    await expect(card.getBoundingClientRect().height).toBeLessThan(200);
   },
 };

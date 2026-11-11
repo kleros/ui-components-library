@@ -31,6 +31,10 @@ const meta = {
     small: {
       control: "boolean",
     },
+    tone: {
+      control: "select",
+      options: ["success", "warning", "error", "info", "neutral", "accent"],
+    },
   },
 } satisfies Meta<typeof CircularComponent>;
 
@@ -134,7 +138,7 @@ export const CustomRange: Story = {
   },
 };
 
-/** No progress: the fill arc is not rendered. */
+/** No progress: the fill arc is not rendered and no stray `0` shows. */
 export const Empty: Story = {
   args: {
     themeUI: "dark",
@@ -143,7 +147,63 @@ export const Empty: Story = {
   },
   play: async ({ canvasElement }) => {
     const progressbar = within(canvasElement).getByRole("progressbar");
-    await expect(progressbar).toHaveTextContent("0%");
+    // an exact match: a stray `0` rendered before the label reads "00%"
+    await expect(progressbar).toHaveTextContent(/^0%$/);
     await expect(progressbar.querySelectorAll("path")).toHaveLength(1);
+  },
+};
+
+/** `tone` sets the fill colour at every value, e.g. for a ruling gauge. */
+export const WithTone: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    value: 76,
+    tone: "warning",
+  },
+  play: async ({ canvasElement }) => {
+    const progressbar = within(canvasElement).getByRole("progressbar");
+    await expect(getFill(progressbar)).toHaveClass(
+      "stroke-klerosUIComponentsWarning",
+    );
+    await expect(getFill(progressbar)).not.toHaveClass(
+      "stroke-klerosUIComponentsPrimaryBlue",
+    );
+  },
+};
+
+/** With a `tone`, a completed progress keeps that colour instead of turning green. */
+export const ToneAtCompletion: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    value: 100,
+    tone: "info",
+  },
+  play: async ({ canvasElement }) => {
+    const progressbar = within(canvasElement).getByRole("progressbar");
+    await expect(getFill(progressbar)).toHaveClass(
+      "stroke-klerosUIComponentsPrimaryBlue",
+    );
+    await expect(getFill(progressbar)).not.toHaveClass(
+      "stroke-klerosUIComponentsSuccess",
+    );
+  },
+};
+
+/** A caller's `aria-label` names the progress bar; without one, the percentage does. */
+export const WithAriaLabel: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    value: 76,
+    "aria-label": "Rulings for the challenger",
+  },
+  play: async ({ canvasElement }) => {
+    await expect(
+      within(canvasElement).getByRole("progressbar", {
+        name: "Rulings for the challenger",
+      }),
+    ).toHaveAttribute("aria-valuenow", "76");
   },
 };

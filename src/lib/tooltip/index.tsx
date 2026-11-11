@@ -22,12 +22,23 @@ export interface TooltipBaseProps extends TooltipTriggerComponentProps {
    * [See  OverlayArrow Props](https://react-spectrum.adobe.com/react-aria/Tooltip.html#overlayarrow)
    */
   overlayArrowProps?: OverlayArrowProps;
-  /** Props for children wrapper. */
+  /**
+   * Props for children wrapper. The wrapper is the focusable trigger and has
+   * `role="button"` unless `wrapperProps.role` says otherwise. Set it when the
+   * children are links or other controls of their own, so a button does not
+   * wrap them: `wrapperProps={{ role: "group" }}`.
+   */
   wrapperProps?: React.HTMLAttributes<HTMLDivElement>;
 }
 
 interface TooltipProps extends TooltipBaseProps {
+  /** The tooltip text. */
   text: string;
+  /**
+   * Rich tooltip content, shown instead of `text`. Keep `text` as the plain
+   * version of the same message.
+   */
+  content?: React.ReactNode;
   /** @description Applies to Tooltip container. */
   className?: string;
 }
@@ -35,12 +46,17 @@ interface TooltipProps extends TooltipBaseProps {
 function Tooltip({
   place = "top",
   text,
+  content,
   children,
   small,
   className,
   delay = 0,
   ...props
 }: Readonly<TooltipProps>) {
+  const contentClassName = clsx(
+    "text-klerosUIComponentsPrimaryText text-base font-thin break-words",
+    small ? "text-center" : "text-left",
+  );
   return (
     <TooltipTrigger {...{ delay }} {...props}>
       <Focusable>
@@ -101,14 +117,12 @@ function Tooltip({
             )
           }
         />
-        <small
-          className={clsx(
-            "text-klerosUIComponentsPrimaryText text-base font-thin break-words",
-            small ? "text-center" : "text-left",
-          )}
-        >
-          {text}
-        </small>
+        {content === undefined ? (
+          <small className={contentClassName}>{text}</small>
+        ) : (
+          // not a <small>: rich content may hold block elements
+          <div className={contentClassName}>{content}</div>
+        )}
       </AriaTooltip>
     </TooltipTrigger>
   );

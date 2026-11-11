@@ -27,6 +27,13 @@ interface TextFieldProps extends AriaTextFieldProps {
    */
   inputProps?: InputProps;
   label?: string;
+  /** Rich label, shown instead of `label` in the field's label. */
+  labelContent?: React.ReactNode;
+  /**
+   * Rich description, shown instead of `message` in the field's description
+   * slot (so it is read with the field). The variant colour and icon still apply.
+   */
+  description?: React.ReactNode;
   /** Flag to enable field errors, alternative to `message`
    * This will show the validation errors from browser, or custom error in case `validate` is setup on Field.
    */
@@ -44,6 +51,8 @@ function TextField({
   className,
   placeholder,
   label,
+  labelContent,
+  description,
   showFieldError,
   fieldErrorProps,
   ...props
@@ -53,9 +62,9 @@ function TextField({
       className={cn("flex w-[278px] flex-col", className)}
       {...props}
     >
-      {label && (
+      {(labelContent ?? label) && (
         <Label className="text-klerosUIComponentsSecondaryText mb-1 text-sm">
-          {label}
+          {labelContent ?? label}
         </Label>
       )}
       <Group className="relative box-border h-[45px] w-full">
@@ -102,7 +111,7 @@ function TextField({
         )}
       </Group>
 
-      {message && (
+      {(description ?? message) && (
         <Text
           className={cn(
             "relative mt-1.25 flex items-center",
@@ -118,7 +127,12 @@ function TextField({
           {variant === "info" && (
             <InfoIcon className="fill-klerosUIComponentsSecondaryText mr-2 max-w-4 min-w-4" />
           )}
-          {message}
+          {description === undefined || description === null ? (
+            message
+          ) : (
+            // one flex item, so rich content flows inline beside the icon
+            <span className="min-w-0">{description}</span>
+          )}
         </Text>
       )}
 

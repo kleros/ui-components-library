@@ -2112,10 +2112,16 @@ __metadata:
     vitest: "npm:^3.2.4"
   peerDependencies:
     "@tailwindcss/postcss": ^4.0.11
+    eslint-plugin-better-tailwindcss: ">=4"
     react: ^18.0.0
     react-dom: ^18.0.0
     react-is: ^18.0.0
     tailwindcss: ^4.0.11
+  peerDependenciesMeta:
+    eslint-plugin-better-tailwindcss:
+      optional: true
+  bin:
+    kleros-ui: bin/kleros-ui.mjs
   languageName: unknown
   linkType: soft
 

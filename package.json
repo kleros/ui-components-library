@@ -1,7 +1,7 @@
 {
   "name": "@kleros/ui-components-library",
-  "version": "3.10.0",
-  "description": "UI components library which implements the Kleros design system.",
+  "version": "3.11.0",
+  "description": "UI components library which implements the Kleros design system. New app: set it up with the CLI, not by hand (npx kleros-ui create . once the package is installed). Existing app: once the package is installed, run npx kleros-ui init once, before writing UI. Guide: agent/AGENTS.md.",
   "source": "./src/lib/index.ts",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -19,17 +19,31 @@
       "types": "./dist/ui-components-library.d.ts"
     },
     "./style.css": "./dist/assets/index.css",
-    "./theme.css": "./dist/assets/theme.css"
+    "./theme.css": "./dist/assets/theme.css",
+    "./kit": {
+      "types": "./dist/kit/index.d.ts",
+      "import": "./dist/kit/index.js"
+    },
+    "./eslint": {
+      "import": "./eslint/index.mjs"
+    },
+    "./story-types": {
+      "types": "./story-types.d.ts"
+    },
+    "./package.json": "./package.json"
   },
   "sideEffects": [
     "**/*.css"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && yarn build:layer",
     "build-storybook": "storybook build",
-    "check-style": "eslint 'src/**/*.{ts,tsx}' '.storybook/**/*.{ts,tsx}' 'vitest*.config.ts' 'scripts/**/*.mjs'",
-    "check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "build:layer": "tsc -p kit/tsconfig.json && node scripts/layer/build.mjs && node scripts/layer/gen-catalog.mjs",
+    "check-style": "eslint 'src/**/*.{ts,tsx}' '.storybook/**/*.{ts,tsx}' 'vitest*.config.ts' 'scripts/**/*.mjs' 'kit/src/**/*.{ts,tsx}' 'recipes/**/*.tsx' 'story-types.d.ts'",
+    "check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && tsc -p tsconfig.layer.json",
     "clean": "rm -rf dist",
+    "postpack": "node scripts/pack-manifest.mjs restore",
+    "prepack": "yarn build && node scripts/pack-manifest.mjs strip",
     "prepare": "husky install",
     "start": "storybook dev -p 6006",
     "test:stories": "vitest run --project=storybook",
@@ -38,10 +52,17 @@
     "test:native": "vitest run --project=storybook-native",
     "test:unit": "vitest run --project=unit",
     "test:unit:coverage": "vitest run --project=unit --coverage",
+    "test:layer": "bash scripts/layer/test/run.sh",
     "test:mutation": "stryker run"
   },
   "files": [
-    "dist"
+    "dist",
+    "agent",
+    "eslint",
+    "story-types.d.ts",
+    "recipes",
+    "templates",
+    "bin"
   ],
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.5",
@@ -92,6 +113,9 @@
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "process": "^0.11.10",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-is": "^18.0.0",
     "storybook": "^8.6.4",
     "tailwindcss": "^4.0.11",
     "typescript": "^5.8.2",
@@ -103,6 +127,7 @@
   },
   "peerDependencies": {
     "@tailwindcss/postcss": "^4.0.11",
+    "eslint-plugin-better-tailwindcss": ">=4",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-is": "^18.0.0",
@@ -114,10 +139,7 @@
     "bignumber.js": "^9.1.2",
     "clsx": "^2.1.1",
     "lodash": "^4.17.21",
-    "react": "^18.0.0",
     "react-aria-components": "^1.7.1",
-    "react-dom": "^18.0.0",
-    "react-is": "^18.0.0",
     "react-markdown": "^9.0.1",
     "simplebar": "^5.3.6",
     "simplebar-react": "^2.3.6",
@@ -138,5 +160,23 @@
     "extends": [
       "plugin:storybook/recommended"
     ]
+  },
+  "typesVersions": {
+    "*": {
+      "kit": [
+        "dist/kit/index.d.ts"
+      ],
+      "story-types": [
+        "story-types.d.ts"
+      ]
+    }
+  },
+  "bin": {
+    "kleros-ui": "bin/kleros-ui.mjs"
+  },
+  "peerDependenciesMeta": {
+    "eslint-plugin-better-tailwindcss": {
+      "optional": true
+    }
   }
 }

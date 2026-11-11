@@ -20,9 +20,21 @@ export const SECONDARY_TEXT_LIGHT = contrastInLight(
   "src/styles/theme.css:12",
 );
 
+export const SECONDARY_TEXT_RICH_LIGHT = contrastInLight(
+  ".text-klerosUIComponentsSecondaryText :is(em, strong)",
+  "Library defect: rich label and description content inherits SecondaryText #999999.",
+  "src/styles/theme.css:12",
+);
+
 export const PRIMARY_BLUE_TEXT_LIGHT = contrastInLight(
   ".text-klerosUIComponentsPrimaryBlue",
   "Library defect: PrimaryBlue #009aff text is 2.8-3.0:1 on the light backgrounds.",
+  "src/styles/theme.css:7",
+);
+
+export const PRIMARY_BLUE_TEXT_RICH_LIGHT = contrastInLight(
+  ".text-klerosUIComponentsPrimaryBlue :is(em, strong)",
+  "Library defect: rich content inherits PrimaryBlue #009aff text.",
   "src/styles/theme.css:7",
 );
 

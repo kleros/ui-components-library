@@ -2,6 +2,7 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import {
   expect,
+  fn,
   mocked,
   spyOn,
   userEvent,
@@ -19,26 +20,13 @@ import {
 
 import CopiableComponent from "../lib/copiable";
 import { a11yExceptions } from "./a11y";
-import {
-  TOOLTIP_TRIGGER_NESTED,
-  TOOLTIP_TRIGGER_UNNAMED,
-} from "./a11y-defects";
+import { TOOLTIP_TRIGGER_NESTED } from "./a11y-defects";
 
 const meta = {
   component: CopiableComponent,
   title: "Copiable",
   tags: ["autodocs"],
-  parameters: a11yExceptions(
-    {
-      rule: "button-name",
-      selector: 'div[role="button"] > button',
-      reason:
-        "Library defect: the copy button is icon-only and has no accessible name.",
-      source: "src/lib/copiable/index.tsx:66",
-    },
-    TOOLTIP_TRIGGER_NESTED,
-    TOOLTIP_TRIGGER_UNNAMED,
-  ),
+  parameters: a11yExceptions(TOOLTIP_TRIGGER_NESTED),
   // The clipboard API needs a user permission in headless browsers, so it is
   // stubbed for every story and restored afterwards.
   beforeEach: () => {
@@ -84,6 +72,8 @@ export const Copiable: Story = {
     const button = getCopyButton(canvasElement);
     await expect(getWrapper(button)).toHaveClass("flex-row");
     await expect(button.querySelector(".copy-icon")).toBeInTheDocument();
+    // `info` is also the button's accessible name
+    await expect(button).toHaveAttribute("aria-label", "Copy this text.");
 
     await step("hovering shows the info tooltip", async () => {
       const tooltip = await hoverForTooltip(userEvent, button);
@@ -170,6 +160,7 @@ export const DefaultInfo: Story = {
   },
   play: async ({ canvasElement }) => {
     const button = getCopyButton(canvasElement);
+    await expect(button).toHaveAttribute("aria-label", "Copy");
     await expect(await hoverForTooltip(userEvent, button)).toHaveTextContent(
       /^Copy$/,
     );
@@ -245,6 +236,102 @@ export const RejectedWriteRetry: Story = {
     });
     await userEvent.unhover(button);
     // let the tooltip finish fading out before the axe check runs
+    await waitForTooltipHidden();
+  },
+};
+
+/** A visually hidden live region announces the result; `onCopy` is called on success. */
+export const LiveRegion: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    copiableContent: "0xabc",
+    children: <span className="text-klerosUIComponentsPrimaryText">0xabc</span>,
+    onCopy: fn(),
+    onCopyError: fn(),
+  },
+  play: async ({ canvasElement, args }) => {
+    const button = getCopyButton(canvasElement);
+    const status = within(canvasElement).getByRole("status");
+    await expect(status).toHaveClass("sr-only");
+    await expect(status).toBeEmptyDOMElement();
+
+    await userEvent.click(button);
+    await waitFor(() => expect(status).toHaveTextContent(/^Copied$/));
+    await expect(args.onCopy).toHaveBeenCalledTimes(1);
+    await expect(args.onCopyError).not.toHaveBeenCalled();
+    // the button keeps its name; the live region carries the news
+    await expect(button).toHaveAttribute("aria-label", "Copy");
+
+    await waitFor(() => expect(status).toBeEmptyDOMElement(), {
+      timeout: 3000,
+    });
+    await userEvent.unhover(button);
+    await waitForTooltipHidden();
+  },
+};
+
+/** A rejected write is announced as "Copy failed" and passed to `onCopyError`. */
+export const CopyFailed: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    copiableContent: "0xabc",
+    children: <span className="text-klerosUIComponentsPrimaryText">0xabc</span>,
+    onCopy: fn(),
+    onCopyError: fn(),
+  },
+  beforeEach: () => {
+    mocked(navigator.clipboard.writeText).mockRejectedValueOnce(
+      new DOMException("denied", "NotAllowedError"),
+    );
+  },
+  play: async ({ canvasElement, args }) => {
+    const button = getCopyButton(canvasElement);
+    const status = within(canvasElement).getByRole("status");
+
+    await userEvent.click(button);
+    await waitFor(() => expect(status).toHaveTextContent(/^Copy failed$/));
+    await expect(args.onCopyError).toHaveBeenCalledTimes(1);
+    await expect(args.onCopyError).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "NotAllowedError" }),
+    );
+    await expect(args.onCopy).not.toHaveBeenCalled();
+    await expect(button.querySelector(".copy-icon")).toBeInTheDocument();
+
+    await waitFor(() => expect(status).toBeEmptyDOMElement(), {
+      timeout: 3000,
+    });
+    await userEvent.unhover(button);
+    await waitForTooltipHidden();
+  },
+};
+
+/** `feedbackDuration` sets how long the copied state stays, in milliseconds. */
+export const FeedbackDuration: Story = {
+  args: {
+    themeUI: "light",
+    backgroundUI: "light",
+    copiableContent: "0xabc",
+    children: <span className="text-klerosUIComponentsPrimaryText">0xabc</span>,
+    feedbackDuration: 300,
+  },
+  play: async ({ canvasElement }) => {
+    const button = getCopyButton(canvasElement);
+    const status = within(canvasElement).getByRole("status");
+
+    await userEvent.click(button);
+    await waitFor(() =>
+      expect(button.querySelector(".copied-icon")).toBeInTheDocument(),
+    );
+    await expect(status).toHaveTextContent("Copied");
+    // well under the default 2000 ms
+    await waitFor(
+      () => expect(button.querySelector(".copy-icon")).toBeInTheDocument(),
+      { timeout: 1500 },
+    );
+    await expect(status).toBeEmptyDOMElement();
+    await userEvent.unhover(button);
     await waitForTooltipHidden();
   },
 };

@@ -21,7 +21,12 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ["src/assets"],
+    // templates/poc is the starter app that `kleros-ui create` copies. It has
+    // its own ESLint config and imports packages the starter installs.
+    // scripts/layer/test holds the agent layer's gates (yarn test:layer): Node
+    // helpers that print their results, and fixtures with deliberate faults.
+    // They are kept as the d.11 build ran them.
+    ignores: ["src/assets", "templates/", "scripts/layer/test/"],
   },
   ...fixupConfigRules(
     compat.extends(
@@ -113,6 +118,25 @@ export default [
           ts: "never",
           tsx: "never",
         },
+      ],
+    },
+  },
+  {
+    // The agent layer's TypeScript is written for apps: React's automatic JSX
+    // runtime, ESM imports that end in .js, and the package imported by its
+    // own name. The node resolver reads none of those; tsconfig.layer.json
+    // type-checks the imports instead. Prettier does not reformat it: it keeps
+    // the style it was built and reviewed in, so dist/kit stays the code that
+    // was tested.
+    files: ["kit/src/**/*.{ts,tsx}", "recipes/**/*.tsx", "story-types.d.ts"],
+    rules: {
+      "prettier/prettier": "off",
+      "react/react-in-jsx-scope": "off",
+      "import/no-unresolved": "off",
+      "import/extensions": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },
       ],
     },
   },

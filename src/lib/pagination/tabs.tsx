@@ -37,6 +37,10 @@ interface TabsItem {
 }
 
 interface TabsProps extends Omit<AriaTabsProps, "orientation"> {
+  /**
+   * One entry per tab. Each needs `id`, `text`, `value` and `content`.
+   * @example items={[{ id: "cases", text: "Cases", value: "cases", content: <CasesList /> }]}
+   */
   items: TabsItem[];
   callback?: (key: Key, value: TabsItem["value"]) => void;
   className?: string;

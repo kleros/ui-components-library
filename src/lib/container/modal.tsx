@@ -15,6 +15,8 @@ interface ModalProps
   modalOverlayClassname?: ModalOverlayProps["className"];
   children?: DialogProps["children"];
   ariaLabel?: string;
+  /** Size to the content, up to the viewport, instead of the fixed 328×200. */
+  fluid?: boolean;
 }
 
 /** A modal is an overlay element which blocks interaction with elements outside it. */
@@ -23,6 +25,7 @@ function Modal({
   modalOverlayClassname,
   children,
   ariaLabel,
+  fluid,
   ...props
 }: Readonly<ModalProps>) {
   return (
@@ -40,7 +43,10 @@ function Modal({
         <Dialog
           aria-label={ariaLabel ?? "Modal"}
           className={cn(
-            "bg-klerosUIComponentsWhiteBackground h-[200px] w-[328px] outline-none",
+            "bg-klerosUIComponentsWhiteBackground outline-none",
+            fluid
+              ? "h-auto max-h-[90dvh] w-auto max-w-[calc(100vw-2rem)] overflow-auto"
+              : "h-[200px] w-[328px]",
             "rounded-base box-border",
             className,
           )}

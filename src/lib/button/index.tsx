@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { cn } from "../../utils";
 import {
   Button as AriaButton,
@@ -26,7 +26,21 @@ export interface BaseButtonProps {
 export interface ButtonProps
   extends AriaButtonProps,
     Omit<BaseButtonProps, "$loading"> {
+  /**
+   * The button label. Pass the label here; it is shown unless `children` is
+   * set, and then it is the accessible name instead (unless `aria-label` is
+   * passed), so keep it a plain-text description of the button.
+   * Use `onPress` (react-aria) for clicks and `isDisabled` to disable.
+   * @example <Button text="Submit" onPress={submit} isLoading={pending} />
+   */
   text: string;
+  /**
+   * Content shown instead of `text`, for a rich label or an icon-only button.
+   * @example <Button text="Close" children={<CloseIcon />} onPress={close} />
+   */
+  children?: AriaButtonProps["children"];
+  /** The native tooltip of the button. Set on the element by the library: react-aria drops `title`. */
+  title?: string;
   /** A React svg element to show as icon on button */
   Icon?: React.FC<React.SVGAttributes<SVGElement>>;
   /** A React node element to show as is on button */
@@ -34,16 +48,39 @@ export interface ButtonProps
   className?: string;
 }
 
-function Button({
-  text,
-  variant,
-  Icon,
-  icon,
-  isLoading,
-  className,
-  isDisabled,
-  ...props
-}: Readonly<ButtonProps>): React.ReactElement {
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  {
+    text,
+    children,
+    title,
+    variant,
+    Icon,
+    icon,
+    isLoading,
+    className,
+    isDisabled,
+    ...props
+  },
+  forwardedRef,
+): React.ReactElement {
+  // react-aria-components filters DOM props down to id, data-* and labelling
+  // attributes, so `title` is set on the element after render instead.
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const setRefs = useCallback(
+    (element: HTMLButtonElement | null) => {
+      buttonRef.current = element;
+      if (typeof forwardedRef === "function") forwardedRef(element);
+      else if (forwardedRef) forwardedRef.current = element;
+    },
+    [forwardedRef],
+  );
+  useEffect(() => {
+    const element = buttonRef.current;
+    if (!element || title === undefined) return;
+    element.title = title;
+    return () => element.removeAttribute("title");
+  }, [title]);
+
   const isPrimary = variant === "primary" || variant === undefined;
   const isSecondary = variant === "secondary";
   const isTertiary = variant === "tertiary";
@@ -75,12 +112,22 @@ function Button({
         className,
       )}
       {...{ variant, isLoading, isDisabled, ...props }}
+      ref={setRefs}
+      aria-label={
+        props["aria-label"] ?? (children === undefined ? undefined : text)
+      }
     >
-      {isLoading && <KlerosSymbol {...{ isDisabled, variant }} />}
-      <ButtonIcon {...{ icon, Icon, isDisabled, isLoading, variant }} />
-      <ButtonText {...{ isLoading, isDisabled, variant, text }} />
+      {(values) => (
+        <>
+          {isLoading && <KlerosSymbol {...{ isDisabled, variant }} />}
+          <ButtonIcon {...{ icon, Icon, isDisabled, isLoading, variant }} />
+          <ButtonText {...{ isLoading, isDisabled, variant, text }}>
+            {typeof children === "function" ? children(values) : children}
+          </ButtonText>
+        </>
+      )}
     </AriaButton>
   );
-}
+});
 
 export default Button;
