@@ -20,3 +20,10 @@ jobs:
           YARN_ENABLE_SCRIPTS: false
       - name: Run TypeScriptCompiler
         run: yarn check-types
+      - name: Check the agent catalogue is current
+        run: |
+          node scripts/layer/gen-catalog.mjs
+          git diff --exit-code -- agent/catalog.json agent/CATALOG.md || {
+            echo "::error::agent/catalog.json or agent/CATALOG.md is out of date: run node scripts/layer/gen-catalog.mjs and commit both"
+            exit 1
+          }

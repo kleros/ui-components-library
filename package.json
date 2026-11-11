@@ -41,7 +41,7 @@
     "build:layer": "tsc -p kit/tsconfig.json && node scripts/layer/build.mjs && node scripts/layer/gen-catalog.mjs",
     "check-style": "eslint 'src/**/*.{ts,tsx}' '.storybook/**/*.{ts,tsx}' 'vitest*.config.ts' 'scripts/**/*.mjs' 'kit/src/**/*.{ts,tsx}' 'recipes/**/*.tsx' 'story-types.d.ts'",
     "check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && tsc -p tsconfig.layer.json",
-    "clean": "rm -rf dist agent/CATALOG.md agent/catalog.json",
+    "clean": "rm -rf dist",
     "postpack": "node scripts/pack-manifest.mjs restore",
     "prepack": "yarn build && node scripts/pack-manifest.mjs strip",
     "prepare": "husky install",

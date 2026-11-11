@@ -1,0 +1,932 @@
+{
+  "version": "3.11.0",
+  "components": [
+    {
+      "name": "Button",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "button",
+        "action",
+        "submit",
+        "click",
+        "cta",
+        "primary",
+        "secondary",
+        "loading button"
+      ],
+      "props": "text (required: the label, or the accessible name when children are passed), children (shown instead of text: an icon, a rich label), onPress, variant, isLoading, isDisabled, small, Icon"
+    },
+    {
+      "name": "Card",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "card",
+        "panel",
+        "box",
+        "container",
+        "surface",
+        "tile"
+      ],
+      "props": "fluid (sizes to content and container; default fixed 328x200), round, hover; padding with className=\"p-6\""
+    },
+    {
+      "name": "Box",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "box",
+        "container",
+        "rounded panel"
+      ],
+      "props": "fixed 328x200 by default: className=\"h-auto w-full\""
+    },
+    {
+      "name": "Modal",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "modal",
+        "dialog",
+        "popup",
+        "overlay",
+        "confirm"
+      ],
+      "props": "isOpen, onOpenChange(open), fluid (sizes to its content; default fixed 328x200); no title prop"
+    },
+    {
+      "name": "Tag",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "tag",
+        "chip",
+        "label",
+        "filter chip",
+        "pill"
+      ],
+      "props": "text (required: the label, or the accessible name when children are passed), children (shown instead of text, e.g. a dot and a label), active, toggle (announces active as pressed), onPress (react-aria Button); for coloured statuses use kit StatusBadge"
+    },
+    {
+      "name": "Tabs",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "tabs",
+        "tab bar",
+        "sections switch",
+        "segmented"
+      ],
+      "props": "items: {id, text, value, content}[], callback(key, value)"
+    },
+    {
+      "name": "Tooltip",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "tooltip",
+        "hint",
+        "hover help",
+        "info"
+      ],
+      "props": "text, place, small, children"
+    },
+    {
+      "name": "Switch",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "switch",
+        "toggle",
+        "on off"
+      ],
+      "props": "react-aria Switch props (isSelected, onChange), small"
+    },
+    {
+      "name": "Checkbox",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "checkbox",
+        "check",
+        "tick",
+        "agree"
+      ],
+      "props": "react-aria Checkbox props (isSelected, onChange), label, small"
+    },
+    {
+      "name": "Radio",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "radio",
+        "radio group",
+        "options",
+        "choose one"
+      ],
+      "props": "options: {label, value}[], groupLabel, onChange(value)"
+    },
+    {
+      "name": "CustomRadio",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "custom radio",
+        "radio cards",
+        "card options",
+        "rich radio options",
+        "choose one card"
+      ],
+      "props": "items: {value, content (a node, or (renderProps) => node)}[], or children (CustomRadioItem elements, with a field or tooltip beside them), groupLabel, value, onChange(value). For options that are a label only, use Radio"
+    },
+    {
+      "name": "CustomRadioItem",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "custom radio option",
+        "radio card option"
+      ],
+      "props": "value, children ((renderProps) => node); one option among CustomRadio's children. It renders a <label>: put a field or a tooltip beside it, not inside"
+    },
+    {
+      "name": "RadioIndicator",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "radio circle",
+        "radio dot",
+        "radio indicator"
+      ],
+      "props": "the library's radio circle for CustomRadio content: spread the option's render props (isSelected, isHovered, isFocusVisible, ...), small, focusRing={false} when the option shows its own focus ring"
+    },
+    {
+      "name": "Steps",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "steps",
+        "stepper",
+        "wizard steps",
+        "progress steps"
+      ],
+      "props": "items: {title, subitems?}[], currentItemIndex. Step indicator only; for a multi-step form use kit WizardShell"
+    },
+    {
+      "name": "Timeline",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "timeline",
+        "history",
+        "events",
+        "activity",
+        "period history"
+      ],
+      "props": "items: {title, party, subtitle, variant?}[] (non-empty)"
+    },
+    {
+      "name": "CustomTimeline",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "custom timeline",
+        "timeline with custom items"
+      ],
+      "props": "items with custom content"
+    },
+    {
+      "name": "Accordion",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "accordion",
+        "collapsible",
+        "faq",
+        "expand",
+        "disclosure"
+      ],
+      "props": "items: {title, body, Icon?}[], defaultExpanded"
+    },
+    {
+      "name": "CustomAccordion",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "custom accordion",
+        "accordion with custom title",
+        "rich accordion header",
+        "custom expand button"
+      ],
+      "props": "items: {title (any node), body, expandButton?}[], defaultExpanded, expandButton({expanded, toggle}) for every item. For a text title with an icon use Accordion. The expand button sits inside the header's button, so return an icon, not a Button"
+    },
+    {
+      "name": "Breadcrumb",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "breadcrumb",
+        "navigation path",
+        "trail"
+      ],
+      "props": "items, callback, clickable, variant"
+    },
+    {
+      "name": "Copiable",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "copy",
+        "copy to clipboard",
+        "copiable text"
+      ],
+      "props": "copiableContent, info, iconPlacement, children"
+    },
+    {
+      "name": "Form",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "form",
+        "submit form",
+        "form validation",
+        "required fields",
+        "field errors"
+      ],
+      "props": "react-aria Form props (onSubmit, validationErrors, validationBehavior); fields with name, a Button with type=\"submit\", and kit FormStack for the layout. Inside a kit WizardShell step, no Form: the shell is the form"
+    },
+    {
+      "name": "Searchbar",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "search",
+        "search box",
+        "search input",
+        "filter text"
+      ],
+      "props": "label, placeholder, onChange(value: string); 278 px wide: className=\"w-full\" fills the column"
+    },
+    {
+      "name": "TextField",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "text field",
+        "input",
+        "text input",
+        "form field",
+        "email",
+        "name"
+      ],
+      "props": "label, onChange(value: string), variant=\"error\", message; 278 px wide: className=\"w-full\" fills the column"
+    },
+    {
+      "name": "TextArea",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "textarea",
+        "multiline",
+        "long text",
+        "description input"
+      ],
+      "props": "label, onChange(value: string)"
+    },
+    {
+      "name": "NumberField",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "number field",
+        "numeric input",
+        "amount input"
+      ],
+      "props": "react-aria NumberField props (value, onChange(number)), label, variant, message"
+    },
+    {
+      "name": "BigNumberField",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "big number",
+        "token amount input",
+        "18 decimals input",
+        "eth input"
+      ],
+      "props": "onChange(v: BigNumber in display units): keep v.toFixed() as a string and convert it with kit parseUnits on submit, not in onChange (the field swallows its throw); minValue=\"0\", validate (at most the token's decimals), showFieldError"
+    },
+    {
+      "name": "Datepicker",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "date",
+        "date picker",
+        "calendar",
+        "deadline picker"
+      ],
+      "props": "react-aria DatePicker props (value, onChange), time, label"
+    },
+    {
+      "name": "DropdownSelect",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "dropdown",
+        "select",
+        "filter",
+        "choose",
+        "menu select"
+      ],
+      "props": "items: {id, text, itemValue}[], callback(item); the trigger is 240 px and no prop widens it; its list calls Date.now() (SimpleBar), so a fixed-clock app uses Radio for a short list"
+    },
+    {
+      "name": "DropdownCascader",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "cascader",
+        "nested select",
+        "court tree",
+        "hierarchy select"
+      ],
+      "props": "items: {label, value, children}[]"
+    },
+    {
+      "name": "Slider",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "slider",
+        "range",
+        "amount slider"
+      ],
+      "props": "react-aria Slider props, leftLabel, rightLabel, formatter, callback"
+    },
+    {
+      "name": "FileUploader",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "file upload",
+        "upload",
+        "attach file",
+        "evidence file"
+      ],
+      "props": "callback(file: File), msg, variant"
+    },
+    {
+      "name": "FileViewer",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "file viewer",
+        "document viewer",
+        "pdf preview",
+        "attachment"
+      ],
+      "props": "url, fileName"
+    },
+    {
+      "name": "AlertMessage",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "alert",
+        "notice",
+        "message",
+        "warning box",
+        "success message",
+        "error message",
+        "result"
+      ],
+      "props": "variant (success|warning|error|info), title, msg (required); no children"
+    },
+    {
+      "name": "PushMessage",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "push message",
+        "toast-like message",
+        "notification"
+      ],
+      "props": "variant, title, msg, callback"
+    },
+    {
+      "name": "LinearProgress",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "progress bar",
+        "bar",
+        "percentage bar",
+        "funding progress"
+      ],
+      "props": "value (0-100); width (px) optional: leave it out to fill the container"
+    },
+    {
+      "name": "CircularProgress",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "circular progress",
+        "ring",
+        "gauge",
+        "percentage ring"
+      ],
+      "props": "value; tone (success|warning|error|info|neutral|accent) sets the fill colour, default blue turning green at 100%; aria-label names it"
+    },
+    {
+      "name": "StandardPagination",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "pagination",
+        "pages",
+        "page numbers",
+        "next page"
+      ],
+      "props": "currentPage (from 1), numPages, callback(page)"
+    },
+    {
+      "name": "CompactPagination",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "compact pagination",
+        "prev next",
+        "small pagination"
+      ],
+      "props": "currentPage, numPages, callback(page)"
+    },
+    {
+      "name": "ScrollbarContainer",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "scroll",
+        "scroll area",
+        "scrollbar"
+      ],
+      "props": "children"
+    },
+    {
+      "name": "DraggableList",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "draggable list",
+        "reorder",
+        "sortable"
+      ],
+      "props": "items, callback (see its .d.ts)"
+    },
+    {
+      "name": "DisplayLarge",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "display",
+        "big number with label",
+        "stat display"
+      ],
+      "props": "text, label, Icon"
+    },
+    {
+      "name": "DisplaySmall",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "display small",
+        "label value"
+      ],
+      "props": "text, label, Icon"
+    },
+    {
+      "name": "DisplayIcon",
+      "importPath": "@kleros/ui-components-library",
+      "intent": [
+        "display with icon",
+        "stat with icon",
+        "icon tile",
+        "figure with icon"
+      ],
+      "props": "text, label, Icon (required, in a small card on the left); fixed 288x80 px like DisplayLarge. For an app's stat row prefer kit StatCard"
+    },
+    {
+      "name": "Skeleton",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "skeleton",
+        "loading placeholder",
+        "shimmer",
+        "loading state",
+        "loading rows"
+      ],
+      "props": "count, className; for whole data views prefer QueryState"
+    },
+    {
+      "name": "Spinner",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "spinner",
+        "inline loading",
+        "busy"
+      ],
+      "props": "size, label"
+    },
+    {
+      "name": "EmptyState",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "empty",
+        "no results",
+        "nothing here",
+        "empty list",
+        "no data",
+        "zero state"
+      ],
+      "props": "title, description, action ({text, onPress} for a small Button, or a node rendered as given), icon"
+    },
+    {
+      "name": "InfoCard",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "info card",
+        "callout",
+        "explanation box"
+      ],
+      "props": "children, variant (info|warning|success|error; also sets its icon and the word screen readers hear first)"
+    },
+    {
+      "name": "StatCard",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "stat card",
+        "stat",
+        "metric",
+        "kpi",
+        "total",
+        "tile",
+        "dashboard number"
+      ],
+      "props": "label, value, hint, icon, isLoading"
+    },
+    {
+      "name": "AddressDisplay",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "address",
+        "wallet address",
+        "ens",
+        "short address",
+        "copy address"
+      ],
+      "props": "address, chars, explorerUrl (adds a ↗ link to the explorer beside the address), copyInfo"
+    },
+    {
+      "name": "TokenAmount",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "token amount",
+        "eth amount",
+        "wei",
+        "pnk",
+        "balance",
+        "18 decimals",
+        "format amount"
+      ],
+      "props": "value (the token's smallest unit, wei for ETH: bigint or integer string; a decimal amount goes through parseUnits first), symbol, decimals, maxFractionDigits (default 4; a non-zero amount below its last digit shows as <0.0001, <0.01 for 2, not 0)"
+    },
+    {
+      "name": "DataTable",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "table",
+        "data table",
+        "rows",
+        "columns",
+        "list table",
+        "loading rows",
+        "empty table"
+      ],
+      "props": "columns: DataTableColumn<T>[] (key, header, render, align, width: px or a CSS width, so columns keep their place while loading), rows, rowKey, isLoading, empty, onRowPress (a click, or Enter or Space on the focused row; a click on a link or button in the row is left to it)"
+    },
+    {
+      "name": "ExternalLink",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "external link",
+        "explorer link",
+        "tx link",
+        "etherscan",
+        "open in new tab"
+      ],
+      "props": "href, children"
+    },
+    {
+      "name": "HelpTooltip",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "help",
+        "info icon",
+        "question mark",
+        "explanation tooltip",
+        "label help"
+      ],
+      "props": "text, children (a plain-text label also names the \"?\": \"About\" and the label), place"
+    },
+    {
+      "name": "ThemeToggle",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "theme toggle",
+        "dark mode",
+        "light mode",
+        "theme switch"
+      ],
+      "props": "no props; follows the .dark class (useDarkMode), so it stays in step with other code; the word Dark toggles it too; call kit applyInitialTheme() in main.tsx before the first render (?theme=light or ?theme=dark, else the system setting)"
+    },
+    {
+      "name": "ChainGuard",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "chain guard",
+        "wrong network",
+        "switch chain",
+        "wallet gate"
+      ],
+      "props": "isConnected, isConnecting (a spinner instead of the connect or switch prompt while the wallet connects or reconnects), chainId, requiredChainId, chainName, onConnect, onSwitchChain, children"
+    },
+    {
+      "name": "applyInitialTheme",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "initial theme",
+        "dark mode",
+        "light mode",
+        "system theme",
+        "prefers-color-scheme",
+        "theme query parameter",
+        "theme on load"
+      ],
+      "description": "Sets the starting theme before the first render: `?theme=light` or `?theme=dark` in the URL wins, else the system setting. Call it once in `main.tsx`."
+    },
+    {
+      "name": "Sparkline",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "sparkline",
+        "mini chart",
+        "trend",
+        "chart",
+        "graph",
+        "line chart",
+        "area chart",
+        "history",
+        "time series",
+        "small chart",
+        "trend line"
+      ],
+      "description": "Small line chart of one series: a filled area, a line and a dot on the latest value, with optional start and end labels."
+    },
+    {
+      "name": "KeyValueList",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "key value",
+        "facts",
+        "details list",
+        "properties",
+        "definition list",
+        "label value",
+        "details",
+        "summary",
+        "review step",
+        "info rows"
+      ],
+      "description": "Facts as label and value rows (a `dl`) with a divider between rows, inside a `Card` or alone."
+    },
+    {
+      "name": "FormField",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "form field",
+        "label",
+        "help text",
+        "error message",
+        "validation",
+        "custom input",
+        "field wrapper"
+      ],
+      "description": "Label, help and error text around a custom control (a chain picker, a token selector, a file drop)."
+    },
+    {
+      "name": "WizardShell",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "wizard",
+        "multi-step form",
+        "step form",
+        "steps form",
+        "stepper",
+        "form steps",
+        "next back",
+        "create flow",
+        "onboarding flow",
+        "checkout"
+      ],
+      "description": "Multi-step form: the core `Steps` bar above the current step's fields in a `FormStack`, with Back, Next and Submit in its actions."
+    },
+    {
+      "name": "Stack",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "stack",
+        "vertical",
+        "column",
+        "spacing",
+        "gap",
+        "layout",
+        "list of blocks"
+      ],
+      "description": "Vertical flex column with a fixed gap. Use it instead of hand-written `flex flex-col gap-*` or margins on children."
+    },
+    {
+      "name": "Inline",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "inline",
+        "row",
+        "horizontal",
+        "buttons row",
+        "toolbar",
+        "tags",
+        "wrap",
+        "spacing",
+        "gap"
+      ],
+      "description": "Horizontal row that wraps, with a fixed gap. For button rows, tag lists and label + value pairs."
+    },
+    {
+      "name": "Grid",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "grid",
+        "cards grid",
+        "columns",
+        "responsive",
+        "auto-fit",
+        "auto-fill",
+        "dashboard layout",
+        "stat row",
+        "two-up",
+        "side by side"
+      ],
+      "description": "Responsive grid: as many columns of at least `minItemWidth` as the row holds, with the items filling the row, so no empty column is left at its end. No breakpoints needed."
+    },
+    {
+      "name": "Section",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "section",
+        "heading",
+        "block",
+        "panel header",
+        "title with actions",
+        "group of content"
+      ],
+      "description": "Titled block of a page: heading, optional description and actions, then content."
+    },
+    {
+      "name": "Page",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "page",
+        "container",
+        "wrapper",
+        "max width",
+        "centred layout",
+        "gutters",
+        "page title",
+        "screen"
+      ],
+      "description": "Page container: centred, max width, responsive gutters, vertical padding. Renders a `main` element."
+    },
+    {
+      "name": "FormStack",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "form layout",
+        "fields",
+        "form actions",
+        "submit row",
+        "vertical form",
+        "field spacing",
+        "form buttons",
+        "cancel submit"
+      ],
+      "description": "Vertical stack of form fields with an optional actions row. Use inside the core `Form` or a plain `form`; in a `WizardShell` step, pass the fields alone (the shell is the form and its FormStack)."
+    },
+    {
+      "name": "ErrorState",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "error",
+        "failed",
+        "something went wrong",
+        "retry",
+        "load failure",
+        "error message",
+        "fetch error"
+      ],
+      "description": "Error block for a failed load: core `AlertMessage` plus an optional Retry button."
+    },
+    {
+      "name": "QueryState",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "loading",
+        "error",
+        "empty",
+        "data fetching",
+        "query state",
+        "skeleton",
+        "retry",
+        "tanstack query",
+        "react-query",
+        "wagmi",
+        "async state"
+      ],
+      "description": "Handles the loading, error, empty and loaded states of one request in a single place."
+    },
+    {
+      "name": "StatusBadge",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "status",
+        "badge",
+        "pill",
+        "chip",
+        "label",
+        "state",
+        "period",
+        "tag",
+        "success",
+        "warning",
+        "error"
+      ],
+      "description": "Small pill for a status, such as a case period or a transaction state."
+    },
+    {
+      "name": "useCountdown",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "countdown",
+        "deadline",
+        "time left",
+        "timer",
+        "remaining time",
+        "hook",
+        "fixed clock",
+        "fixed now",
+        "mock time"
+      ],
+      "description": "Time left until a deadline: live (re-rendered every second), or computed from a fixed `now` with no timer, for mocks and stories."
+    },
+    {
+      "name": "Countdown",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "countdown",
+        "deadline",
+        "time left",
+        "timer",
+        "remaining time",
+        "ends in",
+        "clock",
+        "fixed clock",
+        "fixed now",
+        "mock time"
+      ],
+      "description": "Time left until a deadline, in a `time` element with the UTC time as its tooltip: live, or static text from a fixed `now` (mocks, stories, screenshots)."
+    },
+    {
+      "name": "readToken",
+      "importPath": "@kleros/ui-components-library/kit",
+      "intent": [
+        "token",
+        "color",
+        "colour",
+        "theme value",
+        "chart color",
+        "canvas",
+        "css variable",
+        "getComputedStyle"
+      ],
+      "description": "Current value of a colour token as a CSS colour string, for charts and canvas that cannot use Tailwind classes."
+    }
+  ],
+  "knownGaps": [
+    {
+      "name": "Transaction hash link",
+      "intent": [
+        "tx hash",
+        "transaction link",
+        "explorer",
+        "etherscan link"
+      ],
+      "kind": "ui",
+      "suggest": "TxLink",
+      "compose": "kit ExternalLink with shortenAddress(hash)"
+    },
+    {
+      "name": "Period / status tag with colour",
+      "intent": [
+        "period tag",
+        "period banner",
+        "period badge",
+        "status chip",
+        "status label",
+        "label with colour",
+        "evidence commit vote appeal execution"
+      ],
+      "kind": "ui",
+      "suggest": "PeriodBadge",
+      "compose": "kit StatusBadge with a tone per period (evidence info, commit neutral, vote accent, appeal warning, execution success)"
+    },
+    {
+      "name": "Segmented control",
+      "intent": [
+        "segmented control",
+        "toggle group",
+        "view switch",
+        "button group"
+      ],
+      "kind": "ui",
+      "suggest": "SegmentedControl",
+      "compose": "core Tabs for content switching, or core Radio for a value"
+    }
+  ]
+}

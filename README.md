@@ -230,6 +230,8 @@ yarn check-types    # Type checking
 yarn check-style    # Linting
 ```
 
+`agent/catalog.json` and `agent/CATALOG.md` are generated but committed. After changing `scripts/layer/seed.json` or a kit component's `@intent` JSDoc, run `node scripts/layer/gen-catalog.mjs` (or `yarn build`) and commit both; the TypeCheck workflow fails if they are out of date.
+
 `yarn test:layer [pack.tgz]` runs the agent layer's gates (kit, CLI, guide, lint preset, starter) on a pack, or packs the repo first; it needs Node 22.15 or later (23.5 or later on Node 23), and network on its first run for the npm ci in `scripts/layer/test/tools`.
 
 After an interrupted `yarn pack`, run `node scripts/pack-manifest.mjs restore`: `prepack` takes the `prepare` script out of `package.json`, and only `postpack` puts it back.
