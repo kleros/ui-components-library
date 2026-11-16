@@ -128,7 +128,7 @@
     [
       "BigNumberField",
       "big number, token amount input, 18 decimals input, eth input",
-      "onChange(v: BigNumber in display units): keep v.toFixed() as a string and convert it with kit parseUnits on submit, not in onChange (the field swallows its throw); minValue=\"0\", validate (at most the token's decimals), showFieldError"
+      "value (from \"\"; pass back the v.toFixed() string kept from onChange, so a remounted field shows it again), onChange(v: BigNumber in display units): convert with kit parseUnits(amount || \"0\") on submit, not in onChange (the field swallows its throw); minValue=\"0\", validate (at most the token's decimals), showFieldError; for money isWheelDisabled and a small step"
     ],
     [
       "Datepicker",
@@ -143,7 +143,7 @@
     [
       "DropdownCascader",
       "cascader, nested select, court tree, hierarchy select",
-      "items: {label, value, children}[]"
+      "items: {id, label, itemValue, children?}[] (DropdownCascaderItem)"
     ],
     [
       "Slider",
@@ -173,7 +173,7 @@
     [
       "LinearProgress",
       "progress bar, bar, percentage bar, funding progress",
-      "value (0-100); width (px) optional: leave it out to fill the container"
+      "value (0-100); width (px) optional: leave it out to fill the container; in a parent sized to its content (w-fit), pass width"
     ],
     [
       "CircularProgress",

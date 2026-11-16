@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button, LinearProgress, TextField } from "@kleros/ui-components-library";
 import {
   AddressDisplay, ChainGuard, DataTable, EmptyState, ExternalLink, HelpTooltip, InfoCard, Skeleton, Spinner,
-  StatCard, ThemeToggle, TokenAmount, formatUnits, parseUnits, shortenAddress, useDarkMode, applyInitialTheme,
+  StatCard, ThemeToggle, TokenAmount, formatAmount, parseUnits, shortenAddress, useDarkMode, applyInitialTheme,
   Stack, Inline, Grid, Section, Page, FormStack, ErrorState, QueryState, StatusBadge, toneClasses, FormField,
   Countdown, useCountdown, readToken, KeyValueList, Sparkline, WizardShell,
   type DataTableColumn, type Tone, type KlerosToken, type KeyValueItem, type KeyValueListProps, type SparklineProps,
@@ -14,7 +14,7 @@ import type { Meta, StoryObj } from "@kleros/ui-components-library/story-types";
 type Row = { id: number; name: string };
 const columns: DataTableColumn<Row>[] = [{ key: "name", header: "Name" }];
 const wei: bigint = parseUnits("1.5");
-const text: string = formatUnits(wei) + shortenAddress("0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed");
+const text: string = formatAmount(wei) + shortenAddress("0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed");
 const tone: Tone = "accent";
 const token: KlerosToken = "PrimaryBlue";
 const facts: KeyValueItem[] = [
