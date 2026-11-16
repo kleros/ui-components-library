@@ -2112,12 +2112,15 @@ __metadata:
     vitest: "npm:^3.2.4"
   peerDependencies:
     "@tailwindcss/postcss": ^4.0.11
+    eslint: ">=8"
     eslint-plugin-better-tailwindcss: ">=4"
     react: ^18.0.0
     react-dom: ^18.0.0
     react-is: ^18.0.0
     tailwindcss: ^4.0.11
   peerDependenciesMeta:
+    eslint:
+      optional: true
     eslint-plugin-better-tailwindcss:
       optional: true
   bin:

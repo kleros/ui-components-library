@@ -1,8 +1,11 @@
 // @kleros/ui-components-library/eslint: the Kleros look (agent/LOOK.md) as lint rules.
 // Usage (flat config): import klerosUI from "@kleros/ui-components-library/eslint";
 //   export default [...yourConfig, ...klerosUI({ cssEntry: "src/index.css" })];
-// Needs eslint >= 9. The Tailwind class rules need eslint-plugin-better-tailwindcss 4+ (optional peer dependency)
-// and are skipped without it.
+// Needs a flat config, on eslint 9 or later or on eslint 8.57 (run on 8.57.1). ESLint 8 reads the file passed with -c
+// as a flat config under ESLINT_USE_FLAT_CONFIG=true, which ui:check and ui:baseline set when init wrote
+// kleros-ui.eslint.config.*. The Tailwind class rules need eslint-plugin-better-tailwindcss 4+ (optional peer
+// dependency) and are skipped without it. When it is installed but does not load, they are off too, and the preset
+// warns once (see the import below).
 // Every app styles with Tailwind only (agent/AGENTS.md, "Styling: Tailwind only"), so there is one set of rules for
 // all apps. A `styled` option (once for apps on styled-components without Tailwind) is still accepted, so
 // an existing config such as `klerosUI({ styled: true })` loads, but it is ignored and changes nothing. Its px radius
@@ -25,20 +28,43 @@
 // - Card round is flagged on the library's Card only (<Card round>, <UI.Card round>), not on an app's own *Card with
 //   a round prop (an appeal round). An arbitrary colour class is one whose value is not a number or a length, so
 //   stroke-[1.5] and border-[1.5px] pass.
+// - A local component named like a library export is reported, except a Next.js route file's default-exported Page
+//   (`export default function Page()` in app/**/page.tsx; see NEXT_ROUTES).
 // The preset's restrictions are kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports:
 // ESLint's own rules, registered again in the preset's plugin from eslint/use-at-your-own-risk. A flat config keeps one
 // set of options per rule id and the preset comes last, so under the core ids its options replaced an app's own
 // no-restricted-syntax and no-restricted-imports options, and the app's patterns stopped reporting. Now both report.
 // use-at-your-own-risk exports builtinRules in ESLint 8 to 10 (read in 9.15.0, 9.39.5 and 10.11.0). Where it does not
 // load, as when the app's ESLint is not reachable from this folder, the preset falls back to the core ids and says so.
-const betterTailwind = await import("eslint-plugin-better-tailwindcss").then((m) => m.default, () => null);
+// The Tailwind class rules' plugin, an optional peer. When it is not installed, the rules are skipped and the preset
+// says nothing (ui:check notes it). When it is installed but does not load (a dependency of its own missing, a Node it
+// does not support, no default export), the rules are off too, and the preset warns once, since outside ui:check (an
+// editor, the app's own lint) nothing else says so. Node's message names the package it could not find: "Cannot find
+// package '<name>' imported from ..." (ERR_MODULE_NOT_FOUND) for an import, "Cannot find module '<name>'"
+// (MODULE_NOT_FOUND) where a loader requires it. A dependency the plugin lacks gives the same code with that
+// dependency's name, and a missing entry file gives its path, so only the plugin's own name means not installed.
+const TW_PLUGIN = "eslint-plugin-better-tailwindcss";
+const MISSING = /^Cannot find (?:package|module) '([^']*)'/;
+const notInstalled = (e) =>
+  /^(?:ERR_)?MODULE_NOT_FOUND$/.test(e?.code ?? "") &&
+  MISSING.exec(String(e.message))?.[1] === TW_PLUGIN;
+const noDefault = () => Promise.reject(new Error("it has no default export"));
+const betterTailwind = await import(TW_PLUGIN)
+  .then((m) => m.default ?? noDefault())
+  .catch((e) => {
+    if (!notInstalled(e))
+      console.warn(
+        `@kleros/ui-components-library/eslint: ${TW_PLUGIN} did not load (${String(e?.message ?? e).split("\n")[0]}), so the preset's Tailwind class rules (palette colours, spacing steps, radius, type size and weight, dark: overrides) are off. Reinstall it with the app's package manager, or install a version that supports this Node.`,
+      );
+    return null;
+  });
 const RESTRICTED = ["no-restricted-syntax", "no-restricted-imports"];
 const builtin = await import("eslint/use-at-your-own-risk").then((m) => m.builtinRules ?? m.default?.builtinRules, (e) => e);
 const coreRules = Object.fromEntries(RESTRICTED.map((id) => [id, builtin?.get?.(id)]));
 const own = Object.values(coreRules).every((r) => typeof r?.create === "function");
 if (!own)
   console.warn(
-    `@kleros/ui-components-library/eslint: ESLint's built-in rules did not load from eslint/use-at-your-own-risk (${builtin instanceof Error ? (builtin.code ?? builtin.message.split("\n")[0]) : "it has no builtinRules with no-restricted-syntax and no-restricted-imports"}). The preset falls back to the core ids no-restricted-syntax and no-restricted-imports, and its options for them replace your config's own. Install ESLint 9 in the app (npm install -D eslint@^9) to get kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports.`,
+    `@kleros/ui-components-library/eslint: ESLint's built-in rules did not load from eslint/use-at-your-own-risk (${builtin instanceof Error ? (builtin.code ?? builtin.message.split("\n")[0]) : "it has no builtinRules with no-restricted-syntax and no-restricted-imports"}). The preset falls back to the core ids no-restricted-syntax and no-restricted-imports, and its options for them replace your config's own. Install ESLint 9 or later, or 8.57, in the app (npm install -D eslint) to get kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports.`,
   );
 // The rule id the preset sets: its own plugin's when ESLint's rules loaded, the core one otherwise.
 const restricted = (id) => (own ? `kleros-ui/${id}` : id);
@@ -47,7 +73,13 @@ const PALETTE =
   "slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|black|white";
 const COLOR_UTILS = "bg|text|border|border-[trblxy]|ring|fill|stroke|from|via|to|divide|outline|decoration|accent|caret|placeholder|shadow";
 const SPACE_UTILS = "p|px|py|pt|pr|pb|pl|ps|pe|m|mx|my|mt|mr|mb|ml|ms|me|gap|gap-x|gap-y|space-x|space-y";
-const V = "(?:[a-z0-9-]+:)*"; // variants such as hover: md: dark:
+// A variant is anything up to a colon, where [...] and (...) groups (one level of nesting) may hold colons:
+// hover: md: dark: [&>svg]: data-[state=open]: group-hover/item: min-[400px]: @md: *: has-[:checked]:
+const VARIANT = "(?:[^\\s:\\[\\]()]|\\[(?:[^\\[\\]]|\\[[^\\[\\]]*\\])*\\]|\\((?:[^()]|\\([^()]*\\))*\\))+:";
+const V = `(?:${VARIANT})*!?`; // the variants, then Tailwind 3's leading ! (important)
+const END = "!?$"; // Tailwind 4's trailing ! (important), then the end of the class
+const ADDRESS_HEAD = "CallExpression[callee.property.name=/^(slice|substring)$/][arguments.0.value=0][arguments.1.raw=/^(4|6|8|10)$/]";
+const ADDRESS_TAIL = "CallExpression[callee.property.name=/^(slice|substring)$/][arguments.0.operator='-']";
 const STEPS = "0|0\\.5|1|2|3|4|6|8|12|16|px|auto|reverse"; // spacing values allowed (LOOK.md); px is a 1px hairline
 const LENGTH = "(?:[\\d.]+(?:px|rem|em|%)?|(?:length|number|percentage):.+)"; // an arbitrary value that is not a colour
 
@@ -63,6 +95,20 @@ const KIT_NAMES = [
   "DataTable", "HelpTooltip", "ThemeToggle", "Countdown", "Stack", "Inline", "Grid", "Section", "Page", "FormStack", "FormField",
   "InfoCard", "ExternalLink", "ChainGuard", "KeyValueList", "Sparkline", "WizardShell",
 ];
+// Next.js route files, in the app's folder or its src/: the App Router's page files and every Pages Router file. Next's
+// docs write a page as `export default function Page()`, a route component, not a re-declared kit Page, so there the
+// library-name rule skips the Page the file exports as its default (`export default function Page()`, or a Page
+// declared and then exported with `export default Page`). Any other Page is still reported: one in
+// src/components/Page.tsx, or one in a route file that is not its default export.
+const NEXT_ROUTES = [
+  "app/**/page.{js,jsx,ts,tsx}",
+  "src/app/**/page.{js,jsx,ts,tsx}",
+  "pages/**/*.{js,jsx,ts,tsx}",
+  "src/pages/**/*.{js,jsx,ts,tsx}",
+];
+const ROUTE_PAGE =
+  ':not(ExportDefaultDeclaration > FunctionDeclaration[id.name="Page"])' +
+  ':not(Program:has(ExportDefaultDeclaration > Identifier[name="Page"]) [id.name="Page"])';
 // Names agents guess for parts the library has under another name.
 const GUESSED = {
   Pagination: "StandardPagination", Alert: "AlertMessage", Badge: "StatusBadge (kit)", Loader: "Spinner (kit)",
@@ -157,16 +203,16 @@ export default function klerosUI({ cssEntry = "src/index.css", files = ["src/**/
           "error",
           {
             restrict: [
-              { pattern: `^${V}(?:${COLOR_UTILS})-(?:${PALETTE})(?:-\\d+)?(?:/\\d+)?$`, message: "Palette colour: use a klerosUIComponents* token (e.g. text-klerosUIComponentsSecondaryText) or a StatusBadge tone." },
+              { pattern: `^${V}(?:${COLOR_UTILS})-(?:${PALETTE})(?:-\\d+)?(?:/\\d+)?${END}`, message: "Palette colour: use a klerosUIComponents* token (e.g. text-klerosUIComponentsSecondaryText) or a StatusBadge tone." },
               { pattern: `^${V}dark:${V}(?:${COLOR_UTILS})-`, message: "dark: colour override: the .dark class already flips the klerosUIComponents* tokens; remove it." },
-              { pattern: `^${V}-?(?:${SPACE_UTILS})-(?!(?:${STEPS})$)[^\\s\\[\\]()-]+$`, message: "Off-scale spacing: use one of the steps 0.5 1 2 3 4 6 8 12 16 (or a Stack/Inline gap)." },
-              { pattern: `^${V}-?(?:${SPACE_UTILS})-(?:\\[.+\\]|\\(.+\\))$`, message: "Arbitrary spacing: use one of the steps 0.5 1 2 3 4 6 8 12 16. If none fits, say so in your summary." },
-              { pattern: `^${V}text-\\[[\\d.]+(?:px|rem|em)\\]$`, message: "Arbitrary font size: use text-xs, text-sm, text-base, text-lg, text-xl or text-2xl." },
-              { pattern: `^${V}(?:${COLOR_UTILS})-\\[(?!${LENGTH}\\]$).+\\]$`, message: "Arbitrary colour: use a klerosUIComponents* token or a StatusBadge tone." },
-              { pattern: `^${V}text-(?:3xl|4xl|5xl|6xl|7xl|8xl|9xl)$`, message: "Off-scale font size: the largest is text-2xl (page title)." },
-              { pattern: `^${V}font-(?:thin|extralight|light|medium|bold|extrabold|black)$`, message: "Off-scale weight: use font-normal or font-semibold." },
-              { pattern: `^${V}rounded(?:-[trblse]{1,2})?(?:-(?!(?:base|full|none)$)(?:\\[.+\\]|\\(.+\\)|[^\\s\\[\\]()-]+))?$`, message: "Off-scale radius: use rounded-base (3px), or rounded-full for pills and dots." },
-              { pattern: `^${V}animate-pulse$`, message: "Hand-rolled skeleton: use Skeleton or QueryState from @kleros/ui-components-library/kit." },
+              { pattern: `^${V}-?(?:${SPACE_UTILS})-(?!(?:${STEPS})${END})[^\\s\\[\\]()!-]+${END}`, message: "Off-scale spacing: use one of the steps 0.5 1 2 3 4 6 8 12 16 (or a Stack/Inline gap)." },
+              { pattern: `^${V}-?(?:${SPACE_UTILS})-(?:\\[.+\\]|\\(.+\\))${END}`, message: "Arbitrary spacing: use one of the steps 0.5 1 2 3 4 6 8 12 16. If none fits, say so in your summary." },
+              { pattern: `^${V}text-\\[[\\d.]+(?:px|rem|em)\\]${END}`, message: "Arbitrary font size: use text-xs, text-sm, text-base, text-lg, text-xl or text-2xl." },
+              { pattern: `^${V}(?:${COLOR_UTILS})-\\[(?!${LENGTH}\\]${END}).+\\]${END}`, message: "Arbitrary colour: use a klerosUIComponents* token or a StatusBadge tone." },
+              { pattern: `^${V}text-(?:3xl|4xl|5xl|6xl|7xl|8xl|9xl)${END}`, message: "Off-scale font size: the largest is text-2xl (page title)." },
+              { pattern: `^${V}font-(?:thin|extralight|light|medium|bold|extrabold|black)${END}`, message: "Off-scale weight: use font-normal or font-semibold." },
+              { pattern: `^${V}rounded(?:-[trblse]{1,2})?(?:-(?!(?:base|full|none)${END})(?:\\[.+\\]|\\(.+\\)|[^\\s\\[\\]()!-]+))?${END}`, message: "Off-scale radius: use rounded-base (3px), or rounded-full for pills and dots." },
+              { pattern: `^${V}animate-pulse${END}`, message: "Hand-rolled skeleton: use Skeleton or QueryState from @kleros/ui-components-library/kit." },
             ],
           },
         ],
@@ -176,7 +222,12 @@ export default function klerosUI({ cssEntry = "src/index.css", files = ["src/**/
   // The preset's .js and .jsx files parse JSX (with espree, or the app's own parser), so they are linted, not parse
   // errors. typescript-eslint ignores the flag for .ts and .tsx, which it parses by their extension.
   const jsx = { files, languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } } };
-  return [
+  const libraryName = {
+    selector: `:matches(FunctionDeclaration, VariableDeclarator)[id.name=/^(${[...new Set([...LIB_NAMES, ...KIT_NAMES])].join("|")})$/]`,
+    message:
+      "Local component with a library name: import it from @kleros/ui-components-library (or /kit) instead of re-declaring it.",
+  };
+  const blocks = [
     jsx,
     ...tailwind,
     {
@@ -193,7 +244,7 @@ export default function klerosUI({ cssEntry = "src/index.css", files = ["src/**/
             message: `Raw <${el}>: use ${lib} from @kleros/ui-components-library (see agent/CATALOG.md).`,
           })),
           // The theme file is the one stylesheet besides the entry.
-          { selector: "JSXOpeningElement[name.name=\"style\"]", message: "A <style> block: " + TAILWIND_WAY + ". The app's CSS is src/index.css as create writes it, plus the theme file npx kleros-ui theme sets up for new token values." },
+          { selector: "JSXOpeningElement[name.name=\"style\"]", message: "A <style> block: " + TAILWIND_WAY + ". The app's CSS is src/index.css as create writes it, plus the theme file npx -p @kleros/ui-components-library kleros-ui theme sets up for new token values." },
           // A `Card round` at 18px drifts from the 3px cards around it. The library's Card only: an app's
           // RoundCard round={2} is an appeal round, not a radius.
           { selector: "JSXOpeningElement:matches([name.name='Card'], [name.property.name='Card']) > JSXAttribute[name.name='round']:not([value.expression.raw='false'])", message: "Card round draws an 18px radius; Kleros cards are a plain Card (3px, rounded-base). Remove round." },
@@ -202,9 +253,14 @@ export default function klerosUI({ cssEntry = "src/index.css", files = ["src/**/
             message: "Inline style sets colour, spacing or type: use Tailwind classes (klerosUIComponents* tokens, the spacing steps, text-sm …). Inline style is only for a size computed at runtime (width, height).",
           },
           { selector: "CallExpression[callee.name='setInterval']", message: "Hand-rolled timer: use Countdown or useCountdown from @kleros/ui-components-library/kit." },
-          { selector: "BinaryExpression[operator='/'][right.raw=/^(1e18|10 \\*\\* 18|10n \\*\\* 18n)$/]", message: "Hand-rolled wei conversion: use TokenAmount or formatUnits from @kleros/ui-components-library/kit." },
-          { selector: "CallExpression[callee.property.name='slice'][arguments.0.value=0][arguments.1.value=/^(4|6|8|10)$/]", message: "Hand-rolled address shortening? Use AddressDisplay or shortenAddress from @kleros/ui-components-library/kit." },
-          { selector: `:matches(FunctionDeclaration, VariableDeclarator)[id.name=/^(${[...new Set([...LIB_NAMES, ...KIT_NAMES])].join("|")})$/]`, message: "Local component with a library name: import it from @kleros/ui-components-library (or /kit) instead of re-declaring it." },
+          // x / 1e18, x / 10 ** 18 and x / 10n ** 18n
+          { selector: "BinaryExpression[operator='/']:matches([right.raw='1e18'], [right.operator='**'][right.left.raw=/^10n?$/][right.right.raw=/^18n?$/])", message: "Hand-rolled wei conversion: to show an amount use TokenAmount or formatAmount from @kleros/ui-components-library/kit; for maths keep the bigint, or use viem's or ethers' formatUnits, which are exact." },
+          // A head (slice or substring from 0 to 4, 6, 8 or 10) and a tail (slice(-4), substring(s.length - 4)) under
+          // the outermost template literal or + chain, reported once there, however deeply templates and + chains nest
+          // inside it (two shortenings in one outer string count once). A head alone is any short slice, so it is not
+          // reported.
+          { selector: `:matches(TemplateLiteral, BinaryExpression[operator='+']):not(:matches(TemplateLiteral, BinaryExpression[operator='+']) *):has(${ADDRESS_HEAD}):has(${ADDRESS_TAIL})`, message: "Hand-rolled address shortening? Use AddressDisplay or shortenAddress from @kleros/ui-components-library/kit." },
+          libraryName,
           ...Object.entries(GUESSED).map(([name, lib]) => ({
             selector: `:matches(FunctionDeclaration, VariableDeclarator)[id.name="${name}"]`,
             message: `Local ${name}: the library has ${lib}; import that instead of writing a near-copy.`,
@@ -223,4 +279,17 @@ export default function klerosUI({ cssEntry = "src/index.css", files = ["src/**/
       },
     },
   ];
+  // Next.js route files: the library-name rule skips the Page the file exports as its default, its route component
+  // (see NEXT_ROUTES). The block sets the same restrictions, so its options replace the ones above for those files
+  // only, and each route pattern is paired with each of the preset's files patterns (a nested array: all must match),
+  // so it reaches no file the preset does not lint.
+  const id = restricted("no-restricted-syntax");
+  const pair = (f) => NEXT_ROUTES.map((r) => [...[f].flat(), r]);
+  const exempt = (r) =>
+    r === libraryName ? { ...r, selector: r.selector + ROUTE_PAGE } : r;
+  const route = {
+    files: [files].flat().flatMap(pair),
+    rules: { [id]: blocks.at(-1).rules[id].map(exempt) },
+  };
+  return [...blocks, route];
 }
