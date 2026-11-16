@@ -61,13 +61,16 @@ function Copiable({
   ...props
 }: Readonly<CopiableProps>) {
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
+  // Counts failures, so a second failure while "Copy failed" still shows remounts the message (screen readers
+  // can announce it again) and restarts the timer that clears it
+  const [failures, setFailures] = useState(0);
   const isCopied = status === "copied";
 
   useEffect(() => {
     if (status === "idle") return;
     const timeout = setTimeout(() => setStatus("idle"), feedbackDuration);
     return () => clearTimeout(timeout);
-  }, [status, feedbackDuration]);
+  }, [status, failures, feedbackDuration]);
 
   const handleCopy = async () => {
     try {
@@ -75,6 +78,7 @@ function Copiable({
       await navigator.clipboard.writeText(copiableContent);
     } catch (error) {
       setStatus("failed");
+      setFailures((n) => n + 1);
       onCopyError?.(error);
       return;
     }
@@ -110,7 +114,7 @@ function Copiable({
       </Tooltip>
       <span role="status" className="sr-only">
         {status === "copied" && "Copied"}
-        {status === "failed" && "Copy failed"}
+        {status === "failed" && <span key={failures}>Copy failed</span>}
       </span>
     </div>
   );

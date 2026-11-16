@@ -17,7 +17,10 @@ interface LinearProps
   value: number;
   /** Whether the progress bas should animate to it's value. */
   animated?: boolean;
-  /** Width of the bar in px. Leave it out to fill the container's width. */
+  /**
+   * Width of the bar in px. Leave it out to fill the container's width; in a parent sized to its content (`w-fit`),
+   * pass `width`.
+   */
   width?: number;
 }
 
@@ -51,6 +54,8 @@ function Linear({
       className={cn(
         "box-border flex flex-col items-center",
         "text-klerosUIComponentsStroke text-sm",
+        // Without it a flex row or an items-start column shrinks the bar to the svg's 300px default.
+        fluid && "w-full",
         className,
       )}
       {...props}

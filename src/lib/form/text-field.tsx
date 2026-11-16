@@ -16,6 +16,7 @@ import {
   type FieldErrorProps,
 } from "react-aria-components";
 import { cn } from "../../utils";
+import { hasContent } from "../../utils/has-content";
 
 interface TextFieldProps extends AriaTextFieldProps {
   variant?: "success" | "warning" | "error" | "info";
@@ -62,9 +63,9 @@ function TextField({
       className={cn("flex w-[278px] flex-col", className)}
       {...props}
     >
-      {(labelContent ?? label) && (
+      {(hasContent(labelContent) || label) && (
         <Label className="text-klerosUIComponentsSecondaryText mb-1 text-sm">
-          {labelContent ?? label}
+          {hasContent(labelContent) ? labelContent : label}
         </Label>
       )}
       <Group className="relative box-border h-[45px] w-full">
@@ -111,7 +112,7 @@ function TextField({
         )}
       </Group>
 
-      {(description ?? message) && (
+      {(hasContent(description) || message) && (
         <Text
           className={cn(
             "relative mt-1.25 flex items-center",
@@ -127,7 +128,7 @@ function TextField({
           {variant === "info" && (
             <InfoIcon className="fill-klerosUIComponentsSecondaryText mr-2 max-w-4 min-w-4" />
           )}
-          {description === undefined || description === null ? (
+          {!hasContent(description) ? (
             message
           ) : (
             // one flex item, so rich content flows inline beside the icon

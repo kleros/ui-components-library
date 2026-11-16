@@ -145,7 +145,8 @@ export const Fluid: Story = {
   },
   decorators: [
     (Story) => (
-      <div data-testid="container" style={{ width: 300 }}>
+      // wider than the svg's 300px default width, so a bar stuck at that default fails
+      <div data-testid="container" style={{ width: 480 }}>
         <Story />
       </div>
     ),
@@ -156,16 +157,50 @@ export const Fluid: Story = {
       "width",
       "100%",
     );
-    // half of the 300px container is filled
+    // half of the 480px container is filled
     await waitFor(() =>
       expect(getFill(progressbar).getAttribute("stroke-dasharray")).toMatch(
-        /^150,/,
+        /^240,/,
       ),
     );
     within(canvasElement).getByTestId("container").style.width = "200px";
     await waitFor(() =>
       expect(getFill(progressbar).getAttribute("stroke-dasharray")).toMatch(
         /^100,/,
+      ),
+    );
+  },
+};
+
+/** Without `width` the bar also fills a flex row, as in the kit's `Inline` or a `Stack` with `align="start"`. */
+export const FluidInRow: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    value: 50,
+    valueLabel: "Deposit required = xETH of 0.01ETH",
+  },
+  decorators: [
+    (Story) => (
+      <div data-testid="row" className="flex flex-row" style={{ width: 480 }}>
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvasElement }) => {
+    const progressbar = within(canvasElement).getByRole("progressbar");
+    const svg = progressbar.querySelector("svg")!;
+    const row = within(canvasElement).getByTestId("row");
+    await waitFor(() =>
+      expect(svg.getBoundingClientRect().width).toBe(
+        row.getBoundingClientRect().width,
+      ),
+    );
+    await expect(svg.getBoundingClientRect().width).toBe(480);
+    // the drawn track follows the measured width: half of 480px is filled
+    await waitFor(() =>
+      expect(getFill(progressbar).getAttribute("stroke-dasharray")).toMatch(
+        /^240,/,
       ),
     );
   },

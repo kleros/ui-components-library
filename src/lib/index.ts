@@ -61,7 +61,9 @@ export { default as DraggableList } from "../lib/draggable-list";
 
 export { default as FileViewer } from "../lib/file-viewer";
 
-export type * from "./types";
+// A plain star export: TypeScript below 5.0 rejects the type-only star form in the built .d.ts (TS1383). types.ts
+// holds only types, so nothing reaches the JS bundle.
+export * from "./types";
 
 /** Joins class names (clsx) and resolves conflicting Tailwind classes (tailwind-merge), so a later class wins. */
 export { cn } from "../utils";
