@@ -3,7 +3,7 @@
 1. Look it up first: `agent/CATALOG.md` (core, kit and known gaps) and your app's `kleros-ui.json`. A piece that is
    missing, or that you show in two or more places (a COMPOSE included), becomes one named component (step 2), used
    in each place. Don't copy the markup.
-2. `npx kleros-ui new <Name> --kind ui|data|form --intent "words"` (PascalCase). It refuses names the library exports.
+2. `npx -p @kleros/ui-components-library kleros-ui new <Name> --kind ui|data|form --intent "words"` (PascalCase). It refuses names the library exports.
    `--intent` takes what someone would search for, comma-separated (`--intent "period badge, status chip"`).
    It writes `src/components/<Name>/<Name>.tsx`, `index.ts` and a `kleros-ui.json` entry with those intent words,
    and `<Name>.stories.tsx` only when the app has Storybook (`storybook` or an `@storybook/*` package in its
@@ -12,7 +12,7 @@
    - `src/components/<Name>/<Name>.tsx` exporting `<Name>` and `interface <Name>Props`;
    - `src/components/<Name>/index.ts`: `export * from "./<Name>";`
    - an entry in `kleros-ui.json` `components`: `{ "name": "<Name>", "status": "local", "kind": "ui",
-     "intent": ["period badge", "status chip"], "importPath": "./components/<Name>" }`;
+     "intent": ["period badge", "status chip"], "importPath": "./components/<Name>" }`; `importPath` is the folder's path from `src/` (`./components/<Name>`; `./ui/<Name>` for a `componentsDir` of `src/ui`), or from the app root when `componentsDir` is outside `src/`;
    - with Storybook only: `src/components/<Name>/<Name>.stories.tsx` with Default, Dark and each state (types from
      `@kleros/ui-components-library/story-types`, so it compiles without Storybook installed), copied from
      `agent/templates/<kind>/__NAME__.stories.tsx.tmpl` for its Dark story (step 4). Without Storybook, no stories
