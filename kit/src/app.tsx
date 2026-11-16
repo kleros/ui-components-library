@@ -10,12 +10,14 @@ export interface ExternalLinkProps extends React.AnchorHTMLAttributes<HTMLAnchor
 
 /**
  * Link that opens in a new tab with `rel="noopener noreferrer"` and a trailing arrow.
+ * The arrow is hidden from screen readers, so the link's name is its text alone ("Docs", not "Docs ↗").
  * @example <ExternalLink href="https://docs.kleros.io">Docs</ExternalLink>
  */
 export function ExternalLink({ href, children, className, ...props }: Readonly<ExternalLinkProps>) {
   return (
     <a href={href} target="_blank" rel="noopener noreferrer" className={cn("text-klerosUIComponentsPrimaryBlue hover:underline", className)} {...props}>
-      {children} ↗
+      {children}
+      <span aria-hidden> ↗</span>
     </a>
   );
 }
@@ -55,7 +57,7 @@ export function HelpTooltip({ text, children, place = "top" }: Readonly<HelpTool
         place={place}
         wrapperProps={{ className: "inline-flex", "aria-label": helpName(children), "aria-description": text }}
       >
-        <span className="border-klerosUIComponentsSecondaryText text-klerosUIComponentsSecondaryText inline-flex size-4 items-center justify-center rounded-full border text-[10px]">
+        <span className="border-klerosUIComponentsSecondaryText text-klerosUIComponentsSecondaryText inline-flex size-4 items-center justify-center rounded-full border text-xs leading-none">
           ?
         </span>
       </Tooltip>
@@ -92,8 +94,9 @@ export function useDarkMode(): [boolean, (dark: boolean) => void] {
  * It reads the query from `window.location.search`; without `theme=light|dark` there it follows
  * `prefers-color-scheme: dark`. It adds or removes the `dark` class on `document.documentElement` and returns the theme
  * it applied. Without a window (a server render) it changes nothing and returns "light". Call it before
- * `createRoot(...).render(...)`, so the first paint is already in that theme: `ThemeToggle` and `useDarkMode` follow
- * the class, so they show the same theme.
+ * `createRoot(...).render(...)`, so the first render is already in that theme: `ThemeToggle` and `useDarkMode` follow
+ * the class, so they show the same theme. A module script (Vite's `main.tsx`) can run after the browser's first paint,
+ * so the starter's `index.html` also applies the same rule in an inline script in `<head>`; change the two together.
  * @intent initial theme, dark mode, light mode, system theme, prefers-color-scheme, theme query parameter, theme on load
  * @example
  * import { applyInitialTheme } from "@kleros/ui-components-library/kit";

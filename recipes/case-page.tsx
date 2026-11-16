@@ -1,15 +1,19 @@
 // Recipe: a case page: stat row, period steps, tabs with a timeline and a paginated votes table, dark mode.
 // Copy into your app and replace the constants with your data hooks. Each data view renders through QueryState: pass
-// the hook's isLoading, isError, data and refetch (as onRetry); mock data, as here, passes isLoading={false}.
+// the hook's isLoading, isPending, isError, data and refetch (as onRetry); mock data, as here, passes
+// isLoading={false}.
 import { useState } from "react";
 import { Steps, StandardPagination, Tabs, Timeline, type TabsItem, type TimelineItem } from "@kleros/ui-components-library";
 import {
   AddressDisplay, DataTable, Grid, Page, QueryState, Stack, StatCard, ThemeToggle, TokenAmount,
 } from "@kleros/ui-components-library/kit";
 
-type Vote = { juror: string; choice: string; stakeWei: bigint };
+// One row per vote: a juror drawn more than once has a row per draw, so rows are keyed by the vote's id, not the juror.
+type Vote = { id: string; juror: string; choice: string; stakeWei: bigint };
 const CASE = { court: "General Court", jurors: 3, rewardWei: 90000000000000000n, period: 2 };
-const VOTES: Vote[] = [{ juror: "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed", choice: "Yes", stakeWei: 1500n * 10n ** 18n }];
+const VOTES: Vote[] = [
+  { id: "1", juror: "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed", choice: "Yes", stakeWei: 1500n * 10n ** 18n },
+];
 const PERIODS = ["Evidence", "Commit", "Vote", "Appeal", "Execution"].map((title) => ({ title }));
 const EVENTS: [TimelineItem, ...TimelineItem[]] = [
   { title: "Case created", party: "Requester", subtitle: "12 May 2026", variant: "accepted" },
@@ -38,7 +42,7 @@ export default function CasePage() {
           <QueryState isLoading={false} data={VOTES} empty={{ title: "No votes yet" }}>
             {(votes) => (
               <>
-                <DataTable rows={votes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)} rowKey={(v) => v.juror}
+                <DataTable rows={votes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)} rowKey={(v) => v.id}
                   columns={[
                     { key: "juror", header: "Juror", render: (v) => <AddressDisplay address={v.juror} /> },
                     { key: "choice", header: "Vote" },

@@ -4,6 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kleros PoC</title>
+    <!-- applyInitialTheme's rule (?theme=light|dark, else the system setting), run before the module script loads so
+         the first paint is already in that theme. Keep it in step with the kit's applyInitialTheme; main.tsx still
+         calls it. -->
+    <script>
+      (function () {
+        var asked = new URLSearchParams(window.location.search).get("theme");
+        var dark = asked === "dark" || (asked !== "light" && typeof window.matchMedia === "function"
+          && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
   </head>
   <body class="bg-klerosUIComponentsLightBackground text-klerosUIComponentsPrimaryText">
     <div id="root"></div>

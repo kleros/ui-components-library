@@ -1,7 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { Button, Steps } from "@kleros/ui-components-library";
 import { FormStack } from "./layout.js";
 import { cn } from "./cn.js";
+
+// The host elements that are a control themselves. Any other host element (a wrapper div) is one only with a role:
+// aria-labelledby is not allowed on a plain div, and its input inside would get no description or aria-invalid.
+const CONTROL_TAGS = new Set(["input", "select", "textarea", "button"]);
+function isControl(el: React.ReactElement<Record<string, unknown>>): boolean {
+  if (el.type === React.Fragment) return false;
+  if (typeof el.type === "string") return CONTROL_TAGS.has(el.type) || typeof el.props.role === "string";
+  return true; // a component, which passes the props on to its focusable element
+}
 
 export interface FormFieldProps {
   /** Label text above the control. */
@@ -21,23 +30,43 @@ export interface FormFieldProps {
  * Label, help and error text around a custom control (a chain picker, a token selector, a file drop).
  * Core fields (`TextField`, `NumberField`, ...) already take `label`, `variant="error"` and `message`, so use `FormField` only for controls that do not.
  * Its label looks like the core fields' labels (secondary text colour, `text-sm`, regular weight, 4 px above the control), so both kinds sit in one form with one label style.
+ * When its one child is the control (an `input`, `select`, `textarea` or `button`, an element with a `role`, or a
+ * component), it names that child after the label (unless it has its own `aria-label` or `aria-labelledby`), describes
+ * it with the error or help text and sets `aria-invalid` with an error. A component must pass these props on to its
+ * focusable element. A Fragment, a wrapper with no `role` (a `div` around an input and a button) and several children
+ * get none of them: make the control the child, or tie the label to a wrapped input with `htmlFor` and its `id`.
  * @intent form field, label, help text, error message, validation, custom input, field wrapper
  * @example <FormField label="Court" htmlFor="court" error={errors.court}><CourtPicker id="court" /></FormField>
  */
 export function FormField({ label, htmlFor, help, error, children, className }: Readonly<FormFieldProps>) {
+  const labelId = useId();
+  const messageId = useId();
+  // A single control child gets the label as its name (unless it names itself), the message as its description, merged
+  // with its own, and aria-invalid with an error; anything else is left as it is. htmlFor alone ties the label only to
+  // a labelable element such as an input, not to a div with a role.
+  let control = children;
+  if (React.isValidElement<Record<string, unknown>>(children) && isControl(children)) {
+    const own = children.props;
+    const describedBy = [own["aria-describedby"], error || help ? messageId : undefined].filter(Boolean).join(" ");
+    control = React.cloneElement(children, {
+      ...(own["aria-label"] || own["aria-labelledby"] ? {} : { "aria-labelledby": labelId }),
+      ...(describedBy ? { "aria-describedby": describedBy } : {}),
+      ...(error ? { "aria-invalid": true } : {}),
+    });
+  }
   // The classes of the core TextField/TextArea/NumberField/Searchbar label, less its mb-1: the gap-1 above gives the 4 px.
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      <label htmlFor={htmlFor} className="text-klerosUIComponentsSecondaryText text-sm">
+      <label id={labelId} htmlFor={htmlFor} className="text-klerosUIComponentsSecondaryText text-sm">
         {label}
       </label>
-      {children}
+      {control}
       {error ? (
-        <p role="alert" className="text-klerosUIComponentsError text-xs">
+        <p id={messageId} role="alert" className="text-klerosUIComponentsError text-xs">
           {error}
         </p>
       ) : (
-        help && <p className="text-klerosUIComponentsSecondaryText text-xs">{help}</p>
+        help && <p id={messageId} className="text-klerosUIComponentsSecondaryText text-xs">{help}</p>
       )}
     </div>
   );
@@ -46,7 +75,11 @@ export function FormField({ label, htmlFor, help, error, children, className }: 
 export interface WizardStep {
   /** Name in the steps bar, e.g. "Payment". */
   title: string;
-  /** The step's fields. Keep their values in your own state: the shell only moves between steps. */
+  /**
+   * The step's fields. Keep their values in your own state and pass each back as the field's `value`: the shell only
+   * moves between steps, and a step's fields unmount on Next and Back, so an uncontrolled field (a `BigNumberField`
+   * without `value`) comes back empty while your state still holds the amount.
+   */
   content: React.ReactNode;
   /** Runs on Next, and on Submit for the last step. Return false to stay on the step, and show the errors yourself (core fields take `variant="error"` and `message`). Catch your own errors in it (a failed lookup, say), show them and return false: a throw also stays on the step, with no message for the user. */
   validate?: () => boolean | Promise<boolean>;
@@ -55,7 +88,11 @@ export interface WizardStep {
 export interface WizardShellProps {
   /** The steps, in order. */
   steps: WizardStep[];
-  /** Called on Submit from the last step once its `validate` passes. The button shows a spinner while the promise is pending. Catch your own errors in it. */
+  /**
+   * Called on Submit from the last step once its `validate` passes. The button shows a spinner while the promise is
+   * pending. Catch your own errors in it and show them (the example puts an `AlertMessage` in the last step): a throw
+   * stays on the step and is only logged, with no message for the user.
+   */
   onSubmit: () => void | Promise<void>;
   /** Current step index, for a controlled wizard; pair it with `onStepChange`. */
   step?: number;
@@ -87,13 +124,30 @@ export interface WizardShellProps {
  * @intent wizard, multi-step form, step form, steps form, stepper, form steps, next back, create flow, onboarding flow, checkout
  * @example
  * const [done, setDone] = useState(false);
+ * const [error, setError] = useState("");
+ * // onSubmit catches its own errors: the shell only logs a throw, and the user would see nothing.
+ * async function submit() {
+ *   setError("");
+ *   try {
+ *     await createDeal(draft);
+ *     setDone(true);
+ *   } catch (e) {
+ *     // A wallet or RPC error's message can run to many lines; viem's and ethers' errors carry a short shortMessage.
+ *     setError((e as { shortMessage?: string } | null)?.shortMessage ?? "The deal was not created. Try again.");
+ *   }
+ * }
  * if (done) return <AlertMessage variant="success" title="Deal created" msg="The payment is locked in escrow." />;
  * return (
  *   <Card fluid className="p-6">
- *     <WizardShell submitText="Create deal" onSubmit={async () => { await createDeal(draft); setDone(true); }} steps={[
+ *     <WizardShell submitText="Create deal" onSubmit={submit} steps={[
  *       { title: "Terms", content: <TermsFields draft={draft} />, validate: () => checkTerms(draft) },
  *       { title: "Payment", content: <PaymentFields draft={draft} />, validate: () => checkPayment(draft) },
- *       { title: "Review", content: <KeyValueList items={reviewRows(draft)} /> },
+ *       { title: "Review", content: (
+ *         <>
+ *           <KeyValueList items={reviewRows(draft)} />
+ *           {error && <AlertMessage variant="error" title="Deal not created" msg={error} />}
+ *         </>
+ *       ) },
  *     ]} />
  *   </Card>
  * );

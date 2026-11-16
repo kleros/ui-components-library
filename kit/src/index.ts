@@ -4,7 +4,7 @@
  */
 export { Skeleton, Spinner, EmptyState, InfoCard } from "./feedback.js";
 export type { SkeletonProps, SpinnerProps, EmptyStateProps, InfoCardProps } from "./feedback.js";
-export { StatCard, AddressDisplay, TokenAmount, DataTable, KeyValueList, shortenAddress, formatUnits, parseUnits } from "./data.js";
+export { StatCard, AddressDisplay, TokenAmount, DataTable, KeyValueList, shortenAddress, formatAmount, parseUnits } from "./data.js";
 export type { StatCardProps, AddressDisplayProps, TokenAmountProps, DataTableProps, DataTableColumn, KeyValueListProps, KeyValueItem } from "./data.js";
 // Charts: one-series trend line on theme token classes
 export { Sparkline } from "./chart.js";

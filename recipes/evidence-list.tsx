@@ -1,6 +1,6 @@
 // Recipe: a searchable, paginated evidence list with loading, error and empty states (QueryState) and a submit modal.
 // Copy into your app and replace `fetchEvidence` / `submitEvidence` with your data layer. With a query library, pass
-// its isLoading, isError and data to QueryState, and its refetch as onRetry, instead of the state kept here.
+// its isLoading, isPending, isError and data to QueryState, and its refetch as onRetry, instead of the state kept here.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertMessage, Button, Card, FileUploader, Modal, Searchbar, StandardPagination, TextArea, TextField } from "@kleros/ui-components-library";
 import { AddressDisplay, FormStack, QueryState, Section, Skeleton } from "@kleros/ui-components-library/kit";
@@ -28,10 +28,22 @@ export default function EvidenceList() {
   const [file, setFile] = useState<File>();
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
 
-  // Loads the list; a rejected fetch shows QueryState's error, whose Retry runs this again.
+  // Loads the list; a rejected fetch shows QueryState's error, whose Retry runs this again. Only the latest request
+  // sets the rows or the error, so an earlier one that settles late (StrictMode's second mount, a Retry) is dropped.
+  // Indexed data can hold a null whatever its type says (a nullable subgraph field, untyped JSON): normalise the
+  // fields the list reads, so one bad item cannot blank the list.
+  const latest = useRef(0);
   const load = useCallback(() => {
+    const request = ++latest.current;
     setIsError(false);
-    fetchEvidence().then(setItems).catch(() => setIsError(true));
+    fetchEvidence()
+      .then((rows) => {
+        if (request !== latest.current) return;
+        setItems(rows.map((e) => ({ ...e, title: e.title ?? "", sender: e.sender ?? "" })));
+      })
+      .catch(() => {
+        if (request === latest.current) setIsError(true);
+      });
   }, []);
   useEffect(() => {
     load();
@@ -44,6 +56,15 @@ export default function EvidenceList() {
   // The core Button's isLoading only shows a spinner: the button stays pressable, so a submission in flight disables
   // it and this ref drops a second press that lands before the re-render.
   const sending = useRef(false);
+  // While a submission is pending the modal cannot close (Cancel is disabled and Escape does nothing) and its fields
+  // are locked: a failure shows in the modal, and a success closes it and clears the fields that were sent. Closing
+  // at other times drops a failed status, so the modal opens again without the old error.
+  const close = () => {
+    if (sending.current) return;
+    setIsOpen(false);
+    setStatus((s) => (s === "failed" ? "idle" : s));
+  };
+
   async function onSubmit() {
     if (sending.current) return;
     sending.current = true;
@@ -52,6 +73,9 @@ export default function EvidenceList() {
       await submitEvidence({ title, description, file });
       setStatus("sent");
       setIsOpen(false);
+      setTitle("");
+      setDescription("");
+      setFile(undefined);
     } catch {
       setStatus("failed");
     } finally {
@@ -66,31 +90,35 @@ export default function EvidenceList() {
 
       <QueryState isLoading={items === undefined && !isError} isError={isError} data={shown} onRetry={load}
         loading={<Skeleton className="h-20 w-full" count={3} />}
-        empty={{ title: "No evidence yet", description: "Be the first to submit evidence." }}>
+        empty={query ? { title: "No matching evidence", description: "Try another search." }
+          : { title: "No evidence yet", description: "Be the first to submit evidence." }}>
         {(rows) => rows.map((e) => (
           <Card key={e.id} fluid className="flex flex-col gap-2 p-4">
             <h3 className="text-klerosUIComponentsPrimaryText font-semibold">{e.title}</h3>
             <p className="text-klerosUIComponentsSecondaryText text-sm">{e.description}</p>
-            <AddressDisplay address={e.sender} />
+            {e.sender && <AddressDisplay address={e.sender} />}
           </Card>
         ))}
       </QueryState>
       {numPages > 1 && <StandardPagination currentPage={page} numPages={numPages} callback={setPage} />}
 
-      <Modal isOpen={isOpen} onOpenChange={setIsOpen} ariaLabel="Submit evidence" fluid className="p-6">
+      <Modal isOpen={isOpen} onOpenChange={(o) => (o ? setIsOpen(true) : close())} ariaLabel="Submit evidence" fluid
+        className="p-6">
         <FormStack
           actions={
             <>
-              <Button variant="secondary" text="Cancel" onPress={() => setIsOpen(false)} />
+              <Button variant="secondary" text="Cancel" isDisabled={status === "sending"} onPress={close} />
               <Button text="Submit" isDisabled={!title || status === "sending"} isLoading={status === "sending"}
                 onPress={onSubmit} />
             </>
           }
         >
-          <TextField label="Title" value={title} onChange={setTitle} />
-          <TextArea label="Description" value={description} onChange={setDescription} className="w-full"
-            inputProps={{ className: "w-full" }} />
-          <FileUploader callback={setFile} selectedFile={file} msg="PDF or image, up to 10 MB." variant="info" />
+          <TextField label="Title" value={title} onChange={setTitle} isDisabled={status === "sending"}
+            className="w-full" />
+          <TextArea label="Description" value={description} onChange={setDescription}
+            isDisabled={status === "sending"} className="w-full" inputProps={{ className: "w-full" }} />
+          <FileUploader callback={setFile} selectedFile={file} isDisabled={status === "sending"}
+            msg="PDF or image, up to 10 MB." variant="info" />
           {status === "failed" && <AlertMessage variant="error" title="Could not submit" msg="Try again." />}
         </FormStack>
       </Modal>
