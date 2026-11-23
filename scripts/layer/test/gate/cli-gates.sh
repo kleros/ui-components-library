@@ -302,6 +302,8 @@ rm -rf "$U"
 # style.css against it with no cssEntry problem. PR #131 review (M1): the CSS scan reads it as the entry too, so its
 # own lines are no findings, and once theme has added the theme import, deleting that import is a css-theme finding.
 # An @import of a stylesheet the scan skips (a dot folder) is still a finding, though that file imports tailwindcss.
+# Round 2: a chain of two (index.css, then mid.css, then tw.css) is the entry too, with no finding on mid.css, but a
+# stylesheet on the way that imports the library's theme.css (after the app's theme, undoing it) is a finding.
 Z=$(mktemp -d -p "$WORK")
 stubs "$Z"
 (cd "$Z" && printf "$TOOLS\n" z > package.json && mkdir src && echo '@import "tailwindcss";' > src/tw.css \
@@ -310,12 +312,17 @@ stubs "$Z"
   && printf 'import "./index.css";\n' > src/main.tsx && ! $CLI check >o1.txt 2>&1 && ! grep -q '"cssEntry" in' o1.txt \
   && grep -q '^setup: src/main.tsx imports ./index.css (the Tailwind entry) without @kleros/ui-components-library/style.css' o1.txt \
   && $CLI css >o2.txt 2>&1 && grep -q '^css: 0 findings' o2.txt \
+  && echo '@import "./tw.css";' > src/mid.css && sed -i 's|^@import "\./tw\.css";$|@import "./mid.css";|' src/index.css \
+  && grep -qx '@import "./mid.css";' src/index.css && $CLI css >o5.txt 2>&1 && grep -q '^css: 0 findings' o5.txt \
   && $CLI theme >/dev/null && grep -qx '@import "./theme.css";' src/index.css && $CLI css >/dev/null \
+  && printf '@import "./tw.css";\n@import "@kleros/ui-components-library/theme.css";\n' > src/late.css && echo '@import "./late.css";' >> src/index.css \
+  && ! $CLI css >o6.txt 2>&1 && grep -q '^src/late.css:2:1 @import "@kleros/ui-components-library/theme.css" in src/late.css, a stylesheet the Tailwind entry src/index.css imports' o6.txt \
+  && grep -q '^css: 1 finding' o6.txt && sed -i '/^@import "\.\/late\.css";$/d' src/index.css && rm src/late.css && $CLI css >/dev/null \
   && sed -i '/^@import "\.\/theme\.css";$/d' src/index.css && ! $CLI css >o3.txt 2>&1 \
   && grep -q 'The Tailwind entry does not import the theme file src/theme.css' o3.txt && grep -q '^css: 1 finding' o3.txt \
   && mkdir src/.x && printf '@import "tailwindcss";\n.a { color: red; }\n' > src/.x/more.css && echo '@import "./.x/more.css";' >> src/index.css \
   && ! $CLI css >o4.txt 2>&1 && grep -q '^src/index.css:[0-9]*:1 @import "./.x/more.css" in the Tailwind entry' o4.txt) \
-  && echo "gate: an entry that reaches tailwindcss through @import \"./tw.css\" is recorded as cssEntry (src/index.css, not tw.css), check orders style.css against it, and the CSS scan reads it as the entry: no findings on its own lines, a deleted theme import is a css-theme finding, and an @import of a file the scan skips is still one"
+  && echo "gate: an entry that reaches tailwindcss through @import \"./tw.css\" is recorded as cssEntry (src/index.css, not tw.css), check orders style.css against it, and the CSS scan reads it as the entry: no findings on its own lines or a stylesheet on the way, a theme.css import further on is a finding, a deleted theme import is a css-theme finding, and an @import of a file the scan skips is still one"
 rm -rf "$Z"
 
 # PR #127 second review (R2-F8, R2-F12/F13): create's default path, npm install and then init through the app's installed
@@ -350,7 +357,8 @@ rm -rf "$K"
 # to klerosUI() as files, so the preset's rules cover app/page.tsx; check names the folders it lints; baseline records
 # app/page.tsx, and check fails on a new error there. "lintDirs" in kleros-ui.json sets the folders: one that is not
 # there fails check and stops baseline, a string fails check, and a list the lint config's files do not match is a
-# setup problem until init rewrites them. The stub eslint logs its arguments.
+# setup problem until init rewrites them. A folder name's glob characters are escaped (code/[[]client[]]), so the
+# preset's rules reach code/[client]/a.tsx. The stub eslint logs its arguments.
 Y=$(mktemp -d -p "$WORK")
 stubs "$Y"
 printf '#!/bin/sh\necho "$*" >> eslint-args.txt\ncase " $* " in *" -f json "*) if [ -f eslint-out.json ]; then cat eslint-out.json; else echo "[]"; fi;; esac\nexit 0\n' > "$Y/node_modules/.bin/eslint"
@@ -373,8 +381,12 @@ lintdirs() { node -e 'const f = "kleros-ui.json", fs = require("fs"); const c = 
   && mkdir lib && lintdirs '["app", "lib"]' && ! $CLI check >c5.txt \
   && grep -q '^setup: kleros-ui.eslint.config.mjs passes klerosUI() files for app/, while ui:check lints app/, lib/' c5.txt \
   && $CLI init >i2.txt && grep -q '^kleros-ui: rewrote kleros-ui.eslint.config.mjs: its files now cover app/, lib/, the folders ui:check lints' i2.txt \
-  && grep -qF 'files: ["app/**/*.{js,jsx,ts,tsx}", "lib/**/*.{js,jsx,ts,tsx}"]' kleros-ui.eslint.config.mjs && $CLI check | grep -qx 'ui:check passed') \
-  && echo "gate: PR #127 second review (F24): an app with no src/ lints app/: init passes it to klerosUI() as files, so the preset's rules cover app/page.tsx, check names the folders it lints, baseline records app/page.tsx and check fails on a new error there; a lintDirs folder that is not there fails check and stops baseline, a lintDirs string fails check, and lint folders the lint config's files do not match are a setup problem until init rewrites them"
+  && grep -qF 'files: ["app/**/*.{js,jsx,ts,tsx}", "lib/**/*.{js,jsx,ts,tsx}"]' kleros-ui.eslint.config.mjs && $CLI check | grep -qx 'ui:check passed' \
+  && mkdir -p 'code/[client]' && echo 'export const A = 1;' > 'code/[client]/a.tsx' && lintdirs '["app", "code/[client]"]' \
+  && $CLI init >i3.txt && grep -q '^kleros-ui: rewrote kleros-ui.eslint.config.mjs: its files now cover app/, code/\[client\]/,' i3.txt \
+  && grep -qF '"code/[[]client[]]/**/*.{js,jsx,ts,tsx}"' kleros-ui.eslint.config.mjs \
+  && node "$P/gate/cli-lint-load.mjs" . 'code/[client]/a.tsx' | tail -1 | grep -qF '"kleros-ui/no-styled-components":["error"]') \
+  && echo "gate: PR #127 second review (F24): an app with no src/ lints app/: init passes it to klerosUI() as files, so the preset's rules cover app/page.tsx, check names the folders it lints, baseline records app/page.tsx and check fails on a new error there; a lintDirs folder that is not there fails check and stops baseline, a lintDirs string fails check, and lint folders the lint config's files do not match are a setup problem until init rewrites them; a folder's glob characters are escaped, so the preset's rules reach code/[client]/a.tsx"
 rm -rf "$Y"
 
 # PR #127 second review (R2-F37): the index.html scan reads each "<" once, so 50 KB of unclosed tags ("<a ", "<style ",

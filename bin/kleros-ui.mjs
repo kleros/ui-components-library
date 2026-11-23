@@ -287,7 +287,11 @@ const dirNames = (dirs) => dirs.map((d) => (d === "." ? "the whole app folder" :
 // The klerosUI() options init writes in a lint config: kleros-ui.json's cssEntry, and files for the folders ui:check
 // lints, unless that is src/ alone (the preset's own default, so an app with src/ keeps the call it had).
 const PRESET_FILES = ["src/**/*.{js,jsx,ts,tsx}"];
-const dirGlob = (d) => (d === "." ? "**/*.{js,jsx,ts,tsx}" : `${d}/**/*.{js,jsx,ts,tsx}`);
+// A folder name is a literal path: each glob character goes in a class of its own (app/[[]client[]]), so the pattern
+// matches that folder only, not app/c or app/l. A class, not a backslash, which ESLint 8 on Windows reads as a path
+// separator. ! @ + start a glob only before "(", which is escaped. globDirs undoes it for the names messages show.
+const globEscape = (d) => d.replace(/[*?[\](){}#]/g, "[$&]");
+const dirGlob = (d) => (d === "." ? "**/*.{js,jsx,ts,tsx}" : `${globEscape(d)}/**/*.{js,jsx,ts,tsx}`);
 function presetOptions() {
   const { dirs } = lintTargets();
   return { cssEntry: config().cssEntry || "src/index.css", files: dirs.length === 1 && dirs[0] === "src" ? null : dirs.map(dirGlob) };
@@ -324,7 +328,16 @@ function presetDrift(text, want = presetOptions()) {
   const files = JSON.stringify(have.files ?? PRESET_FILES) !== JSON.stringify(want.files ?? PRESET_FILES);
   return cssEntry || files ? { have, want, cssEntry, files } : null;
 }
-const globDirs = (files) => dirNames((files ?? PRESET_FILES).map((g) => (g === dirGlob(".") ? "." : g.endsWith("/**/*.{js,jsx,ts,tsx}") ? g.slice(0, -"/**/*.{js,jsx,ts,tsx}".length) : g)));
+// The folders a files list covers, for messages: a pattern init wrote for a folder shows as that folder, any other as
+// the pattern itself, quoted.
+const globDirs = (files) =>
+  (files ?? PRESET_FILES)
+    .map((g) => {
+      if (g === dirGlob(".")) return dirNames(["."]);
+      const d = g.endsWith("/**/*.{js,jsx,ts,tsx}") ? g.slice(0, -"/**/*.{js,jsx,ts,tsx}".length).replace(/\[(.)\]/g, "$1") : null;
+      return d !== null && dirGlob(d) === g ? dirNames([d]) : JSON.stringify(g);
+    })
+    .join(", ");
 // What init says it changed, and what check reports.
 const presetDone = (d) =>
   [
@@ -1525,7 +1538,10 @@ function cssBlocks(text) {
 // plainly, and after the library's theme.css (the import order decides which values win in @layer base); the entry
 // kleros-ui.json names must import it. `file` is the entry's path from the app root. With no theme declared, only the
 // two imports above pass.
-function entryFindings(blocks, { outside = null, theme = null, file = "", scanned = null } = {}) {
+// `link` is the configured entry when this file is a stylesheet on its way to tailwindcss (middle.css in index.css ->
+// middle.css -> tw.css): the library's theme.css and the theme file are imported from the entry alone, where their
+// order is checked, so a second import further on cannot undo the theme.
+function entryFindings(blocks, { outside = null, theme = null, file = "", scanned = null, link = null } = {}) {
   const findings = [];
   const themed = Boolean(!outside && theme?.file);
   const libThemeAt = blocks.find((b) => !b.block && !b.parent && atName(b.prelude) === "import" && atTarget(b.prelude) === LIB_THEME)?.at;
@@ -1561,6 +1577,8 @@ function entryFindings(blocks, { outside = null, theme = null, file = "", scanne
     for (let p = b.parent; p; p = p.parent) if (atName(p.prelude)) names.unshift(shortSel(p.prelude));
     return names.length ? ` (in ${names.join(" > ")})` : "";
   };
+  const viaLink = (target) =>
+    `@import "${target}" in ${file}, a stylesheet the Tailwind entry ${link} imports on its way to tailwindcss: import it from ${link} itself, where its order against the theme is checked.`;
   // Why a directive in the entry is a finding after all, or null when it is allowed.
   const directive = (b, n) => {
     const target = atTarget(b.prelude);
@@ -1568,6 +1586,7 @@ function entryFindings(blocks, { outside = null, theme = null, file = "", scanne
     // that file too (as an entry itself); one the scan skips (a dot folder, an ignored or outside file) stays a finding.
     const at = /^\.{1,2}\//.test(target) ? resolve(dirname(file), target) : null;
     const nested = Boolean(at && scanned?.has(at) && reachesTailwind(at));
+    if (n === "import" && link && !nested) return viaLink(target);
     if (n === "import" && !ENTRY_IMPORTS.test(target) && !nested)
       return themed
         ? `@import "${target}" in the Tailwind entry, which imports only tailwindcss, ${LIB_THEME} and the theme file ${theme.file} (the library's style.css is imported from src/main.tsx, before it).`
@@ -1581,7 +1600,7 @@ function entryFindings(blocks, { outside = null, theme = null, file = "", scanne
     const n = atName(b.prelude);
     if (n && GROUPING.has(n) && b.block && blocks.some((x) => x.parent === b)) continue;
     if (themed && n === "import" && !b.block && importsFile(file, atTarget(b.prelude), theme.file)) {
-      const why = themeImport(b, atTarget(b.prelude));
+      const why = link ? viaLink(atTarget(b.prelude)) : themeImport(b, atTarget(b.prelude));
       if (why) findings.push({ rule: CSS_THEME, at: b.at, message: why });
       continue;
     }
@@ -1770,7 +1789,7 @@ function tokenMessage(prop, theme) {
 // Every finding in one stylesheet, or in index.html's <style> blocks, local stylesheet links and style attributes.
 // `theme` is themeInfo(); the declared theme file gets only its own findings, and every other file's token messages
 // name it. With no theme declared, every file gets the same findings.
-function scanCss(text, { file = "", theme = null, entry = null, scanned = null } = {}) {
+function scanCss(text, { file = "", theme = null, entry = null, scanned = null, chain = null } = {}) {
   const html = /\.html?$/i.test(file);
   const page = html ? htmlStyles(text) : null;
   // Tailwind inlines the theme file as plain CSS whatever its extension, where // starts no comment, so it is read
@@ -1805,9 +1824,10 @@ function scanCss(text, { file = "", theme = null, entry = null, scanned = null }
       findings.push({ rule: CSS_TW, at: l.at, message: `<link rel="stylesheet" href="${l.href}"> in ${name} loads CSS of the app's own: Tailwind only, so no stylesheet besides the Tailwind entry, which src/main.tsx imports. ${USE_CLASSES}` });
     for (const a of page.attrs)
       findings.push({ rule: CSS_TW, at: a.at, message: `style attribute on <${a.el}> in ${name}: Tailwind only, so classes, not inline CSS. ${USE_CLASSES}` });
-  } else if (TW_ENTRY.test(clean) || (file === entry && reachesTailwind(file)))
-    // The configured entry may reach tailwindcss through a stylesheet it @imports (src/global.css with @import "./tw.css").
-    findings.push(...entryFindings(blocks, { theme, file, scanned }));
+  } else if (TW_ENTRY.test(clean) || ((file === entry || chain?.has(resolve(file))) && reachesTailwind(file)))
+    // The configured entry may reach tailwindcss through a stylesheet it @imports (src/global.css with @import "./tw.css"),
+    // or through several (src/index.css, then middle.css, then tw.css): each one on the way is part of the entry.
+    findings.push(...entryFindings(blocks, { theme, file, scanned, link: TW_ENTRY.test(clean) || file === entry ? null : entry }));
   else findings.push(...entryFindings(blocks, { outside: `a .${file.match(/\.(\w+)$/)?.[1] ?? "css"} file outside the Tailwind entry`, theme }));
   for (const b of blocks) {
     if (!b.block || atName(b.prelude)) continue;
@@ -1965,6 +1985,16 @@ function cssCounts(targets = cssTargets()) {
     } catch {
       // a broken kleros-ui.json: said above for the files named, and the whole-app scan stopped on it
     }
+  // The scanned stylesheets the entry reaches through its relative @imports, at any depth.
+  const chain = new Set();
+  const walk = (f) => {
+    for (const g of cssImports(f))
+      if (scanned.has(g) && !chain.has(g)) {
+        chain.add(g);
+        walk(g);
+      }
+  };
+  if (entry) walk(resolve(entry));
   const count = (rel, x) => {
     const key = `${rel}|${x.rule}`;
     const line = `${rel}:${x.pos[0]}:${x.pos[1]} ${x.message} (${x.rule})`;
@@ -1975,7 +2005,7 @@ function cssCounts(targets = cssTargets()) {
   for (const f of files) {
     const text = readFileSync(f, "utf8");
     const rel = toPosix(relative(process.cwd(), f)) || f;
-    for (const x of scanCss(text, { file: rel, theme, entry, scanned })) count(rel, x);
+    for (const x of scanCss(text, { file: rel, theme, entry, scanned, chain })) count(rel, x);
   }
   // A "theme" key that is not a path, or names no file, is a finding on the whole-app scan, not a silent pass.
   if (theme && targets.all) {

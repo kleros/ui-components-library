@@ -36,7 +36,10 @@ Fix: a new app is made with `npx -p @kleros/ui-components-library kleros-ui crea
   `pull_request_target`) or in a throwaway container. To run it on your own machine, first read every changed file
   outside the app's `src` (`git diff --name-only main...HEAD`), the Tailwind entry's diff, and each file a changed
   config or `@plugin` line imports: no one diff command shows them all.
-- Run `npm run ui:check` on the branch. It ends with `ui:check passed`.
+- Run `npm run ui:check` on the branch. It ends with `ui:check passed`. If it says the app's CSS has findings, not
+  failing, because `kleros-ui-baseline.json` predates the CSS scan, it prints only their count: run
+  `npx -p @kleros/ui-components-library kleros-ui css` on the branch and on `main`, treat each finding the branch
+  adds as a failure, and have `npm run ui:baseline` run once on `main`, so the check fails on new ones from then on.
 - The app's CI runs `npm run ui:check` after the install on every pull request, so this part does not rest on the
   review alone: `kleros-ui check` exits 1 when it fails.
 - In an existing app, `kleros-ui-baseline.json` does not grow. A re-recorded baseline hides new findings: ask why.

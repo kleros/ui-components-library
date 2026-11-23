@@ -112,7 +112,8 @@ config is in a folder above (a monorepo root), import it by its path from the ap
 `app` holds: `import root from "../eslint.config.mjs";` and `const app = [...[await root].flat(), /* init's entry, if any */];`.
 Keep the TypeScript parser entry init wrote: ESLint reads the root's `files` patterns from the app's folder, so a root
 block that names the app's folder (`web/src/**`), its parser included, matches nothing there. Restate any such block you
-need with patterns from the app's folder. A `.eslintrc*` is not
+need with patterns from the app's folder. The same holds for the root's `ignores`: `web/src/generated/**` ignores
+nothing there, so add `{ ignores: ["src/generated/**"] }` to `app`. A `.eslintrc*` is not
 carried over: its rules stay out of `ui:check`. `ui:check` and `ui:baseline` lint `src/`; in an app with no `src/` (a Next.js `app/` router), those of `app/`, `pages/`, `components/`, `lib/`, `hooks/` and `utils/` that are there. `"lintDirs"` in `kleros-ui.json` sets other folders, from the app root (`["app", "lib"]`); run init again after changing it, so the lint config passes them to the preset as `files`. `ui:check` prints the folders it lints, fails on a `lintDirs` folder that is not there (`ui:baseline` records nothing then), and names a lint config whose `files` or `cssEntry` differ from `kleros-ui.json`.
 
 **It has Tailwind.** Three changes.

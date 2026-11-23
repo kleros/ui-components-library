@@ -40,7 +40,8 @@ if (!preset) {
 console.log(name);
 const file = process.argv[3];
 if (file) {
-  // A flat config's files patterns, enough for the gates' configs: **, *, ? and {a,b}, matched from the app folder.
+  // A flat config's files patterns, enough for the gates' configs: **, *, ?, {a,b}, [abc] (init puts each glob character
+  // of a folder name in a class: app/[[]id[]] is the folder app/[id]) and a \ escape, matched from the app folder.
   const glob = (g) => {
     let re = "";
     for (let i = 0; i < g.length; i++) {
@@ -53,7 +54,13 @@ if (file) {
       else if (c === "{") re += "(?:";
       else if (c === "}") re += ")";
       else if (c === ",") re += "|";
-      else re += c.replace(/[.+^$()|[\]\\]/g, "\\$&");
+      else if (c === "\\" && i + 1 < g.length) re += g[++i].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      else if (c === "[" && g.indexOf("]", i + 2) > i) {
+        const j = g.indexOf("]", i + 2);
+        const body = g.slice(i + 1, j).replace(/[\\\]^[]/g, "\\$&");
+        re += `[${body.startsWith("!") ? `^${body.slice(1)}` : body}]`;
+        i = j;
+      } else re += c.replace(/[.+^$()|[\]\\]/g, "\\$&");
     }
     return new RegExp(`^${re}$`);
   };
