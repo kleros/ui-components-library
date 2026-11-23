@@ -521,10 +521,15 @@ function wireLint(pj, { fromCreate = false } = {}) {
   return target;
 }
 
-// The stylesheets a stylesheet @imports by a relative path ("./tw.css", url(../base.css)), as absolute paths; a bare
-// name is a package to Tailwind's own resolver, which check and the lint preset use.
-const cssImports = (f) =>
-  [...stripComments(readOr(f), SLASH_COMMENTS.test(f)).matchAll(/@import\s+(?:url\(\s*)?["']?(\.{1,2}\/[^"'\s);]+)/gi)].map((m) => resolve(dirname(f), m[1]));
+// The stylesheets a stylesheet @imports by a relative path ("./tw.css", url(../base.css)), as absolute paths with their
+// offsets in it; a bare name is a package to Tailwind's own resolver, which check and the lint preset use. A quoted
+// name is read in full, spaces and parentheses included, as the scan's atTarget reads it. `reference` marks Tailwind's
+// @import "./x.css" reference, which loads no CSS (like @reference).
+const cssImportsAt = (f) =>
+  [...stripComments(readOr(f), SLASH_COMMENTS.test(f)).matchAll(/@import\s+(?:url\(\s*)?(?:"(\.{1,2}\/[^"]*)"|'(\.{1,2}\/[^']*)'|(\.{1,2}\/[^\s"');]+))\s*\)?([^;{}]*)/gi)].map(
+    (m) => ({ path: resolve(dirname(f), m[1] ?? m[2] ?? m[3]), at: m.index, spec: m[1] ?? m[2] ?? m[3], reference: /(?:^|\s)reference(?:\s|$)/i.test(m[4]) }),
+  );
+const cssImports = (f) => cssImportsAt(f).map((i) => i.path);
 // Whether a stylesheet imports tailwindcss (or uses @tailwind), itself or through the stylesheets it @imports.
 function reachesTailwind(f, seen = new Set()) {
   const abs = resolve(f);
@@ -1439,6 +1444,8 @@ const TW_DIRECTIVES = new Set(["import", "source", "custom-variant", "plugin", "
 const TW_ENTRY = /@import\s+(?:url\(\s*)?["']?tailwindcss(?:\/[^"'\s);]*)?["']?|@tailwind\s/i;
 const ENTRY_IMPORTS = /^(?:tailwindcss(?:\/.*)?|@kleros\/ui-components-library\/theme\.css)$/;
 // The first argument of an @import, @plugin or @config: "x", 'x' or url(x).
+// Tailwind's @import "./x.css" reference: the file's theme and utilities become known, and none of its CSS loads.
+const REFERENCE_IMPORT = /^@import\s+(?:url\(\s*)?(?:"[^"]*"|'[^']*'|[^\s"');]+)\s*\)?(?:\s+[^;{}]*?)?\s+reference(?:\s|$)/i;
 const atTarget = (prelude) => prelude.match(/^@[\w-]+\s+(?:url\(\s*)?(?:"([^"]*)"|'([^']*)'|([^\s"');]+))/i)?.slice(1).find((x) => x !== undefined) ?? "";
 const isPackage = (spec) => /^(?:@[\w.-]+\/)?[\w.-]+(?:\/.*)?$/.test(spec) && !/^\.{1,2}(?:\/|$)/.test(spec);
 // Every stylesheet Vite compiles: CSS, PostCSS's own extensions and the preprocessors (a .pcss file compiles with no
@@ -1540,12 +1547,16 @@ function cssBlocks(text) {
 // two imports above pass.
 // `link` is the configured entry when this file is a stylesheet on its way to tailwindcss (middle.css in index.css ->
 // middle.css -> tw.css): the library's theme.css and the theme file are imported from the entry alone, where their
-// order is checked, so a second import further on cannot undo the theme.
-function entryFindings(blocks, { outside = null, theme = null, file = "", scanned = null, link = null } = {}) {
+// order is checked, so a second import further on cannot undo the theme. `late` is the entry when it @imports this
+// file (at any depth) after the theme file: the library's theme.css imported here would load again over the theme and
+// undo it, as would a second import of it in the entry after the theme file.
+function entryFindings(blocks, { outside = null, theme = null, file = "", scanned = null, link = null, late = null } = {}) {
   const findings = [];
   const themed = Boolean(!outside && theme?.file);
   const libThemeAt = blocks.find((b) => !b.block && !b.parent && atName(b.prelude) === "import" && atTarget(b.prelude) === LIB_THEME)?.at;
   let themeImports = 0;
+  let themeSeen = false; // the theme file's import came before, in this file (the first theme.css import before it is
+  // themeImport's order finding; a second one after it is this file's own)
   // Why an @import of the theme file is a finding, or null when it is the one the entry should have.
   const themeImport = (b, target) => {
     const rest = b.prelude.replace(/^@import\s+(?:url\(\s*)?(?:"[^"]*"|'[^']*'|[^\s"');]+)\s*\)?/i, "").trim();
@@ -1600,9 +1611,24 @@ function entryFindings(blocks, { outside = null, theme = null, file = "", scanne
     const n = atName(b.prelude);
     if (n && GROUPING.has(n) && b.block && blocks.some((x) => x.parent === b)) continue;
     if (themed && n === "import" && !b.block && importsFile(file, atTarget(b.prelude), theme.file)) {
+      themeSeen = true;
       const why = link ? viaLink(atTarget(b.prelude)) : themeImport(b, atTarget(b.prelude));
       if (why) findings.push({ rule: CSS_THEME, at: b.at, message: why });
       continue;
+    }
+    // The library's theme.css loading again after the theme file undoes the theme: imported here when the entry reaches
+    // this file after the theme file (`late`), or a second time in this file after it. A stylesheet on the way (`link`)
+    // imports neither, as viaLink says; a reference import loads nothing.
+    if (themed && !link && n === "import" && !b.block && atTarget(b.prelude) === LIB_THEME && !REFERENCE_IMPORT.test(b.prelude)) {
+      const why = late
+        ? `@import "${LIB_THEME}" in ${file}, which the Tailwind entry ${late.entry} reaches after the theme file ${theme.file} (through its @import "${late.via}"): it loads the library's values again, over the theme's. Import it once, from ${late.entry}, before the theme file.`
+        : themeSeen && b.at !== libThemeAt
+          ? `@import "${LIB_THEME}" again after the theme file ${theme.file}: it loads the library's values over the theme's. Import it once, before the theme file.`
+          : null;
+      if (why) {
+        findings.push({ rule: CSS_THEME, at: b.at, message: why });
+        continue;
+      }
     }
     if (!outside && n && TW_DIRECTIVES.has(n)) {
       const why = directive(b, n);
@@ -1789,7 +1815,7 @@ function tokenMessage(prop, theme) {
 // Every finding in one stylesheet, or in index.html's <style> blocks, local stylesheet links and style attributes.
 // `theme` is themeInfo(); the declared theme file gets only its own findings, and every other file's token messages
 // name it. With no theme declared, every file gets the same findings.
-function scanCss(text, { file = "", theme = null, entry = null, scanned = null, chain = null } = {}) {
+function scanCss(text, { file = "", theme = null, entry = null, scanned = null, chain = null, late = null } = {}) {
   const html = /\.html?$/i.test(file);
   const page = html ? htmlStyles(text) : null;
   // Tailwind inlines the theme file as plain CSS whatever its extension, where // starts no comment, so it is read
@@ -1827,7 +1853,7 @@ function scanCss(text, { file = "", theme = null, entry = null, scanned = null, 
   } else if (TW_ENTRY.test(clean) || ((file === entry || chain?.has(resolve(file))) && reachesTailwind(file)))
     // The configured entry may reach tailwindcss through a stylesheet it @imports (src/global.css with @import "./tw.css"),
     // or through several (src/index.css, then middle.css, then tw.css): each one on the way is part of the entry.
-    findings.push(...entryFindings(blocks, { theme, file, scanned, link: TW_ENTRY.test(clean) || file === entry ? null : entry }));
+    findings.push(...entryFindings(blocks, { theme, file, scanned, link: TW_ENTRY.test(clean) || file === entry ? null : entry, late }));
   else findings.push(...entryFindings(blocks, { outside: `a .${file.match(/\.(\w+)$/)?.[1] ?? "css"} file outside the Tailwind entry`, theme }));
   for (const b of blocks) {
     if (!b.block || atName(b.prelude)) continue;
@@ -1985,16 +2011,27 @@ function cssCounts(targets = cssTargets()) {
     } catch {
       // a broken kleros-ui.json: said above for the files named, and the whole-app scan stopped on it
     }
-  // The scanned stylesheets the entry reaches through its relative @imports, at any depth.
-  const chain = new Set();
-  const walk = (f) => {
-    for (const g of cssImports(f))
-      if (scanned.has(g) && !chain.has(g)) {
-        chain.add(g);
-        walk(g);
-      }
-  };
-  if (entry) walk(resolve(entry));
+  // The scanned stylesheets the entry reaches through its relative @imports, at any depth (through files this scan
+  // skips too), each with the last of the entry's own @imports that leads there (its offset and its path), and the
+  // offset of the entry's import of the theme file: a stylesheet reached after that import loads after the theme.
+  // A reference import loads no CSS, so it leads nowhere here.
+  const chain = new Map();
+  let themeAt = null;
+  if (entry) {
+    const top = resolve(entry);
+    for (const { path, at, spec, reference } of cssImportsAt(top)) {
+      if (reference) continue;
+      if (theme?.file && themeAt === null && path === resolve(theme.file)) themeAt = at;
+      const seen = new Set([top]);
+      const walk = (g) => {
+        if (seen.has(g)) return;
+        seen.add(g);
+        if (scanned.has(g) && at > (chain.get(g)?.at ?? -1)) chain.set(g, { at, via: spec });
+        for (const h of cssImportsAt(g)) if (!h.reference) walk(h.path);
+      };
+      walk(path);
+    }
+  }
   const count = (rel, x) => {
     const key = `${rel}|${x.rule}`;
     const line = `${rel}:${x.pos[0]}:${x.pos[1]} ${x.message} (${x.rule})`;
@@ -2005,7 +2042,9 @@ function cssCounts(targets = cssTargets()) {
   for (const f of files) {
     const text = readFileSync(f, "utf8");
     const rel = toPosix(relative(process.cwd(), f)) || f;
-    for (const x of scanCss(text, { file: rel, theme, entry, scanned, chain })) count(rel, x);
+    const reach = chain.get(resolve(f));
+    const late = themeAt !== null && reach && reach.at > themeAt ? { entry, via: reach.via } : null;
+    for (const x of scanCss(text, { file: rel, theme, entry, scanned, chain, late })) count(rel, x);
   }
   // A "theme" key that is not a path, or names no file, is a finding on the whole-app scan, not a silent pass.
   if (theme && targets.all) {

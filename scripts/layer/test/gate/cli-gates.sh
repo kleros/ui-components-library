@@ -303,7 +303,9 @@ rm -rf "$U"
 # own lines are no findings, and once theme has added the theme import, deleting that import is a css-theme finding.
 # An @import of a stylesheet the scan skips (a dot folder) is still a finding, though that file imports tailwindcss.
 # Round 2: a chain of two (index.css, then mid.css, then tw.css) is the entry too, with no finding on mid.css, but a
-# stylesheet on the way that imports the library's theme.css (after the app's theme, undoing it) is a finding.
+# stylesheet the entry imports after the theme file that imports the library's theme.css again (undoing the theme) is
+# a finding, whether it reaches tailwindcss through ./tw.css or imports it itself, as is a second import of it in the
+# entry after the theme file. A tw.css imported before the theme file may import theme.css (the guide's four lines).
 Z=$(mktemp -d -p "$WORK")
 stubs "$Z"
 (cd "$Z" && printf "$TOOLS\n" z > package.json && mkdir src && echo '@import "tailwindcss";' > src/tw.css \
@@ -317,12 +319,18 @@ stubs "$Z"
   && $CLI theme >/dev/null && grep -qx '@import "./theme.css";' src/index.css && $CLI css >/dev/null \
   && printf '@import "./tw.css";\n@import "@kleros/ui-components-library/theme.css";\n' > src/late.css && echo '@import "./late.css";' >> src/index.css \
   && ! $CLI css >o6.txt 2>&1 && grep -q '^src/late.css:2:1 @import "@kleros/ui-components-library/theme.css" in src/late.css, a stylesheet the Tailwind entry src/index.css imports' o6.txt \
-  && grep -q '^css: 1 finding' o6.txt && sed -i '/^@import "\.\/late\.css";$/d' src/index.css && rm src/late.css && $CLI css >/dev/null \
+  && grep -q '^css: 1 finding' o6.txt && printf '@import "tailwindcss";\n@import "@kleros/ui-components-library/theme.css";\n' > src/late.css \
+  && ! $CLI css >o7.txt 2>&1 && grep -q '^src/late.css:2:1 @import "@kleros/ui-components-library/theme.css" in src/late.css, which the Tailwind entry src/index.css reaches after the theme file src/theme.css (through its @import "./late.css")' o7.txt \
+  && grep -q '^css: 1 finding' o7.txt && sed -i '/^@import "\.\/late\.css";$/d' src/index.css && rm src/late.css && $CLI css >/dev/null \
+  && printf '@import "tailwindcss";\n@import "@kleros/ui-components-library/theme.css";\n' > src/tw.css && $CLI css >o8.txt 2>&1 && grep -q '^css: 0 findings' o8.txt \
+  && echo '@import "tailwindcss";' > src/tw.css && echo '@import "@kleros/ui-components-library/theme.css";' >> src/index.css \
+  && ! $CLI css >o9.txt 2>&1 && grep -q '^src/index.css:[0-9]*:1 @import "@kleros/ui-components-library/theme.css" again after the theme file src/theme.css' o9.txt \
+  && sed -i '$d' src/index.css && $CLI css >/dev/null \
   && sed -i '/^@import "\.\/theme\.css";$/d' src/index.css && ! $CLI css >o3.txt 2>&1 \
   && grep -q 'The Tailwind entry does not import the theme file src/theme.css' o3.txt && grep -q '^css: 1 finding' o3.txt \
   && mkdir src/.x && printf '@import "tailwindcss";\n.a { color: red; }\n' > src/.x/more.css && echo '@import "./.x/more.css";' >> src/index.css \
   && ! $CLI css >o4.txt 2>&1 && grep -q '^src/index.css:[0-9]*:1 @import "./.x/more.css" in the Tailwind entry' o4.txt) \
-  && echo "gate: an entry that reaches tailwindcss through @import \"./tw.css\" is recorded as cssEntry (src/index.css, not tw.css), check orders style.css against it, and the CSS scan reads it as the entry: no findings on its own lines or a stylesheet on the way, a theme.css import further on is a finding, a deleted theme import is a css-theme finding, and an @import of a file the scan skips is still one"
+  && echo "gate: an entry that reaches tailwindcss through @import \"./tw.css\" is recorded as cssEntry (src/index.css, not tw.css), check orders style.css against it, and the CSS scan reads it as the entry: no findings on its own lines or a stylesheet on the way, a theme.css import after the theme file's is a finding, a deleted theme import is a css-theme finding, and an @import of a file the scan skips is still one"
 rm -rf "$Z"
 
 # PR #127 second review (R2-F8, R2-F12/F13): create's default path, npm install and then init through the app's installed
