@@ -317,10 +317,9 @@ function readPresetCall(text) {
 }
 // How an init-written lint config's klerosUI() options differ from kleros-ui.json's cssEntry and the folders ui:check
 // lints: { have, want, cssEntry, files } (true for each that differs), or null when they agree or cannot be read.
-function presetDrift(text) {
+function presetDrift(text, want = presetOptions()) {
   const have = readPresetCall(text);
   if (!have) return null;
-  const want = presetOptions();
   const cssEntry = have.cssEntry !== want.cssEntry;
   const files = JSON.stringify(have.files ?? PRESET_FILES) !== JSON.stringify(want.files ?? PRESET_FILES);
   return cssEntry || files ? { have, want, cssEntry, files } : null;
@@ -365,6 +364,34 @@ function managedConfig(appFile, { head = MANAGED, parser = null } = {}) {
 const keepAppFile = (file, why) => {
   if (taken(file)) throw new Error(`kleros-ui: ${file} is already there, and init ${why}, which would write over it. Move it away (or merge it into your own config), then run init again.`);
 };
+
+// The existing lint config wireLint will rewrite in place, or null, so init's preflight can refuse a link there before
+// its first write. It makes wireLint's choices: the managed wrap an earlier init wrote, when it is stale (styled: true,
+// the old spread, drifted klerosUI() options, or its app config moving to .mjs or .cjs) and stays where it is, or, in an
+// existing app with no config wired to the preset, kleros-ui.eslint.config.* when its klerosUI() options drifted. A
+// move to a new file writes no existing path. `entry()` gives the cssEntry init will record when kleros-ui.json is
+// missing (null when it is there); it runs only when a config init wrote is found.
+function lintRewrite(pj, { fromCreate = false, entry = () => null } = {}) {
+  const want = () => {
+    const cssEntry = entry();
+    return cssEntry ? { ...presetOptions(), cssEntry } : presetOptions();
+  };
+  const current = LINT_CONFIGS.find((f) => existsSync(f));
+  const text = current ? readFileSync(current, "utf8") : "";
+  if (current && text.includes("ui-components-library/eslint")) {
+    if (!text.startsWith(MANAGED)) return null;
+    if (current === "eslint.config.js" && pj.type !== "module") return null;
+    const from = text.match(/^import app from "\.\/(eslint\.config\.app\.[cm]?[jt]s)";$/m)?.[1];
+    const moves = Boolean(from && existsSync(from) && pj.type !== "module" && from.endsWith(".js"));
+    const styled = /\bstyled\s*:\s*true/.test(text);
+    const body = styled ? text.replace(/,\s*styled\s*:\s*true\b/g, "").replace(/\bstyled\s*:\s*true\s*,?\s*/g, "") : text;
+    return styled || /\[\.\.\.app,/.test(text) || moves || presetDrift(body, want()) ? current : null;
+  }
+  if (fromCreate || current === "eslint.config.cts") return null;
+  const own = CHECK_LINTS.find((f) => existsSync(f));
+  const ownText = own ? readFileSync(own, "utf8") : "";
+  return own && ownText.startsWith(CHECK_LINT_HEAD) && presetDrift(ownText, want()) ? own : null;
+}
 
 // From create (or over a config an earlier init wrapped): the app's config is eslint.config.js in a "type": "module"
 // package and eslint.config.mjs anywhere else, and imports the starter's own config, which keeps its syntax (a .js one
@@ -504,6 +531,11 @@ const tailwindEntries = () => {
 // existing app's components predate the rules: they are recorded as existing, so check holds only new ones to them.
 // Folders and single files alike (Court keeps most of its components as one .tsx file each). cssEntry is the app's
 // one stylesheet that imports tailwindcss (Escrow's src/global.css), else src/index.css, the starter's.
+// The cssEntry init records: the app's one Tailwind entry, else src/index.css, the starter's.
+const detectedEntry = () => {
+  const entries = tailwindEntries();
+  return { entries, cssEntry: entries.length === 1 ? entries[0] : "src/index.css" };
+};
 function initialConfig() {
   const dir = "src/components";
   const existing = existsSync(dir)
@@ -515,8 +547,7 @@ function initialConfig() {
             : [],
       )
     : [];
-  const entries = tailwindEntries();
-  const cssEntry = entries.length === 1 ? entries[0] : "src/index.css";
+  const { entries, cssEntry } = detectedEntry();
   if (cssEntry !== "src/index.css") console.log(`kleros-ui: recorded "cssEntry": "${cssEntry}" in ${CONFIG}, the stylesheet that imports tailwindcss (or @imports the one that does)`);
   else if (entries.length > 1 && !entries.includes(cssEntry))
     console.log(
@@ -552,21 +583,12 @@ function init({ fromCreate = false } = {}) {
     throw new Error(
       `kleros-ui init: this folder is a workspace root (${root}), not an app. Run init in the app's own folder, the one with the app's package.json and src/ (web/ in a monorepo). Nothing was written.`,
     );
-  // Plus a kleros-ui.eslint.config.* that is a dangling link, which wireLint would write through, and a lint config an
-  // earlier init wrote whose klerosUI() options drifted from kleros-ui.json, which wireLint rewrites: a link there to a
-  // file outside the app stops init here, before its first write, not after it.
+  // Plus a kleros-ui.eslint.config.* that is a dangling link, which wireLint would write through, and the lint config
+  // wireLint rewrites in place (lintRewrite): a link there to a file outside the app stops init here, before its first
+  // write, not after it.
   const dangling = fromCreate ? [] : CHECK_LINTS.filter((f) => taken(f) && !existsSync(f));
-  const drifted = (f, head) => {
-    const text = f ? readFileSync(f, "utf8") : "";
-    return text.startsWith(head) && presetDrift(text) ? [f] : [];
-  };
-  const rewrites = existsSync(CONFIG)
-    ? [
-        ...(fromCreate ? [] : drifted(CHECK_LINTS.find((f) => existsSync(f)), CHECK_LINT_HEAD)),
-        ...drifted(LINT_CONFIGS.find((f) => existsSync(f)), MANAGED),
-      ]
-    : [];
-  const problems = [...initWrites(), ...dangling, ...rewrites].map((f) => writeProblem(f)).filter(Boolean);
+  const rewrite = lintRewrite(pj, { fromCreate, entry: () => (existsSync(CONFIG) ? null : detectedEntry().cssEntry) });
+  const problems = [...initWrites(), ...dangling, ...(rewrite ? [rewrite] : [])].map((f) => writeProblem(f)).filter(Boolean);
   if (problems.length) throw new Error(`kleros-ui init: ${problems.join("; ")}. ${WRITES_ONLY}. Nothing was written.`);
   // The lint config's klerosUI() options come from kleros-ui.json: one that is not valid JSON, or a "lintDirs" that is
   // not a list of folders, stops init here, before its first write.
@@ -1365,9 +1387,10 @@ function htmlStyles(html) {
   const attrs = [];
   // No part of a tag runs past the next unquoted "<", so each "<" is read once: with [^>] in its place, a page of
   // unclosed tags ("<a " over and over) made every one scan to the end of the file. A quoted attribute may hold "<" or
-  // ">" (`<style data-x="a < b">` is still a style block). A <style> with no </style> is a block to the end of the page,
+  // ">" (`<style data-x="a < b">` is still a style block); a quote opens a value only right after "=", as in HTML, so
+  // a stray one in an unquoted value (`<style data-x=a'b>`) is a literal. A <style> with no </style> is a block to the end of the page,
   // as a browser reads it.
-  const tag = /<!--[\s\S]*?(?:-->|$)|<script\b(?:[^<>"']|"[^"]*"|'[^']*')*>[\s\S]*?(?:<\/script>|$)|(<style\b(?:[^<>"']|"[^"]*"|'[^']*')*>)([\s\S]*?)(?:<\/style>|$)|<([a-z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>/gi;
+  const tag = /<!--[\s\S]*?(?:-->|$)|<script\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>[\s\S]*?(?:<\/script>|$)|(<style\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>)([\s\S]*?)(?:<\/style>|$)|<([a-z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>/gi;
   const attr = (list, name) => list.match(new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+))`, "i"));
   for (const m of html.matchAll(tag)) {
     if (m[1]) {
@@ -1502,7 +1525,7 @@ function cssBlocks(text) {
 // plainly, and after the library's theme.css (the import order decides which values win in @layer base); the entry
 // kleros-ui.json names must import it. `file` is the entry's path from the app root. With no theme declared, only the
 // two imports above pass.
-function entryFindings(blocks, { outside = null, theme = null, file = "" } = {}) {
+function entryFindings(blocks, { outside = null, theme = null, file = "", scanned = null } = {}) {
   const findings = [];
   const themed = Boolean(!outside && theme?.file);
   const libThemeAt = blocks.find((b) => !b.block && !b.parent && atName(b.prelude) === "import" && atTarget(b.prelude) === LIB_THEME)?.at;
@@ -1541,9 +1564,10 @@ function entryFindings(blocks, { outside = null, theme = null, file = "" } = {})
   // Why a directive in the entry is a finding after all, or null when it is allowed.
   const directive = (b, n) => {
     const target = atTarget(b.prelude);
-    // A local stylesheet that reaches tailwindcss ("./tw.css") is how a nested entry imports it; that file is scanned
-    // as an entry itself.
-    const nested = /^\.{1,2}\//.test(target) && reachesTailwind(resolve(dirname(file), target));
+    // A local stylesheet that reaches tailwindcss ("./tw.css") is how a nested entry imports it, when this scan reads
+    // that file too (as an entry itself); one the scan skips (a dot folder, an ignored or outside file) stays a finding.
+    const at = /^\.{1,2}\//.test(target) ? resolve(dirname(file), target) : null;
+    const nested = Boolean(at && scanned?.has(at) && reachesTailwind(at));
     if (n === "import" && !ENTRY_IMPORTS.test(target) && !nested)
       return themed
         ? `@import "${target}" in the Tailwind entry, which imports only tailwindcss, ${LIB_THEME} and the theme file ${theme.file} (the library's style.css is imported from src/main.tsx, before it).`
@@ -1746,7 +1770,7 @@ function tokenMessage(prop, theme) {
 // Every finding in one stylesheet, or in index.html's <style> blocks, local stylesheet links and style attributes.
 // `theme` is themeInfo(); the declared theme file gets only its own findings, and every other file's token messages
 // name it. With no theme declared, every file gets the same findings.
-function scanCss(text, { file = "", theme = null, entry = null } = {}) {
+function scanCss(text, { file = "", theme = null, entry = null, scanned = null } = {}) {
   const html = /\.html?$/i.test(file);
   const page = html ? htmlStyles(text) : null;
   // Tailwind inlines the theme file as plain CSS whatever its extension, where // starts no comment, so it is read
@@ -1783,7 +1807,7 @@ function scanCss(text, { file = "", theme = null, entry = null } = {}) {
       findings.push({ rule: CSS_TW, at: a.at, message: `style attribute on <${a.el}> in ${name}: Tailwind only, so classes, not inline CSS. ${USE_CLASSES}` });
   } else if (TW_ENTRY.test(clean) || (file === entry && reachesTailwind(file)))
     // The configured entry may reach tailwindcss through a stylesheet it @imports (src/global.css with @import "./tw.css").
-    findings.push(...entryFindings(blocks, { theme, file }));
+    findings.push(...entryFindings(blocks, { theme, file, scanned }));
   else findings.push(...entryFindings(blocks, { outside: `a .${file.match(/\.(\w+)$/)?.[1] ?? "css"} file outside the Tailwind entry`, theme }));
   for (const b of blocks) {
     if (!b.block || atName(b.prelude)) continue;
@@ -1931,7 +1955,9 @@ function cssCounts(targets = cssTargets()) {
     if (targets.all || !String(e?.message).startsWith("kleros-ui")) throw e;
     console.error(`${e.message} This scan of the files named reads no theme from it.`);
   }
-  // The configured Tailwind entry: scanned as the entry even when it reaches tailwindcss only through an @import.
+  // The configured Tailwind entry: scanned as the entry even when it reaches tailwindcss only through an @import of a
+  // stylesheet this scan also reads.
+  const scanned = new Set(files.map((f) => resolve(f)));
   let entry = theme?.entry ?? null;
   if (!entry)
     try {
@@ -1949,7 +1975,7 @@ function cssCounts(targets = cssTargets()) {
   for (const f of files) {
     const text = readFileSync(f, "utf8");
     const rel = toPosix(relative(process.cwd(), f)) || f;
-    for (const x of scanCss(text, { file: rel, theme, entry })) count(rel, x);
+    for (const x of scanCss(text, { file: rel, theme, entry, scanned })) count(rel, x);
   }
   // A "theme" key that is not a path, or names no file, is a finding on the whole-app scan, not a silent pass.
   if (theme && targets.all) {

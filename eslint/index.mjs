@@ -64,7 +64,7 @@ const coreRules = Object.fromEntries(RESTRICTED.map((id) => [id, builtin?.get?.(
 const own = Object.values(coreRules).every((r) => typeof r?.create === "function");
 if (!own)
   console.warn(
-    `@kleros/ui-components-library/eslint: ESLint's built-in rules did not load from eslint/use-at-your-own-risk (${builtin instanceof Error ? (builtin.code ?? builtin.message.split("\n")[0]) : "it has no builtinRules with no-restricted-syntax and no-restricted-imports"}). The preset falls back to the core ids no-restricted-syntax and no-restricted-imports, and its options for them replace your config's own. Install ESLint 9 or later, or 8.57, in the app (npm install -D eslint) to get kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports.`,
+    `@kleros/ui-components-library/eslint: ESLint's built-in rules did not load from eslint/use-at-your-own-risk (${builtin instanceof Error ? (builtin.code ?? builtin.message.split("\n")[0]) : "it has no builtinRules with no-restricted-syntax and no-restricted-imports"}). The preset falls back to the core ids no-restricted-syntax and no-restricted-imports, and its options for them replace your config's own. Install ESLint 9 or later, or 8.26 or later, in the app (npm install -D eslint) to get kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports.`,
   );
 // The rule id the preset sets: its own plugin's when ESLint's rules loaded, the core one otherwise.
 const restricted = (id) => (own ? `kleros-ui/${id}` : id);

@@ -82,7 +82,7 @@ Fix: `npx -p @kleros/ui-components-library kleros-ui new <Name> --kind ui|data|f
 - An added `eslint-disable` comment, or a `/* eslint <rule>: "off" */` one, can switch off any rule, not only these,
   and `ui:check` passes with it. This lists every one the branch adds; ask why for each:
   ```sh
-  git diff main...HEAD -- '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs' | grep -E '^\+.*(eslint-(disable|enable)|/\*[[:space:]]*eslint([[:space:]]|$))'
+  git diff main...HEAD -- '*.ts' '*.tsx' '*.mts' '*.cts' '*.js' '*.jsx' '*.mjs' '*.cjs' | grep -E '^\+.*(eslint-(disable|enable)|/\*[[:space:]]*eslint([[:space:]]|$))'
   ```
 
 Fix: the component the lint message names (`agent/CATALOG.md` lists them all).
