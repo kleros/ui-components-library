@@ -108,9 +108,11 @@ starter uses `bundler`.
 lint script, pre-commit hook) does not read it. With no `eslint.config.*` in the app's folder, `app` sets the TypeScript
 parser init found (`typescript-eslint` or `@typescript-eslint/parser`). If init warned that it found neither, add
 `typescript-eslint` as a devDependency, delete `kleros-ui.eslint.config.mjs` and run init again. If the app's flat
-config is in a folder above (a monorepo root), replace the `const app = ...` line with
-`import app from "../eslint.config.mjs";` (its path from the app's folder): ESLint reads its `files` patterns from the
-app's folder, so a pattern that names the app's folder (`web/src/**`) matches nothing there. A `.eslintrc*` is not
+config is in a folder above (a monorepo root), import it by its path from the app's folder and put it in front of what
+`app` holds: `import root from "../eslint.config.mjs";` and `const app = [...[await root].flat(), /* init's entry, if any */];`.
+Keep the TypeScript parser entry init wrote: ESLint reads the root's `files` patterns from the app's folder, so a root
+block that names the app's folder (`web/src/**`), its parser included, matches nothing there. Restate any such block you
+need with patterns from the app's folder. A `.eslintrc*` is not
 carried over: its rules stay out of `ui:check`. `ui:check` and `ui:baseline` lint `src/`; in an app with no `src/` (a Next.js `app/` router), those of `app/`, `pages/`, `components/`, `lib/`, `hooks/` and `utils/` that are there. `"lintDirs"` in `kleros-ui.json` sets other folders, from the app root (`["app", "lib"]`); run init again after changing it, so the lint config passes them to the preset as `files`. `ui:check` prints the folders it lints, fails on a `lintDirs` folder that is not there (`ui:baseline` records nothing then), and names a lint config whose `files` or `cssEntry` differ from `kleros-ui.json`.
 
 **It has Tailwind.** Three changes.
@@ -203,7 +205,7 @@ Project-specific components stay in your app. When a second app needs one, propo
   Skeleton rows, ErrorState or EmptyState for you. A real query spreads its result (`{...query}`), which passes its
   flags, `isPending` included, so a query that has not started (a disabled one waiting for an address) shows the
   skeleton, not the empty state; pass `refetch` as `onRetry`. A refetch that fails after a load keeps the loaded data
-  on screen: the error shows only when there is no data. Mock data
+  on screen: the error shows only when there is no data (`undefined` or `null`) or the data counts as empty. Mock data
   passes its array with `isLoading={false}`: no fake delay and no fake error. The empty state shows whenever the
   array is empty, a filter with no match included. `empty={{ title, description, action }}` takes an `action` as
   `{ text, onPress }` (a small Button) or a node, shown under the description; `errorTitle` replaces "Something went

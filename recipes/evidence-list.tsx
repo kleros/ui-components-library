@@ -56,9 +56,11 @@ export default function EvidenceList() {
   // The core Button's isLoading only shows a spinner: the button stays pressable, so a submission in flight disables
   // it and this ref drops a second press that lands before the re-render.
   const sending = useRef(false);
-  // While a submission is pending the modal cannot close (Cancel is disabled and Escape does nothing) and its fields
-  // are locked: a failure shows in the modal, and a success closes it and clears the fields that were sent. Closing
-  // at other times drops a failed status, so the modal opens again without the old error.
+  // While a submission is pending the modal cannot close (Cancel is disabled and Escape does nothing) and its text
+  // fields are locked: a failure shows in the modal, and a success closes it and clears the fields that were sent.
+  // The file picker stays pressable (FileUploader's isDisabled stops drops only), so a file picked meanwhile is kept
+  // for the next submission. Closing at other times drops a failed status, so the modal opens again without the old
+  // error.
   const close = () => {
     if (sending.current) return;
     setIsOpen(false);
@@ -69,13 +71,14 @@ export default function EvidenceList() {
     if (sending.current) return;
     sending.current = true;
     setStatus("sending");
+    const sentFile = file;
     try {
-      await submitEvidence({ title, description, file });
+      await submitEvidence({ title, description, file: sentFile });
       setStatus("sent");
       setIsOpen(false);
       setTitle("");
       setDescription("");
-      setFile(undefined);
+      setFile((f) => (f === sentFile ? undefined : f));
     } catch {
       setStatus("failed");
     } finally {

@@ -83,10 +83,13 @@ export function QueryState<T>({ isLoading, isPending, isError, error, data, isEm
       </>
     );
   }
-  const isEmptyData = data === undefined || (isEmpty ? isEmpty(data) : Array.isArray(data) && data.length === 0);
   // A failed refetch keeps the loaded data: the error replaces only an empty view, or a null one (a hand-rolled hook
-  // that starts at useState(null)). A successful null still goes to children.
-  if (isError && (data === null || isEmptyData)) {
+  // that starts at useState(null)). A failed null is caught before a custom isEmpty sees it. A successful null still
+  // goes to children.
+  const failedNull = isError && data === null;
+  const isEmptyData =
+    !failedNull && (data === undefined || (isEmpty ? isEmpty(data) : Array.isArray(data) && data.length === 0));
+  if (failedNull || (isError && isEmptyData)) {
     return (
       <ErrorState title={errorTitle} message={error instanceof Error ? error.message : undefined} onRetry={onRetry} />
     );

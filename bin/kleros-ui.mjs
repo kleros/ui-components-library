@@ -42,8 +42,8 @@ const readOr = (f, d = "") => {
   }
 };
 // Writes stay inside the app: no file is written through a symbolic link that points outside the app's folder, into
-// its node_modules or at nothing, and none in a folder that resolves outside the app's folder (a linked folder, or a
-// path such as "../x" in kleros-ui.json). A link that resolves inside the app is fine (AGENTS.md -> CLAUDE.md, a
+// its node_modules or at nothing, and none in a folder that resolves outside the app's folder or into its node_modules
+// (a linked folder, or a path such as "../x" in kleros-ui.json). A link that resolves inside the app is fine (AGENTS.md -> CLAUDE.md, a
 // linked .cursor). A file where a folder goes (.cursor/rules as a file) is refused too, so mkdir does not fail midway.
 // The app's folder is the one the command runs in; create sets it
 // to the new app's folder. Why `p` may not be written, or null.
@@ -63,9 +63,12 @@ function writeProblem(p, { folder = false, root = APP_ROOT ?? realOrNull(".") } 
     // The nearest entry that exists; what the write makes below it is new.
     const real = realOrNull(d);
     if (!real) return `${name(d)} ${link ? "is a symbolic link that points at nothing" : "cannot be resolved"}`;
-    if (link && d === abs && !folder && (!inside(real) || relative(root, real).split(sep).includes("node_modules")))
+    const modules = inside(real) && relative(root, real).split(sep).includes("node_modules");
+    if (link && d === abs && !folder && (!inside(real) || modules))
       return `${name(d)} is a symbolic link (to ${real}), outside the app's own files`;
-    if (!inside(real)) return `${d === abs ? name(d) : `${name(d)}, where ${name(abs)} goes,`} resolves to ${real}, outside the app's folder (${root})`;
+    const where = d === abs ? name(d) : `${name(d)}, where ${name(abs)} goes,`;
+    if (!inside(real)) return `${where} resolves to ${real}, outside the app's folder (${root})`;
+    if (modules) return `${where} resolves to ${real}, in node_modules, which the next install replaces`;
     if ((folder || d !== abs) && !statSync(real).isDirectory()) return `${name(d)} is a file, not a folder, so ${d === abs ? "it" : name(abs)} cannot be made there (move it away)`;
     return null;
   }
@@ -549,9 +552,21 @@ function init({ fromCreate = false } = {}) {
     throw new Error(
       `kleros-ui init: this folder is a workspace root (${root}), not an app. Run init in the app's own folder, the one with the app's package.json and src/ (web/ in a monorepo). Nothing was written.`,
     );
-  // Plus a kleros-ui.eslint.config.* that is a dangling link, which wireLint would write through.
+  // Plus a kleros-ui.eslint.config.* that is a dangling link, which wireLint would write through, and a lint config an
+  // earlier init wrote whose klerosUI() options drifted from kleros-ui.json, which wireLint rewrites: a link there to a
+  // file outside the app stops init here, before its first write, not after it.
   const dangling = fromCreate ? [] : CHECK_LINTS.filter((f) => taken(f) && !existsSync(f));
-  const problems = [...initWrites(), ...dangling].map((f) => writeProblem(f)).filter(Boolean);
+  const drifted = (f, head) => {
+    const text = f ? readFileSync(f, "utf8") : "";
+    return text.startsWith(head) && presetDrift(text) ? [f] : [];
+  };
+  const rewrites = existsSync(CONFIG)
+    ? [
+        ...(fromCreate ? [] : drifted(CHECK_LINTS.find((f) => existsSync(f)), CHECK_LINT_HEAD)),
+        ...drifted(LINT_CONFIGS.find((f) => existsSync(f)), MANAGED),
+      ]
+    : [];
+  const problems = [...initWrites(), ...dangling, ...rewrites].map((f) => writeProblem(f)).filter(Boolean);
   if (problems.length) throw new Error(`kleros-ui init: ${problems.join("; ")}. ${WRITES_ONLY}. Nothing was written.`);
   // The lint config's klerosUI() options come from kleros-ui.json: one that is not valid JSON, or a "lintDirs" that is
   // not a list of folders, stops init here, before its first write.
@@ -905,13 +920,13 @@ function create({ dir: target, lib, install }) {
     // npm did not start (none in PATH): nothing to do with the library spec.
     if (r.error) {
       console.error(
-        `kleros-ui create: ${spawnFailed("npm", r.error)}, so nothing was installed in ${target}; the starter's files are in place. Install there with your package manager, then run npx -p @kleros/ui-components-library kleros-ui init there.`,
+        `kleros-ui create: ${spawnFailed("npm", r.error)}, so nothing was installed in ${target}; the starter's files are in place. Install there with your package manager, then run npx -p @kleros/ui-components-library kleros-ui init --from-create there.`,
       );
       process.exit(1);
     }
     if (r.status !== 0) {
       console.error(
-        `kleros-ui create: npm install failed in ${target}; the starter's files are in place. Fix the cause (a version not on the registry: set ${LIB} in its package.json to the tarball, as file:<path from the app>), then run npm install and npx -p @kleros/ui-components-library kleros-ui init there.`,
+        `kleros-ui create: npm install failed in ${target}; the starter's files are in place. Fix the cause (a version not on the registry: set ${LIB} in its package.json to the tarball, as file:<path from the app>), then run npm install and npx -p @kleros/ui-components-library kleros-ui init --from-create there.`,
       );
       process.exit(1);
     }
@@ -920,7 +935,7 @@ function create({ dir: target, lib, install }) {
     const own = join(dir, "node_modules", LIB);
     if (!existsSync(join(own, "package.json")) && (taken(own) || !installedAbove(dir))) {
       console.error(
-        `kleros-ui create: npm install exited 0, but ${LIB} is not installed in ${target}: npm could not use the spec ${spec}. Set ${LIB} in its package.json to a version (e.g. ^${pkg.version}) or to the tarball as file:<path>, then run npm install and npx -p @kleros/ui-components-library kleros-ui init there.`,
+        `kleros-ui create: npm install exited 0, but ${LIB} is not installed in ${target}: npm could not use the spec ${spec}. Set ${LIB} in its package.json to a version (e.g. ^${pkg.version}) or to the tarball as file:<path>, then run npm install and npx -p @kleros/ui-components-library kleros-ui init --from-create there.`,
       );
       process.exit(1);
     }
@@ -1348,10 +1363,11 @@ function htmlStyles(html) {
   const tags = [];
   const links = [];
   const attrs = [];
-  // No part of a tag runs past the next "<", so each "<" is read once: with [^>] in its place, a page of unclosed tags
-  // ("<a " over and over) made every one scan to the end of the file. A <style> with no </style> is a block to the end
-  // of the page, as a browser reads it.
-  const tag = /<!--[\s\S]*?(?:-->|$)|<script\b[^<>]*>[\s\S]*?(?:<\/script>|$)|(<style\b[^<>]*>)([\s\S]*?)(?:<\/style>|$)|<([a-z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>/gi;
+  // No part of a tag runs past the next unquoted "<", so each "<" is read once: with [^>] in its place, a page of
+  // unclosed tags ("<a " over and over) made every one scan to the end of the file. A quoted attribute may hold "<" or
+  // ">" (`<style data-x="a < b">` is still a style block). A <style> with no </style> is a block to the end of the page,
+  // as a browser reads it.
+  const tag = /<!--[\s\S]*?(?:-->|$)|<script\b(?:[^<>"']|"[^"]*"|'[^']*')*>[\s\S]*?(?:<\/script>|$)|(<style\b(?:[^<>"']|"[^"]*"|'[^']*')*>)([\s\S]*?)(?:<\/style>|$)|<([a-z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>/gi;
   const attr = (list, name) => list.match(new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+))`, "i"));
   for (const m of html.matchAll(tag)) {
     if (m[1]) {
@@ -2069,6 +2085,8 @@ function run(cmd, args, env, tool) {
   if (r.error) console.error(npxFailed(r.error, tool));
   return r.status === 0;
 }
+// The folders to lint as ESLint operands: a folder named like an option (`--help`) gets "./" so ESLint lints it.
+const lintOperands = (dirs) => dirs.map((d) => (d.startsWith("-") ? `./${d}` : d));
 // ESLint as check and baseline run it: on kleros-ui.eslint.config.* (-c) when init wrote one, else on the app's own
 // config. ESLINT_USE_FLAT_CONFIG makes ESLint 8 read -c as a flat config, as ESLint 9 does.
 function eslintRun(args) {
@@ -2205,7 +2223,7 @@ function staleDisables(current) {
 // (`stale`, a warning by ESLint 9's default, an error when the app sets reportUnusedDisableDirectives to "error").
 // `dirs` are the folders to lint (lintTargets).
 function lintCounts({ quiet = false, dirs } = {}) {
-  const lint = eslintRun([...dirs, "-f", "json"]);
+  const lint = eslintRun([...lintOperands(dirs), "-f", "json"]);
   const r = spawnSync("npx", lint.args, { encoding: "utf8", maxBuffer: 256 * 1024 * 1024, env: lint.env });
   if (r.error) {
     if (!quiet) console.error(npxFailed(r.error, "eslint"));
@@ -2780,7 +2798,7 @@ async function check({ build = false } = {}) {
   const dirs = targets.dirs.filter((d) => !targets.missing.includes(d));
   console.log(`lint: ESLint on ${dirNames(targets.dirs)} (${targets.why})`);
   for (const d of targets.missing) console.log(`lint: ${d} is not a folder here, so ESLint did not lint it ("lintDirs" in ${CONFIG})`);
-  const plain = eslintRun(dirs);
+  const plain = eslintRun(lintOperands(dirs));
   const lintRan = !dirs.length ? false : base?.lint ? lintCheck(base, dirs) : run("npx", plain.args, plain.env, "eslint") || lintWhy(lintCounts({ quiet: true, dirs }));
   const okLint = lintRan && !targets.missing.length;
   const okCss = cssCheck(base, { build });

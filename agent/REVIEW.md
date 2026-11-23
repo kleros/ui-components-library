@@ -8,7 +8,7 @@ branch with `main`: use the pull request's base branch if it is another.
 - `package.json` has `"ui:check": "kleros-ui check"` and `"ui:baseline": "kleros-ui baseline"`. In an app `create`
   made, the build runs the check first: `"build": "kleros-ui check --build && vite build"`, or a `prebuild` of
   `kleros-ui check --build` when the app kept its own build.
-- `kleros-ui.json` is at the app root, with `cssEntry` and `components` (and `theme` when the app has a theme, `lintDirs` when it lints folders other than `src/`).
+- `kleros-ui.json` is at the app root, with `cssEntry` and `components` (and `theme` when the app has a theme, `lintDirs` only when the folders it lints differ from what `ui:check` picks by itself: `src/`, or with no `src/` those of `app/`, `pages/`, `components/`, `lib/`, `hooks/` and `utils/` that exist).
 - The lint config. An existing app keeps its own `eslint.config.*`; init writes `kleros-ui.eslint.config.mjs` (`.mts`
   for a `.ts` or `.mts` config). It starts with `// Written by kleros-ui init:`, imports the app's config as `app` and
   adds `klerosUI(...)` from `@kleros/ui-components-library/eslint`. `ui:check` and `ui:baseline` lint with it
@@ -82,7 +82,7 @@ Fix: `npx -p @kleros/ui-components-library kleros-ui new <Name> --kind ui|data|f
 - An added `eslint-disable` comment, or a `/* eslint <rule>: "off" */` one, can switch off any rule, not only these,
   and `ui:check` passes with it. This lists every one the branch adds; ask why for each:
   ```sh
-  git diff main...HEAD -- src | grep -E '^\+.*(eslint-(disable|enable)|/\*[[:space:]]*eslint([[:space:]]|$))'
+  git diff main...HEAD -- '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs' | grep -E '^\+.*(eslint-(disable|enable)|/\*[[:space:]]*eslint([[:space:]]|$))'
   ```
 
 Fix: the component the lint message names (`agent/CATALOG.md` lists them all).
