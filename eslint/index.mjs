@@ -1,11 +1,11 @@
 // @kleros/ui-components-library/eslint: the Kleros look (agent/LOOK.md) as lint rules.
 // Usage (flat config): import klerosUI from "@kleros/ui-components-library/eslint";
 //   export default [...yourConfig, ...klerosUI({ cssEntry: "src/index.css" })];
-// Needs a flat config, on eslint 9 or later or on eslint 8.57 (run on 8.57.1). ESLint 8 reads the file passed with -c
-// as a flat config under ESLINT_USE_FLAT_CONFIG=true, which ui:check and ui:baseline set when init wrote
-// kleros-ui.eslint.config.*. The Tailwind class rules need eslint-plugin-better-tailwindcss 4+ (optional peer
-// dependency) and are skipped without it. When it is installed but does not load, they are off too, and the preset
-// warns once (see the import below).
+// Needs a flat config, on eslint 9 or later or on eslint 8.26 or later (run on 8.26.0, 8.56.0 and 8.57.1). ESLint 8
+// reads the file passed with -c as a flat config under ESLINT_USE_FLAT_CONFIG=true, which ui:check and ui:baseline set
+// when init wrote kleros-ui.eslint.config.*; in an app's own config, ESLint 8 before 8.57 finds only eslint.config.js.
+// The Tailwind class rules need eslint-plugin-better-tailwindcss 4+ (optional peer dependency) and are skipped without
+// it. When it is installed but does not load, they are off too, and the preset warns once (see the import below).
 // Every app styles with Tailwind only (agent/AGENTS.md, "Styling: Tailwind only"), so there is one set of rules for
 // all apps. A `styled` option (once for apps on styled-components without Tailwind) is still accepted, so
 // an existing config such as `klerosUI({ styled: true })` loads, but it is ignored and changes nothing. Its px radius

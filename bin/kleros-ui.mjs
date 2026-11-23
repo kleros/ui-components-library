@@ -1541,7 +1541,10 @@ function entryFindings(blocks, { outside = null, theme = null, file = "" } = {})
   // Why a directive in the entry is a finding after all, or null when it is allowed.
   const directive = (b, n) => {
     const target = atTarget(b.prelude);
-    if (n === "import" && !ENTRY_IMPORTS.test(target))
+    // A local stylesheet that reaches tailwindcss ("./tw.css") is how a nested entry imports it; that file is scanned
+    // as an entry itself.
+    const nested = /^\.{1,2}\//.test(target) && reachesTailwind(resolve(dirname(file), target));
+    if (n === "import" && !ENTRY_IMPORTS.test(target) && !nested)
       return themed
         ? `@import "${target}" in the Tailwind entry, which imports only tailwindcss, ${LIB_THEME} and the theme file ${theme.file} (the library's style.css is imported from src/main.tsx, before it).`
         : `@import "${target}" in the Tailwind entry, which imports only tailwindcss and ${LIB}/theme.css (the library's style.css is imported from src/main.tsx, before it).`;
@@ -1743,7 +1746,7 @@ function tokenMessage(prop, theme) {
 // Every finding in one stylesheet, or in index.html's <style> blocks, local stylesheet links and style attributes.
 // `theme` is themeInfo(); the declared theme file gets only its own findings, and every other file's token messages
 // name it. With no theme declared, every file gets the same findings.
-function scanCss(text, { file = "", theme = null } = {}) {
+function scanCss(text, { file = "", theme = null, entry = null } = {}) {
   const html = /\.html?$/i.test(file);
   const page = html ? htmlStyles(text) : null;
   // Tailwind inlines the theme file as plain CSS whatever its extension, where // starts no comment, so it is read
@@ -1778,7 +1781,9 @@ function scanCss(text, { file = "", theme = null } = {}) {
       findings.push({ rule: CSS_TW, at: l.at, message: `<link rel="stylesheet" href="${l.href}"> in ${name} loads CSS of the app's own: Tailwind only, so no stylesheet besides the Tailwind entry, which src/main.tsx imports. ${USE_CLASSES}` });
     for (const a of page.attrs)
       findings.push({ rule: CSS_TW, at: a.at, message: `style attribute on <${a.el}> in ${name}: Tailwind only, so classes, not inline CSS. ${USE_CLASSES}` });
-  } else if (TW_ENTRY.test(clean)) findings.push(...entryFindings(blocks, { theme, file }));
+  } else if (TW_ENTRY.test(clean) || (file === entry && reachesTailwind(file)))
+    // The configured entry may reach tailwindcss through a stylesheet it @imports (src/global.css with @import "./tw.css").
+    findings.push(...entryFindings(blocks, { theme, file }));
   else findings.push(...entryFindings(blocks, { outside: `a .${file.match(/\.(\w+)$/)?.[1] ?? "css"} file outside the Tailwind entry`, theme }));
   for (const b of blocks) {
     if (!b.block || atName(b.prelude)) continue;
@@ -1926,6 +1931,14 @@ function cssCounts(targets = cssTargets()) {
     if (targets.all || !String(e?.message).startsWith("kleros-ui")) throw e;
     console.error(`${e.message} This scan of the files named reads no theme from it.`);
   }
+  // The configured Tailwind entry: scanned as the entry even when it reaches tailwindcss only through an @import.
+  let entry = theme?.entry ?? null;
+  if (!entry)
+    try {
+      entry = appPath(config().cssEntry || "src/index.css");
+    } catch {
+      // a broken kleros-ui.json: said above for the files named, and the whole-app scan stopped on it
+    }
   const count = (rel, x) => {
     const key = `${rel}|${x.rule}`;
     const line = `${rel}:${x.pos[0]}:${x.pos[1]} ${x.message} (${x.rule})`;
@@ -1936,7 +1949,7 @@ function cssCounts(targets = cssTargets()) {
   for (const f of files) {
     const text = readFileSync(f, "utf8");
     const rel = toPosix(relative(process.cwd(), f)) || f;
-    for (const x of scanCss(text, { file: rel, theme })) count(rel, x);
+    for (const x of scanCss(text, { file: rel, theme, entry })) count(rel, x);
   }
   // A "theme" key that is not a path, or names no file, is a finding on the whole-app scan, not a silent pass.
   if (theme && targets.all) {

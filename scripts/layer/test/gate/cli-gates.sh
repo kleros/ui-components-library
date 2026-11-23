@@ -299,15 +299,20 @@ rm -rf "$U"
 
 # PR #127 review (F4, a nested entry): an entry that reaches tailwindcss through an @import ("./tw.css") is the entry,
 # not the file it imports: init records src/index.css in kleros-ui.json and the lint config, and check orders
-# style.css against it with no cssEntry problem.
+# style.css against it with no cssEntry problem. PR #131 review (M1): the CSS scan reads it as the entry too, so its
+# own lines are no findings, and once theme has added the theme import, deleting that import is a css-theme finding.
 Z=$(mktemp -d -p "$WORK")
 stubs "$Z"
 (cd "$Z" && printf "$TOOLS\n" z > package.json && mkdir src && echo '@import "tailwindcss";' > src/tw.css \
   && { echo '@import "./tw.css";'; sed 1d "$LIB/templates/poc/src/index.css"; } > src/index.css \
   && $CLI init >/dev/null && grep -q '"cssEntry": "src/index.css"' kleros-ui.json && grep -q 'klerosUI({ cssEntry: "src/index.css" })' kleros-ui.eslint.config.mjs \
   && printf 'import "./index.css";\n' > src/main.tsx && ! $CLI check >o1.txt 2>&1 && ! grep -q '"cssEntry" in' o1.txt \
-  && grep -q '^setup: src/main.tsx imports ./index.css (the Tailwind entry) without @kleros/ui-components-library/style.css' o1.txt) \
-  && echo "gate: an entry that reaches tailwindcss through @import \"./tw.css\" is recorded as cssEntry (src/index.css, not tw.css), and check orders style.css against it"
+  && grep -q '^setup: src/main.tsx imports ./index.css (the Tailwind entry) without @kleros/ui-components-library/style.css' o1.txt \
+  && $CLI css >o2.txt 2>&1 && grep -q '^css: 0 findings' o2.txt \
+  && $CLI theme >/dev/null && grep -qx '@import "./theme.css";' src/index.css && $CLI css >/dev/null \
+  && sed -i '/^@import "\.\/theme\.css";$/d' src/index.css && ! $CLI css >o3.txt 2>&1 \
+  && grep -q 'The Tailwind entry does not import the theme file src/theme.css' o3.txt && grep -q '^css: 1 finding' o3.txt) \
+  && echo "gate: an entry that reaches tailwindcss through @import \"./tw.css\" is recorded as cssEntry (src/index.css, not tw.css), check orders style.css against it, and the CSS scan reads it as the entry: no findings on its own lines, and a deleted theme import is a css-theme finding"
 rm -rf "$Z"
 
 # PR #127 second review (R2-F8, R2-F12/F13): create's default path, npm install and then init through the app's installed
