@@ -38,8 +38,9 @@ Fix: a new app is made with `npx -p @kleros/ui-components-library kleros-ui crea
   config or `@plugin` line imports: no one diff command shows them all.
 - Run `npm run ui:check` on the branch. It ends with `ui:check passed`. If it says the app's CSS has findings, not
   failing, because `kleros-ui-baseline.json` predates the CSS scan, it prints only their count: run
-  `npx -p @kleros/ui-components-library kleros-ui css` on the branch and on `main`, treat each finding the branch
-  adds as a failure, and have `npm run ui:baseline` run once on `main`, so the check fails on new ones from then on.
+  `npx -p @kleros/ui-components-library kleros-ui css` on the branch and on `main` (on an outside pull request, where
+  you ran the check: npx reads the branch's `.npmrc` and `node_modules`), treat each finding the branch adds as a
+  failure, and have `npm run ui:baseline` run once on `main`, so the check fails on new ones from then on.
 - The app's CI runs `npm run ui:check` after the install on every pull request, so this part does not rest on the
   review alone: `kleros-ui check` exits 1 when it fails.
 - In an existing app, `kleros-ui-baseline.json` does not grow. A re-recorded baseline hides new findings: ask why.
@@ -50,14 +51,16 @@ Fix: what each message names. Lint and CSS messages name the token or component 
 - No `--klerosUIComponents*` or `--color-klerosUIComponents*` value is set outside the file that `kleros-ui.json`
   names under `"theme"` (default `src/theme.css`). `ui:check` finds one in a stylesheet; one set from code (a `style`
   object or `style.setProperty`) or by a class (`[--klerosUIComponentsPrimaryBlue:...]`) only the review finds.
-- Run this in the app's folder (where `kleros-ui.json` is). It reads the theme path from `kleros-ui.json` and leaves
-  that one file out, taking the path literally, so a pattern such as `src/**` there hides nothing; a value that is not
-  a file in the repository (a folder, or a path outside it) falls back to `src/theme.css`. It lists every added
+- Run this in the app's folder (where `kleros-ui.json` is). It reads the theme path from `main`'s `kleros-ui.json`, as
+  data, so it runs nothing from the branch and the branch cannot change which file it leaves out (a pull request that
+  adds or moves the theme file shows that file's lines: check them as the theme). It leaves that one file out, taking
+  the path literally, so a pattern such as `src/**` there hides nothing; a value that is not a file in the repository
+  (a folder, or a path outside it) falls back to `src/theme.css`. It lists every added
   line that names a token other than inside `var()` or Tailwind's `bg-(--...)` form, as a line that sets one does. It
   also lists a comment or a `getPropertyValue` read that names one: those are fine. A name built in code
   (`"--" + name`) it cannot see:
   ```sh
-  theme=$(node -p 'require("./kleros-ui.json").theme || ""')
+  theme=$(git show main:./kleros-ui.json 2>/dev/null | node -e 'try { const t = JSON.parse(require("fs").readFileSync(0, "utf8")).theme; if (typeof t === "string") console.log(t) } catch {}')
   [ -f "$theme" ] && git ls-files --error-unmatch -- ":(literal)$theme" >/dev/null 2>&1 || theme=src/theme.css
   git diff main...HEAD -- . ":(exclude,literal)$theme" | awk '/^\+/ { s = $0; gsub(/(var\([[:space:]]*|-\()--(color-)?klerosUIComponents[A-Za-z]+/, "", s); if (s ~ /--(color-)?klerosUIComponents/) print }'
   ```

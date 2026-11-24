@@ -24,7 +24,7 @@
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd -P)
 REPO=$(cd "$HERE/../../.." && pwd -P)
-EXPECTED=73
+EXPECTED=74
 TSC=$REPO/node_modules/.bin/tsc
 die() { echo "test:layer: $*" >&2; exit 1; }
 [[ -x "$TSC" ]] || die "$TSC is missing: run yarn install first"

@@ -296,6 +296,50 @@ describe("useBigNumberField leading decimal point", () => {
     expect(input).toHaveProperty("value", "0");
     expect(held).toEqual(["5", "0"]);
   });
+
+  // Replaces the selection with `text`, as a key, Delete or Backspace does, and leaves the caret after it. Text the
+  // field then changes is set anew, which moves the caret to the end, as in a browser.
+  const editAtCaret = (input: HTMLInputElement, text: string) => {
+    const { selectionStart: start, selectionEnd: end, value } = input;
+    const setValue = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )?.set;
+    setValue?.call(
+      input,
+      value.slice(0, start ?? 0) + text + value.slice(end ?? 0),
+    );
+    const caret = (start ?? 0) + text.length;
+    input.setSelectionRange(caret, caret);
+    fireEvent.input(input);
+  };
+
+  it.each([false, true])(
+    "keeps '.5' and its caret when '12' is deleted from '12.5', so a 3 typed next gives 3.5 (controlled: %s)",
+    (controlled) => {
+      const held: string[] = [];
+      render(
+        controlled ? (
+          <Controlled held={held} />
+        ) : (
+          <Field onChange={(v) => held.push(v.toFixed())} />
+        ),
+      );
+      const input = screen.getByRole("spinbutton") as HTMLInputElement;
+      input.focus();
+      type(input, "12.5");
+
+      // Select "12", press Delete, then type 3.
+      input.setSelectionRange(0, 2);
+      editAtCaret(input, "");
+      expect(input).toHaveProperty("value", ".5");
+      expect(input.selectionStart).toBe(0);
+      editAtCaret(input, "3");
+
+      expect(input).toHaveProperty("value", "3.5");
+      expect(held.slice(-2)).toEqual(["0.5", "3.5"]);
+    },
+  );
 });
 
 // Issue log #54: the idle format, 3s after typing, turned "1." and "1.0" into "1", so a 5 typed next gave 15. It keeps

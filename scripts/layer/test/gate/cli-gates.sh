@@ -880,3 +880,24 @@ stubs "$NE"
   && grep -q '^src/index.css:[0-9]*:[0-9]* @import "./gen/tw.css" in the Tailwind entry' o3.txt && grep -q '^css: 1 finding' o3.txt) \
   && echo "gate: review of the whole PR (c06): with cssDirs [\"app\"], the scan reads the entry src/index.css and the ./tw.css it reaches tailwindcss through, so that nested entry gives 0 findings and check passes"
 rm -rf "$NE"
+
+# N1 (security review): agent/REVIEW.md part 3 reads the theme path from main's kleros-ui.json as data. Its theme line,
+# run as printed, runs no kleros-ui.json.js, kleros-ui.json/ folder or symlinked script a branch puts there, and reads
+# the theme from a plain kleros-ui.json; part 3 has no require() of an app file and no node -p.
+REVIEW_THEME=$(awk '/^## 3\./ { on = 1 } on && /^ *theme=\$\(/ { print; exit }' "$LIB/agent/REVIEW.md" | sed 's/^ *//')
+for swap in plain js dir link; do
+  mkdir -p "$WORK/n1-$swap/src" && (cd "$WORK/n1-$swap" && git init -q -b main && echo x > src/brand.css \
+    && js="require('fs').writeFileSync('$WORK/n1-ran', '')" \
+    && case $swap in
+      plain) echo '{"theme":"src/brand.css"}' > kleros-ui.json ;;
+      js) echo "$js" > kleros-ui.json.js ;;
+      dir) mkdir kleros-ui.json && echo "$js" > kleros-ui.json/index.js ;;
+      link) echo "$js" > x.js && ln -s x.js kleros-ui.json ;;
+    esac \
+    && git add -A && git -c user.name=t -c user.email=t@t.invalid -c commit.gpgsign=false commit -qm base \
+    && got=$(sh -c "$REVIEW_THEME"' && printf %s "$theme"' 2>/dev/null) \
+    && { [[ $swap != plain || "$got" == "src/brand.css" ]] || touch "$WORK/n1-ran"; })
+done
+[[ -n "$REVIEW_THEME" && ! -e "$WORK/n1-ran" ]] && ! awk '/^## 3\./ { on = 1; next } /^## / { on = 0 } on' "$LIB/agent/REVIEW.md" | grep -qE 'require\("\./|node -p' \
+  && echo "gate: N1: REVIEW.md part 3 reads kleros-ui.json as data: its theme line runs no kleros-ui.json.js, kleros-ui.json/ folder or symlinked script, and reads the theme from a plain one"
+rm -rf "$WORK"/n1-*

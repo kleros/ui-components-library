@@ -53,7 +53,7 @@ Dependencies), and `kleros-ui check` says so in an app on Tailwind before 4.1.
 ### Fixed
 
 - Box passes every prop except `className` to its element (`id`, `role`, `aria-*`, handlers), where it dropped all but `children` and `className`.
-- BigNumberField reads a leading `.` as `0.` (and `-.` as `-0.` where the field can go below 0), so typing `.5` gives 0.5. The field showed `NaN` and reported `NaN` to `onChange`, and a controlled field kept 5 for `.5`.
+- BigNumberField reads a lone `.` as `0.` (and `-.` as `-0.` where the field can go below 0), so typing `.5` gives 0.5. The field showed `NaN` and reported `NaN` to `onChange`, and a controlled field kept 5 for `.5`.
 - BigNumberField no longer changes the text being typed when it formats the field after 3 seconds without typing: the decimal point, trailing zeros and the sign stay, and only grouping is added. `1.`, `1.0` or `2.50`, a pause, then a digit gave 15, 15 or 2.53; they now give 1.5, 1.05 and 2.503.
 - BigNumberField refuses a lone `-` when `minValue` is 0 or more, and a negative zero (`-.`, `-0`, `-0.`) when it is 0, where the field showed `-` while the app kept the last amount, or `-0.` for 0. A refused `-` over formatted text such as `1,000` leaves the field editable, and a `minValue` that does not parse counts as no minimum.
 - CircularProgress no longer renders a stray `0` next to the label at 0%.
