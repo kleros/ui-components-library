@@ -1,6 +1,6 @@
 {
   "name": "@kleros/ui-components-library",
-  "version": "3.11.0",
+  "version": "3.11.0-beta.0",
   "description": "UI components library which implements the Kleros design system. New app: set it up with the CLI, not by hand (npx -p @kleros/ui-components-library kleros-ui create . once the package is installed). Existing app: once the package is installed, run npx -p @kleros/ui-components-library kleros-ui init once, before writing UI. Guide: agent/AGENTS.md.",
   "source": "./src/lib/index.ts",
   "main": "./dist/index.js",
@@ -182,5 +182,6 @@
     "eslint-plugin-better-tailwindcss": {
       "optional": true
     }
-  }
+  },
+  "stableVersion": "3.11.0"
 }
