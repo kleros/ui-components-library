@@ -8,19 +8,15 @@ const DIST = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "dist");
 const KIT = join(DIST, "kit");
 const LIB_IMPORT = 'from "@kleros/ui-components-library"';
 
-// Every type file an agent may open first names the setup commands and the guide (D31). It says what init writes, so
-// an agent can ask before it runs init in an existing app. No tarball recipe: its `echo {} > package.json` empties an
-// existing package.json, and README and agent/AGENTS.md give it for a new folder only.
+// Every type file an agent may open first points at the guide (D31), and names no command: every app that updates
+// to this version gets these files, and an agent in an app that never chose the agent layer should not run init on
+// its own (PR #127 review, F17). The guide says when and how to set an app up.
 const NOTE =
-  "// @kleros/ui-components-library: a new app is set up by its CLI, not by hand: " +
-  "`npx -p @kleros/ui-components-library kleros-ui create .` in the app folder once the package is installed. " +
-  "An existing app is set up with `npx -p @kleros/ui-components-library kleros-ui init`, run once before writing UI, " +
-  "which adds an AGENTS.md block, CLAUDE.md and Cursor pointers, kleros-ui.json, a lint config and the ui:check " +
-  "and ui:baseline scripts. Guide: agent/AGENTS.md and agent/CATALOG.md in this package.";
+  "// @kleros/ui-components-library: before writing UI with this package, read agent/AGENTS.md in it (setup and " +
+  "rules) and agent/CATALOG.md (the components).";
 // The note goes on top in place of any version of it already there, so a build over an older dist (`yarn build:layer`
 // alone does not empty it) leaves one note, the current one. Every version so far starts with NOTE_START.
-const NOTE_START =
-  "// @kleros/ui-components-library: a new app is set up by its CLI";
+const NOTE_START = "// @kleros/ui-components-library: ";
 const withNote = (text) => {
   const lines = text.split("\n");
   while (lines[0]?.startsWith(NOTE_START)) lines.shift();

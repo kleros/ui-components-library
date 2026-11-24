@@ -264,6 +264,69 @@ S1=$(snapshot "$W/mono"); S2=$(snapshot "$W/link"); S3=$(snapshot "$W/marker"); 
   && echo "gate: PR #127 review: init refuses a workspace root, an AGENTS.md linked outside the app and an AGENTS.md start marker with no end, and writes nothing; a CLAUDE.md linked to AGENTS.md gets no @AGENTS.md line; create . refuses a folder with a vite.config.js; the CSS scan skips what the repo root's .gitignore names; a cssDirs string fails check"
 rm -rf "$W"
 
+# PR #131 review (I1): an orphan start marker above a complete block (the layout #127's earlier init wrote) is refused
+# by sync and init, naming both start lines, and the text between them stays; once the orphan line is deleted, sync
+# updates the block and keeps that text.
+W=$(mktemp -d -p "$WORK")
+echo '{"name":"x","type":"module","scripts":{}}' > "$W/package.json"
+printf '# Guide\n\n<!-- kleros-ui:start 3.10.0 -->\nold block\n\nkeep me\n\n<!-- kleros-ui:start 3.10.0 -->\nblock\n<!-- kleros-ui:end -->\n' > "$W/AGENTS.md"
+S1=$(snapshot "$W")
+(cd "$W" && { $CLI sync >"$W/../i1-sync.txt" 2>&1; [[ $? -eq 1 ]]; } && { $CLI init >"$W/../i1-init.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$W")" == "$S1" ]] \
+  && grep -q "AGENTS.md has <!-- kleros-ui:start 3.10.0 --> on line 3 and <!-- kleros-ui:start 3.10.0 --> on line 8 before the first <!-- kleros-ui:end --> (line 10)" "$W/../i1-sync.txt" \
+  && grep -q "on line 8 before the first" "$W/../i1-init.txt" \
+  && (cd "$W" && sed -i '3d' AGENTS.md && $CLI sync >/dev/null 2>&1 && grep -q "keep me" AGENTS.md && [[ $(grep -c "kleros-ui:start" AGENTS.md) == 1 ]]) \
+  && echo "gate: PR #131 review: sync and init refuse a second start marker before the first end marker, naming both lines, and write nothing; with the orphan line gone, sync keeps the text"
+rm -rf "$W" "$W/../i1-sync.txt" "$W/../i1-init.txt"
+
+# React 18 only (PR #127 review, before the pilot): init warns and check fails setup when the React the library
+# resolves is 19 (a stub package.json is enough: check reads the version) or package.json asks for a range without 18;
+# an app on ^18.3.1 gets no React line.
+W=$(mktemp -d -p "$WORK")
+mkdir -p "$W/r19/node_modules/react" "$W/r19/node_modules/react-dom" "$W/r18"
+echo '{"name":"x","type":"module","dependencies":{"react":"^18.0.0 || ^19.0.0","react-dom":"^18.0.0 || ^19.0.0"},"scripts":{}}' > "$W/r19/package.json"
+for n in react react-dom; do echo "{\"name\":\"$n\",\"version\":\"19.0.0\"}" > "$W/r19/node_modules/$n/package.json"; done
+echo '{"name":"x","type":"module","dependencies":{"react":"^18.3.1","react-dom":"^18.3.1"},"scripts":{}}' > "$W/r18/package.json"
+(cd "$W/r19" && $CLI init 2>&1 | grep -q "warning: React 18 only: react 19.0.0 is installed, react-dom 19.0.0 is installed\." \
+    && { $CLI check >c.txt 2>&1; [[ $? -eq 1 ]]; } && grep -q "^setup: React 18 only: react 19.0.0 is installed" c.txt \
+    && sed -i 's/"\^18.0.0 || \^19.0.0"/"^19.0.0"/g' package.json && { $CLI check >c2.txt 2>&1; grep -q "package.json asks for react ^19.0.0" c2.txt; }) \
+  && (cd "$W/r18" && $CLI init >i.txt 2>&1 && ! grep -q "React 18 only" i.txt && { $CLI check >c.txt 2>&1; ! grep -q "React 18 only" c.txt; }) \
+  && echo "gate: React 18 only: init warns and check fails setup on an installed React 19 or a react range without 18; React 18 gets no React line"
+rm -rf "$W"
+
+# PR #127 review, before the pilot: an AGENTS.md block from another release of the installed major is a note (a library
+# update does not fail CI until someone runs sync); one from another major is a setup problem.
+W=$(mktemp -d -p "$WORK")
+echo '{"name":"x","type":"module","dependencies":{"react":"^18.3.1"},"scripts":{}}' > "$W/package.json"
+stubs "$W"
+MAJ=$(node -p "require('$LIB/package.json').version.split('.')[0]")
+(cd "$W" && $CLI init >/dev/null 2>&1 && sed -i "s/kleros-ui:start [^ ]*/kleros-ui:start $MAJ.0.0-old/" AGENTS.md \
+    && { $CLI check >same.txt 2>&1; grep -q "^note: AGENTS.md block is for $MAJ.0.0-old, installed " same.txt && ! grep -q "^setup: AGENTS.md block is for" same.txt; } \
+    && sed -i "s/kleros-ui:start [^ ]*/kleros-ui:start $((MAJ - 1)).99.0/" AGENTS.md \
+    && { $CLI check >other.txt 2>&1; [[ $? -eq 1 ]] && grep -q "^setup: AGENTS.md block is for $((MAJ - 1)).99.0, installed " other.txt; }) \
+  && echo "gate: an AGENTS.md block from another release of the installed major is a note in check; one from another major fails setup"
+rm -rf "$W"
+
+# PR #127 review, before the pilot: with no eslint-plugin-better-tailwindcss where the app's copy of the library finds
+# it, the lint preset's class rules are off, so check fails setup and says to add it; init says so too. The pack is
+# copied beside the fixture, away from run.sh's stand-in; with a plugin there (an empty one), that problem is gone.
+W=$(mktemp -d -p "$WORK")
+mkdir -p "$W/lib/node_modules/@kleros" "$W/app/node_modules/.bin" "$W/app/node_modules/@kleros"
+cp -R "$LIB" "$W/lib/node_modules/@kleros/ui-components-library"
+printf '#!/bin/sh\ncase " $* " in *" -f json "*) echo "[]";; esac\nexit 0\n' > "$W/app/node_modules/.bin/eslint"
+printf '#!/bin/sh\nexit 0\n' > "$W/app/node_modules/.bin/tsc"
+chmod +x "$W/app/node_modules/.bin/eslint" "$W/app/node_modules/.bin/tsc"
+ln -s "$W/lib/node_modules/@kleros/ui-components-library" "$W/app/node_modules/@kleros/ui-components-library"
+printf "$TOOLS\n" app > "$W/app/package.json"
+(cd "$W/app" && $CLI init >init.txt 2>&1 && grep -q "need eslint-plugin-better-tailwindcss as a devDependency; npm run ui:check fails until it is there" init.txt \
+    && { $CLI check >c1.txt 2>&1; [[ $? -eq 1 ]]; } \
+    && grep -q "^setup: eslint-plugin-better-tailwindcss does not resolve from the app's copy of @kleros/ui-components-library, so the lint preset's Tailwind class rules .* are off, and ui:check fails until they are on" c1.txt \
+    && mkdir -p "$W/lib/node_modules/eslint-plugin-better-tailwindcss" \
+    && echo '{"name":"eslint-plugin-better-tailwindcss","type":"module","exports":"./index.js"}' > "$W/lib/node_modules/eslint-plugin-better-tailwindcss/package.json" \
+    && echo 'export default { rules: {} };' > "$W/lib/node_modules/eslint-plugin-better-tailwindcss/index.js" \
+    && { $CLI check >c2.txt 2>&1; ! grep -q "eslint-plugin-better-tailwindcss" c2.txt; }) \
+  && echo "gate: without eslint-plugin-better-tailwindcss, init says ui:check needs it and check fails setup naming it; with it, no plugin line"
+rm -rf "$W"
+
 # PR #127 review (F4): init records the app's one Tailwind stylesheet (Escrow's and Curate's src/global.css) as
 # cssEntry, in kleros-ui.json and in the lint config, so check reads it: a main.tsx that imports it without style.css
 # fails, and passes with style.css first. A cssEntry naming a missing file while src/global.css imports tailwindcss is a

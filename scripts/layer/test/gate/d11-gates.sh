@@ -326,7 +326,9 @@ rm -rf "$A"
 # - with no copy of the library in the app's folder or above, check says so.
 TW=$P/tools/node_modules
 twlink() { mkdir -p "$1/node_modules/@tailwindcss" && for t in tailwindcss @tailwindcss/node @tailwindcss/oxide; do ln -s "$TW/$t" "$1/node_modules/$t" || return 1; done; }
-own() { app "$1" && rm "$1/node_modules/@kleros/ui-components-library" && cp -r "$LIB" "$1/node_modules/@kleros/ui-components-library" && twlink "$1" && cp "$LIB/templates/poc/gitignore" "$1/.gitignore"; }
+# The copy also gets run.sh's stand-in for eslint-plugin-better-tailwindcss beside it, where check looks for the plugin.
+own() { app "$1" && rm "$1/node_modules/@kleros/ui-components-library" && cp -r "$LIB" "$1/node_modules/@kleros/ui-components-library" \
+  && cp -R "$(dirname "$(dirname "$LIB")")/eslint-plugin-better-tailwindcss" "$1/node_modules/" && twlink "$1" && cp "$LIB/templates/poc/gitignore" "$1/.gitignore"; }
 L=../node_modules/@kleros/ui-components-library
 KIT="app.js, chart.js, cn.js, data.js, feedback.js, form.js, index.js, layout.js, state.js, status.js, time.js, tokens.js"
 MISS="setup: src/index.css: no @source reaches the library, so Tailwind leaves out the kit's classes (layout, rows, gutters): the app's own Tailwind, run on this entry, does not scan"

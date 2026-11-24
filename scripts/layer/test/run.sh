@@ -24,7 +24,7 @@
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd -P)
 REPO=$(cd "$HERE/../../.." && pwd -P)
-EXPECTED=55
+EXPECTED=59
 TSC=$REPO/node_modules/.bin/tsc
 die() { echo "test:layer: $*" >&2; exit 1; }
 [[ -x "$TSC" ]] || die "$TSC is missing: run yarn install first"
@@ -92,6 +92,13 @@ mkdir -p "$CHECK/node_modules/@kleros" "$CHECK/src"
 tar -xzf "$TGZ" -C "$CHECK/node_modules/@kleros" && mv "$CHECK/node_modules/@kleros/package" "$CHECK/node_modules/@kleros/ui-components-library" \
   || die "could not extract $TGZ"
 LIB=$CHECK/node_modules/@kleros/ui-components-library
+# A stand-in for eslint-plugin-better-tailwindcss beside the pack, where check looks for it (from the app's copy of the
+# library): without the plugin check fails setup, and the fixtures test other things. An empty plugin, as
+# gate/review-preset.mjs uses; the gate after the CLI gates tests the missing plugin on a copy of the pack without it.
+mkdir -p "$CHECK/node_modules/eslint-plugin-better-tailwindcss" \
+  && echo '{"name":"eslint-plugin-better-tailwindcss","version":"4.10.0","type":"module","exports":"./index.js"}' >"$CHECK/node_modules/eslint-plugin-better-tailwindcss/package.json" \
+  && echo 'export default { rules: {} };' >"$CHECK/node_modules/eslint-plugin-better-tailwindcss/index.js" \
+  || die "could not write the lint plugin stand-in"
 VERSION=$(node -p 'require(process.argv[1]).version' "$LIB/package.json") || die "the pack has no readable package.json"
 link() { # <package> <the node_modules folder it comes from>
   [[ -e "$2/$1" ]] || die "$1 is not in $2: run yarn install, or delete $TOOLS/node_modules"
@@ -182,11 +189,11 @@ grep -q "kleros-ui create" "$LIB/README.md" && grep -q "npx -p @kleros/ui-compon
   && grep -qF 'With a theme, `npx -p @kleros/ui-components-library kleros-ui theme` adds one line' "$LIB/README.md" && grep -qF '`@import "./theme.css";`' "$LIB/README.md" \
   && grep -q "^An app with colours of its own sets new token values in one theme file, and nowhere else" "$LIB/README.md" \
   && grep -qx "@layer base {" "$LIB/README.md" && grep -q "issues/120" "$LIB/README.md" \
-  && ( for f in "$LIB/dist/ui-components-library.d.ts" "$LIB/dist/lib/index.d.ts" "$LIB"/dist/kit/*.d.ts; do head -1 "$f" | grep -q "kleros-ui create.*kleros-ui init.*agent/AGENTS.md" || exit 1; done ) \
-  && grep -q "kleros-ui create.*kleros-ui init" <(node -p 'require(process.argv[1]).description' "$LIB/package.json") \
+  && ( for f in "$LIB/dist/ui-components-library.d.ts" "$LIB/dist/lib/index.d.ts" "$LIB"/dist/kit/*.d.ts; do head -1 "$f" | grep -q "^// @kleros/ui-components-library: .*agent/AGENTS.md" && ! head -1 "$f" | grep -q "kleros-ui init\|kleros-ui create" || exit 1; done ) \
+  && node -e 'const d = require(process.argv[1]).description; process.exit(/agent\/AGENTS\.md/.test(d) && !/kleros-ui (init|create)/.test(d) ? 0 : 1)' "$LIB/package.json" \
   && node -e 'const s = require(process.argv[1]).scripts; process.exit(s.build === "kleros-ui check --build && vite build" && !("prebuild" in s) ? 0 : 1)' "$LIB/templates/poc/package.json" \
   && node -e 'const s = require(process.argv[1]).scripts || {}; process.exit(Object.keys(s).some((k) => /install|prepare/.test(k)) ? 1 : 0)' "$LIB/package.json" \
-  && echo "gate: d.10: README Setup step 1 points to create, with the four-line Tailwind entry plus the theme import when the app has a theme, no Apps without Tailwind (D33), and Theme usage sets token values only in the theme file npx -p @kleros/ui-components-library kleros-ui theme writes, inside @layer base, with no bare override (D34, T6); the description and every type entry name create, init and the guide (D31); the starter build runs kleros-ui check --build first; install scripts: none"
+  && echo "gate: d.10: README Setup step 1 points to create, with the four-line Tailwind entry plus the theme import when the app has a theme, no Apps without Tailwind (D33), and Theme usage sets token values only in the theme file npx -p @kleros/ui-components-library kleros-ui theme writes, inside @layer base, with no bare override (D34, T6); the description and every type entry point at the guide and name no command (D31, PR #127 review F17); the starter build runs kleros-ui check --build first; install scripts: none"
 # d.11 (T6, R1, B5): the guide's Themes section and LOOK.md say where a theme goes; agent/REVIEW.md, the PR reviewers'
 # checklist, ships with its five parts and is named by the README and AGENTS.md; the README no longer says Button
 # takes no children.
