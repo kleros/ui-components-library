@@ -15,8 +15,8 @@
   "license": "MIT",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/ui-components-library.d.ts"
+      "types": "./dist/ui-components-library.d.ts",
+      "import": "./dist/index.js"
     },
     "./style.css": "./dist/assets/index.css",
     "./theme.css": "./dist/assets/theme.css",

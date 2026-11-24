@@ -18,8 +18,14 @@ export default defineConfig({
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
-      // into your library
-      external: ["react", "react-dom"],
+      // into your library. The JSX runtime too: bundled, it is React 18's, which reads React 18's internals and
+      // throws on import under React 19; external, the app's own React supplies it.
+      external: [
+        "react",
+        "react-dom",
+        "react/jsx-runtime",
+        "react/jsx-dev-runtime",
+      ],
       input: Object.fromEntries(
         glob
           .sync("src/lib/**/*.{ts,tsx}", {

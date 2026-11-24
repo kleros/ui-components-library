@@ -155,6 +155,33 @@ describe("useBigNumberField lone minus sign", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it.each(["-.", "-0", "-0.", "-0.00"])(
+    "refuses a pasted negative zero '%s' when the field cannot go negative",
+    (text) => {
+      const onChange = vi.fn();
+      render(<Field defaultValue="5" minValue="0" onChange={onChange} />);
+      const input = screen.getByRole("spinbutton");
+      input.focus();
+      fireEvent.change(input, { target: { value: "5" } });
+      onChange.mockClear();
+
+      fireEvent.change(input, { target: { value: text } });
+
+      expect(input).toHaveProperty("value", "5");
+      expect(onChange).not.toHaveBeenCalled();
+    },
+  );
+
+  it("accepts a negative zero with no minimum", () => {
+    render(<Field />);
+    const input = screen.getByRole("spinbutton");
+    input.focus();
+
+    fireEvent.change(input, { target: { value: "-." } });
+
+    expect(input).toHaveProperty("value", "-0.");
+  });
+
   it.each([
     ["no minimum", undefined],
     ["a negative minimum", "-10"],
