@@ -1,0 +1,36 @@
+name: Agent Layer Tests
+# yarn test:layer packs the library (prepack runs the build) and runs the agent layer's gates on that pack: the kit's
+# smoke render, the kleros-ui CLI, the lint preset, the guide and the starter. Node 22.15 or later: the gates' ESLint
+# stand-in uses registerHooks from node:module (scripts/layer/test/run.sh). The first run installs
+# scripts/layer/test/tools from its lockfile with npm ci --ignore-scripts.
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test-layer:
+    # PRs only from branches in this repo, which needs write access: fork PRs
+    # from outside contributors skip CI.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Enable corepack
+        run: corepack enable
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+          cache: yarn
+      - name: Install modules
+        run: yarn install --immutable
+        env:
+          YARN_ENABLE_SCRIPTS: false
+      - name: Run the agent layer gates on a fresh pack
+        run: yarn test:layer
