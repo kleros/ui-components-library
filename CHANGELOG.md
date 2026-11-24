@@ -39,7 +39,8 @@ Dependencies), and `kleros-ui check` says so in an app on Tailwind before 4.1.
 - CLI: `init` warns, and `ui:check` fails setup, when the `react` or `react-dom` that the app's copy of the library resolves is not React 18, or the app's `package.json` asks for a range without 18: Yarn 4 and pnpm install React 19 with only a peer warning (the `react` peer entry under Fixed).
 - CLI: `ui:check` notes an `AGENTS.md` block from another release of the installed major, so a library update does not fail CI until someone runs `sync`, and fails on a block from another major, whose rules can name what the installed major does not have. The README and the guide say to run `sync` after each update.
 - CLI: `ui:check`, `check --build` and `ui:baseline` fail while `eslint-plugin-better-tailwindcss` does not resolve from the app's copy of the library or fails to load, since the lint preset's Tailwind class rules are off without it; `init` says so.
-- CLI: `sync` and `init` refuse an `AGENTS.md` with a second `kleros-ui:start` marker before the first end marker, naming both lines and writing nothing.
+- CLI: `sync` and `init` refuse an `AGENTS.md` with a second `kleros-ui:start` marker before the first end marker, naming both lines and writing nothing. A marker counts only at the start of a line (up to three spaces in) and outside a code fence, so one quoted in inline code or a fenced example is the app's own text: `sync` leaves it as it is and rewrites the real block, and `ui:check` reads the real block's release.
+- CLI: `ui:check` fails on an import of the library's `theme.css` under a `layer()`, media or `supports()` condition, or inside an `@layer`, `@media` or `@supports` block, in the Tailwind entry or a stylesheet that imports Tailwind itself. Out of `@layer base`, the library's values can undo the app's theme or its dark values. The plain import the guide writes is unchanged.
 
 ### Changed
 

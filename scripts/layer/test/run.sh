@@ -24,7 +24,7 @@
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd -P)
 REPO=$(cd "$HERE/../../.." && pwd -P)
-EXPECTED=66
+EXPECTED=71
 TSC=$REPO/node_modules/.bin/tsc
 die() { echo "test:layer: $*" >&2; exit 1; }
 [[ -x "$TSC" ]] || die "$TSC is missing: run yarn install first"
@@ -36,7 +36,9 @@ node -e 'process.exit(typeof require("node:module").registerHooks === "function"
 # wc -l output unpadded (GNU coreutils; BSD wc pads it). With the macOS tools a gate prints nothing, so stop here and
 # say why.
 (( BASH_VERSINFO[0] >= 4 )) || die "needs bash 4 or later; this is bash $BASH_VERSION (macOS: brew install bash, and put it first in PATH)"
-{ sed --version 2>/dev/null | grep -q GNU && wc --version 2>/dev/null | grep -q GNU; } \
+# Each --version is read whole: piped to grep -q, which exits at the first match, sed could die of SIGPIPE, and under
+# pipefail this check then failed on GNU tools (2 runs in 300).
+[[ "$(sed --version 2>/dev/null)" == *GNU* && "$(wc --version 2>/dev/null)" == *GNU* ]] \
   || die "needs GNU sed and GNU coreutils first in PATH: the gates use sed -i with no suffix and compare wc -l output unpadded (macOS: brew install gnu-sed coreutils, then put their gnubin folders first in PATH)"
 
 # Yarn runs this script in the repo's folder, so a relative pack path is read from the folder yarn was started in.

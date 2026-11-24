@@ -190,7 +190,11 @@ Make sure these are installed in your project.
   components registered with intent words, and no raw controls.
 - **Updating the library:** after each version change, run `npx -p @kleros/ui-components-library kleros-ui sync`. It
   rewrites the `AGENTS.md` block for the installed version. Until then `ui:check` prints a note after an update within
-  the same major, and fails after a new major, whose rules can differ.
+  the same major, and fails after a new major, whose rules can differ. The block's markers are the `kleros-ui:start` and
+  `kleros-ui:end` comments at the start of a line, as `init` writes them; one quoted in inline code or a code fence is
+  text, which `sync` leaves as it is.
+- **Platforms:** `ui:check`, `ui:baseline` and `create` run on macOS, Linux and WSL. Native Windows is not supported
+  yet.
 
 ## Development
 

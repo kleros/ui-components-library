@@ -654,3 +654,133 @@ EOF
 node "$CR07/route-page.mjs" "$LIB/eslint/index.mjs" "$(cd "$P/tools" && pwd -P)" >"$CR07/out.txt" 2>"$CR07/err.txt" \
   && echo "gate: CodeRabbit #127 (24 Nov) c07: in a Next.js route file that ends with export default Page, the library-name rule skips the Page declared at the top level only (const or function, exported by name or not) and reports a Page declared inside another function there (run in this repo's ESLint)"
 rm -rf "$CR07"
+
+# Review of the pilot-ready branch (F4, F5): a kleros-ui marker is one only at the start of a line and outside a fenced
+# code block, where init and sync write it. Above a 3.10.0 block (the old styled-components one), AGENTS.md quotes a
+# start marker alone in a ~~~ fence, first, so the second-start refusal sees it, then a start/end pair in inline code and
+# in a ``` fence: check reads the real block's release and text (a note for 3.10.0, the styled-components problem), sync
+# exits 0 and writes this release's block in place of the real one, the quoted lines and the text after the block stay
+# byte for byte, check then has no block line, and a second sync changes nothing. With CRLF line endings, sync does the
+# same.
+W=$(mktemp -d -p "$WORK")
+stubs "$W"
+V=$(node -p "require('$LIB/package.json').version")
+printf '# Guide\n\n~~~\n<!-- kleros-ui:start %s -->\n~~~\n\nkleros-ui owns the text between `<!-- kleros-ui:start %s -->` and `<!-- kleros-ui:end -->`; edit around it.\n\n```md\n<!-- kleros-ui:start %s -->\nexample\n<!-- kleros-ui:end -->\n```\n\n' "$V" "$V" "$V" > "$W/quoted.md"
+printf '<!-- kleros-ui:start 3.10.0 -->\nold block: this app styles its own code with styled-components.\n<!-- kleros-ui:end -->\n\nTeam notes.\n' > "$W/real.md"
+Q=$(wc -l < "$W/quoted.md")
+(cd "$W" && printf "$TOOLS\n" m > package.json && $CLI init >/dev/null 2>&1 && cat quoted.md real.md > AGENTS.md \
+    && { $CLI check >c1.txt 2>&1; grep -q "^note: AGENTS.md block is for 3.10.0, installed $V" c1.txt && grep -q "AGENTS.md block is the old styled-components one" c1.txt; } \
+    && $CLI sync >s.txt 2>&1 && grep -qx "kleros-ui: block updated to $V" s.txt \
+    && head -n "$Q" AGENTS.md | cmp -s - quoted.md && sed -n "$((Q + 1))p" AGENTS.md | grep -qx "<!-- kleros-ui:start $V -->" \
+    && ! grep -q "old block" AGENTS.md && tail -n 2 AGENTS.md | cmp -s - <(tail -n 2 real.md) \
+    && { $CLI check >c2.txt 2>&1; ! grep -q "AGENTS.md block\|has no kleros-ui block" c2.txt; } \
+    && cp AGENTS.md once.md && $CLI sync >/dev/null && cmp -s AGENTS.md once.md \
+    && sed 's/$/\r/' quoted.md > crlf.md && sed 's/$/\r/' real.md | cat crlf.md - > AGENTS.md \
+    && $CLI sync >/dev/null && head -n "$Q" AGENTS.md | cmp -s - crlf.md \
+    && sed -n "$((Q + 1))p" AGENTS.md | grep -qx "<!-- kleros-ui:start $V -->" && ! grep -q "old block" AGENTS.md) \
+  && echo "gate: pilot-ready review (F4, F5): a kleros-ui marker counts only at the start of a line and outside a code fence: above a 3.10.0 block, with a start/end pair quoted inline and in a fence and a start marker alone in a ~~~ fence, check reads 3.10.0 and the real block's text, sync exits 0 and rewrites the real block, the quoted lines and the text after the block stay byte for byte (CRLF too), check then has no block line and a second sync changes nothing"
+rm -rf "$W"
+
+# Round 3 (markers): what still counts as a marker, so the fix adds no new refusal or second block. An end marker
+# indented by two spaces (still an HTML comment in Markdown) and a file with CR-only line endings end the block as they
+# did before the fix, so sync rewrites it in place and adds no second block. With two complete blocks, the second start
+# comes after the first end, so it is not the refused orphan: sync rewrites the first block and keeps the second.
+MK=$(mktemp -d -p "$WORK")
+stubs "$MK"
+V=$(node -p "require('$LIB/package.json').version")
+(cd "$MK" && printf "$TOOLS\n" mk > package.json && $CLI init >/dev/null 2>&1 \
+    && printf '# Guide\n\n<!-- kleros-ui:start 3.10.0 -->\nold block\n  <!-- kleros-ui:end -->\n\nTeam notes.\n' > AGENTS.md \
+    && $CLI sync >s1.txt 2>&1 && grep -qx "kleros-ui: block updated to $V" s1.txt && [[ "$(grep -c 'kleros-ui:start' AGENTS.md)" == 1 ]] \
+    && ! grep -q 'old block' AGENTS.md && tail -n 1 AGENTS.md | grep -qx 'Team notes.' \
+    && printf '# Guide\r\r<!-- kleros-ui:start 3.10.0 -->\rold block\r<!-- kleros-ui:end -->\r\rTeam notes.\r' > AGENTS.md \
+    && $CLI sync >s2.txt 2>&1 && grep -qx "kleros-ui: block updated to $V" s2.txt \
+    && [[ "$(grep -o 'kleros-ui:start' AGENTS.md | wc -l)" == 1 ]] && ! grep -q 'old block' AGENTS.md && grep -q 'Team notes' AGENTS.md \
+    && printf '<!-- kleros-ui:start 3.10.0 -->\nfirst\n<!-- kleros-ui:end -->\n\n<!-- kleros-ui:start 3.10.0 -->\nsecond\n<!-- kleros-ui:end -->\n' > AGENTS.md \
+    && $CLI sync >s3.txt 2>&1 && grep -qx "kleros-ui: block updated to $V" s3.txt && head -n 1 AGENTS.md | grep -qx "<!-- kleros-ui:start $V -->" \
+    && ! grep -qx 'first' AGENTS.md && grep -qx 'second' AGENTS.md) \
+  && echo "gate: round 3 (markers): an end marker indented by two spaces and a file with CR-only line endings still end the block, so sync rewrites it in place with no second block, and with two complete blocks sync rewrites the first and keeps the second"
+rm -rf "$MK"
+
+# Round 3 (theme-layer): an @import of the library's theme.css under a condition is a css-theme finding, in the entry
+# and in a stylesheet that imports tailwindcss itself. layer(components), an anonymous layer or an @layer components
+# block puts the library's values in a later layer than the theme file's @layer base, where they beat the theme's, so
+# the theme was undone with 0 findings. The plain import, as the starter, the README and AGENTS.md write it, is no
+# finding, in the entry and in a tw.css that the entry reaches before the theme file (the nested-entry gate's o8).
+TL=$(mktemp -d -p "$WORK")
+stubs "$TL"
+LT=@kleros/ui-components-library/theme.css
+# The README's Setup b block and AGENTS.md's block for an app with no Tailwind, as written there, with the line theme adds.
+block() { awk -v from="$2" 'index($0, from) == 1 {f = 1} f && /^   ```css$/ {g = 1; next} g && /^   ```$/ {exit} g {sub(/^   /, ""); print}' "$1" | sed "\\#^@import \"$LT\";\$#a @import \"./theme.css\";"; }
+# One layout with the condition: its finding at $1 with the condition $2, the only one, and check's css step fails on it.
+cond() { ! $CLI css >o.txt 2>&1 && grep -qF "$1 @import \"$LT\" $2: import the library's theme.css at the top level, plainly, without a layer, media or supports condition, as the guide writes it" o.txt \
+  && grep -qx 'css: 1 finding (0 token overrides, 0 colour literals, 0 Tailwind-only, 0 !important, 0 library internals, 1 theme) in 4 files scanned' o.txt \
+  && ! $CLI check >c.txt 2>&1 && grep -qF "  $1 @import \"$LT\" $2: import" c.txt && grep -q '^ui:check failed (tsc ok, lint ok, css failed' c.txt; }
+(cd "$TL" && printf "$TOOLS\n" tl > package.json && mkdir src && cp "$LIB/templates/poc/src/index.css" src/index.css \
+  && printf 'import "@kleros/ui-components-library/style.css";\nimport "./index.css";\n' > src/main.tsx \
+  && $CLI init >/dev/null && $CLI theme >/dev/null && grep -qx '@import "./theme.css";' src/index.css \
+  && $CLI css >o1.txt 2>&1 && grep -q '^css: 0 findings' o1.txt && $CLI check >c1.txt 2>&1 && grep -qx 'ui:check passed' c1.txt \
+  && block "$LIB/README.md" '   b. Your Tailwind entry' > src/index.css && [[ "$(grep -c '^@import' src/index.css)" == "3" ]] \
+  && $CLI css >o2.txt 2>&1 && grep -q '^css: 0 findings' o2.txt \
+  && block "$LIB/agent/AGENTS.md" '3. Create `src/index.css` with the starter' > src/index.css && [[ "$(grep -c '^@import' src/index.css)" == "3" ]] \
+  && $CLI css >o3.txt 2>&1 && grep -q '^css: 0 findings' o3.txt \
+  && cp "$LIB/templates/poc/src/index.css" src/index.css && sed -i "\\#^@import \"$LT\";\$#a @import \"./theme.css\";" src/index.css \
+  && sed -i 's|^@import "tailwindcss";$|@import "./mid.css";|' src/index.css && echo '@import "./tw.css";' > src/mid.css \
+  && printf '@import "tailwindcss";\n@import "%s";\n' "$LT" > src/tw.css && $CLI css >o4.txt 2>&1 && grep -q '^css: 0 findings' o4.txt \
+  && printf '@import "tailwindcss";\n@import "%s" layer(components);\n' "$LT" > src/tw.css && cond src/tw.css:2:1 'layer(components)' \
+  && printf '@import "tailwindcss";\n@import "%s" layer;\n' "$LT" > src/tw.css && cond src/tw.css:2:1 layer \
+  && printf '@import "tailwindcss";\n@layer components {\n  @import "%s";\n}\n' "$LT" > src/tw.css && cond src/tw.css:3:3 'inside @layer components' \
+  && printf '@import "tailwindcss";\n@import "%s" supports(display: grid);\n' "$LT" > src/tw.css && cond src/tw.css:2:1 'supports(display: grid)' \
+  && echo '@import "tailwindcss";' > src/tw.css && sed -i "s|^@import \"$LT\";\$|@import \"$LT\" layer(components);|" src/index.css \
+  && cond src/index.css:2:1 'layer(components)') \
+  && echo "gate: round 3 (theme-layer): an @import of the library's theme.css under layer(components), an anonymous layer or an @layer components block, in a tw.css that imports tailwindcss or in the entry itself, is a css-theme finding and check fails, so the theme is no longer undone with 0 findings; the plain import of the starter, the README and AGENTS.md, and the guide's nested tw.css, give none"
+rm -rf "$TL"
+
+# Round 3 (app-config-preflight): in a package that is not "type": "module", init moves the app config a managed wrap
+# imports, eslint.config.app.js, to eslint.config.app.mjs (ESM syntax) or .cjs (CommonJS). With a file already there,
+# init refuses before its first write, with the message it gave after writing AGENTS.md, the pointers, kleros-ui.json
+# and package.json, whether the wrap moves too (eslint.config.js) or stays (eslint.config.mjs), and nothing is
+# written; with none there, it moves the app config as before.
+ACP=$(mktemp -d -p "$WORK")
+mkdir "$ACP/js" "$ACP/mjs"
+for d in js mjs; do echo '{"name":"x","scripts":{}}' > "$ACP/$d/package.json"; done
+printf '%s\nimport app from "./eslint.config.app.js";\nimport klerosUI from "@kleros/ui-components-library/eslint";\n\nexport default [...[await app].flat(), ...klerosUI({ cssEntry: "src/index.css" })];\n' \
+  "// Managed by kleros-ui init: the app's previous config plus the Kleros UI preset." | tee "$ACP/js/eslint.config.js" > "$ACP/mjs/eslint.config.mjs"
+echo 'export default [];' > "$ACP/js/eslint.config.app.js"
+echo 'export default [{ rules: { "no-console": "error" } }];' > "$ACP/js/eslint.config.app.mjs"
+echo 'module.exports = [];' > "$ACP/mjs/eslint.config.app.js"
+echo 'module.exports = [{ rules: { "no-console": "error" } }];' > "$ACP/mjs/eslint.config.app.cjs"
+SJS=$(snapshot "$ACP/js"); SMJS=$(snapshot "$ACP/mjs")
+(cd "$ACP/js" && { $CLI init >"$ACP/o1.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$ACP/js")" == "$SJS" ]] \
+  && grep -qF 'kleros-ui: eslint.config.app.mjs is already there, and init would move eslint.config.app.js there (this package is not "type": "module", so ESLint reads .js here as CommonJS), which would write over it.' "$ACP/o1.txt" \
+  && (cd "$ACP/mjs" && { $CLI init >"$ACP/o2.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$ACP/mjs")" == "$SMJS" ]] \
+  && grep -qF 'kleros-ui: eslint.config.app.cjs is already there, and init would move eslint.config.app.js there' "$ACP/o2.txt" \
+  && rm "$ACP/js/eslint.config.app.mjs" && ln -s gone.mjs "$ACP/js/eslint.config.app.mjs" && SJS=$(snapshot "$ACP/js") \
+  && (cd "$ACP/js" && { $CLI init >"$ACP/o5.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$ACP/js")" == "$SJS" ]] \
+  && grep -qF 'kleros-ui: eslint.config.app.mjs is already there, and init would move eslint.config.app.js there' "$ACP/o5.txt" \
+  && rm "$ACP/js/eslint.config.app.mjs" "$ACP/mjs/eslint.config.app.cjs" \
+  && (cd "$ACP/js" && $CLI init >"$ACP/o3.txt") \
+  && grep -q '^kleros-ui: rewrote the managed eslint.config.js: moved it to eslint.config.mjs, moved eslint.config.app.js to eslint.config.app.mjs' "$ACP/o3.txt" \
+  && [[ ! -e "$ACP/js/eslint.config.js" ]] && [[ ! -e "$ACP/js/eslint.config.app.js" ]] && grep -qx 'export default \[\];' "$ACP/js/eslint.config.app.mjs" \
+  && grep -q '^import app from "./eslint.config.app.mjs";' "$ACP/js/eslint.config.mjs" \
+  && (cd "$ACP/mjs" && $CLI init >"$ACP/o4.txt") \
+  && grep -q '^kleros-ui: rewrote the managed eslint.config.mjs: moved eslint.config.app.js to eslint.config.app.cjs' "$ACP/o4.txt" \
+  && [[ ! -e "$ACP/mjs/eslint.config.app.js" ]] && grep -qx 'module.exports = \[\];' "$ACP/mjs/eslint.config.app.cjs" \
+  && grep -q '^import app from "./eslint.config.app.cjs";' "$ACP/mjs/eslint.config.mjs" \
+  && echo "gate: round 3 app-config-preflight: init refuses, before its first write, to move a managed wrap's eslint.config.app.js onto an eslint.config.app.mjs or .cjs that is there (a package that is not \"type\": \"module\"; the wrap eslint.config.js or .mjs), and moves it as before when there is none"
+rm -rf "$ACP"
+
+# Round 3 (html-comments): an HTML comment in index.html ends where a browser (and parse5) ends it, at the next --> or
+# --!>, or at once in `<!-->` and `<!--->`, so a <style> block after `<!-->`, `<!--->` or `<!-- x --!>`, and a style
+# attribute after `<!-- y --!>`, are findings (a "-->" line after each ends what the old reading took for the comment);
+# a <style> inside `<!-- ... -->` is still not one, nor is one after `<!--!>`, which does not end a comment, and a <style>
+# after `<!-- a -- b -->` still is.
+HC=$(mktemp -d -p "$WORK")
+(cd "$HC" && printf '%s\n' '<!doctype html>' '<!--><style>a { margin: 0; }</style>' '-->' '<!---><style>b { margin: 0; }</style>' '-->' \
+    '<!-- x --!><style>c { margin: 0; }</style>' '-->' '<!-- y --!><p style="color: red">x</p>' '-->' \
+    '<!-- <style>d { margin: 0; }</style> -->' '<!-- a -- b --><style>e { margin: 0; }</style>' '<!--!><style>f { margin: 0; }</style>' '-->' > index.html \
+  && { $CLI css index.html >o.txt; [[ $? -eq 1 ]]; } \
+  && grep -q '^index.html:2:6 <style> block in index.html' o.txt && grep -q '^index.html:4:7 <style> block in index.html' o.txt \
+  && grep -q '^index.html:6:12 <style> block in index.html' o.txt && grep -q '^index.html:8:15 style attribute on <p> in index.html' o.txt \
+  && grep -q '^index.html:11:16 <style> block in index.html' o.txt && [[ "$(grep -c '^index.html:' o.txt)" == "5" ]]) \
+  && echo "gate: round 3 html-comments: an HTML comment in index.html ends where a browser ends it (at --> or --!>, or at once in <!--> and <!--->), so a <style> block after <!-->, <!---> or <!-- x --!> and a style attribute after --!> are findings; a <style> inside <!-- ... --> is still not one, and one after <!-- a -- b --> still is"
+rm -rf "$HC"

@@ -29,6 +29,8 @@ const pkg = JSON.parse(readFileSync(join(PKG_DIR, "package.json"), "utf8"));
 const CATALOG = JSON.parse(readFileSync(join(PKG_DIR, "agent/catalog.json"), "utf8"));
 const LIB = "@kleros/ui-components-library";
 const START = /<!-- kleros-ui:start[^>]*-->/;
+// The start marker with the release that wrote the block, which check reads.
+const START_VERSION = /<!-- kleros-ui:start ([^ ]+) -->/;
 const END = "<!-- kleros-ui:end -->";
 const CONFIG = "kleros-ui.json";
 const STEPS = "0.5 1 2 3 4 6 8 12 16";
@@ -135,14 +137,53 @@ let LIB_PATH = null;
 
 // Step 0 of the block, only while the app has no Tailwind; check and baseline look for its first words.
 const NO_TAILWIND_STEP = "0. This app has no Tailwind yet";
+// The first `marker` (START, START_VERSION or END) at or after `from` that is one: at the start of a line (up to three
+// spaces in, where it is still an HTML comment, as in CommonMark; four make it code) and outside a fenced code block
+// (``` or ~~~), where init, sync and every earlier release wrote the block's markers. A marker quoted
+// in the app's own text around the block (in inline code, or an example in a code fence) is that text: before, sync
+// wrote the new block between a quoted start/end pair above the block, the real block kept the old release, and check
+// read the quoted pair's release. Every reader and writer of the block finds its markers here, so they cannot disagree.
+// A fence that never closes is not one, so a stray ``` above the block does not hide it. CRLF and CR-only lines count
+// as LF ones, and a byte order mark does not move the first line's start. The match ([0] the marker, [1] the release for
+// START_VERSION, index), or null.
+function findMarker(text, marker, from = 0) {
+  const re = new RegExp(marker.source ?? marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "y");
+  const lines = [];
+  const nl = /\r\n?|\n/g;
+  for (let i = text.startsWith("\uFEFF") ? 1 : 0; ; ) {
+    nl.lastIndex = i;
+    const eol = nl.exec(text);
+    lines.push({ index: i, line: text.slice(i, eol ? eol.index : text.length) });
+    if (!eol) break;
+    i = eol.index + eol[0].length;
+  }
+  for (let n = 0; n < lines.length; n++) {
+    // A fence opens with three or more ` or ~, up to three spaces in, as in CommonMark (a ` fence's info string has
+    // no `), and closes at a line of at least as many of the same character and nothing else.
+    const open = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(lines[n].line);
+    if (open && !(open[1][0] === "`" && open[2].includes("`"))) {
+      const close = new RegExp(`^ {0,3}${open[1][0]}{${open[1].length},}[ \\t]*$`);
+      const end = lines.findIndex((l, k) => k > n && close.test(l.line));
+      if (end > 0) {
+        n = end;
+        continue;
+      }
+    }
+    if (lines[n].index < from) continue;
+    re.lastIndex = lines[n].index + /^ {0,3}/.exec(lines[n].line)[0].length;
+    const m = re.exec(text);
+    if (m) return m;
+  }
+  return null;
+}
 // The block's text, whatever release wrote it (a block from an earlier release of this major is only a note in check,
 // so its text is checked as this release's is, and baseline rewrites it as it does this release's); null with none.
 function currentBlock() {
   const agents = existsSync("AGENTS.md") ? readFileSync("AGENTS.md", "utf8") : "";
-  const m = agents.match(/<!-- kleros-ui:start ([^ ]+) -->/);
+  const m = findMarker(agents, START_VERSION);
   if (!m) return null;
-  const end = agents.indexOf(END, m.index);
-  return agents.slice(m.index, end < 0 ? agents.length : end);
+  const end = findMarker(agents, END, m.index);
+  return agents.slice(m.index, end ? end.index : agents.length);
 }
 // True when the block says "no Tailwind yet" and the app has it, or the other way round.
 function staleTailwindStep() {
@@ -196,29 +237,31 @@ function block() {
 // A start marker with no end marker after it is refused before anything is written: the block would be added below it,
 // and the next run would replace everything from that marker to the new block's end, the text between included.
 // So is a second start marker before the first end marker (an orphan start above a complete block, as an older init
-// wrote it): the block's pattern runs from the first start to that end, and would replace the text between them.
+// wrote it): the block runs from the first start to that end, and its rewrite would replace the text between them.
+// Markers are the ones findMarker finds: one quoted in inline code or a code fence is the app's text, not refused.
 function checkMarkers(file) {
   const text = readOr(file);
-  const start = text.match(START);
-  const line = (i) => text.slice(0, i).split("\n").length;
+  const start = findMarker(text, START);
+  const line = (i) => text.slice(0, i).split(/\r\n?|\n/).length;
   if (!start) return;
-  const end = text.indexOf(END, start.index);
-  if (end < 0)
+  const end = findMarker(text, END, start.index);
+  if (!end)
     throw new Error(
       `kleros-ui: ${file} has ${start[0]} on line ${line(start.index)} and no ${END} after it, so kleros-ui cannot tell where its block ends, and left ${file} as it was. Put ${END} after the block's last line, or delete the start marker, then run the command again.`,
     );
-  const from = start.index + start[0].length;
-  const second = text.slice(from, end).match(START);
-  if (second)
+  const second = findMarker(text, START, start.index + start[0].length);
+  if (second && second.index < end.index)
     throw new Error(
-      `kleros-ui: ${file} has ${start[0]} on line ${line(start.index)} and ${second[0]} on line ${line(from + second.index)} before the first ${END} (line ${line(end)}), so kleros-ui cannot tell which start marker begins its block, and left ${file} as it was. Delete the start marker that has no block of its own (keep the text after it), then run the command again.`,
+      `kleros-ui: ${file} has ${start[0]} on line ${line(start.index)} and ${second[0]} on line ${line(second.index)} before the first ${END} (line ${line(end.index)}), so kleros-ui cannot tell which start marker begins its block, and left ${file} as it was. Delete the start marker that has no block of its own (keep the text after it), then run the command again.`,
     );
 }
+// The block runs from the first start marker to the first end marker after it (checkMarkers made sure there is one).
 function writeBlock(file) {
   checkMarkers(file);
   const text = existsSync(file) ? readFileSync(file, "utf8") : "# Agent guide\n";
-  const re = new RegExp(`${START.source}[\\s\\S]*?${END}`);
-  write(file, re.test(text) ? text.replace(re, block()) : `${text.trimEnd()}\n\n${block()}\n`);
+  const start = findMarker(text, START);
+  const end = start && findMarker(text, END, start.index);
+  write(file, end ? text.slice(0, start.index) + block() + text.slice(end.index + END.length) : `${text.trimEnd()}\n\n${block()}\n`);
 }
 
 // [file, what init adds, the line that shows it is there]. A pointer is added once: a file that holds its marker line
@@ -398,8 +441,10 @@ const keepAppFile = (file, why) => {
 // the old spread, drifted klerosUI() options, or its app config moving to .mjs or .cjs) and stays where it is, or, in an
 // existing app with no config wired to the preset, kleros-ui.eslint.config.* when its klerosUI() options drifted. A
 // move to a new file writes no existing path, so a file already at the managed wrap's new path (an eslint.config.mjs
-// beside a managed eslint.config.js outside a module package) is refused here. `entry()` gives the cssEntry init will
-// record when kleros-ui.json is missing (null when it is there); it runs only when a config init wrote is found.
+// beside a managed eslint.config.js outside a module package) is refused here, and so is one at its app config's new
+// path (eslint.config.app.js moving to .mjs or .cjs, as wireLint's appName picks by its syntax), with the message that
+// wireLint would give only after init's first writes. `entry()` gives the cssEntry init will record when kleros-ui.json
+// is missing (null when it is there); it runs only when a config init wrote is found.
 function lintRewrite(pj, { fromCreate = false, entry = () => null } = {}) {
   const want = () => {
     const cssEntry = entry();
@@ -409,12 +454,13 @@ function lintRewrite(pj, { fromCreate = false, entry = () => null } = {}) {
   const text = current ? readFileSync(current, "utf8") : "";
   if (current && text.includes("ui-components-library/eslint")) {
     if (!text.startsWith(MANAGED)) return null;
-    if (current === "eslint.config.js" && pj.type !== "module") {
+    if (current === "eslint.config.js" && pj.type !== "module")
       keepAppFile("eslint.config.mjs", `would move the managed ${current} there (this package is not "type": "module", so ESLint reads .js here as CommonJS)`);
-      return null;
-    }
     const from = text.match(/^import app from "\.\/(eslint\.config\.app\.[cm]?[jt]s)";$/m)?.[1];
     const moves = Boolean(from && existsSync(from) && pj.type !== "module" && from.endsWith(".js"));
+    if (moves) keepAppFile(`eslint.config.app.${looksEsm(readFileSync(from, "utf8")) ? "mjs" : "cjs"}`, `would move ${from} there (this package is not "type": "module", so ESLint reads .js here as CommonJS)`);
+    // The managed eslint.config.js moves to eslint.config.mjs, a new file, so nothing is rewritten in place.
+    if (current === "eslint.config.js" && pj.type !== "module") return null;
     const styled = /\bstyled\s*:\s*true/.test(text);
     const body = styled ? text.replace(/,\s*styled\s*:\s*true\b/g, "").replace(/\bstyled\s*:\s*true\s*,?\s*/g, "") : text;
     return styled || /\[\.\.\.app,/.test(text) || moves || presetDrift(body, want()) ? current : null;
@@ -1450,8 +1496,9 @@ function htmlStyles(html) {
   // ">" (`<style data-x="a < b">` is still a style block); a quote opens a value only right after "=", as in HTML, so
   // a stray one in an unquoted value (`<style data-x=a'b>`) is a literal. A <style> with no </style> is a block to the end of the page,
   // as a browser reads it. A block ends where a browser ends it, at </script or </style and then whitespace, "/" or ">",
-  // so `</script >` and `</style\n>` end one too (the " >" left over is not a tag).
-  const tag = /<!--[\s\S]*?(?:-->|$)|<script\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>[\s\S]*?(?:<\/script(?=[\t\n\f\r />])|$)|(<style\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>)([\s\S]*?)(?:<\/style(?=[\t\n\f\r />])|$)|<([a-z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>/gi;
+  // so `</script >` and `</style\n>` end one too (the " >" left over is not a tag). A comment ends where a browser ends it
+  // too: at the next --> or --!>, or at once in `<!-->` and `<!--->`, so a <style> after one of those is scanned.
+  const tag = /<!--(?:-?>|[\s\S]*?(?:--!?>|$))|<script\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>[\s\S]*?(?:<\/script(?=[\t\n\f\r />])|$)|(<style\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>)([\s\S]*?)(?:<\/style(?=[\t\n\f\r />])|$)|<([a-z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>/gi;
   const attr = (list, name) => list.match(new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+))`, "i"));
   for (const m of html.matchAll(tag)) {
     if (m[1]) {
@@ -1600,9 +1647,11 @@ function entryFindings(blocks, { outside = null, theme = null, file = "", scanne
   let themeImports = 0;
   let themeSeen = false; // the theme file's import came before, in this file (the first theme.css import before it is
   // themeImport's order finding; a second one after it is this file's own)
+  // What follows an @import's target: its layer(), supports() or media condition, or "" for a plain import.
+  const condition = (b) => b.prelude.replace(/^@import\s+(?:url\(\s*)?(?:"[^"]*"|'[^']*'|[^\s"');]+)\s*\)?/i, "").trim();
   // Why an @import of the theme file is a finding, or null when it is the one the entry should have.
   const themeImport = (b, target) => {
-    const rest = b.prelude.replace(/^@import\s+(?:url\(\s*)?(?:"[^"]*"|'[^']*'|[^\s"');]+)\s*\)?/i, "").trim();
+    const rest = condition(b);
     if (++themeImports > 1) return `@import "${target}" again: the Tailwind entry imports the theme file ${theme.file} once.`;
     // The block walk treats a grouping at-rule as transparent, so an import inside @layer components { } would pass.
     // Tailwind builds that as @layer components.base, which beats the library's :root.dark, so a light-only value leaks
@@ -1618,6 +1667,23 @@ function entryFindings(blocks, { outside = null, theme = null, file = "", scanne
     if (rest)
       return `@import "${target}" ${shortSel(rest)}: import the theme file plainly, with no layer(), supports() or media condition, so it stays in the base layer, where a light-only value keeps the library's dark one.`;
     return null;
+  };
+  // Why an @import of the library's theme.css, in the entry or a stylesheet that imports tailwindcss itself, is a
+  // finding after all, or null when it is plain and at the top level, as the guide and the starter write it. The
+  // block walk treats a grouping at-rule as transparent, and the import passes as an entry directive, so a condition
+  // would go unseen: layer() (named or not) or an @layer block around it moves the library's values out of @layer
+  // base, where the import order lets the theme win, and in layer(components) they beat the theme file's values, so
+  // the theme is undone with no other sign. Under a media or supports() condition, or inside @media or @supports,
+  // they load only where that condition holds.
+  const libThemeImport = (b) => {
+    const plain = `import the library's theme.css at the top level, plainly, without a layer, media or supports condition, as the guide writes it: @import "${LIB_THEME}";. In another layer its values leave @layer base, so the theme no longer works as written: in a later layer they beat the theme file's, and in one nested in @layer base the theme's light-only values beat the library's dark ones. Under @media or @supports they load only where that condition holds.`;
+    if (b.parent) {
+      const outer = [];
+      for (let p = b.parent; p; p = p.parent) outer.unshift(shortSel(p.prelude));
+      return `@import "${LIB_THEME}" inside ${outer.join(" > ")}: ${plain}`;
+    }
+    const rest = condition(b);
+    return rest ? `@import "${LIB_THEME}" ${shortSel(rest)}: ${plain}` : null;
   };
   const covered = (b) => {
     for (let p = b.parent; p; p = p.parent) {
@@ -1660,14 +1726,15 @@ function entryFindings(blocks, { outside = null, theme = null, file = "", scanne
       continue;
     }
     // The library's theme.css loading again after the theme file undoes the theme: imported here when the entry reaches
-    // this file after the theme file (`late`), or a second time in this file after it. A stylesheet on the way (`link`)
-    // imports neither, as viaLink says; a reference import loads nothing.
+    // this file after the theme file (`late`), or a second time in this file after it. An import of it under a layer,
+    // media or supports condition is a finding too (libThemeImport). A stylesheet on the way (`link`) imports neither,
+    // as viaLink says; a reference import loads nothing.
     if (themed && !link && n === "import" && !b.block && atTarget(b.prelude) === LIB_THEME && !REFERENCE_IMPORT.test(b.prelude)) {
       const why = late
         ? `@import "${LIB_THEME}" in ${file}, which the Tailwind entry ${late.entry} reaches after the theme file ${theme.file} (through its @import "${late.via}"): it loads the library's values again, over the theme's. Import it once, from ${late.entry}, before the theme file.`
         : themeSeen && b.at !== libThemeAt
           ? `@import "${LIB_THEME}" again after the theme file ${theme.file}: it loads the library's values over the theme's. Import it once, before the theme file.`
-          : null;
+          : libThemeImport(b);
       if (why) {
         findings.push({ rule: CSS_THEME, at: b.at, message: why });
         continue;
@@ -2869,7 +2936,7 @@ async function setupProblems(notes = []) {
   const c = config();
   const problems = [];
   const agents = existsSync("AGENTS.md") ? readFileSync("AGENTS.md", "utf8") : "";
-  const m = agents.match(/<!-- kleros-ui:start ([^ ]+) -->/);
+  const m = findMarker(agents, START_VERSION);
   const tailwind = hasTailwind();
   // Tailwind only for all: an app without Tailwind fails setup until it adds it; init does not add it.
   if (!tailwind)
