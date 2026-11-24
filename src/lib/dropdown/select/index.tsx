@@ -15,7 +15,14 @@ import { cn } from "../../../utils";
 
 interface SelectProps extends AriaSelectProps {
   items: IItem[];
-  /** Callback function passes the Item object as argument. */
+  /**
+   * Callback function passes the Item object as argument.
+   * @example
+   * <DropdownSelect
+   *   items={[{ id: 1, text: "General Court", itemValue: 1 }]}
+   *   callback={(item) => setCourt(item.itemValue)}
+   * />
+   */
   callback: (value: IItem) => void;
   simpleButton?: boolean;
   /** When `simpleButton` is `true`, this scales down the dropdown button size. */

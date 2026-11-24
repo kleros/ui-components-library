@@ -4,6 +4,7 @@ import { useElementSize } from "../../../hooks/useElementSize";
 import clsx from "clsx";
 
 interface IContainer {
+  first?: boolean;
   last?: boolean;
   completed?: boolean;
 }
@@ -23,6 +24,7 @@ const HorizontalBullet: React.FC<HorizontalBulletProps> = ({
   title,
   subitems,
   active,
+  first,
   last,
   completed,
 }) => {
@@ -55,7 +57,16 @@ const HorizontalBullet: React.FC<HorizontalBulletProps> = ({
       <div
         className={clsx(
           "lg:static lg:top-auto lg:left-auto lg:ml-2 lg:flex lg:translate-x-0 lg:flex-col lg:items-start",
-          "absolute top-6 left-0 ml-0 translate-x-[calc(-50%+12px)] items-center text-center",
+          "absolute top-6 ml-0 items-center text-center",
+          // Below lg the title hangs under its bullet. The first and last bullets
+          // sit at the box's edges, so their titles align to the bullet's outer
+          // edge instead of centring, which would put half of each outside.
+          // A single step is centred: the list centres its only bullet.
+          first && !last
+            ? "left-0 max-lg:text-left"
+            : last && !first
+              ? "right-0 max-lg:text-right"
+              : "left-0 translate-x-[calc(-50%+12px)]",
         )}
         ref={textRef}
         {...{ active }}

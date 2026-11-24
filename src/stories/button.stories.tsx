@@ -1,5 +1,6 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, fn, userEvent, within } from "@storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
@@ -178,5 +179,127 @@ export const DisabledButton: Story = {
     // disabled buttons are skipped in the tab order
     await userEvent.tab();
     await expect(button).not.toHaveFocus();
+  },
+};
+
+/** `title` is set on the button element, which react-aria would otherwise drop. */
+export const WithTitle: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
+  args: {
+    variant: "primary",
+    text: "Submit",
+    title: "Submit the form",
+    themeUI: "dark",
+    backgroundUI: "light",
+  },
+  play: async ({ canvasElement }) => {
+    const button = within(canvasElement).getByRole("button", {
+      name: "Submit",
+    });
+    // set in an effect, after the first render
+    await waitFor(() =>
+      expect(button).toHaveAttribute("title", "Submit the form"),
+    );
+  },
+};
+
+/** Without `title`, the button has no title attribute. */
+export const WithoutTitle: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
+  args: {
+    variant: "primary",
+    text: "Submit",
+    themeUI: "dark",
+    backgroundUI: "light",
+  },
+  play: async ({ canvasElement }) => {
+    await expect(
+      within(canvasElement).getByRole("button", { name: "Submit" }),
+    ).not.toHaveAttribute("title");
+  },
+};
+
+/** A `ref` reaches the `<button>` element. */
+export const WithRef: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
+  args: {
+    variant: "primary",
+    text: "Focus me",
+    ref: fn(),
+    themeUI: "dark",
+    backgroundUI: "light",
+  },
+  play: async ({ canvasElement, args }) => {
+    const button = within(canvasElement).getByRole("button", {
+      name: "Focus me",
+    });
+    await expect(button.tagName).toBe("BUTTON");
+    await expect(args.ref).toHaveBeenCalledWith(button);
+  },
+};
+
+/** `children` replace `text` in the button; `text` is the accessible name. */
+export const RichChildren: Story = {
+  parameters: a11yExceptions(WHITE_ON_BLUE_LIGHT),
+  args: {
+    variant: "primary",
+    text: "Pay 5 ETH",
+    children: (
+      <>
+        Pay <strong>5</strong> ETH
+      </>
+    ),
+    themeUI: "dark",
+    backgroundUI: "light",
+  },
+  play: async ({ canvasElement, args }) => {
+    const button = within(canvasElement).getByRole("button", {
+      name: "Pay 5 ETH",
+    });
+    await expect(button).toHaveAttribute("aria-label", "Pay 5 ETH");
+    await expect(button.querySelector("strong")).toHaveTextContent("5");
+    await expect(button.querySelector("p")).toBeNull();
+    await expect(button.querySelector(".button-text")).toHaveTextContent(
+      "Pay 5 ETH",
+    );
+    await userEvent.click(button);
+    await expect(args.onPress).toHaveBeenCalledTimes(1);
+  },
+};
+
+/** An icon-only button: the icon is the `children`, and `text` names the button. */
+export const IconOnly: Story = {
+  args: {
+    variant: "primary",
+    text: "Telegram",
+    children: <Telegram aria-hidden="true" className="size-4" />,
+    themeUI: "dark",
+    backgroundUI: "light",
+  },
+  play: async ({ canvasElement, args }) => {
+    const button = within(canvasElement).getByRole("button", {
+      name: "Telegram",
+    });
+    await expect(button.querySelectorAll("svg")).toHaveLength(1);
+    await expect(button.textContent).toBe("");
+    await userEvent.click(button);
+    await expect(args.onPress).toHaveBeenCalledTimes(1);
+  },
+};
+
+/** With `children`, a caller's `aria-label` still names the button instead of `text`. */
+export const ChildrenWithAriaLabel: Story = {
+  args: {
+    variant: "primary",
+    text: "Close",
+    "aria-label": "Close dialog",
+    children: <Telegram aria-hidden="true" className="size-4" />,
+    themeUI: "dark",
+    backgroundUI: "light",
+  },
+  play: async ({ canvasElement }) => {
+    await expect(
+      within(canvasElement).getByRole("button", { name: "Close dialog" }),
+    ).toBeInTheDocument();
   },
 };

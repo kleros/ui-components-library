@@ -1,6 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect } from "@storybook/test";
+import { expect, within } from "@storybook/test";
 
 import { IPreviewArgs } from "./utils";
 
@@ -35,5 +35,28 @@ export const Box: Story = {
     await expect(box).toHaveClass("w-[500px]");
     await expect(box).not.toHaveClass("w-[328px]");
     await expect(box.getBoundingClientRect().width).toBe(500);
+  },
+};
+
+/** Props other than `className` and `children` reach the element. */
+export const WithDomProps: Story = {
+  args: {
+    themeUI: "dark",
+    backgroundUI: "light",
+    id: "evidence-box",
+    role: "region",
+    "aria-label": "Evidence",
+    children: (
+      <span className="text-klerosUIComponentsPrimaryText">Box content</span>
+    ),
+  },
+  play: async ({ canvasElement }) => {
+    const box = within(canvasElement).getByRole("region", {
+      name: "Evidence",
+    });
+    await expect(box).toHaveAttribute("id", "evidence-box");
+    // the defaults still apply next to the spread props
+    await expect(box).toHaveClass("bg-klerosUIComponentsMediumBlue");
+    await expect(box).toHaveTextContent("Box content");
   },
 };

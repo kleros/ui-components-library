@@ -20,3 +20,13 @@ jobs:
           YARN_ENABLE_SCRIPTS: false
       - name: Run TypeScriptCompiler
         run: yarn check-types
+      - name: Check the agent catalogue is current
+        # Both files must be in the commit: the generator writes a deleted one again, untracked, and git diff does not
+        # see untracked files.
+        run: |
+          node scripts/layer/gen-catalog.mjs
+          git ls-files --error-unmatch -- agent/catalog.json agent/CATALOG.md >/dev/null &&
+            git diff --exit-code -- agent/catalog.json agent/CATALOG.md || {
+            echo "::error::agent/catalog.json or agent/CATALOG.md is missing from the commit or out of date: run node scripts/layer/gen-catalog.mjs and commit both"
+            exit 1
+          }

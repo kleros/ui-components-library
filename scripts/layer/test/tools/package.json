@@ -1,0 +1,14 @@
+{
+  "name": "kleros-ui-layer-test-tools",
+  "private": true,
+  "description": "Tools for yarn test:layer (scripts/layer/test/run.sh), pinned and kept out of the repo's own dependencies: the real Tailwind 4.3.5 that the @source gate fixtures link (the repo builds with 4.0, and the CLI's check needs 4.1 or later), the React 18.3 an app installs for the package's React 18 peers (the smoke render uses its act; the repo's own React is 18.2), and happy-dom for that render. run.sh installs them from this lockfile when they are missing or stale.",
+  "devDependencies": {
+    "@happy-dom/global-registrator": "15.11.7",
+    "@tailwindcss/node": "4.3.5",
+    "@tailwindcss/oxide": "4.3.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-is": "18.3.1",
+    "tailwindcss": "4.3.5"
+  }
+}

@@ -21,10 +21,13 @@ interface BulletProps extends VariantProp, SideProp, StateProp {
   isFirst?: boolean;
   isLast: boolean;
   className?: string;
+  /** Classes for the block holding the title, party and date. */
+  textClassName?: string;
 }
 
 const Bullet: React.FC<BulletProps> = (props) => {
-  const { title, party, subtitle, className, ...restProps } = props;
+  const { title, party, subtitle, className, textClassName, ...restProps } =
+    props;
   const { rightSided, variant, line, Icon, isFirst, isLast, state } = restProps;
   const titleRef = useRef<HTMLHeadingElement>(null);
   const spacerRef = useRef<HTMLDivElement>(null);
@@ -53,6 +56,7 @@ const Bullet: React.FC<BulletProps> = (props) => {
             ? ["ml-4 lg:ml-5", "order-1 text-left"]
             : ["mr-4 lg:mr-5", "-order-1 text-right"],
           isLast ? "mb-0" : "mb-4 lg:mb-4.5",
+          textClassName,
         )}
       >
         <div

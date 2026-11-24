@@ -41,7 +41,15 @@ export interface BigNumberFieldProps {
   maxValue?: string | BigNumber;
   /** The amount to increment or decrement by. */
   step?: string | BigNumber;
-  /** Handler that is called when the value changes. */
+  /**
+   * Handler that is called when the value changes. The value is a bignumber.js `BigNumber` in display units
+   * (for example ETH, not wei). Keep it as a decimal string with `value.toFixed()` and pass it back as `value`, so a
+   * field that remounts shows it again; convert to wei in your own code. A field the user clears reports 0, which a
+   * controlled field then shows.
+   * @example
+   * <BigNumberField label="Deposit (ETH)" placeholder="0.0"
+   *   value={deposit} onChange={(v) => setDeposit(v.toFixed())} />
+   */
   onChange?: (value: BigNumber) => void;
   /** Whether the input is disabled. */
   isDisabled?: boolean;
@@ -120,9 +128,14 @@ export function useBigNumberField(props: BigNumberFieldProps) {
   const generatedId = useId();
   const id = propId || generatedId;
 
+  // `decimals` fixes the fraction's length, so trailing zeros stay; without it the fraction is as short as it can be
   const formatBigNumber = useCallback(
-    (value: BigNumber) =>
-      value.toFormat({ ...DEFAULT_FORMAT, ...formatOptions }),
+    (value: BigNumber, decimals?: number) => {
+      const format = { ...DEFAULT_FORMAT, ...formatOptions };
+      return decimals === undefined
+        ? value.toFormat(format)
+        : value.toFormat(decimals, format);
+    },
     [formatOptions],
   );
 
@@ -190,7 +203,11 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     }
   }, [value]);
 
-  // Apply formatting after 3 second of inactivity when numberValue changes
+  // Apply formatting after 3 second of inactivity when numberValue changes. Typed text keeps its sign, decimal point
+  // and fraction digits, trailing zeros included, and only gains grouping, prefix and suffix: "1.0" shown as "1"
+  // would make a 5 typed after the pause 15. Leading zeros go ("03" shows "3"), as the next digit means the same.
+  // Typed text that formatting would change otherwise ("1.", "-0") stays as typed until blur. Other text, such as a
+  // value in exponential notation, is formatted in full.
   useEffect(() => {
     if (formatTimerRef.current !== null) {
       window.clearTimeout(formatTimerRef.current);
@@ -198,11 +215,24 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     }
 
     if (numberValue !== null && !isFormatted) {
-      formatTimerRef.current = window.setTimeout(() => {
-        setInputValue(formatBigNumber(numberValue));
-        setIsFormatted(true);
-        formatTimerRef.current = null;
-      }, 3000);
+      // The fraction's length as typed, or undefined for text that is not a plain decimal
+      const point = inputValue.indexOf(".");
+      const decimals = !/^-?\d*\.?\d*$/.test(inputValue)
+        ? undefined
+        : point < 0
+          ? 0
+          : inputValue.length - point - 1;
+      if (
+        decimals === undefined ||
+        numberValue.toFixed(decimals) ===
+          inputValue.replace(/^(-?)0+(?=\d)/, "$1")
+      ) {
+        formatTimerRef.current = window.setTimeout(() => {
+          setInputValue(formatBigNumber(numberValue, decimals));
+          setIsFormatted(true);
+          formatTimerRef.current = null;
+        }, 3000);
+      }
     }
 
     return () => {
@@ -211,7 +241,7 @@ export function useBigNumberField(props: BigNumberFieldProps) {
         formatTimerRef.current = null;
       }
     };
-  }, [numberValue, isFormatted, formatBigNumber]);
+  }, [numberValue, isFormatted, formatBigNumber, inputValue]);
 
   // Check if increment/decrement buttons should be disabled
   const canIncrement = (): boolean => {
@@ -339,26 +369,48 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     // Allow empty string
     if (input === "") return true;
 
-    // Allow a single minus sign at the beginning
-    if (input === "-") return true;
+    // Allow a single minus sign at the beginning, only when the field can go negative: otherwise the field
+    // would show "-" while its last value, the one the parent holds, stays in place. A minimum that does not
+    // parse is no minimum, as in clampValue.
+    if (input === "-")
+      return minBig === undefined || minBig.isNaN() || minBig.isNegative();
+
+    // A negative zero ("-0", "-0.", and "-." once it has its leading zero) is 0, which a minimum of 0 allows, so
+    // the clamp would keep it and the field would show "-0." for 0. Above 0 the clamp moves it to the minimum, as
+    // it does any other negative.
+    if (
+      /^-0*\.?0*$/.test(input) &&
+      minBig !== undefined &&
+      !minBig.isNaN() &&
+      minBig.isZero()
+    )
+      return false;
 
     // Regular expression to match valid number format (including decimal and negative)
     const regex = /^-?\d*\.?\d*$/;
     return regex.test(input);
   };
 
+  // A lone "." (or "-.") reads as "0." (or "-0."), so it is never NaN. Only the lone point: rewriting longer text
+  // such as ".5", left when "12" is deleted from "12.5", would move the caret to the end. BigNumber reads ".5" as 0.5.
+  const withLeadingZero = (text: string): string =>
+    text.replace(/^(-?)\.$/, (_, sign: string) => `${sign}0.`);
+
   // Handle input change
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newInputValue = e.target.value;
+    // Formatted text gets its leading zero once its prefix and separators are gone
+    const newInputValue = isFormatted
+      ? e.target.value
+      : withLeadingZero(e.target.value);
 
     // If the input is formatted, we need to unformat it first
     if (isFormatted) {
-      // We're no longer in formatted mode since the user is typing
-      setIsFormatted(false);
-
       // Unformat the value and update the input
-      const unformattedValue = unformatValue(newInputValue);
+      const unformattedValue = withLeadingZero(unformatValue(newInputValue));
       if (isValidInput(unformattedValue)) {
+        // We're no longer in formatted mode since the user is typing. Refused text leaves the field formatted,
+        // so the next edit is still unformatted first.
+        setIsFormatted(false);
         try {
           if (unformattedValue === "" || unformattedValue === "-") {
             setInputValue(unformattedValue);

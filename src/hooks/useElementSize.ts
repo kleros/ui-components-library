@@ -22,10 +22,13 @@ export function useElementSize<T extends HTMLElement = HTMLDivElement>(): [
 
   // Prevent too many rendering using useCallback
   const handleSize = useCallback(() => {
-    setSize({
-      width: ref?.offsetWidth || 0,
-      height: ref?.offsetHeight || 0,
-    });
+    const width = ref?.offsetWidth || 0;
+    const height = ref?.offsetHeight || 0;
+    // Keep the same state object when nothing changed, so a resize event that leaves the element as it was
+    // does not re-render it
+    setSize((prev) =>
+      prev.width === width && prev.height === height ? prev : { width, height },
+    );
   }, [ref?.offsetHeight, ref?.offsetWidth]);
 
   useEventListener("resize", handleSize);

@@ -6,6 +6,7 @@ import {
 } from "react-aria-components";
 import clsx from "clsx";
 import { cn, isUndefined } from "../../../utils";
+import { useElementSize } from "../../../hooks/useElementSize";
 import HourglassIcon from "../../../assets/svgs/hourglass.svg";
 
 interface LinearProps
@@ -16,7 +17,11 @@ interface LinearProps
   value: number;
   /** Whether the progress bas should animate to it's value. */
   animated?: boolean;
-  width: number;
+  /**
+   * Width of the bar in px. Leave it out to fill the container's width; in a parent sized to its content (`w-fit`),
+   * pass `width`.
+   */
+  width?: number;
 }
 
 /** Linear progress shows determinate progress of an operation over time. */
@@ -37,13 +42,20 @@ function Linear({
     [value, minValue, maxValue],
   );
 
-  const linePath = `M ${sw / 2} ${sw / 2} h ${width - sw}`;
+  // Without a width the bar fills its container, so it is drawn at the measured width.
+  const fluid = isUndefined(width);
+  const [measureRef, size] = useElementSize<HTMLDivElement>();
+  const barWidth = fluid ? size.width : width;
+
+  const linePath = `M ${sw / 2} ${sw / 2} h ${barWidth - sw}`;
 
   return (
     <ProgressBar
       className={cn(
         "box-border flex flex-col items-center",
         "text-klerosUIComponentsStroke text-sm",
+        // Without it a flex row or an items-start column shrinks the bar to the svg's 300px default.
+        fluid && "w-full",
         className,
       )}
       {...props}
@@ -57,24 +69,29 @@ function Linear({
       >
         {valueLabel ?? `Progress ${progress}`}
       </Label>
-      <div className="flex flex-col items-start">
+      <div
+        ref={fluid ? measureRef : undefined}
+        className={clsx("flex flex-col items-start", fluid && "self-stretch")}
+      >
         <svg
           className={"mx-auto my-2.5 block fill-none"}
           height={sw}
           strokeWidth={sw}
-          width={width}
+          width={fluid ? "100%" : width}
           strokeLinecap="round"
         >
-          <path d={linePath} className="stroke-klerosUIComponentsStroke" />
-          {!isUndefined(value) && (
+          {barWidth > sw && (
+            <path d={linePath} className="stroke-klerosUIComponentsStroke" />
+          )}
+          {barWidth > sw && !isUndefined(value) && (
             <path
               className={clsx(
                 "stroke-klerosUIComponentsSuccess",
                 animated && "animate-progress-fill",
               )}
-              width={(progress * width) / 100}
+              width={(progress * barWidth) / 100}
               // multiplying by a relatively large number to make sure filled part does not repeat
-              strokeDasharray={`${(progress * width) / 100}, ${width * 1000}`}
+              strokeDasharray={`${(progress * barWidth) / 100}, ${barWidth * 1000}`}
               d={linePath}
             />
           )}

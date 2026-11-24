@@ -22,6 +22,7 @@ const HorizontalSteps: React.FC<StepsProps> = ({
         {...item}
         completed={i < currentItemIndex}
         active={i === currentItemIndex}
+        first={i === 0}
         last={i + 1 === items.length}
         index={i + 1}
         key={`${item.title}-${i}`}

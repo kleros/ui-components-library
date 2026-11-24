@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "declaration": true,
+    "removeComments": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "lib": ["dom", "es2020"],
+    "rootDir": "src",
+    "outDir": "../dist/kit",
+    "baseUrl": ".",
+    "paths": {
+      "@kleros/ui-components-library": ["../dist/ui-components-library.d.ts"]
+    }
+  },
+  "include": ["src"]
+}

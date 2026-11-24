@@ -188,3 +188,25 @@ export const OpenModal: Story = {
     await expect(args.onOpenChange).not.toHaveBeenCalled();
   },
 };
+
+/** `fluid` sizes the dialog to its content, up to the viewport, instead of 328×200. */
+export const FluidModal: Story = {
+  ...Modal,
+  args: {
+    ...Modal.args,
+    className: undefined,
+    fluid: true,
+    ariaLabel: "Fluid",
+  },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(
+      within(canvasElement).getByRole("button", { name: "Press me!" }),
+    );
+    const dialog = await body.findByRole("dialog", { name: "Fluid" });
+    await expect(dialog).toHaveClass("h-auto", "w-auto");
+    await expect(dialog).not.toHaveClass("w-[328px]", "h-[200px]");
+    await expect(dialog.getBoundingClientRect().height).toBeLessThan(200);
+    await userEvent.keyboard("{Escape}");
+    await waitForClose();
+  },
+};

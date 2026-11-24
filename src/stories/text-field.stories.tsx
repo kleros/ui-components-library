@@ -11,6 +11,7 @@ import Button from "../lib/button";
 import { a11yExceptions, auditA11y } from "./a11y";
 import {
   SECONDARY_TEXT_LIGHT,
+  SECONDARY_TEXT_RICH_LIGHT,
   ERROR_TEXT_LIGHT,
   WHITE_ON_BLUE_LIGHT,
 } from "./a11y-defects";
@@ -292,5 +293,45 @@ export const ErrorMessage: Story = {
     await expect(canvas.getByText("This name is taken.")).toHaveClass(
       "text-klerosUIComponentsError",
     );
+  },
+};
+
+/** `labelContent` and `description` take rich content, used in the label and the description slot. */
+export const RichLabelAndDescription: Story = {
+  parameters: a11yExceptions(SECONDARY_TEXT_LIGHT, SECONDARY_TEXT_RICH_LIGHT, {
+    // the span that wraps the rich description inherits the same colour
+    ...SECONDARY_TEXT_RICH_LIGHT,
+    selector: ".text-klerosUIComponentsSecondaryText > span",
+  }),
+  args: {
+    ...Default.args,
+    labelContent: (
+      <>
+        Name <em>(optional)</em>
+      </>
+    ),
+    description: (
+      <>
+        Use your <strong>legal name</strong>
+      </>
+    ),
+    message: "Plain message, not shown",
+  },
+  play: async ({ canvasElement }) => {
+    const input = within(canvasElement).getByRole("textbox", {
+      name: "Name (optional)",
+    });
+    // the label click focuses the field, so the rich label is the field's label
+    await userEvent.click(within(canvasElement).getByText("(optional)"));
+    await expect(input).toHaveFocus();
+    await expect(input).toHaveAccessibleDescription("Use your legal name");
+    // the visible text keeps its spaces, so the rich content flows inline
+    await expect(
+      canvasElement.querySelector<HTMLElement>('[slot="description"]')
+        ?.innerText,
+    ).toBe("Use your legal name");
+    await expect(
+      within(canvasElement).queryByText("Plain message, not shown"),
+    ).not.toBeInTheDocument();
   },
 };
