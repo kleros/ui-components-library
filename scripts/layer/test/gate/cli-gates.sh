@@ -11,11 +11,16 @@ CREATE="env -u npm_config_package $CLI create"
 TOOLS='{"name":"%s","type":"module","devDependencies":{"tailwindcss":"^4.1.0"}}'
 # d.9 review: the library is linked in too, as an install has it, since check now resolves the entry's @source.
 stubs() {
-  mkdir -p "$1/node_modules/.bin" "$1/node_modules/@kleros"
+  bins "$1"
+  mkdir -p "$1/node_modules/@kleros"
+  ln -s "$LIB" "$1/node_modules/@kleros/ui-components-library"
+}
+# The stub tsc and eslint alone, for a fixture with its own copy of the library or none: check then starts no npx lookup.
+bins() {
+  mkdir -p "$1/node_modules/.bin"
   printf '#!/bin/sh\ncase " $* " in *" -f json "*) echo "[]";; esac\nexit 0\n' > "$1/node_modules/.bin/eslint"
   printf '#!/bin/sh\nexit 0\n' > "$1/node_modules/.bin/tsc"
   chmod +x "$1/node_modules/.bin/eslint" "$1/node_modules/.bin/tsc"
-  ln -s "$LIB" "$1/node_modules/@kleros/ui-components-library"
 }
 # Every file's path and md5 under a folder, and every folder's path: equal before and after means nothing was written.
 snapshot() { (cd "$1" && find . -type f -print0 | sort -z | xargs -0 -r md5sum && find . | sort); }
@@ -285,6 +290,7 @@ rm -rf "$W/../i1-sync.txt" "$W/../i1-init.txt" "$W"
 W=$(mktemp -d -p "$WORK")
 mkdir -p "$W/r19/node_modules/react" "$W/r19/node_modules/react-dom" "$W/r19/node_modules/@kleros" "$W/r18" "$W/new18"
 cp -R "$LIB" "$W/r19/node_modules/@kleros/ui-components-library"
+bins "$W/r19" && bins "$W/r18"
 echo '{"name":"x","type":"module","dependencies":{"react":"^18.0.0 || ^19.0.0","react-dom":"^18.0.0 || ^19.0.0"},"scripts":{}}' > "$W/r19/package.json"
 for n in react react-dom; do echo "{\"name\":\"$n\",\"version\":\"19.0.0\"}" > "$W/r19/node_modules/$n/package.json"; done
 echo '{"name":"x","type":"module","dependencies":{"react":"^18.3.1","react-dom":"^18.3.1"},"scripts":{}}' > "$W/r18/package.json"
@@ -684,7 +690,10 @@ rm -rf "$W"
 # Round 3 (markers): what still counts as a marker, so the fix adds no new refusal or second block. An end marker
 # indented by two spaces (still an HTML comment in Markdown) and a file with CR-only line endings end the block as they
 # did before the fix, so sync rewrites it in place and adds no second block. With two complete blocks, the second start
-# comes after the first end, so it is not the refused orphan: sync rewrites the first block and keeps the second.
+# comes after the first end, so it is not the refused orphan: sync rewrites the first block and keeps the second. A fence
+# opened on a list item's line ("- ```sh") above the block, closed or ended by its item, with a fenced example below it,
+# hides no block: check reads it and sync rewrites it in place. A "    ```" line inside a top-level fence is its text,
+# not its closer, so the fence neither hides the block below it nor exposes the quoted block inside it.
 MK=$(mktemp -d -p "$WORK")
 stubs "$MK"
 V=$(node -p "require('$LIB/package.json').version")
@@ -697,8 +706,19 @@ V=$(node -p "require('$LIB/package.json').version")
     && [[ "$(grep -o 'kleros-ui:start' AGENTS.md | wc -l)" == 1 ]] && ! grep -q 'old block' AGENTS.md && grep -q 'Team notes' AGENTS.md \
     && printf '<!-- kleros-ui:start 3.10.0 -->\nfirst\n<!-- kleros-ui:end -->\n\n<!-- kleros-ui:start 3.10.0 -->\nsecond\n<!-- kleros-ui:end -->\n' > AGENTS.md \
     && $CLI sync >s3.txt 2>&1 && grep -qx "kleros-ui: block updated to $V" s3.txt && head -n 1 AGENTS.md | grep -qx "<!-- kleros-ui:start $V -->" \
-    && ! grep -qx 'first' AGENTS.md && grep -qx 'second' AGENTS.md) \
-  && echo "gate: round 3 (markers): an end marker indented by two spaces and a file with CR-only line endings still end the block, so sync rewrites it in place with no second block, and with two complete blocks sync rewrites the first and keeps the second"
+    && ! grep -qx 'first' AGENTS.md && grep -qx 'second' AGENTS.md \
+    && printf '# Guide\n\n- ```sh\n  yarn install\n  ```\n\n<!-- kleros-ui:start 3.10.0 -->\nold block\n<!-- kleros-ui:end -->\n\n```sh\nyarn dev\n```\n' > AGENTS.md \
+    && { $CLI check >c4.txt 2>&1; grep -q "^note: AGENTS.md block is for 3.10.0, installed $V" c4.txt && ! grep -q 'has no kleros-ui block' c4.txt; } \
+    && $CLI sync >s4.txt 2>&1 && grep -qx "kleros-ui: block updated to $V" s4.txt && [[ "$(grep -c 'kleros-ui:start' AGENTS.md)" == 1 ]] \
+    && ! grep -q 'old block' AGENTS.md && tail -n 1 AGENTS.md | grep -qx '```' \
+    && printf '# Guide\n\n- Install:\n- ```sh\n  yarn install\n\n<!-- kleros-ui:start 3.10.0 -->\nold block\n<!-- kleros-ui:end -->\n\n```sh\nyarn dev\n```\n' > AGENTS.md \
+    && $CLI sync >s5.txt 2>&1 && grep -qx "kleros-ui: block updated to $V" s5.txt && [[ "$(grep -c 'kleros-ui:start' AGENTS.md)" == 1 ]] && ! grep -q 'old block' AGENTS.md \
+    && printf '# Guide\n\n```md\n- a\n  - b\n    ```sh\n    yarn\n    ```\n```\n\n<!-- kleros-ui:start 3.10.0 -->\nold block\n<!-- kleros-ui:end -->\n\n```sh\nyarn dev\n```\n' > AGENTS.md \
+    && $CLI sync >s6.txt 2>&1 && grep -qx "kleros-ui: block updated to $V" s6.txt && [[ "$(grep -c 'kleros-ui:start' AGENTS.md)" == 1 ]] && ! grep -q 'old block' AGENTS.md \
+    && printf '# Guide\n\n```md\n1. Step\n    ```\n    code\n    ```\n<!-- kleros-ui:start 3.10.0 -->\nquoted example\n<!-- kleros-ui:end -->\n```\n\n<!-- kleros-ui:start 3.10.0 -->\nold block\n<!-- kleros-ui:end -->\n' > AGENTS.md \
+    && $CLI sync >s7.txt 2>&1 && grep -qx "kleros-ui: block updated to $V" s7.txt && sed -n 8p AGENTS.md | grep -qx '<!-- kleros-ui:start 3.10.0 -->' \
+    && grep -qx 'quoted example' AGENTS.md && ! grep -q 'old block' AGENTS.md) \
+  && echo "gate: round 3 (markers): an end marker indented by two spaces and a file with CR-only line endings still end the block, so sync rewrites it in place with no second block; with two complete blocks sync rewrites the first and keeps the second; a fence opened on a list item's line, closed or ended by its item, hides no block, and an indented fence line inside a top-level fence neither hides the block below nor exposes the quoted block inside"
 rm -rf "$MK"
 
 # Round 3 (theme-layer): an @import of the library's theme.css under a condition is a css-theme finding, in the entry
@@ -726,13 +746,14 @@ cond() { ! $CLI css >o.txt 2>&1 && grep -qF "$1 @import \"$LT\" $2: import the l
   && cp "$LIB/templates/poc/src/index.css" src/index.css && sed -i "\\#^@import \"$LT\";\$#a @import \"./theme.css\";" src/index.css \
   && sed -i 's|^@import "tailwindcss";$|@import "./mid.css";|' src/index.css && echo '@import "./tw.css";' > src/mid.css \
   && printf '@import "tailwindcss";\n@import "%s";\n' "$LT" > src/tw.css && $CLI css >o4.txt 2>&1 && grep -q '^css: 0 findings' o4.txt \
+  && printf '@import "tailwindcss";\n@import "%s" theme(static);\n' "$LT" > src/tw.css && $CLI css >o5.txt 2>&1 && grep -q '^css: 0 findings' o5.txt \
   && printf '@import "tailwindcss";\n@import "%s" layer(components);\n' "$LT" > src/tw.css && cond src/tw.css:2:1 'layer(components)' \
   && printf '@import "tailwindcss";\n@import "%s" layer;\n' "$LT" > src/tw.css && cond src/tw.css:2:1 layer \
   && printf '@import "tailwindcss";\n@layer components {\n  @import "%s";\n}\n' "$LT" > src/tw.css && cond src/tw.css:3:3 'inside @layer components' \
   && printf '@import "tailwindcss";\n@import "%s" supports(display: grid);\n' "$LT" > src/tw.css && cond src/tw.css:2:1 'supports(display: grid)' \
   && echo '@import "tailwindcss";' > src/tw.css && sed -i "s|^@import \"$LT\";\$|@import \"$LT\" layer(components);|" src/index.css \
   && cond src/index.css:2:1 'layer(components)') \
-  && echo "gate: round 3 (theme-layer): an @import of the library's theme.css under layer(components), an anonymous layer or an @layer components block, in a tw.css that imports tailwindcss or in the entry itself, is a css-theme finding and check fails, so the theme is no longer undone with 0 findings; the plain import of the starter, the README and AGENTS.md, and the guide's nested tw.css, give none"
+  && echo "gate: round 3 (theme-layer): an @import of the library's theme.css under layer(components), an anonymous layer or an @layer components block, in a tw.css that imports tailwindcss or in the entry itself, is a css-theme finding and check fails, so the theme is no longer undone with 0 findings; the plain import of the starter, the README and AGENTS.md, the guide's nested tw.css, and Tailwind's theme(static) option give none"
 rm -rf "$TL"
 
 # Round 3 (app-config-preflight): in a package that is not "type": "module", init moves the app config a managed wrap
@@ -838,3 +859,24 @@ EOF
 node "$LN/lib-names.mjs" "$LIB" "$P" "$(cd "$P/tools" && pwd -P)" >"$LN/out.txt" 2>"$LN/err.txt" \
   && echo "gate: F29 (team review 3.5): the lint preset's LIB_NAMES names every component the packed root entry exports, the library-name rule names nothing that is neither a core export nor a kit component in the catalogue, and in this repo's ESLint it reports a local component with such a name but not a lazy() or dynamic() wrapper or a declaration with no value"
 rm -rf "$LN"
+
+# Review of the whole PR (CodeRabbit c06 follow-up): the whole-app scan reads the configured entry wherever cssDirs
+# points, and with it the local stylesheets the entry reaches tailwindcss through. So a nested entry (src/index.css
+# importing ./tw.css, which imports tailwindcss) gives no finding with cssDirs ["app"] (an empty folder here: any other
+# stylesheet is a Tailwind-only finding of its own), as it gives none with src in the scan, and check passes. A
+# stylesheet on the way in a folder a .gitignore line names stays unread, so the entry's import of it is still the one
+# finding.
+NE=$(mktemp -d -p "$WORK")
+stubs "$NE"
+(cd "$NE" && printf "$TOOLS\n" ne > package.json && mkdir src app && cp "$LIB/templates/poc/src/index.css" src/index.css \
+  && printf 'import "@kleros/ui-components-library/style.css";\nimport "./index.css";\n' > src/main.tsx && $CLI init >/dev/null \
+  && sed -i 's|^@import "tailwindcss";$|@import "./tw.css";|' src/index.css && grep -qx '@import "./tw.css";' src/index.css \
+  && echo '@import "tailwindcss";' > src/tw.css \
+  && $CLI css >o1.txt 2>&1 && grep -q '^css: 0 findings' o1.txt \
+  && node -e 'const fs = require("fs"); const j = JSON.parse(fs.readFileSync("kleros-ui.json", "utf8")); j.cssDirs = ["app"]; fs.writeFileSync("kleros-ui.json", JSON.stringify(j, null, 2))' \
+  && $CLI css >o2.txt 2>&1 && grep -q '^css: 0 findings' o2.txt && $CLI check >c.txt 2>&1 && grep -qx 'ui:check passed' c.txt \
+  && mkdir src/gen && printf '@import "tailwindcss";\n.generated { color: red; }\n' > src/gen/tw.css && echo gen/ > .gitignore \
+  && sed -i 's|^@import "./tw.css";$|@import "./gen/tw.css";|' src/index.css && { $CLI css >o3.txt 2>&1; [[ $? -eq 1 ]]; } \
+  && grep -q '^src/index.css:[0-9]*:[0-9]* @import "./gen/tw.css" in the Tailwind entry' o3.txt && grep -q '^css: 1 finding' o3.txt) \
+  && echo "gate: review of the whole PR (c06): with cssDirs [\"app\"], the scan reads the entry src/index.css and the ./tw.css it reaches tailwindcss through, so that nested entry gives 0 findings and check passes"
+rm -rf "$NE"

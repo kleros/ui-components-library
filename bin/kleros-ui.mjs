@@ -158,13 +158,27 @@ function findMarker(text, marker, from = 0) {
     i = eol.index + eol[0].length;
   }
   for (let n = 0; n < lines.length; n++) {
-    // A fence opens with three or more ` or ~, up to three spaces in, as in CommonMark (a ` fence's info string has
-    // no `), and closes at a line of at least as many of the same character and nothing else.
-    const open = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(lines[n].line);
-    if (open && !(open[1][0] === "`" && open[2].includes("`"))) {
-      const close = new RegExp(`^ {0,3}${open[1][0]}{${open[1].length},}[ \\t]*$`);
-      const end = lines.findIndex((l, k) => k > n && close.test(l.line));
-      if (end > 0) {
+    // A fence opens with three or more ` or ~, up to three spaces in or after a list item's marker ("- ```sh",
+    // "1. ```sh"), as in CommonMark (a ` fence's info string has no `), and closes at a line of at least as many of the
+    // same character and nothing else, up to three spaces past its column (the item's content column in a list, else
+    // 0), so a line indented further is the fence's text. A list item's fence also ends with its item, at the first line
+    // indented less than that column.
+    const open = /^( {0,3}(?:(?:[-*+]|\d{1,9}[.)])[ \t]+)*)(`{3,}|~{3,})(.*)$/.exec(lines[n].line);
+    if (open && !(open[2][0] === "`" && open[3].includes("`"))) {
+      const col = /[-*+.)]/.test(open[1]) ? open[1].length : 0;
+      const close = new RegExp(`^ {0,${col + 3}}${open[2][0]}{${open[2].length},}[ \\t]*$`);
+      let end = -1;
+      for (let k = n + 1; k < lines.length; k++) {
+        if (close.test(lines[k].line)) {
+          end = k;
+          break;
+        }
+        if (col && lines[k].line.trim() && /^ */.exec(lines[k].line)[0].length < col) {
+          end = k - 1;
+          break;
+        }
+      }
+      if (end > n || (end === n && col)) {
         n = end;
         continue;
       }
@@ -1682,7 +1696,8 @@ function entryFindings(blocks, { outside = null, theme = null, file = "", scanne
       for (let p = b.parent; p; p = p.parent) outer.unshift(shortSel(p.prelude));
       return `@import "${LIB_THEME}" inside ${outer.join(" > ")}: ${plain}`;
     }
-    const rest = condition(b);
+    // Tailwind's theme(static) or theme(inline) option changes how @theme variables are emitted, not their layer.
+    const rest = condition(b).replace(/(?:^|\s)theme\([^)]*\)(?=\s|$)/gi, " ").trim();
     return rest ? `@import "${LIB_THEME}" ${shortSel(rest)}: ${plain}` : null;
   };
   const covered = (b) => {
@@ -2027,7 +2042,24 @@ function cssTargets(args = []) {
   // The Tailwind entry is read wherever cssDirs points, as the theme file is: the app loads it, so its own rules and its
   // import of the theme file are checked. One that is not there is skipped quietly; only a cssDirs folder is reported.
   const entry = typeof cssEntry === "string" && cssEntry.trim() ? cssEntry : "src/index.css";
-  return { paths: [...(dirs || ["."]), "index.html", "src/index.html", entry, ...own], named: dirs || [], why: `in cssDirs of ${CONFIG}`, all: true, keep: own };
+  // So are the local stylesheets it reaches tailwindcss through (a nested entry's ./tw.css): its @import of one is the
+  // nested entry's only when this scan reads that file too. One the walk skips (outside the app folder, in a dot folder,
+  // node_modules, dist or a folder a .gitignore line names) stays unread, and its import a finding, as directive() says.
+  const via = [];
+  const skip = gitIgnored();
+  const follow = (f, seen) => {
+    for (const g of cssImports(f)) {
+      const rel = toPosix(relative(".", g));
+      const parts = rel.split("/");
+      const skipped = parts.some((d, i) => d.startsWith(".") || skip(d, parts.slice(0, i + 1).join("/"), () => i < parts.length - 1));
+      if (seen.has(g) || isAbsolute(rel) || skipped || !reachesTailwind(g)) continue;
+      seen.add(g);
+      via.push(rel);
+      follow(g, seen);
+    }
+  };
+  if (existsSync(entry)) follow(entry, new Set([resolve(entry)]));
+  return { paths: [...(dirs || ["."]), "index.html", "src/index.html", entry, ...via, ...own], named: dirs || [], why: `in cssDirs of ${CONFIG}`, all: true, keep: own };
 }
 // The plain names and paths (no globs) in each .gitignore from the app folder up to its repo's root, the
 // folder that holds .git (in a monorepo, generated folders such as coverage are often ignored there only; outside a
