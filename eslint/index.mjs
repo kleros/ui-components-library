@@ -84,10 +84,14 @@ const STEPS = "0|0\\.5|1|2|3|4|6|8|12|16|px|auto|reverse"; // spacing values all
 const LENGTH = "(?:[\\d.]+(?:px|rem|em|%)?|(?:length|number|percentage):.+)"; // an arbitrary value that is not a colour
 
 // Library exports an app should import instead of re-declaring (core + kit).
+// Every component the package root exports must be listed here (the repo's yarn test:layer checks it).
 const LIB_NAMES = [
   "Button", "Card", "Box", "Modal", "Tag", "Tabs", "Tooltip", "Switch", "Checkbox", "Radio", "Steps", "Timeline", "Accordion",
   "Breadcrumb", "Copiable", "Searchbar", "TextField", "TextArea", "NumberField", "Datepicker", "DropdownSelect", "FileUploader",
   "AlertMessage", "LinearProgress", "CircularProgress", "StandardPagination", "CompactPagination",
+  "CustomAccordion", "CustomRadio", "CustomRadioItem", "RadioIndicator", "CustomTimeline", "Form", "BigNumberField", "Slider",
+  "DropdownCascader", "PushMessage", "DisplayLarge", "DisplaySmall", "DisplayIcon", "ScrollbarContainer", "DraggableList",
+  "FileViewer",
 ];
 // Every kit component in the catalogue must be listed here (the repo's yarn test:layer checks it).
 const KIT_NAMES = [
@@ -229,8 +233,11 @@ export default function klerosUI({ cssEntry = "src/index.css", files = ["src/**/
   // The preset's .js and .jsx files parse JSX (with espree, or the app's own parser), so they are linted, not parse
   // errors. typescript-eslint ignores the flag for .ts and .tsx, which it parses by their extension.
   const jsx = { files, languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } } };
+  // A declaration with no value (`declare const Form: FC`, a .d.ts line) declares nothing, and a lazy() or dynamic()
+  // wrapper loads a component that is declared elsewhere: Escrow V2 and Curate V2 load the library's own FileViewer as
+  // `const FileViewer = lazy(() => import("@kleros/ui-components-library").then(...))`. Neither is reported.
   const libraryName = {
-    selector: `:matches(FunctionDeclaration, VariableDeclarator)[id.name=/^(${[...new Set([...LIB_NAMES, ...KIT_NAMES])].join("|")})$/]`,
+    selector: `:matches(FunctionDeclaration, VariableDeclarator[init]:not([init.callee.name=/^(lazy|dynamic)$/], [init.callee.property.name="lazy"]))[id.name=/^(${[...new Set([...LIB_NAMES, ...KIT_NAMES])].join("|")})$/]`,
     message:
       "Local component with a library name: import it from @kleros/ui-components-library (or /kit) instead of re-declaring it.",
   };

@@ -784,3 +784,57 @@ HC=$(mktemp -d -p "$WORK")
   && grep -q '^index.html:11:16 <style> block in index.html' o.txt && [[ "$(grep -c '^index.html:' o.txt)" == "5" ]]) \
   && echo "gate: round 3 html-comments: an HTML comment in index.html ends where a browser ends it (at --> or --!>, or at once in <!--> and <!--->), so a <style> block after <!-->, <!---> or <!-- x --!> and a style attribute after --!> are findings; a <style> inside <!-- ... --> is still not one, and one after <!-- a -- b --> still is"
 rm -rf "$HC"
+
+# F29 (team review, What to change 3.5): LIB_NAMES, the core names the lint preset's library-name rule reports, is a
+# hand-typed copy of the package's exports. Both sides are read from the pack, as an app gets them: the components are
+# the root entry's runtime exports with a PascalCase name (types are gone at runtime, and cn is a helper), and the names
+# are the rule's, as the preset builds it (gate/kit-names.mjs reads KIT_NAMES the same way). Every exported component is
+# in the rule, and the rule names nothing that is neither a core export nor a kit component in the catalogue. Run in
+# this repo's ESLint, the rule reports a local component with such a name, and not a lazy() or dynamic() wrapper that
+# loads one (Escrow V2 and Curate V2 load the library's own FileViewer so) or a declaration with no value. As the smoke
+# render notes, the root entry imports its CSS and touches document and window at import time, so the CSS is stubbed and
+# happy-dom gives it a DOM.
+LN=$(mktemp -d -p "$WORK")
+cat > "$LN/lib-names.mjs" <<'EOF'
+import { readFileSync } from "node:fs";
+import { createRequire, register } from "node:module";
+import { pathToFileURL } from "node:url";
+const [lib, p, from] = process.argv.slice(2);
+register(pathToFileURL(`${p}/gate/css-stub-loader.mjs`));
+const { GlobalRegistrator } = await import("@happy-dom/global-registrator");
+GlobalRegistrator.register({ url: "http://localhost/" });
+const entry = JSON.parse(readFileSync(`${lib}/package.json`, "utf8")).exports["."].import;
+const core = Object.keys(await import(pathToFileURL(`${lib}/${entry}`).href)).filter((n) => /^[A-Z]/.test(n));
+const kit = JSON.parse(readFileSync(`${lib}/agent/catalog.json`, "utf8")).components
+  .filter((c) => c.importPath.endsWith("/kit") && /^[A-Z]/.test(c.name)).map((c) => c.name);
+const { default: klerosUI } = await import(pathToFileURL(`${lib}/eslint/index.mjs`).href);
+const rule = klerosUI({}).flatMap((c) => Object.entries(c.rules ?? {})).filter(([id]) => id.endsWith("no-restricted-syntax"))
+  .flatMap(([, options]) => options.slice(1)).find((r) => r.message?.startsWith("Local component with a library name"));
+const names = new Set(rule?.selector.match(/\[id\.name=\/\^\(([^)]*)\)\$\/\]/)?.[1].split("|") ?? []);
+const missing = core.filter((n) => !names.has(n));
+const extra = [...names].filter((n) => !core.includes(n) && !kit.includes(n));
+if (missing.length) console.log(`exported, not in LIB_NAMES: ${missing.join(", ")}`);
+if (extra.length) console.log(`in the rule, neither a core export nor a kit component: ${extra.join(", ")}`);
+console.log(`${core.length} core components, ${kit.length} kit components, ${names.size} names in the rule`);
+// [code, the lines the rule reports in it]
+const cases = [
+  ["function Form() { return null; }\nconst Slider = () => null;\nconst DraggableList = memo(() => null);\n", [1, 2, 3]],
+  ['const FileViewer = lazy(() => import("@kleros/ui-components-library").then((m) => ({ default: m.FileViewer })));\n', []],
+  ['const Slider = React.lazy(() => import("./Slider"));\nconst Form = dynamic(() => import("./Form"));\nlet BigNumberField;\n', []],
+];
+const { Linter } = createRequire(from + "/")("eslint");
+const linter = new Linter({ configType: "flat", cwd: "/app" });
+const config = [{ files: ["**/*.js"], rules: { "no-restricted-syntax": ["error", rule] } }];
+let bad = 0;
+for (const [code, want] of cases) {
+  const got = linter.verify(code, config, { filename: "/app/src/x.js" }).map((m) => (m.ruleId ? m.line : m.message));
+  if (JSON.stringify(got) !== JSON.stringify(want)) {
+    bad++;
+    console.log(`reported ${JSON.stringify(got)}, expected ${JSON.stringify(want)}, in:\n${code}`);
+  }
+}
+process.exit(!core.length || !kit.length || missing.length || extra.length || bad ? 1 : 0);
+EOF
+node "$LN/lib-names.mjs" "$LIB" "$P" "$(cd "$P/tools" && pwd -P)" >"$LN/out.txt" 2>"$LN/err.txt" \
+  && echo "gate: F29 (team review 3.5): the lint preset's LIB_NAMES names every component the packed root entry exports, the library-name rule names nothing that is neither a core export nor a kit component in the catalogue, and in this repo's ESLint it reports a local component with such a name but not a lazy() or dynamic() wrapper or a declaration with no value"
+rm -rf "$LN"
