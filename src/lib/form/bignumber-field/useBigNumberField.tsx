@@ -371,10 +371,20 @@ export function useBigNumberField(props: BigNumberFieldProps) {
 
     // Allow a single minus sign at the beginning, only when the field can go negative: otherwise the field
     // would show "-" while its last value, the one the parent holds, stays in place. A minimum that does not
-    // parse is no minimum, as in clampValue. So is a negative zero ("-0", "-0.", and "-." once it has its leading
-    // zero): it is 0, which a minimum of 0 allows, so the clamp keeps it and the field would show "-0." for 0.
-    if (/^-0*\.?0*$/.test(input))
+    // parse is no minimum, as in clampValue.
+    if (input === "-")
       return minBig === undefined || minBig.isNaN() || minBig.isNegative();
+
+    // A negative zero ("-0", "-0.", and "-." once it has its leading zero) is 0, which a minimum of 0 allows, so
+    // the clamp would keep it and the field would show "-0." for 0. Above 0 the clamp moves it to the minimum, as
+    // it does any other negative.
+    if (
+      /^-0*\.?0*$/.test(input) &&
+      minBig !== undefined &&
+      !minBig.isNaN() &&
+      minBig.isZero()
+    )
+      return false;
 
     // Regular expression to match valid number format (including decimal and negative)
     const regex = /^-?\d*\.?\d*$/;

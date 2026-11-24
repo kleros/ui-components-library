@@ -156,7 +156,7 @@ describe("useBigNumberField lone minus sign", () => {
   });
 
   it.each(["-.", "-0", "-0.", "-0.00"])(
-    "refuses a pasted negative zero '%s' when the field cannot go negative",
+    "refuses a pasted negative zero '%s' at a minimum of 0",
     (text) => {
       const onChange = vi.fn();
       render(<Field defaultValue="5" minValue="0" onChange={onChange} />);
@@ -171,6 +171,29 @@ describe("useBigNumberField lone minus sign", () => {
       expect(onChange).not.toHaveBeenCalled();
     },
   );
+
+  it("treats a pasted negative zero above a minimum of 0 like any other negative", () => {
+    const paste = (text: string) => {
+      const onChange = vi.fn();
+      const { unmount } = render(
+        <Field defaultValue="5" minValue="1" onChange={onChange} />,
+      );
+      const input = screen.getByRole("spinbutton");
+      input.focus();
+      fireEvent.change(input, { target: { value: "5" } });
+      onChange.mockClear();
+      fireEvent.change(input, { target: { value: text } });
+      const seen = {
+        value: (input as HTMLInputElement).value,
+        calls: onChange.mock.calls.map((c) => String(c[0])),
+      };
+      unmount();
+      return seen;
+    };
+
+    expect(paste("-0")).toEqual(paste("-5"));
+    expect(paste("-0").calls).not.toEqual([]);
+  });
 
   it("accepts a negative zero with no minimum", () => {
     render(<Field />);
