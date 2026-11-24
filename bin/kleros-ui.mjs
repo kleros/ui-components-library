@@ -44,7 +44,8 @@ const readOr = (f, d = "") => {
 // Writes stay inside the app: no file is written through a symbolic link that points outside the app's folder, into
 // its node_modules or at nothing, and none in a folder that resolves outside the app's folder or into its node_modules
 // (a linked folder, or a path such as "../x" in kleros-ui.json). A link that resolves inside the app is fine (AGENTS.md -> CLAUDE.md, a
-// linked .cursor). A file where a folder goes (.cursor/rules as a file) is refused too, so mkdir does not fail midway.
+// linked .cursor). A file where a folder goes (.cursor/rules as a file) is refused too, so mkdir does not fail midway,
+// and so is a folder where a file goes (.cursor/rules/kleros-ui.mdc as a folder), so the write does not.
 // The app's folder is the one the command runs in; create sets it
 // to the new app's folder. Why `p` may not be written, or null.
 let APP_ROOT = null;
@@ -69,7 +70,9 @@ function writeProblem(p, { folder = false, root = APP_ROOT ?? realOrNull(".") } 
     const where = d === abs ? name(d) : `${name(d)}, where ${name(abs)} goes,`;
     if (!inside(real)) return `${where} resolves to ${real}, outside the app's folder (${root})`;
     if (modules) return `${where} resolves to ${real}, in node_modules, which the next install replaces`;
-    if ((folder || d !== abs) && !statSync(real).isDirectory()) return `${name(d)} is a file, not a folder, so ${d === abs ? "it" : name(abs)} cannot be made there (move it away)`;
+    const dir = statSync(real).isDirectory();
+    if ((folder || d !== abs) && !dir) return `${name(d)} is a file, not a folder, so ${d === abs ? "it" : name(abs)} cannot be made there (move it away)`;
+    if (!folder && d === abs && dir) return `${name(d)} is a folder, not a file, so it cannot be written (move it away)`;
     return null;
   }
 }
@@ -394,8 +397,9 @@ const keepAppFile = (file, why) => {
 // its first write. It makes wireLint's choices: the managed wrap an earlier init wrote, when it is stale (styled: true,
 // the old spread, drifted klerosUI() options, or its app config moving to .mjs or .cjs) and stays where it is, or, in an
 // existing app with no config wired to the preset, kleros-ui.eslint.config.* when its klerosUI() options drifted. A
-// move to a new file writes no existing path. `entry()` gives the cssEntry init will record when kleros-ui.json is
-// missing (null when it is there); it runs only when a config init wrote is found.
+// move to a new file writes no existing path, so a file already at the managed wrap's new path (an eslint.config.mjs
+// beside a managed eslint.config.js outside a module package) is refused here. `entry()` gives the cssEntry init will
+// record when kleros-ui.json is missing (null when it is there); it runs only when a config init wrote is found.
 function lintRewrite(pj, { fromCreate = false, entry = () => null } = {}) {
   const want = () => {
     const cssEntry = entry();
@@ -405,7 +409,10 @@ function lintRewrite(pj, { fromCreate = false, entry = () => null } = {}) {
   const text = current ? readFileSync(current, "utf8") : "";
   if (current && text.includes("ui-components-library/eslint")) {
     if (!text.startsWith(MANAGED)) return null;
-    if (current === "eslint.config.js" && pj.type !== "module") return null;
+    if (current === "eslint.config.js" && pj.type !== "module") {
+      keepAppFile("eslint.config.mjs", `would move the managed ${current} there (this package is not "type": "module", so ESLint reads .js here as CommonJS)`);
+      return null;
+    }
     const from = text.match(/^import app from "\.\/(eslint\.config\.app\.[cm]?[jt]s)";$/m)?.[1];
     const moves = Boolean(from && existsSync(from) && pj.type !== "module" && from.endsWith(".js"));
     const styled = /\bstyled\s*:\s*true/.test(text);
@@ -1442,8 +1449,9 @@ function htmlStyles(html) {
   // unclosed tags ("<a " over and over) made every one scan to the end of the file. A quoted attribute may hold "<" or
   // ">" (`<style data-x="a < b">` is still a style block); a quote opens a value only right after "=", as in HTML, so
   // a stray one in an unquoted value (`<style data-x=a'b>`) is a literal. A <style> with no </style> is a block to the end of the page,
-  // as a browser reads it.
-  const tag = /<!--[\s\S]*?(?:-->|$)|<script\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>[\s\S]*?(?:<\/script>|$)|(<style\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>)([\s\S]*?)(?:<\/style>|$)|<([a-z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>/gi;
+  // as a browser reads it. A block ends where a browser ends it, at </script or </style and then whitespace, "/" or ">",
+  // so `</script >` and `</style\n>` end one too (the " >" left over is not a tag).
+  const tag = /<!--[\s\S]*?(?:-->|$)|<script\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>[\s\S]*?(?:<\/script(?=[\t\n\f\r />])|$)|(<style\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>)([\s\S]*?)(?:<\/style(?=[\t\n\f\r />])|$)|<([a-z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>/gi;
   const attr = (list, name) => list.match(new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+))`, "i"));
   for (const m of html.matchAll(tag)) {
     if (m[1]) {
@@ -1944,12 +1952,15 @@ function cssTargets(args = []) {
     const keep = typeof theme === "string" && theme.trim() ? args.filter((a) => appPath(a) === appPath(theme)) : [];
     return { paths: args, named: args, why: "named on the command line", keep };
   }
-  const { cssDirs: dirs, theme } = config();
+  const { cssDirs: dirs, theme, cssEntry } = config();
   // A cssDirs that is not a list of folders would scan nothing, or the letters of a string, and pass.
   if (dirs !== undefined && !(Array.isArray(dirs) && dirs.length && dirs.every((d) => typeof d === "string" && d.trim())))
     throw new Error(`kleros-ui: "cssDirs" in ${CONFIG} is ${JSON.stringify(dirs)}, not a list of folders: set it to the folders the CSS scan reads, from the app root, such as ["src"], or remove it to scan the whole app folder.`);
   const own = typeof theme === "string" && theme.trim() ? [theme] : [];
-  return { paths: [...(dirs || ["."]), "index.html", "src/index.html", ...own], named: dirs || [], why: `in cssDirs of ${CONFIG}`, all: true, keep: own };
+  // The Tailwind entry is read wherever cssDirs points, as the theme file is: the app loads it, so its own rules and its
+  // import of the theme file are checked. One that is not there is skipped quietly; only a cssDirs folder is reported.
+  const entry = typeof cssEntry === "string" && cssEntry.trim() ? cssEntry : "src/index.css";
+  return { paths: [...(dirs || ["."]), "index.html", "src/index.html", entry, ...own], named: dirs || [], why: `in cssDirs of ${CONFIG}`, all: true, keep: own };
 }
 // The plain names and paths (no globs) in each .gitignore from the app folder up to its repo's root, the
 // folder that holds .git (in a monorepo, generated folders such as coverage are often ignored there only; outside a
@@ -1957,8 +1968,10 @@ function cssTargets(args = []) {
 // the .gitignore that names it. As in git, the last line that matches decides, reading from the repo root's .gitignore
 // down to the app's, so a "!" line takes back a folder an earlier line skips (styles, then !web/src/styles); a folder
 // that is skipped is not walked, so nothing under it comes back, as git does not re-include it either. Always skipped:
-// node_modules, dist and the app root's coverage/, where test runners write their report's CSS.
-// skip(name, rel): whether the walk skips the entry `name` at `rel`, its path from the app folder.
+// node_modules, dist and the app root's coverage/, where test runners write their report's CSS. As in git, a line
+// ending in "/" names folders only: theme.css/ skips no file named theme.css, and no link (git does not follow one).
+// skip(name, rel, isDir): whether the walk skips the entry `name` at `rel`, its path from the app folder; isDir() says
+// whether that entry is a folder, and is called only for a line ending in "/".
 function gitIgnored() {
   const here = resolve(".");
   const dirs = [here];
@@ -1967,18 +1980,20 @@ function gitIgnored() {
   const rules = [];
   for (const dir of dirs.reverse())
     for (const raw of readOr(join(dir, ".gitignore")).split("\n")) {
-      let line = raw.trim().replace(/\/+$/, "");
+      let line = raw.trim();
+      const folder = line.endsWith("/");
+      line = line.replace(/\/+$/, "");
       if (line.startsWith("#")) continue;
       const keep = line.startsWith("!");
       if (keep) line = line.slice(1);
       if (!line || /[*?[\]\\]/.test(line)) continue;
       const path = line.replace(/^\/+/, "");
-      rules.push(path.includes("/") || line.startsWith("/") ? { keep, path: toPosix(relative(here, join(dir, path))) } : { keep, name: line });
+      rules.push(path.includes("/") || line.startsWith("/") ? { keep, folder, path: toPosix(relative(here, join(dir, path))) } : { keep, folder, name: line });
     }
-  return (name, rel) => {
+  return (name, rel, isDir) => {
     if (name === "node_modules" || name === "dist" || rel === "coverage") return true;
     let skip = false;
-    for (const r of rules) if (r.name ? r.name === name : r.path === rel) skip = !r.keep;
+    for (const r of rules) if ((r.name ? r.name === name : r.path === rel) && (!r.folder || isDir())) skip = !r.keep;
     return skip;
   };
 }
@@ -2010,7 +2025,14 @@ function cssFiles(paths, keep = []) {
       }
       for (const d of names) {
         const rel = toPosix(relative(".", join(p, d)));
-        if (!d.startsWith(".") && !skip(d, rel)) walk(join(p, d), false);
+        const isDir = () => {
+          try {
+            return lstatSync(join(p, d)).isDirectory();
+          } catch {
+            return false;
+          }
+        };
+        if (!d.startsWith(".") && !skip(d, rel, isDir)) walk(join(p, d), false);
       }
     } else if ((STYLESHEET.test(p) || (top && (/\.html?$/i.test(p) || keep.includes(p)))) && !seen.has(real)) {
       seen.add(real);
@@ -2709,7 +2731,7 @@ function styleOrder(entry, notes) {
     for (const d of list) {
       const p = join(dir, d.name);
       const rel = toPosix(relative(".", p));
-      if (d.name.startsWith(".") || skip(d.name, rel)) continue;
+      if (d.name.startsWith(".") || skip(d.name, rel, () => d.isDirectory())) continue;
       if (d.isDirectory()) walk(p);
       else if (SCRIPT_FILE.test(d.name) && !/\.d\.[cm]?ts$/.test(d.name)) known.add(resolve(p));
     }

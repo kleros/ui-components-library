@@ -529,3 +529,128 @@ cssentry() { node -e 'const f = "kleros-ui.json", fs = require("fs"); const c = 
     && grep -qF 'klerosUI({ cssEntry: "src/global.css" })' eslint.config.js) \
   && echo "gate: PR #127 second review (F49): with two Tailwind stylesheets init says to set cssEntry and run init again, naming the lint config; a cssEntry set in kleros-ui.json by hand, or changed in the lint config alone, is a setup problem naming both, and init rewrites the lint config's copy and says so, in kleros-ui.eslint.config.mjs and in a created app's managed eslint.config.js"
 rm -rf "$F"
+
+# CodeRabbit #127 (24 Nov, c01): a folder where init writes a file (.cursor/rules/kleros-ui.mdc, or CLAUDE.md, as a
+# folder) is refused before init's first write, so AGENTS.md and CLAUDE.md are not written either; with the folder
+# gone, init writes the Cursor rule into the .cursor/rules folder that is there.
+CR01=$(mktemp -d -p "$WORK")
+mkdir -p "$CR01/app/.cursor/rules/kleros-ui.mdc"
+echo '{"name":"x","type":"module","scripts":{}}' > "$CR01/app/package.json"
+S01=$(snapshot "$CR01/app")
+(cd "$CR01/app" && { $CLI init >"$CR01/o1.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$CR01/app")" == "$S01" ]] \
+  && grep -qF 'kleros-ui init: .cursor/rules/kleros-ui.mdc is a folder, not a file, so it cannot be written (move it away).' "$CR01/o1.txt" \
+  && grep -q 'Nothing was written\.$' "$CR01/o1.txt" && ! grep -q EISDIR "$CR01/o1.txt" \
+  && rmdir "$CR01/app/.cursor/rules/kleros-ui.mdc" && mkdir "$CR01/app/CLAUDE.md" && S01=$(snapshot "$CR01/app") \
+  && (cd "$CR01/app" && { $CLI init >"$CR01/o2.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$CR01/app")" == "$S01" ]] \
+  && grep -qF 'kleros-ui init: CLAUDE.md is a folder, not a file, so it cannot be written (move it away).' "$CR01/o2.txt" \
+  && rmdir "$CR01/app/CLAUDE.md" && (cd "$CR01/app" && $CLI init >/dev/null) \
+  && grep -q 'Follow the kleros-ui block in AGENTS.md' "$CR01/app/.cursor/rules/kleros-ui.mdc" && grep -qx '@AGENTS.md' "$CR01/app/CLAUDE.md" \
+  && echo "gate: CodeRabbit #127 (24 Nov) c01: a folder where init writes a file (the Cursor rule, CLAUDE.md) is refused before init's first write, with no EISDIR, and nothing is written; with it gone, init writes the rule into the .cursor/rules folder that is there"
+rm -rf "$CR01"
+
+# CodeRabbit #127 (24 Nov, c02): in a package that is not "type": "module", init moves an earlier init's managed
+# eslint.config.js to eslint.config.mjs. With an eslint.config.mjs of the app's already there, init refuses before its
+# first write and both files stay as they were; with none there, it moves the wrap as before.
+CR02=$(mktemp -d -p "$WORK")
+mkdir "$CR02/app"
+echo '{"name":"x","scripts":{}}' > "$CR02/app/package.json"
+printf '%s\nconst app = [];\nimport klerosUI from "@kleros/ui-components-library/eslint";\n\nexport default [...[await app].flat(), ...klerosUI({ cssEntry: "src/index.css" })];\n' \
+  "// Managed by kleros-ui init: the app's previous config plus the Kleros UI preset." > "$CR02/app/eslint.config.js"
+echo 'export default [{ rules: { "no-console": "error" } }];' > "$CR02/app/eslint.config.mjs"
+S02=$(snapshot "$CR02/app")
+(cd "$CR02/app" && { $CLI init >"$CR02/o1.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$CR02/app")" == "$S02" ]] \
+  && grep -qF 'kleros-ui: eslint.config.mjs is already there, and init would move the managed eslint.config.js there' "$CR02/o1.txt" \
+  && rm "$CR02/app/eslint.config.mjs" && (cd "$CR02/app" && $CLI init >"$CR02/o2.txt") \
+  && grep -q '^kleros-ui: rewrote the managed eslint.config.js: moved it to eslint.config.mjs' "$CR02/o2.txt" \
+  && [[ ! -e "$CR02/app/eslint.config.js" ]] && head -1 "$CR02/app/eslint.config.mjs" | grep -qF '// Managed by kleros-ui init' \
+  && echo "gate: CodeRabbit #127 (24 Nov) c02: init refuses, before its first write, to move a managed eslint.config.js onto an eslint.config.mjs that is there (a package that is not \"type\": \"module\"), and moves it as before when there is none"
+rm -rf "$CR02"
+
+# CodeRabbit #127 (24 Nov, c03): a <script> or <style> block in index.html ends where a browser ends it, at </script or
+# </style and then whitespace, "/" or ">" (any case), so a <style> block after `</script >` and a style attribute after
+# `</STYLE\n>` are findings; `</scripts>` does not end a script, so a <style> inside it is script text, not a finding.
+H=$(mktemp -d -p "$WORK")
+(cd "$H" && printf '%s\n' '<!doctype html>' '<script>var a = 1;</script >' '<style> body { margin: 0; } </style>' \
+    '<script>b</scripts></script/>' '<style>p{}</STYLE' '>' '<div style="color: red">x</div>' \
+    '<script>c</scripts><style>q{}</style></script>' > index.html \
+  && { $CLI css index.html >o.txt; [[ $? -eq 1 ]]; } \
+  && grep -q '^index.html:3:1 <style> block in index.html' o.txt && grep -q '^index.html:5:1 <style> block in index.html' o.txt \
+  && grep -q '^index.html:7:6 style attribute on <div> in index.html' o.txt && [[ "$(grep -c '^index.html:' o.txt)" == "3" ]]) \
+  && echo "gate: CodeRabbit #127 (24 Nov): a <script> or <style> block in index.html ends at </script or </style and then whitespace, \"/\" or \">\", as a browser ends it, so a <style> block after </script > and a style attribute after </STYLE + newline + > are findings, and a <style> after </scripts> inside a script is not"
+rm -rf "$H"
+
+# CodeRabbit #127 (24 Nov, c06): the whole-app CSS scan (css, check, baseline) reads the configured Tailwind entry
+# wherever cssDirs points, as it reads the theme file: with cssDirs ["app"], an entry src/index.css that leaves out the
+# theme file's import and holds a style rule is two findings, and check's css step fails on them; css app still scans
+# app/ alone.
+E=$(mktemp -d -p "$WORK")
+mkdir -p "$E/app" "$E/src" && stubs "$E"
+(cd "$E" && printf "$TOOLS\n" dirs > package.json \
+  && echo '{"cssDirs":["app"],"cssEntry":"src/index.css","theme":"src/theme.css","components":[]}' > kleros-ui.json \
+  && printf '@import "tailwindcss";\n@import "@kleros/ui-components-library/theme.css";\n.page { margin: 0; }\n' > src/index.css \
+  && printf '@layer base {\n  :root {\n    --klerosUIComponentsPrimaryBlue: #123456;\n  }\n}\n' > src/theme.css \
+  && { $CLI css >o.txt 2>&1; [[ $? -eq 1 ]]; } \
+  && grep -q '^src/index.css:2:1 The Tailwind entry does not import the theme file src/theme.css (kleros-ui.json "theme")' o.txt \
+  && grep -q '^src/index.css:3:1 Style rule ".page" in the Tailwind entry' o.txt \
+  && grep -qx 'css: 2 findings (0 token overrides, 0 colour literals, 1 Tailwind-only, 0 !important, 0 library internals, 1 theme) in 2 files scanned' o.txt \
+  && $CLI css app >a.txt && grep -q ' in 0 files scanned$' a.txt \
+  && $CLI init >/dev/null && ! $CLI check >c.txt 2>&1 && grep -q '^  src/index.css:2:1 The Tailwind entry does not import the theme file' c.txt \
+  && grep -q '^ui:check failed (tsc ok, lint ok, css failed' c.txt) \
+  && echo "gate: CodeRabbit #127 (24 Nov): the whole-app CSS scan reads the configured Tailwind entry when cssDirs leaves out its folder, so with cssDirs [\"app\"] an entry src/index.css with no theme import and a style rule is two findings and check's css step fails; css app still scans app/ alone"
+rm -rf "$E"
+
+# CodeRabbit #127 (24 Nov): a .gitignore line ending in "/" names folders only, as in git. theme.css/ and /src/main.tsx/
+# skip no file, so the CSS scan reads src/theme.css and check orders style.css in src/main.tsx; gen.css/ still skips the
+# folder src/gen.css, in both walks.
+I=$(mktemp -d -p "$WORK")
+stubs "$I"
+(cd "$I" && printf "$TOOLS\n" i > package.json && mkdir -p src/gen.css && sed '$d' "$LIB/templates/poc/src/index.css" > src/index.css \
+  && $CLI init >/dev/null && printf 'theme.css/\n/src/main.tsx/\ngen.css/\n' > .gitignore \
+  && printf '.a { margin: 0; }\n' > src/theme.css && printf 'import "./index.css";\n' > src/main.tsx \
+  && printf '.b { margin: 0; }\n' > src/gen.css/x.css && printf 'import "../index.css";\n' > src/gen.css/y.tsx \
+  && ! $CLI check >o1.txt 2>&1 && grep -q 'src/theme.css:1:1 Style rule ".a"' o1.txt \
+  && grep -q '^setup: src/main.tsx imports ./index.css (the Tailwind entry) without @kleros/ui-components-library/style.css' o1.txt \
+  && ! grep -q 'gen\.css' o1.txt) \
+  && echo "gate: CodeRabbit #127 (24 Nov): a .gitignore line ending in / names folders only, as in git: theme.css/ and /src/main.tsx/ skip no file, so the CSS scan reads src/theme.css and check orders style.css in src/main.tsx; gen.css/ still skips the folder src/gen.css"
+rm -rf "$I"
+
+# CodeRabbit #127 (24 Nov, c07): in a Next.js route file that ends with `export default Page`, the library-name rule
+# skips the Page declared at the file's top level only (const or function, exported by name or not), and still reports
+# a Page declared inside another function there. The route block's selectors run in a real ESLint, this repo's own (a
+# devDependency, found from the real path of $P/tools, which is in the repo; the fixtures still have none), under the
+# core no-restricted-syntax id, which the preset falls back to here.
+CR07=$(mktemp -d -p "$WORK")
+cat > "$CR07/route-page.mjs" <<'EOF'
+import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
+const [preset, from] = process.argv.slice(2);
+const { Linter } = createRequire(from + "/")("eslint");
+const { default: klerosUI } = await import(pathToFileURL(preset).href);
+const route = klerosUI({}).at(-1);
+const id = Object.keys(route.rules ?? {}).find((k) => k.endsWith("no-restricted-syntax"));
+const config = [{ files: route.files, rules: { "no-restricted-syntax": route.rules[id] } }];
+const linter = new Linter({ configType: "flat", cwd: "/app" });
+// [a route file, the lines the library-name rule reports in it]
+const cases = [
+  ["function Outer() {\n  function Page() { return null; }\n  return Page;\n}\nconst Page = () => Outer;\nexport default Page;\n", [2]],
+  ["const Outer = () => {\n  const Page = () => null;\n  return Page;\n};\nfunction Page() { return Outer; }\nexport default Page;\n", [2]],
+  ["const Page = () => null;\nexport default Page;\n", []],
+  ["export function Page() { return null; }\nexport default Page;\n", []],
+  ["export default function Page() { return null; }\n", []],
+  ["function Page() { return null; }\nexport default function Other() { return Page; }\n", [1]],
+];
+let bad = 0;
+for (const [code, want] of cases) {
+  const got = linter.verify(code, config, { filename: "/app/src/app/case/page.js" })
+    .filter((m) => !m.ruleId || m.message.startsWith("Local component with a library name"))
+    .map((m) => (m.ruleId ? m.line : m.message));
+  if (JSON.stringify(got) !== JSON.stringify(want)) {
+    bad++;
+    console.log(`reported ${JSON.stringify(got)}, expected ${JSON.stringify(want)}, in:\n${code}`);
+  }
+}
+process.exit(bad ? 1 : 0);
+EOF
+node "$CR07/route-page.mjs" "$LIB/eslint/index.mjs" "$(cd "$P/tools" && pwd -P)" >"$CR07/out.txt" 2>"$CR07/err.txt" \
+  && echo "gate: CodeRabbit #127 (24 Nov) c07: in a Next.js route file that ends with export default Page, the library-name rule skips the Page declared at the top level only (const or function, exported by name or not) and reports a Page declared inside another function there (run in this repo's ESLint)"
+rm -rf "$CR07"

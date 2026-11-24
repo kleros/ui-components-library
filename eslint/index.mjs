@@ -98,17 +98,24 @@ const KIT_NAMES = [
 // Next.js route files, in the app's folder or its src/: the App Router's page files and every Pages Router file. Next's
 // docs write a page as `export default function Page()`, a route component, not a re-declared kit Page, so there the
 // library-name rule skips the Page the file exports as its default (`export default function Page()`, or a Page
-// declared and then exported with `export default Page`). Any other Page is still reported: one in
-// src/components/Page.tsx, or one in a route file that is not its default export.
+// declared at the file's top level, exported by name or not, and then exported with `export default Page`). Any other
+// Page is still reported: one in src/components/Page.tsx, one in a route file that is not its default export, or one
+// declared inside a function or a block of a route file.
 const NEXT_ROUTES = [
   "app/**/page.{js,jsx,ts,tsx}",
   "src/app/**/page.{js,jsx,ts,tsx}",
   "pages/**/*.{js,jsx,ts,tsx}",
   "src/pages/**/*.{js,jsx,ts,tsx}",
 ];
+const DEFAULT_PAGE = 'Program:has(ExportDefaultDeclaration > Identifier[name="Page"]) > ';
+const TOP_LEVEL_PAGE = [
+  "FunctionDeclaration",
+  "VariableDeclaration > VariableDeclarator",
+  "ExportNamedDeclaration > FunctionDeclaration",
+  "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator",
+].map((d) => `${DEFAULT_PAGE}${d}[id.name="Page"]`);
 const ROUTE_PAGE =
-  ':not(ExportDefaultDeclaration > FunctionDeclaration[id.name="Page"])' +
-  ':not(Program:has(ExportDefaultDeclaration > Identifier[name="Page"]) [id.name="Page"])';
+  ':not(ExportDefaultDeclaration > FunctionDeclaration[id.name="Page"])' + `:not(${TOP_LEVEL_PAGE.join(", ")})`;
 // Names agents guess for parts the library has under another name.
 const GUESSED = {
   Pagination: "StandardPagination", Alert: "AlertMessage", Badge: "StatusBadge (kit)", Loader: "Spinner (kit)",

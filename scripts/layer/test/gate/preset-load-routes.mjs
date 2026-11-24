@@ -72,14 +72,16 @@ const { default: klerosUI } = await import(pathToFileURL(join(work, "absent/esli
 const LIBNAME = "Local component with a library name";
 const EXEMPT = ':not(ExportDefaultDeclaration > FunctionDeclaration[id.name="Page"])';
 const ROUTES = ["app/**/page.{js,jsx,ts,tsx}", "src/app/**/page.{js,jsx,ts,tsx}", "pages/**/*.{js,jsx,ts,tsx}", "src/pages/**/*.{js,jsx,ts,tsx}"];
-for (const files of [undefined, ["web/src/**/*.tsx", "web/app/**/*.tsx"]]) {
+// The default files, two plain globs, and a nested AND group (all its patterns must match) beside a plain glob: a
+// group's patterns join each route pattern in one group, which ESLint takes (a group inside a group it refuses).
+for (const files of [undefined, ["web/src/**/*.tsx", "web/app/**/*.tsx"], [["web/**", "**/*.tsx"], "lib/**/*.ts"]]) {
   const config = klerosUI(files ? { files } : {});
   const own = files ?? ["src/**/*.{js,jsx,ts,tsx}"];
   const syntax = (c) => (c?.rules?.["kleros-ui/no-restricted-syntax"] ?? []).slice(1);
   const mainAt = config.findIndex((c) => c.rules?.["kleros-ui/no-styled-components"]);
   const main = config[mainAt];
   const route = config.find((c, i) => i > mainAt && c.rules?.["kleros-ui/no-restricted-syntax"]);
-  const want = own.flatMap((f) => ROUTES.map((r) => [f, r]));
+  const want = own.flatMap((f) => ROUTES.map((r) => [...[f].flat(), r]));
   const lib = syntax(main).find((r) => r.message?.startsWith(LIBNAME));
   const routeLib = syntax(route).find((r) => r.message?.startsWith(LIBNAME));
   const at = files ? ` (files ${JSON.stringify(files)})` : "";
