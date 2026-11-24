@@ -19,6 +19,7 @@ import {
   FieldError,
 } from "react-aria-components";
 import { cn } from "../../utils";
+import { hasContent } from "../../utils/has-content";
 import clsx from "clsx";
 
 interface NumberFieldProps extends AriaNumberFieldProps {
@@ -70,9 +71,9 @@ function NumberField({
       isDisabled={isDisabled}
       {...props}
     >
-      {(labelContent ?? label) && (
+      {(hasContent(labelContent) || label) && (
         <Label className="text-klerosUIComponentsSecondaryText mb-1 text-sm">
-          {labelContent ?? label}
+          {hasContent(labelContent) ? labelContent : label}
         </Label>
       )}
       <Group className="input-wrapper relative box-border h-[45px] w-full">
@@ -172,7 +173,7 @@ function NumberField({
           </>
         )}
       </Group>
-      {(description ?? message) && (
+      {(hasContent(description) || message) && (
         <Text
           className={cn(
             "relative mt-1.25 flex items-center",
@@ -188,7 +189,7 @@ function NumberField({
           {variant === "info" && (
             <InfoIcon className="fill-klerosUIComponentsSecondaryText mr-2 max-w-4 min-w-4" />
           )}
-          {description === undefined || description === null ? (
+          {!hasContent(description) ? (
             message
           ) : (
             // one flex item, so rich content flows inline beside the icon

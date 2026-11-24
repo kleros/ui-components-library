@@ -5,18 +5,19 @@ public code is the old v2 API. Setup: `create` writes it for a new app; an exist
 
 ## Start
 - New app: `npx -p @kleros/ui-components-library kleros-ui create my-app`. From a tarball, in the new folder:
-  `echo '{}' > package.json`, `npm install ./x.tgz`, then `npx kleros-ui create .`. The empty package.json keeps npm
+  `echo '{}' > package.json`, `npm install ./x.tgz`, then `npx -p @kleros/ui-components-library kleros-ui create .`. The empty package.json keeps npm
   in this folder: without one, npm installs into the nearest folder above that has one and changes that project.
   `create` copies the starter (Vite, React 18, Tailwind 4, ESLint), installs it and runs `init`. Don't write the setup
   by hand.
-- Existing app: `npx kleros-ui init` once, then the steps in "Existing apps" below, then `npm run ui:baseline`.
+- Existing app: `npx -p @kleros/ui-components-library kleros-ui init` once in the app's own folder (`web/` in a monorepo), then the steps in "Existing
+  apps" below, then `npm run ui:baseline`.
 - React 18 only: React 19 is not supported yet and renders a blank page.
 
 ## Workflow (every UI task)
 1. Look the piece up in `agent/CATALOG.md` (core, kit and known gaps) and in your app's `kleros-ui.json`. Import
    what is there, build from the listed parts, or add it (step 2).
 2. MISSING, or a piece you show in two or more places (a COMPOSE included): make it one named component with
-   `npx kleros-ui new <Name> --kind ui|data|form --intent "words"`, and use that component in each place. Don't copy
+   `npx -p @kleros/ui-components-library kleros-ui new <Name> --kind ui|data|form --intent "words"`, and use that component in each place. Don't copy
    the markup. `--intent` takes what someone would search for, comma-separated
    (`--intent "period badge, status chip"`), and puts it in the component's `kleros-ui.json` entry; `ui:check` notes
    an entry with no intent words. `new` writes `src/components/<Name>/` with an exported `<Name>Props`, an `index.ts`
@@ -29,13 +30,13 @@ public code is the old v2 API. Setup: `create` writes it for a new app; an exist
    app had its own build and prebuild, `create` kept both and printed whether they run it; Yarn 2+ and
    `--ignore-scripts` skip a prebuild. Done is still `npm run ui:check`.
 4. Never invent tokens, a palette or a spacing value. Redefine a library token only in the app's theme file, which
-   `npx kleros-ui theme` sets up ("Themes" below). If the scale lacks what you need, say so in your summary.
+   `npx -p @kleros/ui-components-library kleros-ui theme` sets up ("Themes" below). If the scale lacks what you need, say so in your summary.
 
 ## Styling: Tailwind only
 This holds for every app, new or existing, Court included.
 - Style with Tailwind utility classes in `className`, the kit's layout parts and the library's components.
 - The app's CSS is its Tailwind entry, `src/index.css`, as `create` writes it (the Tailwind import, the library
-  theme, `@source`, the `dark` variant), and at most one theme file, which `npx kleros-ui theme` writes and imports
+  theme, `@source`, the `dark` variant), and at most one theme file, which `npx -p @kleros/ui-components-library kleros-ui theme` writes and imports
   ("Themes" below). Add no rules, other imports or local plugins to the entry. Write no other stylesheet
   (`.css`, `.scss`, `.pcss` or any other, in `src/`, `public/` or elsewhere), no `<style>` block, stylesheet link or
   `style` attribute in `index.html`, no CSS modules, and no styled-components or other CSS-in-JS (emotion, goober,
@@ -54,7 +55,7 @@ An app with colours of its own sets new values for the library's tokens in one t
 same `klerosUIComponents*` classes, and the library's components follow the new values too. Light and dark mode are
 still the `dark` class on `<html>`.
 
-Set it up once, in the app root, with `npx kleros-ui theme` (after `create` or `init`). It writes `src/theme.css`, with
+Set it up once, in the app root, with `npx -p @kleros/ui-components-library kleros-ui theme` (after `create` or `init`). It writes `src/theme.css`, with
 each library token and its value as a commented line (light in `:root`, dark in `:root.dark`), sets `"theme"` in
 `kleros-ui.json`, imports the file in the Tailwind entry, and prints what it did. Don't write these by hand. When the
 file already exists, it refuses and writes nothing: edit that file (and add the key and the import its message names,
@@ -87,25 +88,41 @@ In the theme file, `ui:check` and the build fail on each of these:
 - a rule outside `@layer base`: there it beats the library's dark values, so the light value leaks into dark mode.
 
 Anywhere else (`src/index.css`, any other stylesheet), redefining a token fails, and the message names the theme file
-and `npx kleros-ui theme`. A theme file that `kleros-ui.json` does not name under `"theme"` is just another
+and `npx -p @kleros/ui-components-library kleros-ui theme`. A theme file that `kleros-ui.json` does not name under `"theme"` is just another
 stylesheet, and fails as one. Don't set a token from code either (a `style` object or `style.setProperty`), or from a
 class (`[--klerosUIComponentsPrimaryBlue:var(--klerosUIComponentsSecondaryBlue)]`): no check sees these, and the
 reviewer's checklist (`agent/REVIEW.md`) looks for them.
 
 ## Existing apps
-Run `npx kleros-ui init` once, follow the part below that fits the app, then run `npm run ui:baseline` and
-`npm run ui:check`. The app "has Tailwind" when `tailwindcss` is in its `dependencies` or `devDependencies`.
+Run `npx -p @kleros/ui-components-library kleros-ui init` once in the app's own folder (`web/` in a monorepo; init refuses a workspace root), follow the
+part below that fits the app, then run `npm run ui:baseline` and `npm run ui:check`. The app "has Tailwind" when
+`tailwindcss` is in its `dependencies` or `devDependencies`.
 Tailwind 3 or 4.0: move to 4.1.17 or later first (`tailwindcss` and `@tailwindcss/vite`): the library's `theme.css` is
 Tailwind 4, and before 4.1 an `@source` on the library's folder scans none of it. TypeScript: with
 `"moduleResolution": "node"`, set `"esModuleInterop": true`, or the core's types lose their React props (`<Card>`
 takes no `children`); `node16` and `nodenext` are not supported (the core's types use paths without extensions). The
 starter uses `bundler`.
 
-**It has Tailwind.** Two changes.
+**The lint config.** init leaves the app's own `eslint.config.*` as it was and writes `kleros-ui.eslint.config.mjs`
+(`.mts` when the app's config is `.ts` or `.mts`), which `ui:check` and `ui:baseline` lint with: the app's config as `app`, then the preset. The app's own lint (editor,
+lint script, pre-commit hook) does not read it. With no `eslint.config.*` in the app's folder, `app` sets the TypeScript
+parser init found (`typescript-eslint` or `@typescript-eslint/parser`). If init warned that it found neither, add
+`typescript-eslint` as a devDependency, delete `kleros-ui.eslint.config.mjs` and run init again. If the app's flat
+config is in a folder above (a monorepo root), import it by its path from the app's folder and put it in front of what
+`app` holds: `import root from "../eslint.config.mjs";` and `const app = [...[await root].flat(), /* init's entry, if any */];`.
+Keep the TypeScript parser entry init wrote: ESLint reads the root's `files` patterns from the app's folder, so a root
+block that names the app's folder (`web/src/**`), its parser included, matches nothing there. Restate any such block you
+need with patterns from the app's folder. The same holds for the root's `ignores`: `web/src/generated/**` ignores
+nothing there, so add `{ ignores: ["src/generated/**"] }` to `app`. A `.eslintrc*` is not
+carried over: its rules stay out of `ui:check`. `ui:check` and `ui:baseline` lint `src/`; in an app with no `src/` (a Next.js `app/` router), those of `app/`, `pages/`, `components/`, `lib/`, `hooks/` and `utils/` that are there. `"lintDirs"` in `kleros-ui.json` sets other folders, from the app root (`["app", "lib"]`); run init again after changing it, so the lint config passes them to the preset as `files`. `ui:check` prints the folders it lints, fails on a `lintDirs` folder that is not there (`ui:baseline` records nothing then), and names a lint config whose `files` or `cssEntry` differ from `kleros-ui.json`.
+
+**It has Tailwind.** Three changes.
 1. Its Tailwind entry (the CSS file with `@import "tailwindcss"`) gets the starter's four lines, shown in step 3 of the
    next part, with `@source` on the library's folder as seen from that file. `ui:check` fails without the `@source`,
-   and the lint without the `theme.css` import. If that file is not `src/index.css`, put its path in `"cssEntry"` in
-   `kleros-ui.json` and in the `cssEntry` that the managed `eslint.config.*` passes to the preset.
+   and the lint without the `theme.css` import. When the app has one stylesheet that imports `tailwindcss` (itself, or through a file it `@import`s by a relative path), init
+   records it as `"cssEntry"` in `kleros-ui.json`; otherwise, if that file is not `src/index.css`, put its path in
+   `"cssEntry"` there and run init again, which sets it in the `cssEntry` that `kleros-ui.eslint.config.mjs` (or `.mts`) passes to the preset. `ui:check` names
+   a `"cssEntry"` that is missing or does not import `tailwindcss` while another stylesheet does.
 2. In the JS entry (`src/main.tsx`), import the library's compiled CSS before the app's own.
 ```ts
 import "@kleros/ui-components-library/style.css"; // first
@@ -116,6 +133,11 @@ import "./index.css"; // then the app's Tailwind
   two columns, and `Page` keeps its phone gutters on a desktop.
 - Not as an `@import` in `index.css`: that inlines one copy into your CSS, and the library's own JS import still
   appends another after yours, which wins.
+3. Before `ui:baseline`, add the lint's Tailwind plugin as a devDependency:
+   `npm install -D eslint-plugin-better-tailwindcss@^4.10.0` (in a Yarn workspace,
+   `yarn add -D eslint-plugin-better-tailwindcss@^4.10.0`). Without it, or when it is installed but fails to load, the lint's class rules are off, so `ui:check`
+   passes any class and says so in a note. A plugin that is installed but fails to load also gets one warning from the
+   preset, with the first line of the error, wherever ESLint loads the preset (an editor, the app's own lint script).
 
 **It has no Tailwind yet (Court's web app).** Add Tailwind 4, then write new UI with Tailwind only.
 1. `npm install -D tailwindcss@^4.1.17 @tailwindcss/vite@^4.1.17 eslint-plugin-better-tailwindcss@^4.10.0` (in a Yarn
@@ -163,11 +185,11 @@ sets `reportUnusedDisableDirectives` to `"off"` gets none, and those errors fail
 ## One package, three layers
 | Layer | Import from | Contents |
 |---|---|---|
-| Core primitives | `@kleros/ui-components-library` | 43 components, plus `<Name>Props` and item types (`TabsItem`, `DropdownSelectItem`, `TimelineItem`) |
-| App kit (shared by Kleros apps) | `@kleros/ui-components-library/kit` | Layout: `Page`, `Section`, `Stack`, `Inline`, `Grid`, `FormStack`. State: `QueryState`, `Skeleton`, `Spinner`, `EmptyState`, `ErrorState`, `InfoCard`. Status: `StatusBadge` (tones). Data: `StatCard`, `AddressDisplay`, `TokenAmount`, `DataTable`, `KeyValueList`, `Countdown`/`useCountdown`. Charts: `Sparkline`. Forms: `FormField`, `WizardShell`. App: `ExternalLink`, `HelpTooltip`, `ThemeToggle`, `applyInitialTheme`, `ChainGuard`. Helpers: `parseUnits`, `formatUnits`, `shortenAddress`, `useDarkMode`, `readToken`, `toneClasses`, `cn` |
+| Core primitives | `@kleros/ui-components-library` | 43 components, plus `<Name>Props` and item types for most of them (`TabsItem`, `DropdownSelectItem`, `TimelineItem`) |
+| App kit (shared by Kleros apps) | `@kleros/ui-components-library/kit` | Layout: `Page`, `Section`, `Stack`, `Inline`, `Grid`, `FormStack`. State: `QueryState`, `Skeleton`, `Spinner`, `EmptyState`, `ErrorState`, `InfoCard`. Status: `StatusBadge` (tones). Data: `StatCard`, `AddressDisplay`, `TokenAmount`, `DataTable`, `KeyValueList`, `Countdown`/`useCountdown`. Charts: `Sparkline`. Forms: `FormField`, `WizardShell`. App: `ExternalLink`, `HelpTooltip`, `ThemeToggle`, `applyInitialTheme`, `ChainGuard`. Helpers: `parseUnits`, `formatAmount`, `shortenAddress`, `useDarkMode`, `readToken`, `toneClasses`, `cn` |
 | Recipes (copy, then edit) | `recipes/*.tsx` in this package | `evidence-list.tsx`: search, paginated list through `QueryState` (loading, error with Retry, empty), submit modal with a `FormStack`. `vote-form.tsx`: radio group, 18-decimal amount, async submit, result, in a `FormStack` in a fluid `Card`. `case-page.tsx`: `Page`, a `Grid` stat row, `QueryState` per data view with mock data, tabs, timeline, address, dark mode |
 
-Recipes compile against this exact version. Copy one into your app and change it; never import from `recipes/`.
+Recipes compile against this exact version. Copy one into your app and change it; never import from `recipes/`. The starter's `src/App.tsx` renders kit `Page`, the page's `<main>`: a recipe that returns its own `Page` (`case-page.tsx`) replaces App's JSX, and the others (`vote-form.tsx`, `evidence-list.tsx`) go inside its `Page`.
 Project-specific components stay in your app. When a second app needs one, propose it for the kit.
 
 ## Layout, state and status (use these instead of divs with classes)
@@ -175,22 +197,32 @@ Project-specific components stay in your app. When a second app needs one, propo
   rows of buttons or tags: `<Inline gap={2}>`; card grids and stat rows: `<Grid minItemWidth={240} gap={4}>`;
   forms: `<FormStack actions={<><Button variant="secondary" .../><Button .../></>}>` (the buttons, secondary first; in
   one wrapper such as `<Inline>` they still fill a phone's width). `gap` only takes the steps 0 0.5 1 2 3 4 6 8 12 16.
+- The lint reports a local component with a library name (`Page`, `Button`): import the library's instead. One
+  exception: a Next.js route file's default export may be named `Page` (`export default function Page()` in
+  `app/**/page.tsx`, or in a file under `pages/`, also under `src/`). That name clashes with an import of kit `Page`, so
+  a route that uses the kit's shell names its component otherwise (`export default function CasePage()`).
 - Every data view (a list, table or detail fed by data, real or mock) renders through
-  `<QueryState isLoading isError data onRetry empty={{ title }}>{(data) => ...}</QueryState>`, which shows Skeleton
-  rows, ErrorState or EmptyState for you. A real query passes its own flags and `refetch` as `onRetry`. Mock data
+  `<QueryState isLoading isPending isError data onRetry empty={{ title }}>{(data) => ...}</QueryState>`, which shows
+  Skeleton rows, ErrorState or EmptyState for you. A real query spreads its result (`{...query}`), which passes its
+  flags, `isPending` included, so a query that has not started (a disabled one waiting for an address) shows the
+  skeleton, not the empty state; pass `refetch` as `onRetry`. A refetch that fails after a load keeps the loaded data
+  on screen: the error shows only when there is no data (`undefined` or `null`) or the data counts as empty. Mock data
   passes its array with `isLoading={false}`: no fake delay and no fake error. The empty state shows whenever the
   array is empty, a filter with no match included. `empty={{ title, description, action }}` takes an `action` as
   `{ text, onPress }` (a small Button) or a node, shown under the description; `errorTitle` replaces "Something went
   wrong".
 - Coloured status or period: `<StatusBadge tone="success|warning|error|info|neutral|accent">`. Court periods:
-  evidence info, commit neutral, vote accent, appeal warning, execution success. Never pick a colour per screen.
+  evidence info, commit neutral, vote accent, appeal warning, execution success. Never pick a colour per screen. The text is PrimaryText in every tone; the tone shows in the fill and in a dot, which is on by default (`dot={false}` hides it). Keep the dot: in light mode the fills are too faint to tell the tones apart.
 - Votes, tallies, rulings and appeals: list ruling 0, "Refuse to arbitrate", with its count and share, even at 0
   votes. Court's data already has it: Court's SDK (`populateTemplate` in `@kleros/kleros-sdk`) puts it first in a
   dispute's `answers` (`id` `0x0`, `reserved: true`). Add it yourself only when no answer has id 0 (a raw template, or
   mock data).
 - Time left: `<Countdown deadline={date} />` (live, absolute UTC in its title) or `useCountdown(deadline)`. Under a
   fixed clock (mocks, stories, tests, screenshots), pass `now`: `<Countdown deadline={date} now={NOW} />` or
-  `useCountdown(deadline, NOW)`. Both compute the time left from that moment and start no timer.
+  `useCountdown(deadline, NOW)`. Both compute the time left from that moment and start no timer. A number is
+  milliseconds: a chain or subgraph deadline in unix seconds needs `Number(periodEnd) * 1000` (raw seconds read
+  "Ended" and fire `onEnd` at once). A Countdown whose `onEnd` refetches stays mounted while that refetch loads: each
+  mount of a passed deadline calls `onEnd` again.
 - Charts: kit `Sparkline` for a small trend line. On your own SVG chart, colour with `stroke-`/`fill-klerosUIComponents*`
   token classes (they follow dark mode with no JavaScript). `readToken("SecondaryText")` only for canvas and chart
   libraries that need a colour string; re-read it on theme change (`useDarkMode()` re-renders when the class changes).
@@ -218,7 +250,8 @@ Project-specific components stay in your app. When a second app needs one, propo
   and `text` is the accessible name, so keep it plain words. Click with `onPress`, disable with `isDisabled`, busy
   with `isLoading`.
 - `Card` and `Modal` are fixed at 328x200 px unless you pass `fluid`, which sizes them to their content and container.
-  `Box` is fixed too: pass `className="h-auto w-full p-6"` (kit `StatCard` already does). Padding steps: 4 or 6 inside cards.
+  `Box` is fixed too, and draws an 18 px MediumBlue panel that the lint does not flag: for a panel use `Card fluid`, for
+  a stat tile kit `StatCard` (a `Card`, `p-4`). Padding steps: 4 or 6 inside cards.
   Use a plain `Card` (3 px radius): `round` draws 18 px, and the lint flags it.
 - `Tabs`: `items: {id, text, value, content}[]`, where `content` is the panel. `callback(key, value)`.
 - `DropdownSelect`: `items: {id, text, itemValue}[]`, and `callback(item)` receives the whole item.
@@ -241,16 +274,20 @@ Project-specific components stay in your app. When a second app needs one, propo
   name or an address with another part. Like `Button`, `text` is required, and children (a dot next to a label) show
   instead of it, with `text` as the accessible name. `toggle` announces `active` as pressed.
 - `BigNumberField`: `onChange(v)` gives a bignumber.js `BigNumber` in display units (ETH, not wei). Keep `v.toFixed()`
-  as a string and convert it with kit `parseUnits` on submit, not in `onChange` (the field swallows its throw on too
-  many decimals). Give the field `minValue="0"`, `showFieldError` and a `validate` that allows at most the token's
-  decimals (`recipes/vote-form.tsx`). Show wei with kit `TokenAmount`.
+  as a string, starting from `""`, and pass it back as `value`: a field that remounts (a chain switch under
+  `ChainGuard`, a `WizardShell` step) otherwise comes back empty while the app still holds the amount. Convert it with
+  kit `parseUnits(amount || "0")` on submit, not in `onChange` (the field swallows its throw on too many decimals).
+  Give the field `minValue="0"`, `showFieldError`, a `validate` that allows at most the token's decimals, and, for a
+  money amount, `isWheelDisabled` and a small `step` (the default step is one whole token) (`recipes/vote-form.tsx`).
+  Show wei with kit `TokenAmount`.
 - Kit `TokenAmount`: `value` is the amount in the token's smallest unit (wei for ETH), as a `bigint` or an integer
   string; a decimal string such as `"1.5"` throws. Put a decimal ETH amount through kit `parseUnits` first:
   `<TokenAmount value={parseUnits("1.5")} symbol="ETH" />`. A token with other decimals passes them to both:
-  `parseUnits("12.5", 6)` and `decimals={6}`. A non-zero amount too small for `maxFractionDigits` (default 4) shows
-  as `<0.0001`, while `formatUnits` returns `"0"` for it.
+  `parseUnits("12.5", 6)` and `decimals={6}`, once the token's decimals have loaded: an `undefined` `decimals` means 18. A non-zero amount too small for `maxFractionDigits` (default 4) shows
+  as `<0.0001`, while `formatAmount` returns `"0"` for it. `formatAmount` is display text (thousands separators,
+  truncated fraction): never read it back as a number; for maths keep the bigint.
 - `FileUploader`: `callback(file: File)`, plus `msg` and `variant`. `AlertMessage` takes no children.
-- `LinearProgress` needs `value`; leave `width` (px) out to fill the container. `CircularProgress` needs `value`;
+- `LinearProgress` needs `value`; leave `width` (px) out to fill the container; in a parent sized to its content (`w-fit`), pass `width`. `CircularProgress` needs `value`;
   `tone` sets its fill colour (default blue, green at 100%) and `aria-label` names it.
 - `Modal` is controlled with `isOpen` and `onOpenChange(open)`. There is no `onClose` and no title prop.
 - Names that do not exist: `Alert` (use `AlertMessage`), `RadioGroup` (`Radio`), `DatePicker` (`Datepicker`),
@@ -265,5 +302,5 @@ A pull request's reviewer goes through `agent/REVIEW.md`: the setup, `ui:check`,
 components with intent words, no raw controls. Go through it yourself before you open one.
 
 ## Wire this guide into an app
-`npx kleros-ui init` (`create` runs it for you) writes a short block into the app's `AGENTS.md` (between `kleros-ui`
+`npx -p @kleros/ui-components-library kleros-ui init` (`create` runs it for you) writes a short block into the app's `AGENTS.md` (between `kleros-ui`
 markers), `@AGENTS.md` in `CLAUDE.md`, a Cursor rule, `kleros-ui.json`, the lint preset and the `ui:check` script.

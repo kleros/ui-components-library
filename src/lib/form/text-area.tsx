@@ -16,6 +16,7 @@ import {
   FieldError,
 } from "react-aria-components";
 import { cn } from "../../utils";
+import { hasContent } from "../../utils/has-content";
 
 interface TextAreaProps extends TextFieldProps {
   variant?: "success" | "warning" | "error" | "info";
@@ -67,9 +68,9 @@ function TextArea({
       className={cn("box-border flex w-fit flex-col", className)}
       {...props}
     >
-      {(labelContent ?? label) && (
+      {(hasContent(labelContent) || label) && (
         <Label className="text-klerosUIComponentsSecondaryText mb-1 text-sm">
-          {labelContent ?? label}
+          {hasContent(labelContent) ? labelContent : label}
         </Label>
       )}
       <AriaTextArea
@@ -94,7 +95,7 @@ function TextArea({
           props.inputProps?.className,
         )}
       />
-      {(description ?? message) && (
+      {(hasContent(description) || message) && (
         <Text
           slot="description"
           className={cn(
@@ -119,7 +120,7 @@ function TextArea({
           {variant === "info" && (
             <InfoIcon className="fill-klerosUIComponentsSecondaryText mr-2 max-w-4 min-w-4" />
           )}
-          {description === undefined || description === null ? (
+          {!hasContent(description) ? (
             message
           ) : (
             // one flex item, so rich content flows inline beside the icon

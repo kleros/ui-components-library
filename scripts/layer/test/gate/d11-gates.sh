@@ -32,7 +32,7 @@ app() {
 probe() { printf '@layer base {\n  :root {\n    --klerosUIComponentsPrimaryText: #101010;\n    --klerosUIComponentsPrimaryBlue: #05a;\n  }\n  :root.dark {\n    --klerosUIComponentsPrimaryBlue: #6bf;\n  }\n}\n' > "$1"; }
 CSS0='css: 0 findings (0 token overrides, 0 colour literals, 0 Tailwind-only, 0 !important, 0 library internals, 0 theme) in 2 files scanned'
 
-# T1, T2: npx kleros-ui theme writes src/theme.css as @layer base { :root { } :root.dark { } } holding every library
+# T1, T2: npx -p @kleros/ui-components-library kleros-ui theme writes src/theme.css as @layer base { :root { } :root.dark { } } holding every library
 # token as a commented line with the library's own value (light in :root, dark in :root.dark, read from the theme.css
 # the app resolves), sets "theme", and imports it on the line right after the library's theme.css import; the app then
 # passes. Run again, it refuses, names the file and writes nothing; with the file deleted it writes the file alone,
@@ -62,7 +62,7 @@ process.exit(shape === "@layer base { :root { } :root.dark { } }" && same(":root
     && [[ -f src/theme.css ]] && [[ "$(grep -c '"theme"' kleros-ui.json)" == "1" ]] && [[ "$(grep -cF '@import "./theme.css";' src/index.css)" == "1" ]]) \
   && (cd "$A/brand" && node -e 'const f = "kleros-ui.json", fs = require("fs"); const c = JSON.parse(fs.readFileSync(f)); c.theme = "src/styles/brand.css"; fs.writeFileSync(f, JSON.stringify(c))' \
     && $CLI theme >/dev/null && [[ -f src/styles/brand.css ]] && grep -qxF '@import "./styles/brand.css";' src/index.css && $CLI check | grep -qx "ui:check passed") \
-  && echo "gate: d.11 (T1, T2): npx kleros-ui theme writes src/theme.css as @layer base { :root { } :root.dark { } } with every library token and its light or dark value as a comment, sets \"theme\" and imports it on the line after the library's theme.css, and the app passes; run again it refuses, names the file and writes nothing; the key and the import are written once; a \"theme\" key's own path is used"
+  && echo "gate: d.11 (T1, T2): npx -p @kleros/ui-components-library kleros-ui theme writes src/theme.css as @layer base { :root { } :root.dark { } } with every library token and its light or dark value as a comment, sets \"theme\" and imports it on the line after the library's theme.css, and the app passes; run again it refuses, names the file and writes nothing; the key and the import are written once; a \"theme\" key's own path is used"
 rm -rf "$A"
 
 # T3: in the declared theme file each case below is one css-theme finding, named at its line
@@ -85,7 +85,8 @@ app "$A/app" \
     && $CLI baseline >/dev/null && $CLI check | grep -qx "ui:check passed" \
     && printf '@layer base {\n  :root {\n    --klerosUIComponentsNope: #000;\n  }\n}\n' >> src/theme.css \
     && ! $CLI check >o2.txt && grep -q '^css: 1 new (baseline 7):' o2.txt && grep -q 'src/theme.css:26:5 --klerosUIComponentsNope is not a library token' o2.txt \
-    && ! $CLI check --build >/dev/null \
+    && ! $CLI check --build >o3.txt && grep -q 'src/theme.css:26:5 --klerosUIComponentsNope is not a library token' o3.txt \
+    && grep -q '^kleros-ui: the build stops here, before vite' o3.txt \
     && probe src/theme.css && $CLI css | grep -qxF "$CSS0" && $CLI check | grep -qx "ui:check passed") \
   && echo "gate: d.11 (T3): in the theme file an unknown token, the --color- alias, another property, !important, a selector other than :root or :root.dark, a rule outside @layer base and another at-rule are one css-theme finding each, named at their line; the probe's theme passes; css-theme findings are baselined per file, one more fails, and check --build ignores the baseline"
 rm -rf "$A"
@@ -130,21 +131,21 @@ app "$A/app" \
     && entry '3a @import "./theme.css";' 'src/index.css:4:1 @import "./theme.css" again: the Tailwind entry imports the theme file src/theme.css once' "0 Tailwind-only, 0 !important, 0 library internals, 1 theme" \
     && entry 's#^@import "./theme.css";#@import "./theme.css" layer(components);#' 'src/index.css:3:1 @import "./theme.css" layer(components): import the theme file plainly' "0 Tailwind-only, 0 !important, 0 library internals, 1 theme" \
     && entry '3d' 'src/index.css:2:1 The Tailwind entry does not import the theme file src/theme.css (kleros-ui.json "theme")' "0 Tailwind-only, 0 !important, 0 library internals, 1 theme" \
-    && ! grep -q "npx kleros-ui theme" o.txt \
+    && ! grep -q "npx -p @kleros/ui-components-library kleros-ui theme" o.txt \
     && entry 's#^@import "./theme.css";#@layer components {\n  @import "./theme.css";\n}#' 'src/index.css:4:3 @import "./theme.css" inside @layer components: import the theme file at the top level of the entry, right after @import "@kleros/ui-components-library/theme.css";' "0 Tailwind-only, 0 !important, 0 library internals, 1 theme" \
     && entry 's#^@import "./theme.css";#@media print { @import "./theme.css"; }#' 'src/index.css:3:16 @import "./theme.css" inside @media print: import the theme file at the top level' "0 Tailwind-only, 0 !important, 0 library internals, 1 theme" \
     && entry '3a @import "./brand.css";' 'src/index.css:4:1 @import "./brand.css" in the Tailwind entry, which imports only tailwindcss, @kleros/ui-components-library/theme.css and the theme file src/theme.css' "1 Tailwind-only, 0 !important, 0 library internals, 0 theme" \
     && entry '$a body { margin: 0; }' 'src/index.css:6:1 Style rule "body" in the Tailwind entry' "1 Tailwind-only, 0 !important, 0 library internals, 0 theme") \
-  && echo "gate: d.11 (T4, TH-1, DO-2): the Tailwind entry with the four lines and one plain theme import after the library's theme.css passes; the import before it, twice, with layer(), inside @layer components or @media print, or missing is a css-theme finding (missing, with the file there, it names the line to add, not npx kleros-ui theme), and another @import or a style rule is still a Tailwind-only one, its message naming the theme file"
+  && echo "gate: d.11 (T4, TH-1, DO-2): the Tailwind entry with the four lines and one plain theme import after the library's theme.css passes; the import before it, twice, with layer(), inside @layer components or @media print, or missing is a css-theme finding (missing, with the file there, it names the line to add, not npx -p @kleros/ui-components-library kleros-ui theme), and another @import or a style rule is still a Tailwind-only one, its message naming the theme file"
 rm -rf "$A"
 
 # T5: with a theme declared, a token redefined in the entry and the --color- alias in another stylesheet are css-token
-# findings that name the theme file and npx kleros-ui theme (with d.10's Tailwind-only findings besides; d.10's
+# findings that name the theme file and npx -p @kleros/ui-components-library kleros-ui theme (with d.10's Tailwind-only findings besides; d.10's
 # "redefines a library token" start is kept). With no theme declared, a src/theme.css that kleros-ui.json does not
 # name is a stylesheet outside the entry, as in d.10: d.10's findings and summary line, and the token message says to
-# run npx kleros-ui theme.
+# run npx -p @kleros/ui-components-library kleros-ui theme.
 # d.11 (DO-2, DO-3): theme refuses to write over that undeclared src/theme.css, so its token message names the key and
-# the import to add instead, and says to run npx kleros-ui theme only when no such file is there; the colour finding
+# the import to add instead, and says to run npx -p @kleros/ui-components-library kleros-ui theme only when no such file is there; the colour finding
 # on a token's line sends the value to the theme file rather than to "a token", and "no stylesheet besides the entry"
 # names the theme file too.
 A=$(mktemp -d -p "$WORK")
@@ -154,25 +155,26 @@ app "$A/app" && app "$A/plain" \
     && printf ':root {\n  --color-klerosUIComponentsPrimaryBlue: var(--klerosUIComponentsTint);\n}\n' > src/alias.css \
     && { $CLI css >o.txt; [[ $? -eq 1 ]]; } \
     && grep -qx "css: 4 findings (2 token overrides, 0 colour literals, 2 Tailwind-only, 0 !important, 0 library internals, 0 theme) in 3 files scanned" o.txt \
-    && grep -qF 'src/index.css:7:3 --klerosUIComponentsPrimaryText redefines a library token outside the theme file: set tokens only in src/theme.css (kleros-ui.json "theme", the file npx kleros-ui theme sets up)' o.txt \
-    && grep -qF "src/alias.css:2:3 --color-klerosUIComponentsPrimaryBlue redefines a library token through Tailwind's alias of --klerosUIComponentsPrimaryBlue outside the theme file: set --klerosUIComponentsPrimaryBlue itself, never the alias, only in src/theme.css (kleros-ui.json \"theme\", the file npx kleros-ui theme sets up)" o.txt \
+    && grep -qF 'src/index.css:7:3 --klerosUIComponentsPrimaryText redefines a library token outside the theme file: set tokens only in src/theme.css (kleros-ui.json "theme", the file npx -p @kleros/ui-components-library kleros-ui theme sets up)' o.txt \
+    && grep -qF "src/alias.css:2:3 --color-klerosUIComponentsPrimaryBlue redefines a library token through Tailwind's alias of --klerosUIComponentsPrimaryBlue outside the theme file: set --klerosUIComponentsPrimaryBlue itself, never the alias, only in src/theme.css (kleros-ui.json \"theme\", the file npx -p @kleros/ui-components-library kleros-ui theme sets up)" o.txt \
     && grep -q '^src/index.css:6:1 Style rule ":root" in the Tailwind entry' o.txt \
     && grep -qF 'src/alias.css:1:1 Style rule ":root" in a .css file outside the Tailwind entry: Tailwind only, so no stylesheet besides the one entry that imports tailwindcss (src/index.css as create writes it) and the theme file src/theme.css (kleros-ui.json "theme").' o.txt) \
   && (cd "$A/plain" && probe src/theme.css && { $CLI css >o.txt; [[ $? -eq 1 ]]; } \
     && grep -qx "css: 8 findings (3 token overrides, 3 colour literals, 2 Tailwind-only, 0 !important, 0 library internals) in 2 files scanned" o.txt \
-    && grep -qF 'src/theme.css:2:3 Style rule ":root" (in @layer base) in a .css file outside the Tailwind entry: Tailwind only, so no stylesheet besides the one entry that imports tailwindcss (src/index.css as create writes it) and one theme file for new token values, which npx kleros-ui theme sets up.' o.txt \
-    && grep -qF 'src/theme.css:3:5 --klerosUIComponentsPrimaryText redefines a library token, and kleros-ui.json declares no theme file. src/theme.css is there, so npx kleros-ui theme would refuse to write it: declare it with "theme": "src/theme.css" in kleros-ui.json, add @import "./theme.css"; to src/index.css right after @import "@kleros/ui-components-library/theme.css";, then set tokens only there.' o.txt \
-    && grep -qF 'src/theme.css:3:38 Colour literal #101010 in --klerosUIComponentsPrimaryText: a token'"'"'s new value, a hex included, goes only in the theme file that npx kleros-ui theme sets up (src/theme.css); the css-token finding on this line says how.' o.txt \
+    && grep -qF 'src/theme.css:2:3 Style rule ":root" (in @layer base) in a .css file outside the Tailwind entry: Tailwind only, so no stylesheet besides the one entry that imports tailwindcss (src/index.css as create writes it) and one theme file for new token values, which npx -p @kleros/ui-components-library kleros-ui theme sets up.' o.txt \
+    && grep -qF 'src/theme.css:3:5 --klerosUIComponentsPrimaryText redefines a library token, and kleros-ui.json declares no theme file. src/theme.css is there, so npx -p @kleros/ui-components-library kleros-ui theme would refuse to write it: declare it with "theme": "src/theme.css" in kleros-ui.json, add @import "./theme.css"; to src/index.css right after @import "@kleros/ui-components-library/theme.css";, then set tokens only there.' o.txt \
+    && grep -qF 'src/theme.css:3:38 Colour literal #101010 in --klerosUIComponentsPrimaryText: a token'"'"'s new value, a hex included, goes only in the theme file that npx -p @kleros/ui-components-library kleros-ui theme sets up (src/theme.css); the css-token finding on this line says how.' o.txt \
     && mv src/theme.css src/brand.css && { $CLI css >o2.txt; [[ $? -eq 1 ]]; } \
-    && grep -qF 'src/brand.css:3:5 --klerosUIComponentsPrimaryText redefines a library token, and this app has no theme file: run npx kleros-ui theme (it writes src/theme.css and imports it), then set tokens only there.' o2.txt) \
-  && echo "gate: d.11 (T5, DO-2, DO-3): a token redefined outside the declared theme file, the --color- alias included, is still a css-token finding, and its message names the theme file and npx kleros-ui theme; a theme-like src/theme.css kleros-ui.json does not declare gets d.10's findings and summary, and the message names the key and the import to add (theme would refuse that file); with no such file it says to run npx kleros-ui theme; a colour on a token's line points to the theme file, and the outside-the-entry message names it"
+    && grep -qF 'src/brand.css:3:5 --klerosUIComponentsPrimaryText redefines a library token, and this app has no theme file: run npx -p @kleros/ui-components-library kleros-ui theme (it writes src/theme.css and imports it), then set tokens only there.' o2.txt) \
+  && echo "gate: d.11 (T5, DO-2, DO-3): a token redefined outside the declared theme file, the --color- alias included, is still a css-token finding, and its message names the theme file and npx -p @kleros/ui-components-library kleros-ui theme; a theme-like src/theme.css kleros-ui.json does not declare gets d.10's findings and summary, and the message names the key and the import to add (theme would refuse that file); with no such file it says to run npx -p @kleros/ui-components-library kleros-ui theme; a colour on a token's line points to the theme file, and the outside-the-entry message names it"
 rm -rf "$A"
 
 # B1 (D37): the lint preset's restrictions are kleros-ui/no-restricted-syntax and kleros-ui/no-restricted-imports,
 # ESLint's own rules registered again in its plugin (from eslint/use-at-your-own-risk; run.sh has no ESLint, so
-# cli-lint-load.mjs gives the preset gate/eslint-stand-in.mjs). After init wraps an app config that sets its own
-# no-restricted-imports and no-restricted-syntax, the rules ESLint applies to src/App.tsx keep the app's options under
-# the core ids and the preset's (styled-components, raw <button>) under the kleros-ui ids. A baseline from before d.11
+# cli-lint-load.mjs gives the preset gate/eslint-stand-in.mjs). After init over an app config that sets its own
+# no-restricted-imports and no-restricted-syntax (left as it was; kleros-ui.eslint.config.mjs, which ui:check lints
+# with, imports it: review F2), the rules ESLint applies to src/App.tsx keep the app's options under the core ids and
+# the preset's (styled-components, raw <button>) under the kleros-ui ids. A baseline from before d.11
 # (no "version") counts the preset's errors under the core ids, read as the new ones: check passes on the same count
 # and fails on one more; an app's own core-id error is reported, not failed; ui:baseline writes "version", and then
 # one more fails.
@@ -192,8 +194,9 @@ export default [
 EOF
 # eslint -f json as the stub prints it: one file, src/App.tsx, with an error under each rule id given.
 lintout() { node -e 'const [dir, ...ids] = process.argv.slice(1); console.log(JSON.stringify([{ filePath: dir + "/src/App.tsx", messages: ids.map((ruleId, i) => ({ severity: 2, ruleId, line: i + 1, column: 1, message: "stub error under " + ruleId })) }]))' "$PWD" "$@" > eslint-out.json; }
-(cd "$A/lint" && $CLI init >/dev/null && grep -q '^import app from "./eslint.config.app.mjs";' eslint.config.mjs \
-  && node "$P/gate/cli-lint-load.mjs" . src/App.tsx >rules.txt && [[ "$(head -1 rules.txt)" == "eslint.config.mjs" ]] \
+(cd "$A/lint" && cp eslint.config.mjs own.mjs && $CLI init >/dev/null && cmp -s eslint.config.mjs own.mjs && [[ ! -e eslint.config.app.mjs ]] \
+  && grep -q '^import app from "./eslint.config.mjs";' kleros-ui.eslint.config.mjs \
+  && node "$P/gate/cli-lint-load.mjs" . src/App.tsx >rules.txt && [[ "$(head -1 rules.txt)" == "kleros-ui.eslint.config.mjs" ]] \
   && tail -1 rules.txt | node -e '
 const m = JSON.parse(require("fs").readFileSync(0, "utf8")); const r = m.rules;
 const ok = r["no-restricted-imports"]?.[1]?.patterns?.[0]?.message === "APP RULE: no lodash." && r["no-restricted-imports"].length === 2
@@ -256,9 +259,9 @@ app "$A/app" \
     && $CLI check --build >o4.txt && grep -qx "kleros-ui check --build passed" o4.txt && grep -q '^note: kleros-ui.json: Bare has no intent words' o4.txt \
     && B=$(snapshot .) && { $CLI new Loose --intent period badge >"$A/o5.txt" 2>&1; [[ $? -eq 1 ]]; } && [[ "$(snapshot .)" == "$B" ]] \
     && grep -q 'unexpected badge; quote the intent words as one argument: --intent "period badge, status chip"' "$A/o5.txt") \
-  && app "$A/gap" && GAP=$(grep -o '`npx kleros-ui new TxLink [^`]*`' "$LIB/agent/CATALOG.md" | tr -d '`') \
-  && [[ "$(grep -c 'npx kleros-ui new ' "$LIB/agent/CATALOG.md")" == "$(grep -c 'npx kleros-ui new [A-Za-z]* --kind [a-z]* --intent "' "$LIB/agent/CATALOG.md")" ]] \
-  && (cd "$A/gap" && eval "$CLI ${GAP#npx kleros-ui }" >/dev/null \
+  && app "$A/gap" && GAP=$(grep -o '`npx -p @kleros/ui-components-library kleros-ui new TxLink [^`]*`' "$LIB/agent/CATALOG.md" | tr -d '`') \
+  && [[ "$(grep -c 'npx -p @kleros/ui-components-library kleros-ui new ' "$LIB/agent/CATALOG.md")" == "$(grep -c 'npx -p @kleros/ui-components-library kleros-ui new [A-Za-z]* --kind [a-z]* --intent "' "$LIB/agent/CATALOG.md")" ]] \
+  && (cd "$A/gap" && eval "$CLI ${GAP#npx -p @kleros/ui-components-library kleros-ui }" >/dev/null \
     && node -e 'const c = require(process.argv[1]).components.find((x) => x.name === "TxLink"); process.exit(c?.intent?.includes("tx hash") ? 0 : 1)' "$PWD/kleros-ui.json" \
     && $CLI check >o.txt && grep -qx "ui:check passed" o.txt && ! grep -q "no intent words" o.txt) \
   && echo "gate: d.11 (B2, X1-C1, DO-4): new --intent writes the comma-separated words, trimmed and once each, to the registry entry; an entry with no intent words is a note in check and check --build, never a failure; unquoted words are refused and nothing is written; every scaffold command in CATALOG.md passes the gap's intent words, and the TxLink one, run as written, leaves no note"

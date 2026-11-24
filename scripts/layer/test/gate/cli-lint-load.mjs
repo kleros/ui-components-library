@@ -2,6 +2,8 @@
 // eslint.config.{js,mjs,cjs} in the folder (then the TypeScript names, which need jiti and are not tried here) and
 // import()s it, so Node's module type rules decide whether it loads: a .js file is an ES module only under
 // "type": "module". Prints the file it loaded; exits 1 when it does not load or does not carry the Kleros UI preset.
+// The config ui:check lints with comes first, as check takes it: kleros-ui.eslint.config.mjs (or .mts), which init
+// writes in an existing app (check passes it to ESLint with -c), then the app's own eslint.config.*.
 // usage: node cli-lint-load.mjs <app folder> [file]
 // d.11 (B1): with a file (a path from the app folder, such as src/App.tsx), a second line holds, as JSON, the rules
 // ESLint would apply to it ("rules": each block whose files match, in order, a later block's options replacing an
@@ -15,7 +17,7 @@ import { join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const dir = resolve(process.argv[2] || ".");
-const name = ["eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "eslint.config.ts", "eslint.config.mts", "eslint.config.cts"].find((f) =>
+const name = ["kleros-ui.eslint.config.mjs", "kleros-ui.eslint.config.mts", "eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "eslint.config.ts", "eslint.config.mts", "eslint.config.cts"].find((f) =>
   existsSync(join(dir, f)),
 );
 if (!name || /\.[cm]?ts$/.test(name)) {
@@ -38,7 +40,8 @@ if (!preset) {
 console.log(name);
 const file = process.argv[3];
 if (file) {
-  // A flat config's files patterns, enough for the gates' configs: **, *, ? and {a,b}, matched from the app folder.
+  // A flat config's files patterns, enough for the gates' configs: **, *, ?, {a,b}, [abc] (init puts each glob character
+  // of a folder name in a class: app/[[]id[]] is the folder app/[id]) and a \ escape, matched from the app folder.
   const glob = (g) => {
     let re = "";
     for (let i = 0; i < g.length; i++) {
@@ -51,12 +54,18 @@ if (file) {
       else if (c === "{") re += "(?:";
       else if (c === "}") re += ")";
       else if (c === ",") re += "|";
-      else re += c.replace(/[.+^$()|[\]\\]/g, "\\$&");
+      else if (c === "\\" && i + 1 < g.length) re += g[++i].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      else if (c === "[" && g.indexOf("]", i + 2) > i) {
+        const j = g.indexOf("]", i + 2);
+        const body = g.slice(i + 1, j).replace(/[\\\]^[]/g, "\\$&");
+        re += `[${body.startsWith("!") ? `^${body.slice(1)}` : body}]`;
+        i = j;
+      } else re += c.replace(/[.+^$()|[\]\\]/g, "\\$&");
     }
     return new RegExp(`^${re}$`);
   };
   const path = relative(dir, resolve(dir, file)).split(sep).join("/");
-  const applies = (c) => !c.files || c.files.flat().some((g) => typeof g === "string" && glob(g).test(path));
+  const applies = (c) => !c.files || c.files.some((g) => [g].flat().every((p) => typeof p === "string" && glob(p).test(path)));
   const rules = {};
   const pluginRules = {};
   let builtin = null;

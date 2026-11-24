@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { cn } from "../../utils";
+import { hasContent } from "../../utils/has-content";
 import {
   Button as AriaButton,
   type ButtonProps as AriaButtonProps,
@@ -114,7 +115,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       {...{ variant, isLoading, isDisabled, ...props }}
       ref={setRefs}
       aria-label={
-        props["aria-label"] ?? (children === undefined ? undefined : text)
+        props["aria-label"] ?? (hasContent(children) ? text : undefined)
       }
     >
       {(values) => (

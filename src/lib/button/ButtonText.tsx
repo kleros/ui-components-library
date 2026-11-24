@@ -1,6 +1,7 @@
 import React from "react";
 import { ButtonProps } from ".";
 import { cn } from "../../utils";
+import { hasContent } from "../../utils/has-content";
 
 const ButtonText: React.FC<
   Pick<ButtonProps, "text" | "isDisabled" | "isLoading" | "variant"> & {
@@ -9,8 +10,9 @@ const ButtonText: React.FC<
   }
 > = ({ text, children, isDisabled, isLoading, variant }) => {
   const isSecondary = variant === "secondary";
-  // children can be rich, which a <p> does not allow
-  const Element = children === undefined ? "p" : "span";
+  // children can be rich, which a <p> does not allow; false, null and undefined fall back to text
+  const rich = hasContent(children);
+  const Element = rich ? "span" : "p";
   return (
     <Element
       className={cn(
@@ -21,7 +23,7 @@ const ButtonText: React.FC<
         isDisabled && ["text-klerosUIComponentsStroke"],
       )}
     >
-      {children ?? text}
+      {rich ? children : text}
     </Element>
   );
 };

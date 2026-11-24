@@ -289,7 +289,7 @@
         "18 decimals input",
         "eth input"
       ],
-      "props": "onChange(v: BigNumber in display units): keep v.toFixed() as a string and convert it with kit parseUnits on submit, not in onChange (the field swallows its throw); minValue=\"0\", validate (at most the token's decimals), showFieldError"
+      "props": "value (from \"\"; pass back the v.toFixed() string kept from onChange, so a remounted field shows it again), onChange(v: BigNumber in display units): convert with kit parseUnits(amount || \"0\") on submit, not in onChange (the field swallows its throw); minValue=\"0\", validate (at most the token's decimals), showFieldError; for money isWheelDisabled and a small step"
     },
     {
       "name": "Datepicker",
@@ -323,7 +323,7 @@
         "court tree",
         "hierarchy select"
       ],
-      "props": "items: {label, value, children}[]"
+      "props": "items: {id, label, itemValue, children?}[] (DropdownCascaderItem)"
     },
     {
       "name": "Slider",
@@ -390,7 +390,7 @@
         "percentage bar",
         "funding progress"
       ],
-      "props": "value (0-100); width (px) optional: leave it out to fill the container"
+      "props": "value (0-100); width (px) optional: leave it out to fill the container; in a parent sized to its content (w-fit), pass width"
     },
     {
       "name": "CircularProgress",
@@ -853,7 +853,7 @@
         "fixed now",
         "mock time"
       ],
-      "description": "Time left until a deadline: live (re-rendered every second), or computed from a fixed `now` with no timer, for mocks and stories."
+      "description": "Time left until a deadline (a number is milliseconds: a unix-seconds chain or subgraph timestamp needs `* 1000`): live (re-rendered every second), or computed from a fixed `now` with no timer, for mocks and stories."
     },
     {
       "name": "Countdown",
@@ -870,7 +870,7 @@
         "fixed now",
         "mock time"
       ],
-      "description": "Time left until a deadline, in a `time` element with the UTC time as its tooltip: live, or static text from a fixed `now` (mocks, stories, screenshots)."
+      "description": "Time left until a deadline (a number is milliseconds: a unix-seconds chain or subgraph timestamp needs `* 1000`), in a `time` element with the UTC time as its tooltip: live, or static text from a fixed `now` (mocks, stories, screenshots)."
     },
     {
       "name": "readToken",

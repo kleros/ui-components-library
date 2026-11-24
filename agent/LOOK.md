@@ -7,7 +7,7 @@ Tailwind only, in every app: classes in `className`, and no CSS of your own besi
   borders), WhiteBackground (cards) on LightBackground (page), PrimaryBlue (actions, links), Success, Warning and
   Error with their `*Light` backgrounds. Statuses: `StatusBadge tone=` or `toneClasses(tone)`. The `.dark` class on
   `<html>` flips every token, so there is no second palette.
-- **Theme:** an app with colours of its own changes the tokens' values in its theme file (`npx kleros-ui theme`;
+- **Theme:** an app with colours of its own changes the tokens' values in its theme file (`npx -p @kleros/ui-components-library kleros-ui theme`;
   AGENTS.md, "Themes"), never the classes. Its code keeps the same token classes, and its contrast is the app's to
   check in light and dark.
 - **Radius:** `rounded-base` (3px) for cards, inputs and buttons, and a plain `Card`; `rounded-full` for dots, avatars
@@ -22,7 +22,10 @@ Tailwind only, in every app: classes in `className`, and no CSS of your own besi
 in the theme file only), `dark:` colour classes, `--klerosUIComponents*` tokens redefined outside the theme file,
 padding, margin and gap off the steps, radius other than `rounded-base`, `rounded-full` or `rounded-none`, font sizes
 above `text-2xl` or in brackets, weights other than `font-normal` and `font-semibold`, and `Card round`, and each
-message names what to use instead.
+message names what to use instead. The class rules (palette, `dark:`, spacing, radius and type classes) need
+`eslint-plugin-better-tailwindcss` in the app: without it, or when it fails to load, they are off, and `ui:check` says so in a note (AGENTS.md,
+"Existing apps"). A plugin that is installed but fails to load also gets a warning from the preset wherever ESLint
+loads it.
 
 If the scale lacks a value, use the nearest step and say so in your summary; never invent a token. Containers, data
 states, charts and component traps are in AGENTS.md.

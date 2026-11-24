@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, type ButtonProps } from "react-aria-components";
 import { cn } from "../../utils";
+import { hasContent } from "../../utils/has-content";
 import clsx from "clsx";
 
 interface BaseTagProps extends ButtonProps {
@@ -31,12 +32,11 @@ function Tag({
   className,
   ...props
 }: Readonly<TagProps>) {
-  const Label = children === undefined ? "p" : "span";
   return (
     <Button
       {...props}
       aria-label={
-        props["aria-label"] ?? (children === undefined ? undefined : text)
+        props["aria-label"] ?? (hasContent(children) ? text : undefined)
       }
       aria-pressed={toggle ? !!active : props["aria-pressed"]}
       className={cn(
@@ -47,20 +47,23 @@ function Tag({
         className,
       )}
     >
-      {(values) => (
-        <Label
-          className={clsx(
-            "hover-short-transition text-klerosUIComponentsPrimaryBlue text-base",
-            !active && ["hover:text-klerosUIComponentsSecondaryBlue"],
-          )}
-        >
-          {children === undefined
-            ? text
-            : typeof children === "function"
-              ? children(values)
-              : children}
-        </Label>
-      )}
+      {(values) => {
+        // Resolve a render function first; false, null and undefined fall back to text, in a <p> as before
+        const content =
+          typeof children === "function" ? children(values) : children;
+        const rich = hasContent(content);
+        const Label = rich ? "span" : "p";
+        return (
+          <Label
+            className={clsx(
+              "hover-short-transition text-klerosUIComponentsPrimaryBlue text-base",
+              !active && ["hover:text-klerosUIComponentsSecondaryBlue"],
+            )}
+          >
+            {rich ? content : text}
+          </Label>
+        );
+      }}
     </Button>
   );
 }

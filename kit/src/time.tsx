@@ -41,17 +41,18 @@ function split(deadlineMs: number, nowMs: number): CountdownParts {
 }
 
 /**
- * Time left until a deadline: live (re-rendered every second), or computed from a fixed `now` with no timer, for mocks and stories.
+ * Time left until a deadline (a number is milliseconds: a unix-seconds chain or subgraph timestamp needs `* 1000`): live (re-rendered every second), or computed from a fixed `now` with no timer, for mocks and stories.
  * Live by default: the interval is cleared on unmount and once the deadline passes.
  * With `now`, the time left is computed from that fixed moment instead of the clock, and no interval or timer starts:
  * use it for mocks, stories, tests and screenshots with a fixed clock, and for a server render that must hydrate to the
  * same values. The result follows `now` when it changes. Leave `now` out (or `undefined`) for the live clock.
  * The hook stores the clock, not the result, so a new `deadline` shows in the same render: a live countdown that has
  * ended and gets a later deadline (a refetch that extends a period) does not read as over for a frame.
- * @param deadline a `Date`, milliseconds since the epoch, or an ISO 8601 string
+ * @param deadline a `Date`, milliseconds since the epoch (not seconds: pass `Number(periodEnd) * 1000` for a chain
+ *   timestamp), or an ISO 8601 string
  * @param now a fixed "now" in the same forms, for a fixed clock; leave it out for the live clock
  * @intent countdown, deadline, time left, timer, remaining time, hook, fixed clock, fixed now, mock time
- * @example const { days, hours, isOver } = useCountdown(periodEnd);
+ * @example const { days, hours, isOver } = useCountdown(Number(periodEnd) * 1000); // periodEnd in unix seconds
  * @example const left = useCountdown("2026-10-31T16:00:00Z", "2026-10-29T12:00:00Z"); // fixed clock: 2 days 4 hours, no timer
  */
 export function useCountdown(deadline: Date | number | string, now?: Date | number | string): CountdownParts {
@@ -81,7 +82,7 @@ export function useCountdown(deadline: Date | number | string, now?: Date | numb
 }
 
 export interface CountdownProps {
-  /** A `Date`, milliseconds since the epoch, or an ISO 8601 string. */
+  /** A `Date`, milliseconds since the epoch, or an ISO 8601 string. A unix-seconds timestamp needs `* 1000`. */
   deadline: Date | number | string;
   /** A fixed "now" (a `Date`, milliseconds or an ISO 8601 string) for mocks, stories, tests and screenshots: the text is computed from it, and no interval or timer starts. Leave it out for the live clock. */
   now?: Date | number | string;
@@ -93,7 +94,13 @@ export interface CountdownProps {
   format?: "short" | "long";
   /** Text shown after the deadline. @default "Ended" */
   overText?: string;
-  /** Called once when the deadline passes while mounted, and on mount when it has already passed (with a fixed `now` too). */
+  /**
+   * Called once when the deadline passes while mounted, and on mount when it has already passed (with a fixed `now`
+   * too). Each mount of a passed deadline calls it again (twice on mount under React's StrictMode in development). So
+   * when `onEnd` starts a refetch, keep the Countdown mounted while that refetch loads: a loading view that replaces
+   * it, such as a `QueryState` whose `isLoading` is true on every fetch and not only the first, remounts it after each
+   * fetch, and each remount calls `onEnd` again, in a loop.
+   */
   onEnd?: () => void;
   className?: string;
 }
@@ -116,10 +123,10 @@ function formatParts(p: CountdownParts, format: "short" | "long"): string {
 }
 
 /**
- * Time left until a deadline, in a `time` element with the UTC time as its tooltip: live, or static text from a fixed `now` (mocks, stories, screenshots).
+ * Time left until a deadline (a number is milliseconds: a unix-seconds chain or subgraph timestamp needs `* 1000`), in a `time` element with the UTC time as its tooltip: live, or static text from a fixed `now` (mocks, stories, screenshots).
  * Use instead of hand-written setInterval timers. Live by default. With `now` (a fixed clock for mocks, stories, tests and screenshots), it renders static text computed from that moment and starts no timer.
  * @intent countdown, deadline, time left, timer, remaining time, ends in, clock, fixed clock, fixed now, mock time
- * @example <Countdown deadline={dispute.periodEnd} format="long" onEnd={refetch} />
+ * @example <Countdown deadline={Number(dispute.periodEnd) * 1000} format="long" onEnd={refetch} /> // unix seconds
  * @example <Countdown deadline="2026-10-31T16:12:00Z" now="2026-10-29T12:00:00Z" /> // "2d 4h 12m", no timer
  */
 export function Countdown({ deadline, now, format = "short", overText = "Ended", onEnd, className }: Readonly<CountdownProps>) {

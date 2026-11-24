@@ -85,13 +85,15 @@ export function AddressDisplay({ address, chars = 4, explorerUrl, copyInfo = "Co
 }
 
 /**
- * Formats an integer amount in base units (wei) for display: `formatUnits(1500000000000000000n)` is `"1.5"`.
+ * Formats an integer amount in base units (wei) for display: `formatAmount(1500000000000000000n)` is `"1.5"`.
+ * The text is for display only, with thousands separators ("1,234.5") and a truncated fraction: `Number` and
+ * `parseUnits` cannot read it back. For maths keep the bigint, or use viem's or ethers' exact `formatUnits`.
  * @param value bigint or decimal string in base units
  * @param decimals token decimals. @default 18
  * @param maxFractionDigits digits kept after the point (truncated): a non-zero amount below the last digit kept comes
  *   out as 0, which `TokenAmount` shows as `<0.0001` instead. @default 4
  */
-export function formatUnits(value: bigint | string, decimals = 18, maxFractionDigits = 4): string {
+export function formatAmount(value: bigint | string, decimals = 18, maxFractionDigits = 4): string {
   const v = BigInt(value);
   const neg = v < 0n;
   const abs = neg ? -v : v;
@@ -107,22 +109,32 @@ export function formatUnits(value: bigint | string, decimals = 18, maxFractionDi
 
 /**
  * Converts a decimal string in display units to base units: `parseUnits("1.5")` is `1500000000000000000n`.
- * With the core `BigNumberField`, keep the amount as a string and call parseUnits on submit, not in `onChange`: the
- * field swallows a throw from `onChange`, so the app would keep the last amount that parsed. Have the field reject a
- * negative amount and more decimals than the token has (18 here; a token with other decimals passes them to both
- * `validate` and parseUnits), and don't send while parseUnits throws.
+ * With the core `BigNumberField`, keep the amount as a string and pass it back as `value`, so a field that remounts
+ * (a chain switch under `ChainGuard`, a `WizardShell` step) shows it again. Call parseUnits on submit, not in
+ * `onChange`: the field swallows a throw from `onChange`, so the app would keep the last amount that parsed. Have the
+ * field reject a negative amount and more decimals than the token has (18 here; a token with other decimals passes
+ * them to both `validate` and parseUnits), and don't send while parseUnits throws.
  * @example
- * <BigNumberField label="Amount (ETH)" minValue="0" showFieldError onChange={(v) => setAmount(v.toFixed())}
+ * const [amount, setAmount] = useState(""); // an empty field is ""
+ * <BigNumberField label="Amount (ETH)" minValue="0" showFieldError value={amount}
+ *   onChange={(v) => setAmount(v.toFixed())}
  *   validate={(v) => (v?.decimalPlaces() ?? 0) <= 18 || "At most 18 decimals"} />
- * // on submit: const wei = parseUnits(amount);
- * @throws on more fraction digits than `decimals` or on a non-numeric string
+ * // on submit: const wei = parseUnits(amount || "0");
+ * @throws on more fraction digits than `decimals`, on a non-numeric string, or when `decimals` is not a whole number
+ *   from 0 up (NaN, null, 6.5, -1). A digit string such as `"6"` (untyped JSON) counts as that number. An omitted or
+ *   `undefined` `decimals` means 18, so wait for a token's decimals to load before calling it.
  */
 export function parseUnits(value: string, decimals = 18): bigint {
+  // Untyped data (a subgraph's JSON) can hold the decimals as a digit string: "6" counts as 6, as it always did.
+  const d = typeof decimals === "string" && /^\d+$/.test(decimals) ? Number(decimals) : decimals;
+  if (!Number.isInteger(d) || d < 0) {
+    throw new Error(`parseUnits: decimals must be a whole number from 0 up: ${decimals}`);
+  }
   const m = /^(-)?(\d*)(?:\.(\d*))?$/.exec(value.trim());
   if (!m || (!m[2] && !m[3])) throw new Error(`parseUnits: not a number: "${value}"`);
   const frac = m[3] ?? "";
-  if (frac.length > decimals) throw new Error(`parseUnits: more than ${decimals} decimals`);
-  const v = BigInt((m[2] || "0") + frac.padEnd(decimals, "0"));
+  if (frac.length > d) throw new Error(`parseUnits: more than ${d} decimals`);
+  const v = BigInt((m[2] || "0") + frac.padEnd(d, "0"));
   return m[1] ? -v : v;
 }
 
@@ -134,7 +146,7 @@ export interface TokenAmountProps {
   /** @default 18 */
   decimals?: number;
   /**
-   * Digits kept after the point (truncated, as in `formatUnits`). A non-zero amount below the last digit shows as
+   * Digits kept after the point (truncated, as in `formatAmount`). A non-zero amount below the last digit shows as
    * `<0.0001` (`-<0.0001` when negative), built from this value: `<0.01` for 2, `<1` for 0. @default 4
    */
   maxFractionDigits?: number;
@@ -148,7 +160,7 @@ export interface TokenAmountProps {
  */
 export function TokenAmount({ value, symbol, decimals = 18, maxFractionDigits = 4, className }: Readonly<TokenAmountProps>) {
   const v = BigInt(value);
-  let text = formatUnits(v, decimals, maxFractionDigits);
+  let text = formatAmount(v, decimals, maxFractionDigits);
   // Truncation reads 0.00005 ETH as "0" (Sparkline's default format handles the same case): show the smallest step.
   if (v !== 0n && /^-?0$/.test(text)) {
     const step = maxFractionDigits > 0 ? "0." + "0".repeat(maxFractionDigits - 1) + "1" : "1";
@@ -197,6 +209,14 @@ export interface DataTableProps<T> {
 
 // A click on one of these inside a pressable row is that element's own action, not a row press.
 const ROW_INTERACTIVE = "a, button, input, select, textarea, label, [role=button], [role=link]";
+// The same for a core Slider: a role="group" around a hidden range input, so a click on its track or thumb lands on
+// divs. Found without :has(), which closest() throws on in Firefox before 121.
+function isOwnAction(target: Element, row: Element): boolean {
+  const hit = target.closest(ROW_INTERACTIVE);
+  if (hit && row.contains(hit)) return true;
+  const group = target.closest("[role=group]");
+  return !!group && row.contains(group) && group.querySelector("input[type=range]") !== null;
+}
 // A pressable row: the hover highlight, and on keyboard focus the same highlight with a ring inside the row.
 // MediumBlue is the core's hover colour for Select options and shows in both themes; LightGrey (#fafafa) did not show
 // on a light page or card.
@@ -221,7 +241,7 @@ export function DataTable<T>({ columns, rows, rowKey, isLoading, empty, onRowPre
         <thead className="bg-klerosUIComponentsLightBackground text-klerosUIComponentsSecondaryText">
           <tr>
             {columns.map((c) => (
-              <th key={c.key} className={cn(cell(c), "font-medium")} style={{ width: c.width }}>
+              <th key={c.key} className={cn(cell(c), "font-semibold")} style={{ width: c.width }}>
                 {c.header}
               </th>
             ))}
@@ -243,8 +263,7 @@ export function DataTable<T>({ columns, rows, rowKey, isLoading, empty, onRowPre
                   onClick={
                     onRowPress
                       ? (e) => {
-                          const hit = (e.target as Element).closest(ROW_INTERACTIVE);
-                          if (!hit || !e.currentTarget.contains(hit)) onRowPress(row);
+                          if (!isOwnAction(e.target as Element, e.currentTarget)) onRowPress(row);
                         }
                       : undefined
                   }

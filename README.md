@@ -19,8 +19,8 @@ The Kleros UI Components Library is a comprehensive collection of React componen
 Built with React, TypeScript, and Tailwind CSS, this library offers a wide range of components from basic UI elements to complex interactive widgets. Each component is designed with accessibility, customization, and ease of use in mind.
 
 **Setup, for people and AI coding agents:** a new app runs `npx -p @kleros/ui-components-library kleros-ui create my-app`.
-An existing app installs it (`npm install @kleros/ui-components-library`), then runs `npx kleros-ui init` once,
-before writing UI. Either one points coding agents at
+An existing app installs it (`npm install @kleros/ui-components-library`), then runs `npx -p @kleros/ui-components-library kleros-ui init` once
+in the app's own folder (`web/` in a monorepo), before writing UI. Either one points coding agents at
 `agent/AGENTS.md`. Details under [Usage](#usage).
 
 ## Features
@@ -60,7 +60,7 @@ npm install @kleros/ui-components-library
 
 1. New app: let the package's CLI write this setup; do not write it by hand:
    `npx -p @kleros/ui-components-library kleros-ui create my-app`. From a tarball, in the new folder:
-   `echo '{}' > package.json`, `npm install ./x.tgz`, then `npx kleros-ui create .`. See "Starting a new app, and AI
+   `echo '{}' > package.json`, `npm install ./x.tgz`, then `npx -p @kleros/ui-components-library kleros-ui create .`. See "Starting a new app, and AI
    agents" below.
    Every app styles its UI with Tailwind 4 only, so an existing app without Tailwind adds it first (`agent/AGENTS.md`,
    "Existing apps"). The two parts `create` writes:
@@ -82,13 +82,14 @@ npm install @kleros/ui-components-library
    @custom-variant dark (&:where(.dark, .dark *));
    ```
 
-   With a theme, `npx kleros-ui theme` adds one line right after the library's `theme.css` import:
+   With a theme, `npx -p @kleros/ui-components-library kleros-ui theme` adds one line right after the library's `theme.css` import:
    `@import "./theme.css";`.
 
 2. Dark mode is a `dark` class on the root element: `document.documentElement.classList.add("dark")`.
 
-3. Import and use components. Every component's props are exported as `<Name>Props`, and list items as
-   `TabsItem`, `DropdownSelectItem`, `TimelineItem` and so on.
+3. Import and use components. Component props are exported as `<Name>Props`, and list items as `TabsItem`,
+   `DropdownSelectItem`, `TimelineItem` and so on. Not yet exported: the props of `CustomRadioItem` and
+   `RadioIndicator`, and the items of `CustomAccordion`, `CustomRadio` and `DraggableList`.
 
 ```tsx
 import { useState } from "react";
@@ -124,7 +125,7 @@ The theme variables are in `theme.css` (prefix `--klerosUIComponents`), and the 
 them. Use them as Tailwind classes, such as `bg-klerosUIComponentsWhiteBackground` and
 `text-klerosUIComponentsPrimaryText`. `agent/LOOK.md` says which token goes where.
 
-An app with colours of its own sets new token values in one theme file, and nowhere else. `npx kleros-ui theme`
+An app with colours of its own sets new token values in one theme file, and nowhere else. `npx -p @kleros/ui-components-library kleros-ui theme`
 writes `src/theme.css` (each library token and its value as a commented line), names it under `"theme"` in
 `kleros-ui.json`, and imports it in your Tailwind entry right after the library's `theme.css`. To change a token,
 uncomment its line and set the value: on `:root` for light and on `:root.dark` for dark, inside `@layer base`:
@@ -155,7 +156,7 @@ This library requires the following peer dependencies:
   app renders a blank page.
 - Tailwind CSS 4 (peer range `^4.0.11`), which is enough for the core components. The kit and the lint preset need
   4.1.17 or later: before 4.1, the `@source` line of Setup b can scan none of the kit, and the lint preset's plugin
-  (`eslint-plugin-better-tailwindcss`) needs 4.1.17. `npx kleros-ui check` says so in an app on Tailwind before 4.1.
+  (`eslint-plugin-better-tailwindcss`) needs 4.1.17. `npx -p @kleros/ui-components-library kleros-ui check` says so in an app on Tailwind before 4.1.
 
 Make sure these are installed in your project.
 
@@ -164,16 +165,19 @@ Make sure these are installed in your project.
 - **New app:** `npx -p @kleros/ui-components-library kleros-ui create my-app`. It copies the package's starter
   (`templates/poc`: Vite, React 18, Tailwind 4, ESLint, this library's CSS and the dark-mode variant), sets the library
   version, runs `npm install` and then `init`. From a tarball, in the new folder: `echo '{}' > package.json`,
-  `npm install ./x.tgz`, then `npx kleros-ui create .` (the empty `package.json` keeps npm in this folder; without
+  `npm install ./x.tgz`, then `npx -p @kleros/ui-components-library kleros-ui create .` (the empty `package.json` keeps npm in this folder; without
   one, npm installs into the nearest folder above that has one). Then `npm run ui:check` and `npm run build`. The starter's
   build runs `kleros-ui check --build` first: the same checks with no baseline (a baselined finding still stops the
   build), where a needed `sync` or a missing agent block is only a note. When `create` keeps an app's own build
   script, it adds the check as a `prebuild` (npm, pnpm and Yarn 1 run it; Yarn 2+ and `--ignore-scripts` skip it). When
   the app has its own `prebuild` too, `create` keeps both and prints whether they run the check.
-- **Existing app, before writing UI:** after `npm install @kleros/ui-components-library`, run `npx kleros-ui init` once. It adds a block to `AGENTS.md` that points coding
+- **Existing app, before writing UI:** after `npm install @kleros/ui-components-library`, run `npx -p @kleros/ui-components-library kleros-ui init` once in the app's own folder (`web/` in a monorepo; init refuses a workspace root). It adds a block to `AGENTS.md` that points coding
   agents at the guide, a `ui:check` script (type-check, the look lint, the app's CSS and the component registry) and
-  the lint preset. Then follow "Existing apps" in `agent/AGENTS.md`: a Tailwind app gives its Tailwind entry the starter's four lines
-  and imports this library's `style.css` in its JS entry before its own CSS (so its responsive classes win), and an app without Tailwind adds it, because
+  the lint preset, in `kleros-ui.eslint.config.mjs` (`.mts` for a TypeScript config; only `ui:check` and `ui:baseline` lint with it; the app's own
+  `eslint.config.*` stays as it was). Then follow "Existing apps" in `agent/AGENTS.md`: a Tailwind app gives its Tailwind entry the starter's four lines,
+  imports this library's `style.css` in its JS entry before its own CSS (so its responsive classes win) and adds
+  `eslint-plugin-better-tailwindcss` as a devDependency (without it the lint's class rules are off, and `ui:check` says so; one that is installed
+  but fails to load turns them off too, and the preset warns with the first line of the error), and an app without Tailwind adds it, because
   every app styles new UI with Tailwind only. Then run `npm run ui:baseline`, so `ui:check` holds only new code to the
   rules. Apps whose `eslint-disable` comments name `no-restricted-syntax` or `no-restricted-imports`: the lint preset's
   restrictions are `kleros-ui/no-restricted-syntax` and `kleros-ui/no-restricted-imports`, so such a comment does not
@@ -230,11 +234,11 @@ yarn check-types    # Type checking
 yarn check-style    # Linting
 ```
 
-`agent/catalog.json` and `agent/CATALOG.md` are generated but committed. After changing `scripts/layer/seed.json` or a kit component's `@intent` JSDoc, run `node scripts/layer/gen-catalog.mjs` (or `yarn build`) and commit both; the TypeCheck workflow fails if they are out of date.
+`agent/catalog.json` and `agent/CATALOG.md` are generated but committed. After changing `scripts/layer/seed.json`, a kit component's `@intent` JSDoc or the version in `package.json`, run `node scripts/layer/gen-catalog.mjs` (or `yarn build`) and commit both; the TypeCheck workflow fails if they are out of date.
 
-`yarn test:layer [pack.tgz]` runs the agent layer's gates (kit, CLI, guide, lint preset, starter) on a pack, or packs the repo first; it needs Node 22.15 or later (23.5 or later on Node 23), and network on its first run for the npm ci in `scripts/layer/test/tools`.
+`yarn test:layer [pack.tgz]` runs the agent layer's gates (kit, CLI, guide, lint preset, starter) on a pack, or packs the repo first; it needs Node 22.15 or later (23.5 or later on Node 23), network on its first run for the npm ci in `scripts/layer/test/tools`, bash 4 or later, and GNU sed and GNU coreutils first in PATH (on macOS, `brew install bash gnu-sed coreutils`, then put Homebrew's `bin` (for bash) and the `gnubin` folders of gnu-sed and coreutils first in PATH).
 
-After an interrupted `yarn pack`, run `node scripts/pack-manifest.mjs restore`: `prepack` takes the `prepare` script out of `package.json`, and only `postpack` puts it back.
+After an interrupted `yarn pack`, run `node scripts/pack-manifest.mjs restore`: `prepack` takes the `prepare` script out of `package.json`, and only `postpack` puts it back. If `package.json` changed since, `restore` keeps the changes and puts back only `prepare`.
 
 ### Visual regression testing (Chromatic)
 

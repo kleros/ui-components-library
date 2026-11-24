@@ -58,6 +58,8 @@ const cases = {
   QueryStateEmpty: h(kit.QueryState, { isLoading: false, data: [], empty: { title: "None" } }, () => "rows"),
   QueryStateLoading: h(kit.QueryState, { isLoading: true, data: undefined }, () => "rows"),
   StatusBadge: h(kit.StatusBadge, { tone: "accent", dot: true }, "Vote"),
+  StatusBadgeDefault: h(kit.StatusBadge, { tone: "success" }, "Executed"),
+  StatusBadgeNoDot: h(kit.StatusBadge, { tone: "warning", dot: false }, "Appeal"),
   FormField: h(kit.FormField, { label: "L", help: "h", error: "e" }, h("input")),
   Countdown: h(kit.Countdown, { deadline: Date.now() + 3_600_000 }),
   KeyValueList: h(kit.KeyValueList, { items: [{ label: "Court", value: "General" }, { label: "Amount", value: "1.5 ETH", hint: "In escrow", id: "a" }] }),
@@ -110,7 +112,7 @@ for (const [name, el] of Object.entries(cases)) {
   try { const html = renderToString(el); console.log(`ok   ${name.padEnd(15)} ${html.length} chars`); }
   catch (e) { bad++; console.log(`FAIL ${name}: ${e.message.split("\n")[0]}`); }
 }
-console.log(kit.formatUnits(1234567890000000000000n), kit.parseUnits("1.5").toString(), kit.shortenAddress("0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"));
+console.log(kit.formatAmount(1234567890000000000000n), kit.parseUnits("1.5").toString(), kit.shortenAddress("0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"));
 const ok = renderToString(cases.ChainGuard).includes("Switch to Arbitrum One") && !renderToString(cases.ChainGuard).includes("secret");
 // d.8 kit additions. run.sh prints only the last line, so every check is folded into it.
 const html = (name) => { try { return renderToString(cases[name]); } catch { return ""; } };
@@ -347,6 +349,10 @@ const checks = {
     && html("WizardFirst").includes('aria-current="step"') && html("WizardFirst").includes("<form"),
   "WizardShell last step: Back + Submit, no Next": html("WizardLast").includes(">Back<") && html("WizardLast").includes(">Create<")
     && !html("WizardLast").includes(">Next<") && html("WizardLast").includes("review"),
+  // 3.11 second review (R2-F21, R2-F56)
+  "StatusBadge: PrimaryText in every tone, dot on by default": ["success", "warning", "error", "info"].every((t) => kit.toneClasses(t).startsWith("text-klerosUIComponentsPrimaryText "))
+    && html("StatusBadgeDefault").includes('bg-klerosUIComponentsSuccess"') && !html("StatusBadgeNoDot").includes("aria-hidden"),
+  "ExternalLink: the arrow is aria-hidden": html("ExternalLink").includes('<span aria-hidden="true"> ↗</span>'),
   // d.9
   "Countdown now: fixed text (ISO, Date + ms, over)": html("CountdownNow").includes(">2d 4h 12m</time>")
     && html("CountdownNowLong").includes(">2 days 4 hours</time>") && html("CountdownNowOver").includes(">Closed</time>")
@@ -391,7 +397,7 @@ const checks = {
     && /<th class="[^"]*">X<\/th>/.test(html("DataTableWidths")),
   "TokenAmount: a non-zero amount too small for maxFractionDigits reads <0.0001, not 0": text("TokenDust") === "<0.0001 ETH"
     && text("TokenDustNeg") === "-<0.0001" && text("TokenDust2") === "<0.01" && text("TokenDust0") === "<1" && text("TokenZero") === "0"
-    && text("TokenStep") === "0.0001" && kit.formatUnits(50000000000000n) === "0",
+    && text("TokenStep") === "0.0001" && kit.formatAmount(50000000000000n) === "0",
   "useDarkMode: every caller follows the html class; the word Dark labels the switch": dark?.afterSwitch === "true"
     && dark?.afterOutside === "false/false" && dark?.labelFor === true && dark?.afterWord === true,
   "Countdown: a later deadline after the end does not fire onEnd again": countdownEnd?.ends === 1 && /^(59m 5\ds|1h 0m 0s)$/.test(countdownEnd?.text),

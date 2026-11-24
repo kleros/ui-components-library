@@ -22,8 +22,12 @@ const split = (s) =>
     .map((w) => w.trim())
     .filter(Boolean);
 // A CATALOG.md table cell built from data: a "|" would end the cell (inside a code span too) and shift the rest of
-// the row, so it is written as "\|", which GitHub's tables show as "|".
-const cell = (s) => String(s ?? "").replaceAll("|", "\\|");
+// the row, so it is written as "\|", which GitHub's tables show as "|". A "<" before a letter, "/", "!" or "?" would
+// open an HTML tag that rendered Markdown drops (`DataTableColumn<T>` lost its `<T>`), so it is written as "\<".
+const cell = (s) =>
+  String(s ?? "")
+    .replaceAll("|", "\\|")
+    .replace(/<(?=[A-Za-z/!?])/g, "\\<");
 
 const components = [
   ...seed.core.map(([name, intent, props]) => ({
@@ -90,7 +94,7 @@ const md = [
   // list and ui:check noted it.
   ...knownGaps.map((g) => {
     const need = `${g.name} (${g.intent.slice(0, 4).join(", ")})`;
-    const command = `npx kleros-ui new ${g.suggest} --kind ${g.kind} --intent "${g.intent.join(", ")}"`;
+    const command = `npx -p @kleros/ui-components-library kleros-ui new ${g.suggest} --kind ${g.kind} --intent "${g.intent.join(", ")}"`;
     return `| ${cell(need)} | ${cell(g.compose || "–")} | \`${cell(command)}\` |`;
   }),
   "",

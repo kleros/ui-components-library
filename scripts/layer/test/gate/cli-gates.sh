@@ -1,7 +1,8 @@
 #!/bin/bash
 # d.9 CLI gates (run.sh step 9). Each prints one "gate:" line when it holds and nothing
 # when it does not. No network and no real install: tsc and eslint are stubbed in each fixture that runs check or
-# baseline (npx --no runs the fixture's own node_modules/.bin), so those gates test the CSS and setup steps.
+# baseline (npx --no runs the fixture's own node_modules/.bin), so those gates test the CSS and setup steps, and the
+# gate on create's install puts a stub npm first in PATH.
 # usage: cli-gates.sh <the packed library, extracted> <work folder for fixtures> <scripts/layer/test, which holds gate/ and tools/>
 set -uo pipefail
 LIB=$1; WORK=$2; P=$3
@@ -38,8 +39,11 @@ B1=$(snapshot "$R/cell"); B2=$(snapshot "$R/new19")
 rm -rf "$R"
 
 # CLI-5 (D16): the lint config loads, by ESLint 9's own file order and import(), in (a) create . into a
-# "type": "commonjs" package; (b) init over a CommonJS eslint.config.js in a package with no type; (c) init over a
-# d.8 create's output in a commonjs package (an ESM eslint.config.js, with styled: true), which did not load before.
+# "type": "commonjs" package, which also gets the starter's Vite config as vite.config.mts (R2-F22: Vite loads a .ts
+# config there as CommonJS, which cannot require @tailwindcss/vite on a Node without require(esm)); (b) init over a
+# CommonJS eslint.config.js in a package with no type, which init leaves as it is (review F2:
+# kleros-ui.eslint.config.mjs, which ui:check lints with, imports it); (c) init over a d.8
+# create's output in a commonjs package (an ESM eslint.config.js, with styled: true), which did not load before.
 L=$(mktemp -d -p "$WORK")
 mkdir -p "$L/cjs" "$L/typeless" "$L/d8"
 for d in cjs typeless d8; do
@@ -56,15 +60,18 @@ echo '{"name":"d8","type":"commonjs","scripts":{}}' > "$L/d8/package.json"
 printf '%s\nimport app from "./eslint.config.app.js";\nimport klerosUI from "@kleros/ui-components-library/eslint";\n\nexport default [...app, ...klerosUI({ cssEntry: "src/index.css", styled: true })];\n' \
   "// Managed by kleros-ui init: the app's previous config plus the Kleros UI preset." > "$L/d8/eslint.config.js"
 echo 'export default [];' > "$L/d8/eslint.config.app.js"
-(cd "$L/cjs" && $CREATE . --no-install >/dev/null && [[ ! -e eslint.config.js ]] && [[ ! -e eslint.config.app.js ]] \
+(cd "$L/cjs" && $CREATE . --no-install >c.txt && [[ ! -e eslint.config.js ]] && [[ ! -e eslint.config.app.js ]] \
+  && [[ -f vite.config.mts ]] && [[ ! -e vite.config.ts ]] && grep -q 'and its Vite config as vite.config.mts' c.txt \
   && grep -q '^import app from "./eslint.config.app.mjs";' eslint.config.mjs && grep -q '^import tseslint' eslint.config.app.mjs \
   && [[ "$(node "$P/gate/cli-lint-load.mjs" .)" == "eslint.config.mjs" ]]) \
-  && (cd "$L/typeless" && $CLI init >/dev/null && [[ ! -e eslint.config.js ]] && grep -q module.exports eslint.config.app.cjs \
-  && [[ "$(node "$P/gate/cli-lint-load.mjs" .)" == "eslint.config.mjs" ]]) \
-  && (cd "$L/d8" && ! node "$P/gate/cli-lint-load.mjs" . >/dev/null 2>&1 && $CLI init >/dev/null && [[ ! -e eslint.config.js ]] \
+  && (cd "$L/typeless" && $CLI init >/dev/null && grep -qxF 'module.exports = [{ files: ["src/**/*.ts"] }];' eslint.config.js \
+  && [[ ! -e eslint.config.app.cjs ]] && [[ ! -e eslint.config.mjs ]] && grep -q '^import app from "./eslint.config.js";' kleros-ui.eslint.config.mjs \
+  && [[ "$(node "$P/gate/cli-lint-load.mjs" .)" == "kleros-ui.eslint.config.mjs" ]]) \
+  && (cd "$L/d8" && ! node "$P/gate/cli-lint-load.mjs" . >/dev/null 2>lf.txt && grep -q '^cli-lint-load: eslint.config.js does not load' lf.txt \
+  && $CLI init >/dev/null && [[ ! -e eslint.config.js ]] \
   && [[ ! -e eslint.config.app.js ]] && [[ -f eslint.config.app.mjs ]] && ! grep -q styled eslint.config.mjs \
   && [[ "$(node "$P/gate/cli-lint-load.mjs" .)" == "eslint.config.mjs" ]]) \
-  && echo "gate: CLI-5: the lint config loads in a commonjs package after create . (eslint.config.mjs), after init over a CommonJS eslint.config.js with no type, and after init over d.8's broken ESM .js (styled: true dropped)"
+  && echo "gate: CLI-5: the lint config loads in a commonjs package after create . (eslint.config.mjs, and vite.config.mts), after init over a CommonJS eslint.config.js with no type (kept as it is; kleros-ui.eslint.config.mjs imports it), and after init over d.8's broken ESM .js (styled: true dropped)"
 rm -rf "$L"
 
 # D25 (a), (b), (c): a style rule, a rule inside @layer or @media and an @utility in the entry, one finding each, named;
@@ -137,7 +144,7 @@ stubs "$N"
   && grep -q "this app has no Tailwind" init.txt && ! grep -q '"tailwindcss"' package.json \
   && ! $CLI check >o1.txt 2>&1 && grep -q '^setup: no Tailwind: tailwindcss is not in package.json. Add it with the steps in .*"Existing apps"' o1.txt \
   && node -e 'const f = process.argv[1], fs = require("fs"); const p = JSON.parse(fs.readFileSync(f)); p.devDependencies = { tailwindcss: "^4.1.0" }; fs.writeFileSync(f, JSON.stringify(p))' "$N/package.json" \
-  && ! $CLI check >o2.txt 2>&1 && grep -q "AGENTS.md block still says this app has no Tailwind: run npx kleros-ui sync" o2.txt && ! grep -q "no Tailwind: tailwindcss" o2.txt \
+  && ! $CLI check >o2.txt 2>&1 && grep -q "AGENTS.md block still says this app has no Tailwind: run npx -p @kleros/ui-components-library kleros-ui sync" o2.txt && ! grep -q "does it too" o2.txt && ! grep -q "no Tailwind: tailwindcss" o2.txt \
   && $CLI baseline >b.txt && grep -q "rewrote the AGENTS.md block" b.txt && ! grep -q "^0. " AGENTS.md && $CLI check | grep -qx "ui:check passed") \
   && echo "gate: an app with no Tailwind gets the one block with step 0 naming \"Existing apps\", sync rewrites an old styled block, init drops styled: true, check names the missing Tailwind, and passes once Tailwind is declared and ui:baseline has refreshed the block"
 rm -rf "$N"
@@ -191,7 +198,8 @@ stubs "$V"
 rm -rf "$V"
 
 # d.9 review (cli F3, F4, F5; guide F1): create . refuses a folder that already has an eslint.config.* of any name and
-# writes nothing; init keeps an edited managed lint config, and says so when it rewrites a stale one (styled: true);
+# writes nothing; init keeps an edited kleros-ui.eslint.config.mjs (the config ui:check lints with in an existing app,
+# review F2), and says so when it rewrites a stale managed eslint.config.* (styled: true);
 # react "latest" is not refused (npm installs a dist-tag as it installs "*"); check names an @source that points at no
 # folder and gives the hoisted path, and passes with it (a monorepo whose root node_modules holds the library).
 # d.11 r3 (R3-1): check asks the app's own Tailwind whether it scans the kit, so the monorepo's root node_modules links
@@ -207,18 +215,238 @@ stubs "$Q/mono/web" && rm -rf "$Q/mono/web/node_modules/@kleros"
 C1=$(snapshot "$Q/lintjs"); C2=$(snapshot "$Q/lintcjs")
 (cd "$Q/lintjs" && { $CREATE . --no-install >"$Q/o1.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$Q/lintjs")" == "$C1" ]] \
   && grep -q "already has eslint.config.js; create writes the starter's own lint config (eslint.config.mjs) and ESLint reads only one, so eslint.config.js would be dropped" "$Q/o1.txt" \
-  && (cd "$Q/lintcjs" && { $CREATE . --no-install >/dev/null 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$Q/lintcjs")" == "$C2" ]] \
+  && (cd "$Q/lintcjs" && { $CREATE . --no-install >"$Q/o2.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$Q/lintcjs")" == "$C2" ]] \
+  && grep -q "already has eslint.config.cjs; create writes the starter's own lint config (eslint.config.mjs)" "$Q/o2.txt" \
   && (cd "$Q/latest" && $CREATE . --no-install >/dev/null && [[ -f src/App.tsx ]]) \
-  && (cd "$Q/managed" && printf "$TOOLS\n" m > package.json && $CLI init >/dev/null \
-    && sed -i 's#^export default \[#export default [{ ignores: ["src/generated/**"] }, #' eslint.config.js && cp eslint.config.js edited.js \
-    && $CLI init >i2.txt && cmp -s eslint.config.js edited.js && ! grep -q "rewrote" i2.txt \
-    && sed -i 's#klerosUI({ cssEntry: "src/index.css" })#klerosUI({ cssEntry: "src/index.css", styled: true })#' eslint.config.js \
+  && (cd "$Q/managed" && printf "$TOOLS\n" m > package.json && $CLI init >/dev/null && [[ ! -e eslint.config.js ]] \
+    && sed -i 's#^export default \[#export default [{ ignores: ["src/generated/**"] }, #' kleros-ui.eslint.config.mjs && cp kleros-ui.eslint.config.mjs edited.mjs \
+    && $CLI init >i2.txt && cmp -s kleros-ui.eslint.config.mjs edited.mjs && ! grep -q "rewrote" i2.txt && ! grep -q "^kleros-ui: wrote kleros-ui.eslint" i2.txt \
+    && rm kleros-ui.eslint.config.mjs && printf '%s\nconst app = [];\nimport klerosUI from "@kleros/ui-components-library/eslint";\n\nexport default [{ ignores: ["src/generated/**"] }, ...app, ...klerosUI({ cssEntry: "src/index.css", styled: true })];\n' \
+      "// Managed by kleros-ui init: the app's previous config plus the Kleros UI preset." > eslint.config.js \
     && $CLI init >i3.txt && grep -q "rewrote the managed eslint.config.js: dropped styled: true" i3.txt \
-    && ! grep -q styled eslint.config.js && grep -q 'src/generated' eslint.config.js) \
+    && ! grep -q styled eslint.config.js && grep -q 'src/generated' eslint.config.js && [[ ! -e kleros-ui.eslint.config.mjs ]]) \
   && (cd "$Q/mono/web" && printf "$TOOLS\n" web > package.json && $CLI init >/dev/null && mkdir src \
     && cp "$LIB/templates/poc/src/index.css" src/index.css && ! $CLI check >c1.txt 2>&1 \
     && grep -q '^setup: src/index.css: @source "../node_modules/@kleros/ui-components-library" points at no folder from src/' c1.txt \
     && grep -q 'no @source reaches the library.*Add @source "../../node_modules/@kleros/ui-components-library";' c1.txt \
     && sed -i 's#"\.\./node_modules#"../../node_modules#' src/index.css && $CLI check | grep -qx "ui:check passed") \
-  && echo "gate: d.9 review: create refuses a folder with an eslint.config.* of any name and writes nothing; init keeps an edited managed lint config and says when it rewrites a stale one; react \"latest\" is not refused; check names an @source that points at no folder, gives the hoisted path, and passes with it"
+  && echo "gate: d.9 review: create refuses a folder with an eslint.config.* of any name and writes nothing; init keeps an edited kleros-ui.eslint.config.mjs and says when it rewrites a stale managed lint config; react \"latest\" is not refused; check names an @source that points at no folder, gives the hoisted path, and passes with it"
 rm -rf "$Q"
+
+# PR #127 review (F6, F23, F69, F80, F12, F71): init refuses, and writes nothing, at a workspace root, when AGENTS.md
+# is a link to a file outside the app, or when AGENTS.md has a start marker with no end marker; a CLAUDE.md that is a
+# link to AGENTS.md gets no @AGENTS.md line in AGENTS.md; create . refuses a folder with a vite.config.js; the CSS scan
+# skips a folder the repo root's .gitignore names (the folder holding .git), as git does; a cssDirs that is not a list of folders
+# fails check.
+W=$(mktemp -d -p "$WORK")
+mkdir -p "$W/mono/web" "$W/link" "$W/marker" "$W/claude" "$W/vite" "$W/repo/.git" "$W/repo/web/report" "$W/repo/web/src"
+echo '{"name":"mono","workspaces":["web"]}' > "$W/mono/package.json" && echo 'export default [];' > "$W/mono/eslint.config.mjs"
+echo '{"name":"web","type":"module","scripts":{}}' > "$W/mono/web/package.json"
+for d in link marker claude; do echo '{"name":"x","type":"module","scripts":{}}' > "$W/$d/package.json"; done
+echo '# outside' > "$W/outside.md" && ln -s ../outside.md "$W/link/AGENTS.md"
+printf '# Guide\n\n<!-- kleros-ui:start 3.10.0 -->\nold block\n\nThe team notes below.\n' > "$W/marker/AGENTS.md"
+echo '{}' > "$W/vite/package.json" && echo 'export default {};' > "$W/vite/vite.config.js"
+stubs "$W/repo/web" && printf "$TOOLS\n" web > "$W/repo/web/package.json" && echo report > "$W/repo/.gitignore"
+printf '.a { color: #fff; }\n' > "$W/repo/web/report/base.css"
+S1=$(snapshot "$W/mono"); S2=$(snapshot "$W/link"); S3=$(snapshot "$W/marker"); S4=$(snapshot "$W/vite"); O=$(md5sum < "$W/outside.md")
+(cd "$W/mono" && { $CLI init >"$W/o1.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$W/mono")" == "$S1" ]] \
+  && grep -q 'this folder is a workspace root (its package.json has "workspaces"' "$W/o1.txt" && (cd "$W/mono/web" && $CLI init >/dev/null 2>&1) \
+  && (cd "$W/link" && { $CLI init >"$W/o2.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$W/link")" == "$S2" ]] && [[ "$(md5sum < "$W/outside.md")" == "$O" ]] \
+  && grep -q "AGENTS.md is a symbolic link" "$W/o2.txt" \
+  && (cd "$W/marker" && { $CLI init >"$W/o3.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$W/marker")" == "$S3" ]] \
+  && grep -q "AGENTS.md has <!-- kleros-ui:start 3.10.0 --> on line 3 and no <!-- kleros-ui:end --> after it" "$W/o3.txt" \
+  && (cd "$W/claude" && echo '# Guide' > AGENTS.md && ln -s AGENTS.md CLAUDE.md && $CLI init >/dev/null 2>&1 && ! grep -q '^@AGENTS.md' AGENTS.md && [[ -L CLAUDE.md ]]) \
+  && (cd "$W/vite" && { $CREATE . --no-install >"$W/o4.txt" 2>&1; [[ $? -eq 1 ]]; }) && [[ "$(snapshot "$W/vite")" == "$S4" ]] \
+  && grep -q "already has vite.config.js; create writes the starter's vite.config.ts" "$W/o4.txt" \
+  && (cd "$W/repo/web" && $CLI init >/dev/null 2>&1 && $CLI css >c1.txt 2>&1 && ! grep -q report c1.txt \
+    && node -e 'const f = "kleros-ui.json", fs = require("fs"); const c = JSON.parse(fs.readFileSync(f)); c.cssDirs = "src"; fs.writeFileSync(f, JSON.stringify(c))' \
+    && ! $CLI check >c2.txt 2>&1 && grep -q '"cssDirs" in kleros-ui.json is "src", not a list of folders' c2.txt) \
+  && echo "gate: PR #127 review: init refuses a workspace root, an AGENTS.md linked outside the app and an AGENTS.md start marker with no end, and writes nothing; a CLAUDE.md linked to AGENTS.md gets no @AGENTS.md line; create . refuses a folder with a vite.config.js; the CSS scan skips what the repo root's .gitignore names; a cssDirs string fails check"
+rm -rf "$W"
+
+# PR #127 review (F4): init records the app's one Tailwind stylesheet (Escrow's and Curate's src/global.css) as
+# cssEntry, in kleros-ui.json and in the lint config, so check reads it: a main.tsx that imports it without style.css
+# fails, and passes with style.css first. A cssEntry naming a missing file while src/global.css imports tailwindcss is a
+# setup problem, not a silent skip.
+E=$(mktemp -d -p "$WORK")
+stubs "$E"
+(cd "$E" && printf "$TOOLS\n" e > package.json && mkdir src && sed '$d' "$LIB/templates/poc/src/index.css" > src/global.css \
+  && $CLI init >i.txt && grep -q 'recorded "cssEntry": "src/global.css"' i.txt && grep -q '"cssEntry": "src/global.css"' kleros-ui.json \
+  && grep -q 'klerosUI({ cssEntry: "src/global.css" })' kleros-ui.eslint.config.mjs \
+  && printf 'import "./global.css";\n' > src/main.tsx && ! $CLI check >o1.txt 2>&1 \
+  && grep -q '^setup: src/main.tsx imports ./global.css (the Tailwind entry) without @kleros/ui-components-library/style.css' o1.txt \
+  && printf 'import "@kleros/ui-components-library/style.css";\nimport "./global.css";\n' > src/main.tsx && $CLI check | grep -qx "ui:check passed" \
+  && node -e 'const f = "kleros-ui.json", fs = require("fs"); const c = JSON.parse(fs.readFileSync(f)); c.cssEntry = "src/index.css"; fs.writeFileSync(f, JSON.stringify(c))' \
+  && ! $CLI check >o2.txt 2>&1 && grep -q '^setup: "cssEntry" in kleros-ui.json is src/index.css, which does not exist, while src/global.css imports it' o2.txt) \
+  && echo "gate: PR #127 review (F4): init records src/global.css, the one stylesheet that imports tailwindcss, as cssEntry in kleros-ui.json and the lint config, and check orders style.css against it; a cssEntry naming a missing file while src/global.css imports tailwindcss fails check"
+rm -rf "$E"
+
+# PR #127 review (F18): in a baselined app, a tsc error with no file position (TS5083: an "extends" naming a missing
+# file) fails check beside the old located error, which tsc still prints; ui:baseline refuses it, says why, and leaves
+# the baseline as it was.
+U=$(mktemp -d -p "$WORK")
+stubs "$U"
+(cd "$U" && printf "$TOOLS\n" u > package.json && $CLI init >/dev/null \
+  && printf '#!/bin/sh\ncat tsc-out.txt\nexit 2\n' > node_modules/.bin/tsc \
+  && echo "src/a.ts(1,7): error TS2322: Type 'number' is not assignable to type 'string'." > tsc-out.txt \
+  && $CLI baseline >/dev/null && $CLI check | grep -qx "ui:check passed" && cp kleros-ui-baseline.json b0.json \
+  && echo "error TS5083: Cannot read file '$U/tsconfig.base.json'." >> tsc-out.txt \
+  && ! $CLI check >o1.txt 2>&1 && grep -q '^tsc: 1 error with no file position' o1.txt && grep -q '^  error TS5083: ' o1.txt \
+  && grep -q '^ui:check failed (tsc failed, lint ok, css ok, setup 0 problem(s))' o1.txt \
+  && { $CLI baseline >o2.txt 2>&1; [[ $? -eq 1 ]]; } && grep -q '^kleros-ui baseline: tsc failed (above). Nothing was recorded.' o2.txt && cmp -s kleros-ui-baseline.json b0.json) \
+  && echo "gate: PR #127 review (F18): in a baselined app, a tsc error with no file position (TS5083) fails check beside the old located error, and ui:baseline refuses it, says why and leaves the baseline as it was"
+rm -rf "$U"
+
+# PR #127 review (F4, a nested entry): an entry that reaches tailwindcss through an @import ("./tw.css") is the entry,
+# not the file it imports: init records src/index.css in kleros-ui.json and the lint config, and check orders
+# style.css against it with no cssEntry problem. PR #131 review (M1): the CSS scan reads it as the entry too, so its
+# own lines are no findings, and once theme has added the theme import, deleting that import is a css-theme finding.
+# An @import of a stylesheet the scan skips (a dot folder) is still a finding, though that file imports tailwindcss.
+# Round 2: a chain of two (index.css, then mid.css, then tw.css) is the entry too, with no finding on mid.css, but a
+# stylesheet the entry imports after the theme file that imports the library's theme.css again (undoing the theme) is
+# a finding, whether it reaches tailwindcss through ./tw.css or imports it itself, as is a second import of it in the
+# entry after the theme file. A tw.css imported before the theme file may import theme.css (the guide's four lines).
+Z=$(mktemp -d -p "$WORK")
+stubs "$Z"
+(cd "$Z" && printf "$TOOLS\n" z > package.json && mkdir src && echo '@import "tailwindcss";' > src/tw.css \
+  && { echo '@import "./tw.css";'; sed 1d "$LIB/templates/poc/src/index.css"; } > src/index.css \
+  && $CLI init >/dev/null && grep -q '"cssEntry": "src/index.css"' kleros-ui.json && grep -q 'klerosUI({ cssEntry: "src/index.css" })' kleros-ui.eslint.config.mjs \
+  && printf 'import "./index.css";\n' > src/main.tsx && ! $CLI check >o1.txt 2>&1 && ! grep -q '"cssEntry" in' o1.txt \
+  && grep -q '^setup: src/main.tsx imports ./index.css (the Tailwind entry) without @kleros/ui-components-library/style.css' o1.txt \
+  && $CLI css >o2.txt 2>&1 && grep -q '^css: 0 findings' o2.txt \
+  && echo '@import "./tw.css";' > src/mid.css && sed -i 's|^@import "\./tw\.css";$|@import "./mid.css";|' src/index.css \
+  && grep -qx '@import "./mid.css";' src/index.css && $CLI css >o5.txt 2>&1 && grep -q '^css: 0 findings' o5.txt \
+  && $CLI theme >/dev/null && grep -qx '@import "./theme.css";' src/index.css && $CLI css >/dev/null \
+  && printf '@import "./tw.css";\n@import "@kleros/ui-components-library/theme.css";\n' > src/late.css && echo '@import "./late.css";' >> src/index.css \
+  && ! $CLI css >o6.txt 2>&1 && grep -q '^src/late.css:2:1 @import "@kleros/ui-components-library/theme.css" in src/late.css, a stylesheet the Tailwind entry src/index.css imports' o6.txt \
+  && grep -q '^css: 1 finding' o6.txt && printf '@import "tailwindcss";\n@import "@kleros/ui-components-library/theme.css";\n' > src/late.css \
+  && ! $CLI css >o7.txt 2>&1 && grep -q '^src/late.css:2:1 @import "@kleros/ui-components-library/theme.css" in src/late.css, which the Tailwind entry src/index.css reaches after the theme file src/theme.css (through its @import "./late.css")' o7.txt \
+  && grep -q '^css: 1 finding' o7.txt && sed -i '/^@import "\.\/late\.css";$/d' src/index.css && rm src/late.css && $CLI css >/dev/null \
+  && printf '@import "tailwindcss";\n@import "@kleros/ui-components-library/theme.css";\n' > src/tw.css && $CLI css >o8.txt 2>&1 && grep -q '^css: 0 findings' o8.txt \
+  && echo '@import "tailwindcss";' > src/tw.css && echo '@import "@kleros/ui-components-library/theme.css";' >> src/index.css \
+  && ! $CLI css >o9.txt 2>&1 && grep -q '^src/index.css:[0-9]*:1 @import "@kleros/ui-components-library/theme.css" again after the theme file src/theme.css' o9.txt \
+  && sed -i '$d' src/index.css && $CLI css >/dev/null \
+  && sed -i '/^@import "\.\/theme\.css";$/d' src/index.css && ! $CLI css >o3.txt 2>&1 \
+  && grep -q 'The Tailwind entry does not import the theme file src/theme.css' o3.txt && grep -q '^css: 1 finding' o3.txt \
+  && mkdir src/.x && printf '@import "tailwindcss";\n.a { color: red; }\n' > src/.x/more.css && echo '@import "./.x/more.css";' >> src/index.css \
+  && ! $CLI css >o4.txt 2>&1 && grep -q '^src/index.css:[0-9]*:1 @import "./.x/more.css" in the Tailwind entry' o4.txt) \
+  && echo "gate: an entry that reaches tailwindcss through @import \"./tw.css\" is recorded as cssEntry (src/index.css, not tw.css), check orders style.css against it, and the CSS scan reads it as the entry: no findings on its own lines or a stylesheet on the way, a theme.css import after the theme file's is a finding, a deleted theme import is a css-theme finding, and an @import of a file the scan skips is still one"
+rm -rf "$Z"
+
+# PR #127 second review (R2-F8, R2-F12/F13): create's default path, npm install and then init through the app's installed
+# copy, with a stub npm first in PATH, so no network. (a) The stub installs the library (a link to the pack): create
+# runs init from that copy and exits 0. (b) It exits 0 and installs nothing: create says the library is not installed.
+# (c) It exits 1: create gives the install-failed hint. (d) With only node in PATH, create, check and baseline exit 1
+# and name npm or npx, with no stack and no hint about the library spec.
+K=$(mktemp -d -p "$WORK")
+mkdir -p "$K/ok" "$K/none" "$K/fail" "$K/only"
+printf '#!/bin/sh\necho "npm $*" > npm-args.txt\nmkdir -p node_modules/@kleros && ln -s "%s" node_modules/@kleros/ui-components-library\n' "$LIB" > "$K/ok/npm"
+printf '#!/bin/sh\nexit 0\n' > "$K/none/npm"
+printf '#!/bin/sh\necho "npm error: stub" >&2\nexit 1\n' > "$K/fail/npm"
+chmod +x "$K/ok/npm" "$K/none/npm" "$K/fail/npm" && ln -s "$(command -v node)" "$K/only/node"
+ONLY="env -u npm_config_package PATH=$K/only node $LIB/bin/kleros-ui.mjs"
+(cd "$K" && PATH="$K/ok:$PATH" $CREATE a >a.txt 2>&1 && grep -qx 'kleros-ui: npm install in a' a.txt && grep -qx 'npm install --no-fund --no-audit' a/npm-args.txt \
+  && ! grep -q 'has no kleros-ui CLI' a.txt && grep -q '"ui:check"' a/package.json \
+  && grep -qF 'look it up in node_modules/@kleros/ui-components-library/agent/CATALOG.md' a/AGENTS.md \
+  && { PATH="$K/none:$PATH" $CREATE b >b.txt 2>&1; [[ $? -eq 1 ]]; } \
+  && grep -q '^kleros-ui create: npm install exited 0, but @kleros/ui-components-library is not installed in b' b.txt \
+  && { PATH="$K/fail:$PATH" $CREATE c >c.txt 2>&1; [[ $? -eq 1 ]]; } && grep -q "^kleros-ui create: npm install failed in c; the starter's files are in place" c.txt \
+  && { $ONLY create d >d.txt 2>&1; [[ $? -eq 1 ]]; } && grep -q '^kleros-ui create: could not start npm (ENOENT), so nothing was installed in d' d.txt \
+  && ! grep -q 'not on the registry' d.txt && [[ -f d/src/App.tsx ]] \
+  && (cd a && { $ONLY check >../e.txt 2>&1; [[ $? -eq 1 ]]; } && { $ONLY baseline >../f.txt 2>&1; [[ $? -eq 1 ]]; } && [[ ! -e kleros-ui-baseline.json ]]) \
+  && grep -q '^kleros-ui: could not start npx (ENOENT), so tsc did not run' e.txt && grep -q '^kleros-ui: could not start npx (ENOENT), so eslint did not run' e.txt \
+  && grep -q '^ui:check failed (tsc failed, lint failed, ' e.txt \
+  && grep -q '^kleros-ui: could not start npx (ENOENT), so eslint did not run' f.txt && grep -q '^kleros-ui baseline: ESLint and tsc failed (above). Nothing was recorded.' f.txt \
+  && ! grep -qE 'TypeError|^ +at ' a.txt b.txt c.txt d.txt e.txt f.txt) \
+  && echo "gate: PR #127 second review (F8, F12/F13): with a stub npm first in PATH, create runs npm install and then init from the app's installed copy; an install that exits 0 without the library, or exits 1, stops create with its own message; with no npm or npx in PATH, create, check and baseline exit 1 naming the command that did not start, with no stack"
+rm -rf "$K"
+
+# PR #127 second review (R2-F24): an app with no src/ (a Next.js app/ router) lints its code folders. init passes them
+# to klerosUI() as files, so the preset's rules cover app/page.tsx; check names the folders it lints; baseline records
+# app/page.tsx, and check fails on a new error there. "lintDirs" in kleros-ui.json sets the folders: one that is not
+# there fails check and stops baseline, a string fails check, and a list the lint config's files do not match is a
+# setup problem until init rewrites them. A folder name's glob characters are escaped (code/[[]client[]]), so the
+# preset's rules reach code/[client]/a.tsx. The stub eslint logs its arguments.
+Y=$(mktemp -d -p "$WORK")
+stubs "$Y"
+printf '#!/bin/sh\necho "$*" >> eslint-args.txt\ncase " $* " in *" -f json "*) if [ -f eslint-out.json ]; then cat eslint-out.json; else echo "[]"; fi;; esac\nexit 0\n' > "$Y/node_modules/.bin/eslint"
+ERR='{"ruleId":"no-debugger","severity":2,"line":1,"column":1,"message":"Unexpected debugger statement."}'
+lintdirs() { node -e 'const f = "kleros-ui.json", fs = require("fs"); const c = JSON.parse(fs.readFileSync(f)); c.lintDirs = JSON.parse(process.argv[1]); fs.writeFileSync(f, JSON.stringify(c))' "$1"; }
+(cd "$Y" && printf "$TOOLS\n" y > package.json && mkdir app && echo 'export default function Page() { return null; }' > app/page.tsx \
+  && $CLI init >/dev/null && grep -qF 'klerosUI({ cssEntry: "src/index.css", files: ["app/**/*.{js,jsx,ts,tsx}"] })' kleros-ui.eslint.config.mjs \
+  && node "$P/gate/cli-lint-load.mjs" . app/page.tsx | tail -1 | grep -qF '"kleros-ui/no-styled-components":["error"]' \
+  && printf '[{"filePath":"%s/app/page.tsx","messages":[%s]}]\n' "$PWD" "$ERR" > eslint-out.json && $CLI baseline >b1.txt \
+  && grep -q '^kleros-ui: recorded 1 existing lint errors (ESLint on app/)' b1.txt && grep -q '"app/page.tsx|no-debugger": 1' kleros-ui-baseline.json \
+  && grep -qx -- '-c kleros-ui.eslint.config.mjs app -f json' eslint-args.txt && ! grep -q src eslint-args.txt \
+  && $CLI check >c1.txt && grep -qx 'ui:check passed' c1.txt && grep -q '^lint: ESLint on app/ (no src/ here' c1.txt \
+  && printf '[{"filePath":"%s/app/page.tsx","messages":[%s,%s]}]\n' "$PWD" "$ERR" "$ERR" > eslint-out.json && ! $CLI check >c2.txt \
+  && grep -q '^lint: 1 new (baseline 1):' c2.txt && grep -q '^  app/page.tsx:1:1 Unexpected debugger statement. (no-debugger)' c2.txt \
+  && echo '[]' > eslint-out.json && lintdirs '["app", "nope"]' && ! $CLI check >c3.txt \
+  && grep -q '^lint: nope is not a folder here, so ESLint did not lint it ("lintDirs" in kleros-ui.json)' c3.txt && grep -q 'lint failed' c3.txt \
+  && cp kleros-ui-baseline.json b0.json && { $CLI baseline >b2.txt 2>&1; [[ $? -eq 1 ]]; } && cmp -s b0.json kleros-ui-baseline.json \
+  && grep -q '^kleros-ui baseline: nope in "lintDirs" of kleros-ui.json is not a folder here' b2.txt \
+  && lintdirs '"app"' && { $CLI check >c4.txt 2>&1; [[ $? -eq 1 ]]; } && grep -q "^kleros-ui: \"lintDirs\" in kleros-ui.json is \"app\", not a list of the app's folders" c4.txt \
+  && mkdir lib && lintdirs '["app", "lib"]' && ! $CLI check >c5.txt \
+  && grep -q '^setup: kleros-ui.eslint.config.mjs passes klerosUI() files for app/, while ui:check lints app/, lib/' c5.txt \
+  && $CLI init >i2.txt && grep -q '^kleros-ui: rewrote kleros-ui.eslint.config.mjs: its files now cover app/, lib/, the folders ui:check lints' i2.txt \
+  && grep -qF 'files: ["app/**/*.{js,jsx,ts,tsx}", "lib/**/*.{js,jsx,ts,tsx}"]' kleros-ui.eslint.config.mjs && $CLI check | grep -qx 'ui:check passed' \
+  && mkdir -p 'code/[client]' && echo 'export const A = 1;' > 'code/[client]/a.tsx' && lintdirs '["app", "code/[client]"]' \
+  && $CLI init >i3.txt && grep -q '^kleros-ui: rewrote kleros-ui.eslint.config.mjs: its files now cover app/, code/\[client\]/,' i3.txt \
+  && grep -qF '"code/[[]client[]]/**/*.{js,jsx,ts,tsx}"' kleros-ui.eslint.config.mjs \
+  && node "$P/gate/cli-lint-load.mjs" . 'code/[client]/a.tsx' | tail -1 | grep -qF '"kleros-ui/no-styled-components":["error"]') \
+  && echo "gate: PR #127 second review (F24): an app with no src/ lints app/: init passes it to klerosUI() as files, so the preset's rules cover app/page.tsx, check names the folders it lints, baseline records app/page.tsx and check fails on a new error there; a lintDirs folder that is not there fails check and stops baseline, a lintDirs string fails check, and lint folders the lint config's files do not match are a setup problem until init rewrites them; a folder's glob characters are escaped, so the preset's rules reach code/[client]/a.tsx"
+rm -rf "$Y"
+
+# PR #127 second review (R2-F37): the index.html scan reads each "<" once, so 50 KB of unclosed tags ("<a ", "<style ",
+# "<script ") is scanned in under 5 s with no finding; a <style> with no </style> is a block to the end of the page, as
+# a browser reads it, and one finding.
+H=$(mktemp -d -p "$WORK")
+CSS0='css: 0 findings (0 token overrides, 0 colour literals, 0 Tailwind-only, 0 !important, 0 library internals) in 1 file scanned'
+(cd "$H" && for t in '<a ' '<style ' '<script '; do
+    node -e 'process.stdout.write(process.argv[1].repeat(Math.ceil(51200 / process.argv[1].length)))' "$t" > index.html \
+      && timeout 5 $CLI css index.html >o.txt && grep -qxF "$CSS0" o.txt || exit 1
+  done \
+  && printf '<!doctype html>\n<style> body { margin: 0; }\n' > index.html && { $CLI css index.html >o.txt; [[ $? -eq 1 ]]; } \
+  && grep -q '^index.html:2:1 <style> block in index.html' o.txt && [[ "$(grep -c '^index.html:' o.txt)" == "1" ]]) \
+  && echo "gate: PR #127 second review (F37): 50 KB of unclosed <a, <style or <script tags in index.html is scanned in under 5 s with no finding, and a <style> with no </style> is one <style> block finding"
+rm -rf "$H"
+
+# PR #127 second review (R2-F47, R2-F48): new records importPath from src/ when componentsDir is inside it (src/ui gives
+# ./ui/VoteBar) and from the app root when it is not (app/ui gives ./app/ui/VoteBar). init run again leaves the Cursor
+# rule as it is once it is there: with its front matter edited, or with CRLF line endings, as CLAUDE.md.
+D=$(mktemp -d -p "$WORK")
+mkdir -p "$D/ui" "$D/root" "$D/rule"
+for d in ui root rule; do echo '{"name":"x","type":"module","scripts":{}}' > "$D/$d/package.json"; done
+echo '{"componentsDir":"src/ui","components":[]}' > "$D/ui/kleros-ui.json" && echo '{"componentsDir":"app/ui","components":[]}' > "$D/root/kleros-ui.json"
+R=.cursor/rules/kleros-ui.mdc
+(cd "$D/ui" && $CLI new VoteBar --intent "vote bar" >/dev/null && [[ -f src/ui/VoteBar/VoteBar.tsx ]] && grep -q '"importPath": "./ui/VoteBar"' kleros-ui.json) \
+  && (cd "$D/root" && $CLI new VoteBar --intent "vote bar" >/dev/null && [[ -f app/ui/VoteBar/VoteBar.tsx ]] && grep -q '"importPath": "./app/ui/VoteBar"' kleros-ui.json) \
+  && (cd "$D/rule" && $CLI init >/dev/null && [[ "$(grep -c alwaysApply "$R")" == "1" ]] \
+    && sed -i 's/^alwaysApply: true$/description: Kleros UI rules\nalwaysApply: true/' "$R" && cp "$R" edited.mdc \
+    && $CLI init >/dev/null && cmp -s "$R" edited.mdc && [[ "$(grep -c alwaysApply "$R")" == "1" ]] \
+    && sed -i 's/$/\r/' "$R" CLAUDE.md && cp "$R" crlf.mdc && cp CLAUDE.md crlf.md && $CLI init >/dev/null && cmp -s "$R" crlf.mdc && cmp -s CLAUDE.md crlf.md) \
+  && echo "gate: PR #127 second review (F47, F48): new records importPath from src/ for a componentsDir inside it and from the app root otherwise; init run again leaves a Cursor rule with edited front matter or CRLF line endings, and a CRLF CLAUDE.md, as they are"
+rm -rf "$D"
+
+# PR #127 second review (R2-F49): the cssEntry init writes into the lint config follows kleros-ui.json. With two
+# Tailwind stylesheets, init says to set "cssEntry" and run init again, naming the lint config; after that hand edit,
+# check names the stale copy, and init rewrites it and says so, in kleros-ui.eslint.config.mjs and in the managed
+# eslint.config.js of an app create made; a copy changed in the lint config alone is named too.
+F=$(mktemp -d -p "$WORK")
+mkdir -p "$F/two" "$F/made" && stubs "$F/two"
+cssentry() { node -e 'const f = "kleros-ui.json", fs = require("fs"); const c = JSON.parse(fs.readFileSync(f)); c.cssEntry = process.argv[1]; fs.writeFileSync(f, JSON.stringify(c))' "$1"; }
+(cd "$F/two" && printf "$TOOLS\n" two > package.json && mkdir src && echo '@import "tailwindcss";' > src/a.css && echo '@import "tailwindcss";' > src/b.css \
+  && $CLI init >i1.txt \
+  && grep -qF 'kleros-ui: src/a.css, src/b.css all import tailwindcss; set "cssEntry" in kleros-ui.json to the app'"'"'s Tailwind entry (it says src/index.css), then run init again, which sets the same entry in the cssEntry the lint config passes to klerosUI()' i1.txt \
+  && grep -qF 'klerosUI({ cssEntry: "src/index.css" })' kleros-ui.eslint.config.mjs && cssentry src/b.css && ! $CLI check >c1.txt \
+  && grep -q '^setup: kleros-ui.eslint.config.mjs passes cssEntry "src/index.css" to klerosUI(), while "cssEntry" in kleros-ui.json is "src/b.css"' c1.txt \
+  && $CLI init >i2.txt \
+  && grep -qx 'kleros-ui: rewrote kleros-ui.eslint.config.mjs: its cssEntry is now "src/b.css", as in kleros-ui.json (it was "src/index.css"); the rest of it is kept as it was' i2.txt \
+  && grep -qF 'klerosUI({ cssEntry: "src/b.css" })' kleros-ui.eslint.config.mjs && $CLI check >c2.txt && grep -qx 'ui:check passed' c2.txt \
+  && sed -i 's#cssEntry: "src/b.css"#cssEntry: "src/a.css"#' kleros-ui.eslint.config.mjs && ! $CLI check >c3.txt \
+  && grep -q '^setup: kleros-ui.eslint.config.mjs passes cssEntry "src/a.css" to klerosUI(), while "cssEntry" in kleros-ui.json is "src/b.css"' c3.txt) \
+  && (cd "$F/made" && $CREATE . --no-install >/dev/null && grep -qF 'klerosUI({ cssEntry: "src/index.css" })' eslint.config.js && cssentry src/global.css \
+    && $CLI init >i3.txt && grep -q '^kleros-ui: rewrote the managed eslint.config.js: its cssEntry is now "src/global.css", as in kleros-ui.json' i3.txt \
+    && grep -qF 'klerosUI({ cssEntry: "src/global.css" })' eslint.config.js) \
+  && echo "gate: PR #127 second review (F49): with two Tailwind stylesheets init says to set cssEntry and run init again, naming the lint config; a cssEntry set in kleros-ui.json by hand, or changed in the lint config alone, is a setup problem naming both, and init rewrites the lint config's copy and says so, in kleros-ui.eslint.config.mjs and in a created app's managed eslint.config.js"
+rm -rf "$F"

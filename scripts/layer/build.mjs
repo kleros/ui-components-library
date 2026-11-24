@@ -8,13 +8,24 @@ const DIST = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "dist");
 const KIT = join(DIST, "kit");
 const LIB_IMPORT = 'from "@kleros/ui-components-library"';
 
-// Every type file an agent may open first names the setup command and the guide.
+// Every type file an agent may open first names the setup commands and the guide (D31). It says what init writes, so
+// an agent can ask before it runs init in an existing app. No tarball recipe: its `echo {} > package.json` empties an
+// existing package.json, and README and agent/AGENTS.md give it for a new folder only.
 const NOTE =
   "// @kleros/ui-components-library: a new app is set up by its CLI, not by hand: " +
-  "`npx kleros-ui create .` in the app folder once the package is installed " +
-  "(from a tarball: echo {} > package.json, npm install ./x.tgz, then npx kleros-ui create .). " +
-  "An existing app runs `npx kleros-ui init` once, before writing UI. " +
-  "Guide: agent/AGENTS.md and agent/CATALOG.md in this package.";
+  "`npx -p @kleros/ui-components-library kleros-ui create .` in the app folder once the package is installed. " +
+  "An existing app is set up with `npx -p @kleros/ui-components-library kleros-ui init`, run once before writing UI, " +
+  "which adds an AGENTS.md block, CLAUDE.md and Cursor pointers, kleros-ui.json, a lint config and the ui:check " +
+  "and ui:baseline scripts. Guide: agent/AGENTS.md and agent/CATALOG.md in this package.";
+// The note goes on top in place of any version of it already there, so a build over an older dist (`yarn build:layer`
+// alone does not empty it) leaves one note, the current one. Every version so far starts with NOTE_START.
+const NOTE_START =
+  "// @kleros/ui-components-library: a new app is set up by its CLI";
+const withNote = (text) => {
+  const lines = text.split("\n");
+  while (lines[0]?.startsWith(NOTE_START)) lines.shift();
+  return [NOTE, ...lines].join("\n");
+};
 
 // One replacement per line at most, like sed without the g flag.
 const eachLine = (text, edit) => text.split("\n").map(edit).join("\n");
@@ -37,7 +48,7 @@ for (const name of readdirSync(KIT).sort()) {
     if (/^import React\b/m.test(types)) {
       throw new Error(`build-layer: ${file} still has a default React import`);
     }
-    writeFileSync(file, `${NOTE}\n${types}`);
+    writeFileSync(file, withNote(types));
   } else if (name.endsWith(".js")) {
     // The kit's code imports the library's own entry, so an app bundles one copy of it.
     writeFileSync(
@@ -50,5 +61,6 @@ for (const name of readdirSync(KIT).sort()) {
 for (const entry of ["ui-components-library.d.ts", "lib/index.d.ts"]) {
   const file = join(DIST, entry);
   const text = readFileSync(file, "utf8");
-  if (!text.startsWith(`${NOTE}\n`)) writeFileSync(file, `${NOTE}\n${text}`);
+  const next = withNote(text);
+  if (next !== text) writeFileSync(file, next);
 }
