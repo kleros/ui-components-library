@@ -152,8 +152,8 @@ token redefined in any other stylesheet (one set from code, with `style.setPrope
 
 This library requires the following peer dependencies:
 
-- React 18 and React DOM 18. React 19 is not supported yet: the bundle uses React 18 internals, so a React 19
-  app renders a blank page.
+- React 18 and React DOM 18. React 19 is not supported yet: npm refuses the install (the peer range is `^18`),
+  Yarn 4 and pnpm install it with a peer warning, and then `kleros-ui init` warns and `ui:check` fails.
 - Tailwind CSS 4 (peer range `^4.0.11`), which is enough for the core components. The kit and the lint preset need
   4.1.17 or later: before 4.1, the `@source` line of Setup b can scan none of the kit, and the lint preset's plugin
   (`eslint-plugin-better-tailwindcss`) needs 4.1.17. `npx -p @kleros/ui-components-library kleros-ui check` says so in an app on Tailwind before 4.1.
@@ -176,7 +176,7 @@ Make sure these are installed in your project.
   the lint preset, in `kleros-ui.eslint.config.mjs` (`.mts` for a TypeScript config; only `ui:check` and `ui:baseline` lint with it; the app's own
   `eslint.config.*` stays as it was). Then follow "Existing apps" in `agent/AGENTS.md`: a Tailwind app gives its Tailwind entry the starter's four lines,
   imports this library's `style.css` in its JS entry before its own CSS (so its responsive classes win) and adds
-  `eslint-plugin-better-tailwindcss` as a devDependency (without it the lint's class rules are off, and `ui:check` says so; one that is installed
+  `eslint-plugin-better-tailwindcss` as a devDependency (without it the lint's class rules are off, and `ui:check` fails; one that is installed
   but fails to load turns them off too, and the preset warns with the first line of the error), and an app without Tailwind adds it, because
   every app styles new UI with Tailwind only. Then run `npm run ui:baseline`, so `ui:check` holds only new code to the
   rules. Apps whose `eslint-disable` comments name `no-restricted-syntax` or `no-restricted-imports`: the lint preset's
@@ -188,6 +188,13 @@ Make sure these are installed in your project.
 - **Reviewing a pull request:** nothing stops a setup written by hand, so the review does. `agent/REVIEW.md` is the
   checklist: the setup made by `create` or `init`, `ui:check` passing, tokens redefined only in the theme file, new
   components registered with intent words, and no raw controls.
+- **Updating the library:** after each version change, run `npx -p @kleros/ui-components-library kleros-ui sync`. It
+  rewrites the `AGENTS.md` block for the installed version. Until then `ui:check` prints a note after an update within
+  the same major, and fails after a new major, whose rules can differ. The block's markers are the `kleros-ui:start` and
+  `kleros-ui:end` comments at the start of a line, as `init` writes them; one quoted in inline code or a code fence is
+  text, which `sync` leaves as it is.
+- **Platforms:** `ui:check`, `ui:baseline` and `create` run on macOS, Linux and WSL. Native Windows is not supported
+  yet.
 
 ## Development
 
@@ -236,7 +243,7 @@ yarn check-style    # Linting
 
 `agent/catalog.json` and `agent/CATALOG.md` are generated but committed. After changing `scripts/layer/seed.json`, a kit component's `@intent` JSDoc or the version in `package.json`, run `node scripts/layer/gen-catalog.mjs` (or `yarn build`) and commit both; the TypeCheck workflow fails if they are out of date.
 
-`yarn test:layer [pack.tgz]` runs the agent layer's gates (kit, CLI, guide, lint preset, starter) on a pack, or packs the repo first; it needs Node 22.15 or later (23.5 or later on Node 23), network on its first run for the npm ci in `scripts/layer/test/tools`, bash 4 or later, and GNU sed and GNU coreutils first in PATH (on macOS, `brew install bash gnu-sed coreutils`, then put Homebrew's `bin` (for bash) and the `gnubin` folders of gnu-sed and coreutils first in PATH).
+`yarn test:layer [pack.tgz]` runs the agent layer's gates (kit, CLI, guide, lint preset, starter) on a pack, or packs the repo first; it needs Node 22.15 or later (23.5 or later on Node 23), network on its first run for the npm ci in `scripts/layer/test/tools`, bash 4 or later, and GNU sed and GNU coreutils first in PATH (on macOS, `brew install bash gnu-sed coreutils`, then put Homebrew's `bin` (for bash) and the `gnubin` folders of gnu-sed and coreutils first in PATH). The Agent Layer Tests workflow runs it on Node 22 for every pull request from a branch of this repository (fork pull requests skip it, as they skip the other build and test workflows).
 
 After an interrupted `yarn pack`, run `node scripts/pack-manifest.mjs restore`: `prepack` takes the `prepare` script out of `package.json`, and only `postpack` puts it back. If `package.json` changed since, `restore` keeps the changes and puts back only `prepare`.
 

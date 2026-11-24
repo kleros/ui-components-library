@@ -24,7 +24,7 @@
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd -P)
 REPO=$(cd "$HERE/../../.." && pwd -P)
-EXPECTED=55
+EXPECTED=74
 TSC=$REPO/node_modules/.bin/tsc
 die() { echo "test:layer: $*" >&2; exit 1; }
 [[ -x "$TSC" ]] || die "$TSC is missing: run yarn install first"
@@ -36,7 +36,9 @@ node -e 'process.exit(typeof require("node:module").registerHooks === "function"
 # wc -l output unpadded (GNU coreutils; BSD wc pads it). With the macOS tools a gate prints nothing, so stop here and
 # say why.
 (( BASH_VERSINFO[0] >= 4 )) || die "needs bash 4 or later; this is bash $BASH_VERSION (macOS: brew install bash, and put it first in PATH)"
-{ sed --version 2>/dev/null | grep -q GNU && wc --version 2>/dev/null | grep -q GNU; } \
+# Each --version is read whole: piped to grep -q, which exits at the first match, sed could die of SIGPIPE, and under
+# pipefail this check then failed on GNU tools (2 runs in 300).
+[[ "$(sed --version 2>/dev/null)" == *GNU* && "$(wc --version 2>/dev/null)" == *GNU* ]] \
   || die "needs GNU sed and GNU coreutils first in PATH: the gates use sed -i with no suffix and compare wc -l output unpadded (macOS: brew install gnu-sed coreutils, then put their gnubin folders first in PATH)"
 
 # Yarn runs this script in the repo's folder, so a relative pack path is read from the folder yarn was started in.
@@ -56,7 +58,7 @@ git -C "$WORK" rev-parse --git-dir >/dev/null 2>&1 \
 # ignores the work folder, outside git, makes Tailwind 4.3.5 scan node_modules there, which fails the @source gates.
 d=$(dirname "$WORK")
 while :; do
-  for m in tailwindcss @tailwindcss/node @tailwindcss/oxide eslint @kleros/ui-components-library; do
+  for m in tailwindcss @tailwindcss/node @tailwindcss/oxide eslint eslint-plugin-better-tailwindcss @kleros/ui-components-library; do
     [[ -e "$d/node_modules/$m" ]] && die "$d/node_modules/$m is above the work folder, so the fixtures would find it: set TMPDIR elsewhere"
   done
   [[ -e "$d/.gitignore" ]] && echo "test:layer: note: $d/.gitignore is above the work folder; if it ignores that folder, the @source gates fail" >&2
@@ -92,6 +94,13 @@ mkdir -p "$CHECK/node_modules/@kleros" "$CHECK/src"
 tar -xzf "$TGZ" -C "$CHECK/node_modules/@kleros" && mv "$CHECK/node_modules/@kleros/package" "$CHECK/node_modules/@kleros/ui-components-library" \
   || die "could not extract $TGZ"
 LIB=$CHECK/node_modules/@kleros/ui-components-library
+# A stand-in for eslint-plugin-better-tailwindcss beside the pack, where check looks for it (from the app's copy of the
+# library): without the plugin check fails setup, and the fixtures test other things. An empty plugin, as
+# gate/review-preset.mjs uses; the gate after the CLI gates tests the missing plugin on a copy of the pack without it.
+mkdir -p "$CHECK/node_modules/eslint-plugin-better-tailwindcss" \
+  && echo '{"name":"eslint-plugin-better-tailwindcss","version":"4.10.0","type":"module","exports":"./index.js"}' >"$CHECK/node_modules/eslint-plugin-better-tailwindcss/package.json" \
+  && echo 'export default { rules: {} };' >"$CHECK/node_modules/eslint-plugin-better-tailwindcss/index.js" \
+  || die "could not write the lint plugin stand-in"
 VERSION=$(node -p 'require(process.argv[1]).version' "$LIB/package.json") || die "the pack has no readable package.json"
 link() { # <package> <the node_modules folder it comes from>
   [[ -e "$2/$1" ]] || die "$1 is not in $2: run yarn install, or delete $TOOLS/node_modules"
@@ -182,11 +191,19 @@ grep -q "kleros-ui create" "$LIB/README.md" && grep -q "npx -p @kleros/ui-compon
   && grep -qF 'With a theme, `npx -p @kleros/ui-components-library kleros-ui theme` adds one line' "$LIB/README.md" && grep -qF '`@import "./theme.css";`' "$LIB/README.md" \
   && grep -q "^An app with colours of its own sets new token values in one theme file, and nowhere else" "$LIB/README.md" \
   && grep -qx "@layer base {" "$LIB/README.md" && grep -q "issues/120" "$LIB/README.md" \
-  && ( for f in "$LIB/dist/ui-components-library.d.ts" "$LIB/dist/lib/index.d.ts" "$LIB"/dist/kit/*.d.ts; do head -1 "$f" | grep -q "kleros-ui create.*kleros-ui init.*agent/AGENTS.md" || exit 1; done ) \
-  && grep -q "kleros-ui create.*kleros-ui init" <(node -p 'require(process.argv[1]).description' "$LIB/package.json") \
+  && ( for f in "$LIB/dist/ui-components-library.d.ts" "$LIB/dist/lib/index.d.ts" "$LIB"/dist/kit/*.d.ts; do head -1 "$f" | grep -q "^// @kleros/ui-components-library: .*agent/AGENTS.md" && ! head -1 "$f" | grep -q "kleros-ui init\|kleros-ui create" || exit 1; done ) \
+  && node -e 'const d = require(process.argv[1]).description; process.exit(/agent\/AGENTS\.md/.test(d) && !/kleros-ui (init|create)/.test(d) ? 0 : 1)' "$LIB/package.json" \
   && node -e 'const s = require(process.argv[1]).scripts; process.exit(s.build === "kleros-ui check --build && vite build" && !("prebuild" in s) ? 0 : 1)' "$LIB/templates/poc/package.json" \
   && node -e 'const s = require(process.argv[1]).scripts || {}; process.exit(Object.keys(s).some((k) => /install|prepare/.test(k)) ? 1 : 0)' "$LIB/package.json" \
-  && echo "gate: d.10: README Setup step 1 points to create, with the four-line Tailwind entry plus the theme import when the app has a theme, no Apps without Tailwind (D33), and Theme usage sets token values only in the theme file npx -p @kleros/ui-components-library kleros-ui theme writes, inside @layer base, with no bare override (D34, T6); the description and every type entry name create, init and the guide (D31); the starter build runs kleros-ui check --build first; install scripts: none"
+  && echo "gate: d.10: README Setup step 1 points to create, with the four-line Tailwind entry plus the theme import when the app has a theme, no Apps without Tailwind (D33), and Theme usage sets token values only in the theme file npx -p @kleros/ui-components-library kleros-ui theme writes, inside @layer base, with no bare override (D34, T6); the description and every type entry point at the guide and name no command (D31, PR #127 review F17); the starter build runs kleros-ui check --build first; install scripts: none"
+# PR #131 review (P1): the build carries no JSX runtime of its own: React 18's, bundled, threw on import under React 19
+# ("reading 'ReactCurrentOwner'"). Every dist file imports react/jsx-runtime from the app, and exports["."] lists
+# types first.
+[[ -z "$(find "$LIB/dist" -name '*jsx-runtime*' -o -name '*jsx-dev-runtime*')" ]] \
+  && ! grep -rqE 'from "\./[^"]*jsx-(dev-)?runtime' "$LIB/dist" \
+  && grep -rlq 'from "react/jsx-runtime"' "$LIB/dist" \
+  && node -e 'process.exit(Object.keys(require(process.argv[1]).exports["."])[0] === "types" ? 0 : 1)' "$LIB/package.json" \
+  && echo "gate: PR #131 review (P1): dist bundles no JSX runtime and imports react/jsx-runtime from the app; exports lists types first"
 # d.11 (T6, R1, B5): the guide's Themes section and LOOK.md say where a theme goes; agent/REVIEW.md, the PR reviewers'
 # checklist, ships with its five parts and is named by the README and AGENTS.md; the README no longer says Button
 # takes no children.

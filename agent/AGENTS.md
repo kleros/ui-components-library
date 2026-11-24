@@ -10,8 +10,12 @@ public code is the old v2 API. Setup: `create` writes it for a new app; an exist
   `create` copies the starter (Vite, React 18, Tailwind 4, ESLint), installs it and runs `init`. Don't write the setup
   by hand.
 - Existing app: `npx -p @kleros/ui-components-library kleros-ui init` once in the app's own folder (`web/` in a monorepo), then the steps in "Existing
-  apps" below, then `npm run ui:baseline`.
-- React 18 only: React 19 is not supported yet and renders a blank page.
+  apps" below, then `npm run ui:baseline`. If the app's `AGENTS.md` has no kleros-ui block yet, ask its team first:
+  `init` adds that block, `CLAUDE.md` and Cursor pointers, `kleros-ui.json`, a lint config and the `ui:check` and
+  `ui:baseline` scripts, and `ui:check` then holds new UI to these rules.
+- After a library update: `npx -p @kleros/ui-components-library kleros-ui sync`. Until then `ui:check` prints a note
+  (same major) or fails (new major).
+- React 18 only: React 19 is not supported yet. `init` warns and `ui:check` fails in an app on React 19.
 
 ## Workflow (every UI task)
 1. Look the piece up in `agent/CATALOG.md` (core, kit and known gaps) and in your app's `kleros-ui.json`. Import
@@ -136,7 +140,7 @@ import "./index.css"; // then the app's Tailwind
 3. Before `ui:baseline`, add the lint's Tailwind plugin as a devDependency:
    `npm install -D eslint-plugin-better-tailwindcss@^4.10.0` (in a Yarn workspace,
    `yarn add -D eslint-plugin-better-tailwindcss@^4.10.0`). Without it, or when it is installed but fails to load, the lint's class rules are off, so `ui:check`
-   passes any class and says so in a note. A plugin that is installed but fails to load also gets one warning from the
+   fails and says why. A plugin that is installed but fails to load also gets one warning from the
    preset, with the first line of the error, wherever ESLint loads the preset (an editor, the app's own lint script).
 
 **It has no Tailwind yet (Court's web app).** Add Tailwind 4, then write new UI with Tailwind only.

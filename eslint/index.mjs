@@ -37,7 +37,7 @@
 // use-at-your-own-risk exports builtinRules in ESLint 8 to 10 (read in 9.15.0, 9.39.5 and 10.11.0). Where it does not
 // load, as when the app's ESLint is not reachable from this folder, the preset falls back to the core ids and says so.
 // The Tailwind class rules' plugin, an optional peer. When it is not installed, the rules are skipped and the preset
-// says nothing (ui:check notes it). When it is installed but does not load (a dependency of its own missing, a Node it
+// says nothing (ui:check fails setup on it). When it is installed but does not load (a dependency of its own missing, a Node it
 // does not support, no default export), the rules are off too, and the preset warns once, since outside ui:check (an
 // editor, the app's own lint) nothing else says so. Node's message names the package it could not find: "Cannot find
 // package '<name>' imported from ..." (ERR_MODULE_NOT_FOUND) for an import, "Cannot find module '<name>'"
@@ -84,10 +84,14 @@ const STEPS = "0|0\\.5|1|2|3|4|6|8|12|16|px|auto|reverse"; // spacing values all
 const LENGTH = "(?:[\\d.]+(?:px|rem|em|%)?|(?:length|number|percentage):.+)"; // an arbitrary value that is not a colour
 
 // Library exports an app should import instead of re-declaring (core + kit).
+// Every component the package root exports must be listed here (the repo's yarn test:layer checks it).
 const LIB_NAMES = [
   "Button", "Card", "Box", "Modal", "Tag", "Tabs", "Tooltip", "Switch", "Checkbox", "Radio", "Steps", "Timeline", "Accordion",
   "Breadcrumb", "Copiable", "Searchbar", "TextField", "TextArea", "NumberField", "Datepicker", "DropdownSelect", "FileUploader",
   "AlertMessage", "LinearProgress", "CircularProgress", "StandardPagination", "CompactPagination",
+  "CustomAccordion", "CustomRadio", "CustomRadioItem", "RadioIndicator", "CustomTimeline", "Form", "BigNumberField", "Slider",
+  "DropdownCascader", "PushMessage", "DisplayLarge", "DisplaySmall", "DisplayIcon", "ScrollbarContainer", "DraggableList",
+  "FileViewer",
 ];
 // Every kit component in the catalogue must be listed here (the repo's yarn test:layer checks it).
 const KIT_NAMES = [
@@ -98,17 +102,24 @@ const KIT_NAMES = [
 // Next.js route files, in the app's folder or its src/: the App Router's page files and every Pages Router file. Next's
 // docs write a page as `export default function Page()`, a route component, not a re-declared kit Page, so there the
 // library-name rule skips the Page the file exports as its default (`export default function Page()`, or a Page
-// declared and then exported with `export default Page`). Any other Page is still reported: one in
-// src/components/Page.tsx, or one in a route file that is not its default export.
+// declared at the file's top level, exported by name or not, and then exported with `export default Page`). Any other
+// Page is still reported: one in src/components/Page.tsx, one in a route file that is not its default export, or one
+// declared inside a function or a block of a route file.
 const NEXT_ROUTES = [
   "app/**/page.{js,jsx,ts,tsx}",
   "src/app/**/page.{js,jsx,ts,tsx}",
   "pages/**/*.{js,jsx,ts,tsx}",
   "src/pages/**/*.{js,jsx,ts,tsx}",
 ];
+const DEFAULT_PAGE = 'Program:has(ExportDefaultDeclaration > Identifier[name="Page"]) > ';
+const TOP_LEVEL_PAGE = [
+  "FunctionDeclaration",
+  "VariableDeclaration > VariableDeclarator",
+  "ExportNamedDeclaration > FunctionDeclaration",
+  "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator",
+].map((d) => `${DEFAULT_PAGE}${d}[id.name="Page"]`);
 const ROUTE_PAGE =
-  ':not(ExportDefaultDeclaration > FunctionDeclaration[id.name="Page"])' +
-  ':not(Program:has(ExportDefaultDeclaration > Identifier[name="Page"]) [id.name="Page"])';
+  ':not(ExportDefaultDeclaration > FunctionDeclaration[id.name="Page"])' + `:not(${TOP_LEVEL_PAGE.join(", ")})`;
 // Names agents guess for parts the library has under another name.
 const GUESSED = {
   Pagination: "StandardPagination", Alert: "AlertMessage", Badge: "StatusBadge (kit)", Loader: "Spinner (kit)",
@@ -222,8 +233,11 @@ export default function klerosUI({ cssEntry = "src/index.css", files = ["src/**/
   // The preset's .js and .jsx files parse JSX (with espree, or the app's own parser), so they are linted, not parse
   // errors. typescript-eslint ignores the flag for .ts and .tsx, which it parses by their extension.
   const jsx = { files, languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } } };
+  // A declaration with no value (`declare const Form: FC`, a .d.ts line) declares nothing, and a lazy() or dynamic()
+  // wrapper loads a component that is declared elsewhere: Escrow V2 and Curate V2 load the library's own FileViewer as
+  // `const FileViewer = lazy(() => import("@kleros/ui-components-library").then(...))`. Neither is reported.
   const libraryName = {
-    selector: `:matches(FunctionDeclaration, VariableDeclarator)[id.name=/^(${[...new Set([...LIB_NAMES, ...KIT_NAMES])].join("|")})$/]`,
+    selector: `:matches(FunctionDeclaration, VariableDeclarator[init]:not([init.callee.name=/^(lazy|dynamic)$/], [init.callee.property.name="lazy"]))[id.name=/^(${[...new Set([...LIB_NAMES, ...KIT_NAMES])].join("|")})$/]`,
     message:
       "Local component with a library name: import it from @kleros/ui-components-library (or /kit) instead of re-declaring it.",
   };

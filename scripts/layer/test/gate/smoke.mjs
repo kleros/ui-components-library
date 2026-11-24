@@ -88,6 +88,11 @@ const cases = {
   QueryStateEmptyButton: h(kit.QueryState, { isLoading: false, data: [], empty: { title: "No cases", action: { text: "Reload", onPress() {} } } }, () => null),
   QueryStateErrorTitle: h(kit.QueryState, { isLoading: false, isError: true, error: new Error("503"), data: undefined, errorTitle: "Could not load cases" }, () => null),
   QueryStateError: h(kit.QueryState, { isLoading: false, isError: true, error: new Error("503"), data: undefined }, () => null),
+  // PR #131 review: a disabled TanStack query (isPending, no data) loads; a failed refetch keeps the loaded rows; a
+  // failed hand-rolled hook that starts at null shows the error.
+  QueryStatePending: h(kit.QueryState, { isLoading: false, isPending: true, data: undefined, empty: { title: "No cases" } }, () => "rows"),
+  QueryStateRefetchFailed: h(kit.QueryState, { isLoading: false, isError: true, error: new Error("503"), data: [{ id: 1 }] }, (d) => `rows ${d.length}`),
+  QueryStateFailedNull: h(kit.QueryState, { isLoading: false, isError: true, error: new Error("503"), data: null }, () => "rows"),
   InfoCardWarning: h(kit.InfoCard, { variant: "warning" }, "Voting closes in 2 hours."),
   StatusBadgeNeutral: h(kit.StatusBadge, { tone: "neutral", dot: true }, "Commit"),
   DataTablePress: h(kit.DataTable, { rows: [{ id: 1, name: "a" }], rowKey: (r) => r.id, onRowPress() {}, columns: [{ key: "name", header: "Name" }] }),
@@ -381,6 +386,10 @@ const checks = {
     && /<button[^>]*>.*Reload.*<\/button>/.test(html("QueryStateEmptyButton")),
   "QueryState errorTitle, else Something went wrong": html("QueryStateErrorTitle").includes("Could not load cases")
     && !html("QueryStateErrorTitle").includes("Something went wrong") && html("QueryStateError").includes("Something went wrong"),
+  "QueryState: isPending with no data loads like isLoading; a failed refetch keeps its rows; a failed null shows the error":
+    html("QueryStatePending") === html("QueryStateLoading") && !html("QueryStatePending").includes("No cases")
+    && html("QueryStateRefetchFailed") === "rows 1"
+    && html("QueryStateFailedNull").includes("Something went wrong") && !html("QueryStateFailedNull").includes("rows"),
   "InfoCard: an icon and a screen-reader word per variant": /<svg aria-hidden="true"[^>]*class="[^"]*text-klerosUIComponentsWarning/.test(html("InfoCardWarning"))
     && html("InfoCardWarning").includes('<span class="sr-only">Warning: </span>Voting closes in 2 hours.')
     && new Set(["info", "warning", "success", "error"].map((v) => /<path d="([^"]+)"/.exec(renderToString(h(kit.InfoCard, { variant: v }, "x")))?.[1])).size === 4,

@@ -182,3 +182,117 @@ describe("rich-content props that are empty, an array or 0", () => {
     );
   });
 });
+
+// An empty fragment renders nothing too (`<>{cond && <Hint />}</>` with cond false), so it falls back as an empty
+// array does; a fragment with content is still shown.
+describe("rich-content props that are an empty fragment", () => {
+  it.each([
+    ["<></>", <></>],
+    ["<>{false}</>", <>{false}</>],
+    ["<>{[]}</>", <>{[]}</>],
+    [
+      "<><></>{null}</>",
+      <>
+        <></>
+        {null}
+      </>,
+    ],
+    [
+      '<Fragment key="k">{""}</Fragment>',
+      <React.Fragment key="k">{""}</React.Fragment>,
+    ],
+  ])("hasContent(%s) is false", (_, node) => {
+    expect(hasContent(node)).toBe(false);
+  });
+
+  it.each([
+    ["<>x</>", <>x</>],
+    [
+      "<><b /></>",
+      <>
+        <b>B</b>
+      </>,
+    ],
+    ["<>{0}</>", <>{0}</>],
+    [
+      "<><></>x</>",
+      <>
+        <></>x
+      </>,
+    ],
+  ])("hasContent(%s) is true", (_, node) => {
+    expect(hasContent(node)).toBe(true);
+  });
+
+  const empties = [
+    ["<></>", <></>],
+    ["<>{false}</>", <>{false}</>],
+  ] as const;
+
+  describe.each(fields)("%s", (_, Field) => {
+    const F = asField(Field);
+
+    it.each(empties)(
+      "keeps the message with description %s",
+      (_, description) => {
+        render(
+          <F label="Amount" message="Help text" description={description} />,
+        );
+        expect(screen.getByText("Help text")).toBeTruthy();
+      },
+    );
+
+    it.each(empties)(
+      "keeps the label and the input's name with labelContent %s",
+      (_, labelContent) => {
+        const { container } = render(
+          <F label="Amount" labelContent={labelContent} />,
+        );
+        expect(screen.getByText("Amount").tagName).toBe("LABEL");
+        const input = container.querySelector("input, textarea");
+        expect(input).not.toBeNull();
+        expect(screen.getAllByLabelText("Amount")).toContain(input);
+      },
+    );
+
+    it("shows a fragment with content instead of label and message", () => {
+      render(
+        <F
+          label="Amount"
+          labelContent={
+            <>
+              <b>Name</b>
+            </>
+          }
+          message="Help text"
+          description={
+            <>
+              <i>Hint</i>
+            </>
+          }
+        />,
+      );
+      expect(screen.getByText("Name")).toBeTruthy();
+      expect(screen.getByText("Hint")).toBeTruthy();
+      expect(screen.queryByText("Amount")).toBeNull();
+      expect(screen.queryByText("Help text")).toBeNull();
+    });
+  });
+
+  it.each([
+    ["Button", Button],
+    ["Tag", Tag],
+  ])(
+    "%s keeps its text label with children <></> or <>{false}</>",
+    (_, Component) => {
+      const C = Component as React.ComponentType<Record<string, unknown>>;
+      for (const [, empty] of empties) {
+        const { unmount } = render(<C text="Save">{empty}</C>);
+        expect(screen.getByRole("button", { name: "Save" }).textContent).toBe(
+          "Save",
+        );
+        unmount();
+      }
+    },
+  );
+});

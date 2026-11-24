@@ -375,14 +375,26 @@ export function useBigNumberField(props: BigNumberFieldProps) {
     if (input === "-")
       return minBig === undefined || minBig.isNaN() || minBig.isNegative();
 
+    // A negative zero ("-0", "-0.", and "-." once it has its leading zero) is 0, which a minimum of 0 allows, so
+    // the clamp would keep it and the field would show "-0." for 0. Above 0 the clamp moves it to the minimum, as
+    // it does any other negative.
+    if (
+      /^-0*\.?0*$/.test(input) &&
+      minBig !== undefined &&
+      !minBig.isNaN() &&
+      minBig.isZero()
+    )
+      return false;
+
     // Regular expression to match valid number format (including decimal and negative)
     const regex = /^-?\d*\.?\d*$/;
     return regex.test(input);
   };
 
-  // A leading "." (or "-.") reads as "0." (or "-0."), so ".5" is 0.5 and a lone "." is never NaN
+  // A lone "." (or "-.") reads as "0." (or "-0."), so it is never NaN. Only the lone point: rewriting longer text
+  // such as ".5", left when "12" is deleted from "12.5", would move the caret to the end. BigNumber reads ".5" as 0.5.
   const withLeadingZero = (text: string): string =>
-    text.replace(/^(-?)\./, (_, sign: string) => `${sign}0.`);
+    text.replace(/^(-?)\.$/, (_, sign: string) => `${sign}0.`);
 
   // Handle input change
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

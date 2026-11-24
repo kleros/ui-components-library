@@ -69,7 +69,9 @@ rm -rf "$A"
 # (gate/cli-theme-fixture.css, one case each: an unknown token, the --color- alias, another property, !important, a
 # .dark selector, a rule outside @layer base, another at-rule); the valid lines around them are not findings, and
 # nothing inside a wrong rule or at-rule counts again. The probe's theme has 0 findings and ui:check passes. ui:baseline
-# records css-theme findings per file like the rest of the scan: one more fails check, and check --build ignores it.
+# records css-theme findings per file like the rest of the scan: one more fails check, and check --build ignores it
+# (it must fail on the 7 recorded findings alone, before the eighth is added: a --build that read the baseline would pass
+# there and fail this gate).
 A=$(mktemp -d -p "$WORK")
 app "$A/app" \
   && (cd "$A/app" && $CLI theme >/dev/null && cp "$P/gate/cli-theme-fixture.css" src/theme.css && { $CLI css >o1.txt; [[ $? -eq 1 ]]; } \
@@ -83,10 +85,10 @@ app "$A/app" \
     && grep -q '^src/theme.css:17:3 --klerosUIComponentsStroke is outside @layer base in the theme file src/theme.css' o1.txt \
     && grep -q '^src/theme.css:19:1 @media (prefers-contrast: more) in the theme file src/theme.css: .*no other at-rule' o1.txt \
     && $CLI baseline >/dev/null && $CLI check | grep -qx "ui:check passed" \
+    && ! $CLI check --build >o3.txt && grep -q '^css: 7 new (baseline 0):' o3.txt && grep -q 'src/theme.css:4:5 --klerosUIComponentsPrimaryBlu is not a library token' o3.txt \
+    && grep -qx 'kleros-ui check --build failed (tsc ok, lint ok, css failed, setup 0 problem(s))' o3.txt && grep -q '^kleros-ui: the build stops here, before vite' o3.txt \
     && printf '@layer base {\n  :root {\n    --klerosUIComponentsNope: #000;\n  }\n}\n' >> src/theme.css \
     && ! $CLI check >o2.txt && grep -q '^css: 1 new (baseline 7):' o2.txt && grep -q 'src/theme.css:26:5 --klerosUIComponentsNope is not a library token' o2.txt \
-    && ! $CLI check --build >o3.txt && grep -q 'src/theme.css:26:5 --klerosUIComponentsNope is not a library token' o3.txt \
-    && grep -q '^kleros-ui: the build stops here, before vite' o3.txt \
     && probe src/theme.css && $CLI css | grep -qxF "$CSS0" && $CLI check | grep -qx "ui:check passed") \
   && echo "gate: d.11 (T3): in the theme file an unknown token, the --color- alias, another property, !important, a selector other than :root or :root.dark, a rule outside @layer base and another at-rule are one css-theme finding each, named at their line; the probe's theme passes; css-theme findings are baselined per file, one more fails, and check --build ignores the baseline"
 rm -rf "$A"
@@ -326,7 +328,9 @@ rm -rf "$A"
 # - with no copy of the library in the app's folder or above, check says so.
 TW=$P/tools/node_modules
 twlink() { mkdir -p "$1/node_modules/@tailwindcss" && for t in tailwindcss @tailwindcss/node @tailwindcss/oxide; do ln -s "$TW/$t" "$1/node_modules/$t" || return 1; done; }
-own() { app "$1" && rm "$1/node_modules/@kleros/ui-components-library" && cp -r "$LIB" "$1/node_modules/@kleros/ui-components-library" && twlink "$1" && cp "$LIB/templates/poc/gitignore" "$1/.gitignore"; }
+# The copy also gets run.sh's stand-in for eslint-plugin-better-tailwindcss beside it, where check looks for the plugin.
+own() { app "$1" && rm "$1/node_modules/@kleros/ui-components-library" && cp -r "$LIB" "$1/node_modules/@kleros/ui-components-library" \
+  && cp -R "$(dirname "$(dirname "$LIB")")/eslint-plugin-better-tailwindcss" "$1/node_modules/" && twlink "$1" && cp "$LIB/templates/poc/gitignore" "$1/.gitignore"; }
 L=../node_modules/@kleros/ui-components-library
 KIT="app.js, chart.js, cn.js, data.js, feedback.js, form.js, index.js, layout.js, state.js, status.js, time.js, tokens.js"
 MISS="setup: src/index.css: no @source reaches the library, so Tailwind leaves out the kit's classes (layout, rows, gutters): the app's own Tailwind, run on this entry, does not scan"

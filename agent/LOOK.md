@@ -23,7 +23,7 @@ in the theme file only), `dark:` colour classes, `--klerosUIComponents*` tokens 
 padding, margin and gap off the steps, radius other than `rounded-base`, `rounded-full` or `rounded-none`, font sizes
 above `text-2xl` or in brackets, weights other than `font-normal` and `font-semibold`, and `Card round`, and each
 message names what to use instead. The class rules (palette, `dark:`, spacing, radius and type classes) need
-`eslint-plugin-better-tailwindcss` in the app: without it, or when it fails to load, they are off, and `ui:check` says so in a note (AGENTS.md,
+`eslint-plugin-better-tailwindcss` in the app: without it, or when it fails to load, they are off, and `ui:check` fails until it loads (AGENTS.md,
 "Existing apps"). A plugin that is installed but fails to load also gets a warning from the preset wherever ESLint
 loads it.
 

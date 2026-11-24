@@ -29,6 +29,8 @@ const pkg = JSON.parse(readFileSync(join(PKG_DIR, "package.json"), "utf8"));
 const CATALOG = JSON.parse(readFileSync(join(PKG_DIR, "agent/catalog.json"), "utf8"));
 const LIB = "@kleros/ui-components-library";
 const START = /<!-- kleros-ui:start[^>]*-->/;
+// The start marker with the release that wrote the block, which check reads.
+const START_VERSION = /<!-- kleros-ui:start ([^ ]+) -->/;
 const END = "<!-- kleros-ui:end -->";
 const CONFIG = "kleros-ui.json";
 const STEPS = "0.5 1 2 3 4 6 8 12 16";
@@ -44,7 +46,8 @@ const readOr = (f, d = "") => {
 // Writes stay inside the app: no file is written through a symbolic link that points outside the app's folder, into
 // its node_modules or at nothing, and none in a folder that resolves outside the app's folder or into its node_modules
 // (a linked folder, or a path such as "../x" in kleros-ui.json). A link that resolves inside the app is fine (AGENTS.md -> CLAUDE.md, a
-// linked .cursor). A file where a folder goes (.cursor/rules as a file) is refused too, so mkdir does not fail midway.
+// linked .cursor). A file where a folder goes (.cursor/rules as a file) is refused too, so mkdir does not fail midway,
+// and so is a folder where a file goes (.cursor/rules/kleros-ui.mdc as a folder), so the write does not.
 // The app's folder is the one the command runs in; create sets it
 // to the new app's folder. Why `p` may not be written, or null.
 let APP_ROOT = null;
@@ -69,7 +72,9 @@ function writeProblem(p, { folder = false, root = APP_ROOT ?? realOrNull(".") } 
     const where = d === abs ? name(d) : `${name(d)}, where ${name(abs)} goes,`;
     if (!inside(real)) return `${where} resolves to ${real}, outside the app's folder (${root})`;
     if (modules) return `${where} resolves to ${real}, in node_modules, which the next install replaces`;
-    if ((folder || d !== abs) && !statSync(real).isDirectory()) return `${name(d)} is a file, not a folder, so ${d === abs ? "it" : name(abs)} cannot be made there (move it away)`;
+    const dir = statSync(real).isDirectory();
+    if ((folder || d !== abs) && !dir) return `${name(d)} is a file, not a folder, so ${d === abs ? "it" : name(abs)} cannot be made there (move it away)`;
+    if (!folder && d === abs && dir) return `${name(d)} is a folder, not a file, so it cannot be written (move it away)`;
     return null;
   }
 }
@@ -132,15 +137,69 @@ let LIB_PATH = null;
 
 // Step 0 of the block, only while the app has no Tailwind; check and baseline look for its first words.
 const NO_TAILWIND_STEP = "0. This app has no Tailwind yet";
-// The current block's text, when it is for this version; null otherwise.
+// The first `marker` (START, START_VERSION or END) at or after `from` that is one: at the start of a line (up to three
+// spaces in, where it is still an HTML comment, as in CommonMark; four make it code) and outside a fenced code block
+// (``` or ~~~), where init, sync and every earlier release wrote the block's markers. A marker quoted
+// in the app's own text around the block (in inline code, or an example in a code fence) is that text: before, sync
+// wrote the new block between a quoted start/end pair above the block, the real block kept the old release, and check
+// read the quoted pair's release. Every reader and writer of the block finds its markers here, so they cannot disagree.
+// A fence that never closes is not one, so a stray ``` above the block does not hide it. CRLF and CR-only lines count
+// as LF ones, and a byte order mark does not move the first line's start. The match ([0] the marker, [1] the release for
+// START_VERSION, index), or null.
+function findMarker(text, marker, from = 0) {
+  const re = new RegExp(marker.source ?? marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "y");
+  const lines = [];
+  const nl = /\r\n?|\n/g;
+  for (let i = text.startsWith("\uFEFF") ? 1 : 0; ; ) {
+    nl.lastIndex = i;
+    const eol = nl.exec(text);
+    lines.push({ index: i, line: text.slice(i, eol ? eol.index : text.length) });
+    if (!eol) break;
+    i = eol.index + eol[0].length;
+  }
+  for (let n = 0; n < lines.length; n++) {
+    // A fence opens with three or more ` or ~, up to three spaces in or after a list item's marker ("- ```sh",
+    // "1. ```sh"), as in CommonMark (a ` fence's info string has no `), and closes at a line of at least as many of the
+    // same character and nothing else, up to three spaces past its column (the item's content column in a list, else
+    // 0), so a line indented further is the fence's text. A list item's fence also ends with its item, at the first line
+    // indented less than that column.
+    const open = /^( {0,3}(?:(?:[-*+]|\d{1,9}[.)])[ \t]+)*)(`{3,}|~{3,})(.*)$/.exec(lines[n].line);
+    if (open && !(open[2][0] === "`" && open[3].includes("`"))) {
+      const col = /[-*+.)]/.test(open[1]) ? open[1].length : 0;
+      const close = new RegExp(`^ {0,${col + 3}}${open[2][0]}{${open[2].length},}[ \\t]*$`);
+      let end = -1;
+      for (let k = n + 1; k < lines.length; k++) {
+        if (close.test(lines[k].line)) {
+          end = k;
+          break;
+        }
+        if (col && lines[k].line.trim() && /^ */.exec(lines[k].line)[0].length < col) {
+          end = k - 1;
+          break;
+        }
+      }
+      if (end > n || (end === n && col)) {
+        n = end;
+        continue;
+      }
+    }
+    if (lines[n].index < from) continue;
+    re.lastIndex = lines[n].index + /^ {0,3}/.exec(lines[n].line)[0].length;
+    const m = re.exec(text);
+    if (m) return m;
+  }
+  return null;
+}
+// The block's text, whatever release wrote it (a block from an earlier release of this major is only a note in check,
+// so its text is checked as this release's is, and baseline rewrites it as it does this release's); null with none.
 function currentBlock() {
   const agents = existsSync("AGENTS.md") ? readFileSync("AGENTS.md", "utf8") : "";
-  const m = agents.match(/<!-- kleros-ui:start ([^ ]+) -->/);
-  if (!m || m[1] !== pkg.version) return null;
-  const end = agents.indexOf(END, m.index);
-  return agents.slice(m.index, end < 0 ? agents.length : end);
+  const m = findMarker(agents, START_VERSION);
+  if (!m) return null;
+  const end = findMarker(agents, END, m.index);
+  return agents.slice(m.index, end ? end.index : agents.length);
 }
-// True when this version's block says "no Tailwind yet" and the app has it, or the other way round.
+// True when the block says "no Tailwind yet" and the app has it, or the other way round.
 function staleTailwindStep() {
   const text = currentBlock();
   return text !== null && !text.includes("styles its own code with styled-components") && text.includes(NO_TAILWIND_STEP) === hasTailwind();
@@ -191,19 +250,32 @@ function block() {
 
 // A start marker with no end marker after it is refused before anything is written: the block would be added below it,
 // and the next run would replace everything from that marker to the new block's end, the text between included.
+// So is a second start marker before the first end marker (an orphan start above a complete block, as an older init
+// wrote it): the block runs from the first start to that end, and its rewrite would replace the text between them.
+// Markers are the ones findMarker finds: one quoted in inline code or a code fence is the app's text, not refused.
 function checkMarkers(file) {
   const text = readOr(file);
-  const start = text.match(START);
-  if (start && text.indexOf(END, start.index) < 0)
+  const start = findMarker(text, START);
+  const line = (i) => text.slice(0, i).split(/\r\n?|\n/).length;
+  if (!start) return;
+  const end = findMarker(text, END, start.index);
+  if (!end)
     throw new Error(
-      `kleros-ui: ${file} has ${start[0]} on line ${text.slice(0, start.index).split("\n").length} and no ${END} after it, so kleros-ui cannot tell where its block ends, and left ${file} as it was. Put ${END} after the block's last line, or delete the start marker, then run the command again.`,
+      `kleros-ui: ${file} has ${start[0]} on line ${line(start.index)} and no ${END} after it, so kleros-ui cannot tell where its block ends, and left ${file} as it was. Put ${END} after the block's last line, or delete the start marker, then run the command again.`,
+    );
+  const second = findMarker(text, START, start.index + start[0].length);
+  if (second && second.index < end.index)
+    throw new Error(
+      `kleros-ui: ${file} has ${start[0]} on line ${line(start.index)} and ${second[0]} on line ${line(second.index)} before the first ${END} (line ${line(end.index)}), so kleros-ui cannot tell which start marker begins its block, and left ${file} as it was. Delete the start marker that has no block of its own (keep the text after it), then run the command again.`,
     );
 }
+// The block runs from the first start marker to the first end marker after it (checkMarkers made sure there is one).
 function writeBlock(file) {
   checkMarkers(file);
   const text = existsSync(file) ? readFileSync(file, "utf8") : "# Agent guide\n";
-  const re = new RegExp(`${START.source}[\\s\\S]*?${END}`);
-  write(file, re.test(text) ? text.replace(re, block()) : `${text.trimEnd()}\n\n${block()}\n`);
+  const start = findMarker(text, START);
+  const end = start && findMarker(text, END, start.index);
+  write(file, end ? text.slice(0, start.index) + block() + text.slice(end.index + END.length) : `${text.trimEnd()}\n\n${block()}\n`);
 }
 
 // [file, what init adds, the line that shows it is there]. A pointer is added once: a file that holds its marker line
@@ -382,8 +454,11 @@ const keepAppFile = (file, why) => {
 // its first write. It makes wireLint's choices: the managed wrap an earlier init wrote, when it is stale (styled: true,
 // the old spread, drifted klerosUI() options, or its app config moving to .mjs or .cjs) and stays where it is, or, in an
 // existing app with no config wired to the preset, kleros-ui.eslint.config.* when its klerosUI() options drifted. A
-// move to a new file writes no existing path. `entry()` gives the cssEntry init will record when kleros-ui.json is
-// missing (null when it is there); it runs only when a config init wrote is found.
+// move to a new file writes no existing path, so a file already at the managed wrap's new path (an eslint.config.mjs
+// beside a managed eslint.config.js outside a module package) is refused here, and so is one at its app config's new
+// path (eslint.config.app.js moving to .mjs or .cjs, as wireLint's appName picks by its syntax), with the message that
+// wireLint would give only after init's first writes. `entry()` gives the cssEntry init will record when kleros-ui.json
+// is missing (null when it is there); it runs only when a config init wrote is found.
 function lintRewrite(pj, { fromCreate = false, entry = () => null } = {}) {
   const want = () => {
     const cssEntry = entry();
@@ -393,9 +468,13 @@ function lintRewrite(pj, { fromCreate = false, entry = () => null } = {}) {
   const text = current ? readFileSync(current, "utf8") : "";
   if (current && text.includes("ui-components-library/eslint")) {
     if (!text.startsWith(MANAGED)) return null;
-    if (current === "eslint.config.js" && pj.type !== "module") return null;
+    if (current === "eslint.config.js" && pj.type !== "module")
+      keepAppFile("eslint.config.mjs", `would move the managed ${current} there (this package is not "type": "module", so ESLint reads .js here as CommonJS)`);
     const from = text.match(/^import app from "\.\/(eslint\.config\.app\.[cm]?[jt]s)";$/m)?.[1];
     const moves = Boolean(from && existsSync(from) && pj.type !== "module" && from.endsWith(".js"));
+    if (moves) keepAppFile(`eslint.config.app.${looksEsm(readFileSync(from, "utf8")) ? "mjs" : "cjs"}`, `would move ${from} there (this package is not "type": "module", so ESLint reads .js here as CommonJS)`);
+    // The managed eslint.config.js moves to eslint.config.mjs, a new file, so nothing is rewritten in place.
+    if (current === "eslint.config.js" && pj.type !== "module") return null;
     const styled = /\bstyled\s*:\s*true/.test(text);
     const body = styled ? text.replace(/,\s*styled\s*:\s*true\b/g, "").replace(/\bstyled\s*:\s*true\s*,?\s*/g, "") : text;
     return styled || /\[\.\.\.app,/.test(text) || moves || presetDrift(body, want()) ? current : null;
@@ -635,9 +714,13 @@ function init({ fromCreate = false } = {}) {
   // is missing.
   if (!hasTailwind(pj))
     console.log(`kleros-ui: this app has no Tailwind (tailwindcss is not in package.json). Add it first: ${libPath()}/agent/AGENTS.md ${EXISTING_APPS}. npm run ui:check fails until it is there.`);
-  // Said even when the app already declared the plugin.
-  if (!declared(pj, "eslint-plugin-better-tailwindcss"))
-    console.log("kleros-ui: the lint preset's Tailwind rules need eslint-plugin-better-tailwindcss as a devDependency");
+  const react = reactProblems();
+  if (react.length) console.log(`kleros-ui: warning: ${reactProblem(react)}. npm run ui:check fails until the app is on React 18.`);
+  // As check finds it: from the app's copy of the library, so a plugin a workspace root declares counts. Before the app
+  // installs the library there is no copy to look from, and the app's package.json decides.
+  const libDir = appLibraryDir();
+  if (libDir ? pluginProblem(realOrNull(libDir) ?? libDir) : !declared(pj, TW_PLUGIN))
+    console.log(`kleros-ui: the lint preset's Tailwind rules need ${TW_PLUGIN} as a devDependency; npm run ui:check fails until it is there`);
   if (!fromCreate) console.log("kleros-ui: in an existing app, run `npm run ui:baseline` once, so check holds only new code to the look");
 }
 
@@ -780,6 +863,25 @@ const reactConflicts = (pj) =>
   ["dependencies", "devDependencies"].flatMap((field) =>
     ["react", "react-dom"].filter((n) => pj?.[field]?.[n] !== undefined && excludesReact18(pj[field][n]) === true).map((n) => `${n} ${pj[field][n]}`),
   );
+// What init warns about and check fails on in an existing app that is not on React 18: the react and react-dom copies
+// the library resolves (from the app's copy of it, through a pnpm link, else from the app) when their version leaves
+// out 18, and the package.json specs reactConflicts finds. npm stops a React 19 install with ERESOLVE; Yarn 4 and
+// pnpm only warn and install it, so init and check are where the app learns. [] when React is 18, or not there.
+// A setup problem, not a note: the peer range is ^18, and nothing beyond a render smoke has run under React 19.
+function reactProblems() {
+  const lib = appLibraryDir();
+  // Before the app installs the library (create --no-install, init through npx first), what resolves from here can be a
+  // parent folder's React (a monorepo root), not the app's: only its package.json is read then.
+  const from = lib && (realOrNull(lib) ?? lib);
+  const installed = ["react", "react-dom"].flatMap((n) => {
+    const d = from && packageDir(n, from);
+    const v = d && readOr(join(d, "package.json")).match(/"version"\s*:\s*"([^"]+)"/)?.[1];
+    return v && excludesReact18(v) === true ? [`${n} ${v} is installed`] : [];
+  });
+  return [...installed, ...reactConflicts(readJson("package.json", {})).map((c) => `package.json asks for ${c}`)];
+}
+const reactProblem = (found) =>
+  `React 18 only: ${found.join(", ")}. ${LIB} ${pkg.version} supports React 18 (its peer range is react ${pkg.peerDependencies?.react ?? "^18.0.0"})${found.some((f) => /(?:^|[^\d.])(?:19|[2-9]\d)(?:\.|\b)/.test(f)) ? "; React 19 is not supported yet and is not tested in apps" : ""}. Set react and react-dom to ^18.3.1 in package.json and reinstall`;
 
 const taken = (p) => {
   try {
@@ -853,7 +955,7 @@ function create({ dir: target, lib, install }) {
   const conflicts = reactConflicts(old);
   if (conflicts.length) {
     console.error(
-      `kleros-ui create: ${toPosix(relative(here, pjFile))} asks for ${conflicts.join(" and ")}, which leaves out React 18. ${LIB} needs React 18 (with React 19, npm install fails or the page renders blank). Set react and react-dom to ^18.3.1 (the starter's) in that package.json, then run create again. Nothing was written.`,
+      `kleros-ui create: ${toPosix(relative(here, pjFile))} asks for ${conflicts.join(" and ")}, which leaves out React 18. ${LIB} needs React 18 (its peer range is ^18; React 19 is not supported yet). Set react and react-dom to ^18.3.1 (the starter's) in that package.json, then run create again. Nothing was written.`,
     );
     process.exit(1);
   }
@@ -1407,8 +1509,10 @@ function htmlStyles(html) {
   // unclosed tags ("<a " over and over) made every one scan to the end of the file. A quoted attribute may hold "<" or
   // ">" (`<style data-x="a < b">` is still a style block); a quote opens a value only right after "=", as in HTML, so
   // a stray one in an unquoted value (`<style data-x=a'b>`) is a literal. A <style> with no </style> is a block to the end of the page,
-  // as a browser reads it.
-  const tag = /<!--[\s\S]*?(?:-->|$)|<script\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>[\s\S]*?(?:<\/script>|$)|(<style\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>)([\s\S]*?)(?:<\/style>|$)|<([a-z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>/gi;
+  // as a browser reads it. A block ends where a browser ends it, at </script or </style and then whitespace, "/" or ">",
+  // so `</script >` and `</style\n>` end one too (the " >" left over is not a tag). A comment ends where a browser ends it
+  // too: at the next --> or --!>, or at once in `<!-->` and `<!--->`, so a <style> after one of those is scanned.
+  const tag = /<!--(?:-?>|[\s\S]*?(?:--!?>|$))|<script\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>[\s\S]*?(?:<\/script(?=[\t\n\f\r />])|$)|(<style\b(?:[^<>=]|=\s*"[^"]*"|=\s*'[^']*'|=(?!\s*["']))*>)([\s\S]*?)(?:<\/style(?=[\t\n\f\r />])|$)|<([a-z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>/gi;
   const attr = (list, name) => list.match(new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+))`, "i"));
   for (const m of html.matchAll(tag)) {
     if (m[1]) {
@@ -1557,9 +1661,11 @@ function entryFindings(blocks, { outside = null, theme = null, file = "", scanne
   let themeImports = 0;
   let themeSeen = false; // the theme file's import came before, in this file (the first theme.css import before it is
   // themeImport's order finding; a second one after it is this file's own)
+  // What follows an @import's target: its layer(), supports() or media condition, or "" for a plain import.
+  const condition = (b) => b.prelude.replace(/^@import\s+(?:url\(\s*)?(?:"[^"]*"|'[^']*'|[^\s"');]+)\s*\)?/i, "").trim();
   // Why an @import of the theme file is a finding, or null when it is the one the entry should have.
   const themeImport = (b, target) => {
-    const rest = b.prelude.replace(/^@import\s+(?:url\(\s*)?(?:"[^"]*"|'[^']*'|[^\s"');]+)\s*\)?/i, "").trim();
+    const rest = condition(b);
     if (++themeImports > 1) return `@import "${target}" again: the Tailwind entry imports the theme file ${theme.file} once.`;
     // The block walk treats a grouping at-rule as transparent, so an import inside @layer components { } would pass.
     // Tailwind builds that as @layer components.base, which beats the library's :root.dark, so a light-only value leaks
@@ -1575,6 +1681,24 @@ function entryFindings(blocks, { outside = null, theme = null, file = "", scanne
     if (rest)
       return `@import "${target}" ${shortSel(rest)}: import the theme file plainly, with no layer(), supports() or media condition, so it stays in the base layer, where a light-only value keeps the library's dark one.`;
     return null;
+  };
+  // Why an @import of the library's theme.css, in the entry or a stylesheet that imports tailwindcss itself, is a
+  // finding after all, or null when it is plain and at the top level, as the guide and the starter write it. The
+  // block walk treats a grouping at-rule as transparent, and the import passes as an entry directive, so a condition
+  // would go unseen: layer() (named or not) or an @layer block around it moves the library's values out of @layer
+  // base, where the import order lets the theme win, and in layer(components) they beat the theme file's values, so
+  // the theme is undone with no other sign. Under a media or supports() condition, or inside @media or @supports,
+  // they load only where that condition holds.
+  const libThemeImport = (b) => {
+    const plain = `import the library's theme.css at the top level, plainly, without a layer, media or supports condition, as the guide writes it: @import "${LIB_THEME}";. In another layer its values leave @layer base, so the theme no longer works as written: in a later layer they beat the theme file's, and in one nested in @layer base the theme's light-only values beat the library's dark ones. Under @media or @supports they load only where that condition holds.`;
+    if (b.parent) {
+      const outer = [];
+      for (let p = b.parent; p; p = p.parent) outer.unshift(shortSel(p.prelude));
+      return `@import "${LIB_THEME}" inside ${outer.join(" > ")}: ${plain}`;
+    }
+    // Tailwind's theme(static) or theme(inline) option changes how @theme variables are emitted, not their layer.
+    const rest = condition(b).replace(/(?:^|\s)theme\([^)]*\)(?=\s|$)/gi, " ").trim();
+    return rest ? `@import "${LIB_THEME}" ${shortSel(rest)}: ${plain}` : null;
   };
   const covered = (b) => {
     for (let p = b.parent; p; p = p.parent) {
@@ -1617,14 +1741,15 @@ function entryFindings(blocks, { outside = null, theme = null, file = "", scanne
       continue;
     }
     // The library's theme.css loading again after the theme file undoes the theme: imported here when the entry reaches
-    // this file after the theme file (`late`), or a second time in this file after it. A stylesheet on the way (`link`)
-    // imports neither, as viaLink says; a reference import loads nothing.
+    // this file after the theme file (`late`), or a second time in this file after it. An import of it under a layer,
+    // media or supports condition is a finding too (libThemeImport). A stylesheet on the way (`link`) imports neither,
+    // as viaLink says; a reference import loads nothing.
     if (themed && !link && n === "import" && !b.block && atTarget(b.prelude) === LIB_THEME && !REFERENCE_IMPORT.test(b.prelude)) {
       const why = late
         ? `@import "${LIB_THEME}" in ${file}, which the Tailwind entry ${late.entry} reaches after the theme file ${theme.file} (through its @import "${late.via}"): it loads the library's values again, over the theme's. Import it once, from ${late.entry}, before the theme file.`
         : themeSeen && b.at !== libThemeAt
           ? `@import "${LIB_THEME}" again after the theme file ${theme.file}: it loads the library's values over the theme's. Import it once, before the theme file.`
-          : null;
+          : libThemeImport(b);
       if (why) {
         findings.push({ rule: CSS_THEME, at: b.at, message: why });
         continue;
@@ -1909,12 +2034,32 @@ function cssTargets(args = []) {
     const keep = typeof theme === "string" && theme.trim() ? args.filter((a) => appPath(a) === appPath(theme)) : [];
     return { paths: args, named: args, why: "named on the command line", keep };
   }
-  const { cssDirs: dirs, theme } = config();
+  const { cssDirs: dirs, theme, cssEntry } = config();
   // A cssDirs that is not a list of folders would scan nothing, or the letters of a string, and pass.
   if (dirs !== undefined && !(Array.isArray(dirs) && dirs.length && dirs.every((d) => typeof d === "string" && d.trim())))
     throw new Error(`kleros-ui: "cssDirs" in ${CONFIG} is ${JSON.stringify(dirs)}, not a list of folders: set it to the folders the CSS scan reads, from the app root, such as ["src"], or remove it to scan the whole app folder.`);
   const own = typeof theme === "string" && theme.trim() ? [theme] : [];
-  return { paths: [...(dirs || ["."]), "index.html", "src/index.html", ...own], named: dirs || [], why: `in cssDirs of ${CONFIG}`, all: true, keep: own };
+  // The Tailwind entry is read wherever cssDirs points, as the theme file is: the app loads it, so its own rules and its
+  // import of the theme file are checked. One that is not there is skipped quietly; only a cssDirs folder is reported.
+  const entry = typeof cssEntry === "string" && cssEntry.trim() ? cssEntry : "src/index.css";
+  // So are the local stylesheets it reaches tailwindcss through (a nested entry's ./tw.css): its @import of one is the
+  // nested entry's only when this scan reads that file too. One the walk skips (outside the app folder, in a dot folder,
+  // node_modules, dist or a folder a .gitignore line names) stays unread, and its import a finding, as directive() says.
+  const via = [];
+  const skip = gitIgnored();
+  const follow = (f, seen) => {
+    for (const g of cssImports(f)) {
+      const rel = toPosix(relative(".", g));
+      const parts = rel.split("/");
+      const skipped = parts.some((d, i) => d.startsWith(".") || skip(d, parts.slice(0, i + 1).join("/"), () => i < parts.length - 1));
+      if (seen.has(g) || isAbsolute(rel) || skipped || !reachesTailwind(g)) continue;
+      seen.add(g);
+      via.push(rel);
+      follow(g, seen);
+    }
+  };
+  if (existsSync(entry)) follow(entry, new Set([resolve(entry)]));
+  return { paths: [...(dirs || ["."]), "index.html", "src/index.html", entry, ...via, ...own], named: dirs || [], why: `in cssDirs of ${CONFIG}`, all: true, keep: own };
 }
 // The plain names and paths (no globs) in each .gitignore from the app folder up to its repo's root, the
 // folder that holds .git (in a monorepo, generated folders such as coverage are often ignored there only; outside a
@@ -1922,8 +2067,10 @@ function cssTargets(args = []) {
 // the .gitignore that names it. As in git, the last line that matches decides, reading from the repo root's .gitignore
 // down to the app's, so a "!" line takes back a folder an earlier line skips (styles, then !web/src/styles); a folder
 // that is skipped is not walked, so nothing under it comes back, as git does not re-include it either. Always skipped:
-// node_modules, dist and the app root's coverage/, where test runners write their report's CSS.
-// skip(name, rel): whether the walk skips the entry `name` at `rel`, its path from the app folder.
+// node_modules, dist and the app root's coverage/, where test runners write their report's CSS. As in git, a line
+// ending in "/" names folders only: theme.css/ skips no file named theme.css, and no link (git does not follow one).
+// skip(name, rel, isDir): whether the walk skips the entry `name` at `rel`, its path from the app folder; isDir() says
+// whether that entry is a folder, and is called only for a line ending in "/".
 function gitIgnored() {
   const here = resolve(".");
   const dirs = [here];
@@ -1932,18 +2079,20 @@ function gitIgnored() {
   const rules = [];
   for (const dir of dirs.reverse())
     for (const raw of readOr(join(dir, ".gitignore")).split("\n")) {
-      let line = raw.trim().replace(/\/+$/, "");
+      let line = raw.trim();
+      const folder = line.endsWith("/");
+      line = line.replace(/\/+$/, "");
       if (line.startsWith("#")) continue;
       const keep = line.startsWith("!");
       if (keep) line = line.slice(1);
       if (!line || /[*?[\]\\]/.test(line)) continue;
       const path = line.replace(/^\/+/, "");
-      rules.push(path.includes("/") || line.startsWith("/") ? { keep, path: toPosix(relative(here, join(dir, path))) } : { keep, name: line });
+      rules.push(path.includes("/") || line.startsWith("/") ? { keep, folder, path: toPosix(relative(here, join(dir, path))) } : { keep, folder, name: line });
     }
-  return (name, rel) => {
+  return (name, rel, isDir) => {
     if (name === "node_modules" || name === "dist" || rel === "coverage") return true;
     let skip = false;
-    for (const r of rules) if (r.name ? r.name === name : r.path === rel) skip = !r.keep;
+    for (const r of rules) if ((r.name ? r.name === name : r.path === rel) && (!r.folder || isDir())) skip = !r.keep;
     return skip;
   };
 }
@@ -1975,7 +2124,14 @@ function cssFiles(paths, keep = []) {
       }
       for (const d of names) {
         const rel = toPosix(relative(".", join(p, d)));
-        if (!d.startsWith(".") && !skip(d, rel)) walk(join(p, d), false);
+        const isDir = () => {
+          try {
+            return lstatSync(join(p, d)).isDirectory();
+          } catch {
+            return false;
+          }
+        };
+        if (!d.startsWith(".") && !skip(d, rel, isDir)) walk(join(p, d), false);
       }
     } else if ((STYLESHEET.test(p) || (top && (/\.html?$/i.test(p) || keep.includes(p)))) && !seen.has(real)) {
       seen.add(real);
@@ -2436,6 +2592,16 @@ function baseline() {
     );
     process.exit(1);
   }
+  // check fails while the preset's Tailwind class rules are off, so a baseline taken then would hold none of their
+  // findings, and the app's existing classes would fail check as new once the plugin is in.
+  const libDir = appLibraryDir();
+  const off = hasTailwind() && libDir && pluginProblem(realOrNull(libDir) ?? libDir);
+  if (off) {
+    console.error(
+      `kleros-ui baseline: ${TW_PLUGIN} ${off}, so the lint preset's Tailwind class rules are off and the baseline would leave out their findings. Add it as a devDependency with the app's package manager (or reinstall it), then run npm run ui:baseline again. Nothing was recorded.`,
+    );
+    process.exit(1);
+  }
   const lint = lintCounts({ dirs: targets.dirs });
   if (lint?.parse.length)
     throw new Error(`kleros-ui baseline: ${parseErrors(lint.parse)}\nNothing was recorded. Fix that, then run npm run ui:baseline again.`);
@@ -2630,10 +2796,13 @@ function appLibraryDir() {
 const TW_PLUGIN = "eslint-plugin-better-tailwindcss";
 function pluginProblem(lib) {
   if (!packageDir(TW_PLUGIN, lib)) return `does not resolve from the app's copy of ${LIB}`;
-  const probe = `try { const m = await import(${JSON.stringify(TW_PLUGIN)}); if (!m.default) throw new Error("it has no default export"); process.exit(0); } catch (e) { console.error(String(e?.message ?? e).split("\\n")[0]); process.exit(1); }`;
-  const load = spawnSync(process.execPath, ["--input-type=module", "-e", probe], { cwd: lib, encoding: "utf8", timeout: 60000 });
+  // NODE_OPTIONS is the app's: a --require or --import path in it is relative to the app, not to `lib`, and the probe
+  // needs none of it. The error is read from its own marked line, not from whatever else Node printed.
+  const probe = `try { const m = await import(${JSON.stringify(TW_PLUGIN)}); if (!m.default) throw new Error("it has no default export"); process.exit(0); } catch (e) { console.error("kleros-ui-probe: " + String(e?.message ?? e).split("\\n")[0]); process.exit(1); }`;
+  const load = spawnSync(process.execPath, ["--input-type=module", "-e", probe], { cwd: lib, encoding: "utf8", timeout: 60000, env: { ...process.env, NODE_OPTIONS: "" } });
   if (load.status === 0) return null;
-  const why = (load.stderr || "").trim().split("\n").at(-1) || firstLine(load.error ?? `exit ${load.status ?? load.signal}`);
+  const marked = (load.stderr || "").split("\n").find((l) => l.startsWith("kleros-ui-probe: "));
+  const why = marked?.slice("kleros-ui-probe: ".length) || firstLine(load.error ?? `exit ${load.status ?? load.signal}`);
   return `is installed but fails to load from the app's copy of ${LIB} (${why})`;
 }
 
@@ -2661,7 +2830,7 @@ function styleOrder(entry, notes) {
     for (const d of list) {
       const p = join(dir, d.name);
       const rel = toPosix(relative(".", p));
-      if (d.name.startsWith(".") || skip(d.name, rel)) continue;
+      if (d.name.startsWith(".") || skip(d.name, rel, () => d.isDirectory())) continue;
       if (d.isDirectory()) walk(p);
       else if (SCRIPT_FILE.test(d.name) && !/\.d\.[cm]?ts$/.test(d.name)) known.add(resolve(p));
     }
@@ -2799,7 +2968,7 @@ async function setupProblems(notes = []) {
   const c = config();
   const problems = [];
   const agents = existsSync("AGENTS.md") ? readFileSync("AGENTS.md", "utf8") : "";
-  const m = agents.match(/<!-- kleros-ui:start ([^ ]+) -->/);
+  const m = findMarker(agents, START_VERSION);
   const tailwind = hasTailwind();
   // Tailwind only for all: an app without Tailwind fails setup until it adds it; init does not add it.
   if (!tailwind)
@@ -2828,14 +2997,15 @@ async function setupProblems(notes = []) {
     // style.css order only with a Tailwind entry to import (an app without Tailwind, Court today, is told to add it).
     if (tw) problems.push(...styleOrder(entry, notes));
     // The preset's class rules load eslint-plugin-better-tailwindcss from the app's copy of the library and are off
-    // without it, so ui:check would pass any class. A note: the plugin is an optional peer. The preset turns them off on
-    // any import error too (a broken install, a missing dependency of the plugin, a Node it does not support), so a
-    // plugin that is there is loaded as the preset loads it, from the app's copy of the library.
+    // without it, so ui:check would pass any class: a setup problem (PR #127 review, before the pilot), though the
+    // plugin stays an optional peer, as an app that only renders the components needs no lint. The preset turns the
+    // rules off on any import error too (a broken install, a missing dependency of the plugin, a Node it does not
+    // support), so a plugin that is there is loaded as the preset loads it, from the app's copy of the library.
     const lib = appLibraryDir();
     const off = lib && pluginProblem(realOrNull(lib) ?? lib);
     if (off)
-      notes.push(
-        `${TW_PLUGIN} ${off}, so the lint preset's Tailwind class rules (palette colours, spacing steps, radius, type size and weight, dark: overrides) are off, and ui:check passes any class. ${off.startsWith("does not resolve") ? `Add it as a devDependency with the app's package manager (AGENTS.md ${EXISTING_APPS} does, before ui:baseline)` : "Reinstall it with the app's package manager, or install a version that supports this Node"}`,
+      problems.push(
+        `${TW_PLUGIN} ${off}, so the lint preset's Tailwind class rules (palette colours, spacing steps, radius, type size and weight, dark: overrides) are off, and kleros-ui check fails until they are on. ${off.startsWith("does not resolve") ? `Add it as a devDependency with the app's package manager (AGENTS.md ${EXISTING_APPS} does, before ui:baseline)` : "Reinstall it with the app's package manager, or install a version that supports this Node"}`,
       );
   }
   // The lint config init wrote (the one check lints with) passes kleros-ui.json's cssEntry and the folders ui:check
@@ -2845,11 +3015,21 @@ async function setupProblems(notes = []) {
   const lintText = lintFile ? readOr(lintFile) : "";
   const drift = lintText.startsWith(MANAGED) || lintText.startsWith(CHECK_LINT_HEAD) ? presetDrift(lintText) : null;
   if (drift) problems.push(...presetProblems(lintFile, drift));
+  const react = reactProblems();
+  if (react.length) problems.push(reactProblem(react));
   if (!m) problems.push("AGENTS.md has no kleros-ui block: run npx -p @kleros/ui-components-library kleros-ui init");
-  else if (m[1] !== pkg.version) problems.push(`AGENTS.md block is for ${m[1]}, installed ${pkg.version}: run npx -p @kleros/ui-components-library kleros-ui sync`);
-  else if (currentBlock().includes("styles its own code with styled-components"))
-    problems.push("AGENTS.md block is the old styled-components one: run npx -p @kleros/ui-components-library kleros-ui sync (Tailwind only for all)");
-  else if (tailwind && staleTailwindStep()) problems.push("AGENTS.md block still says this app has no Tailwind: run npx -p @kleros/ui-components-library kleros-ui sync");
+  // A block from another release of the same major only needs sync, so a library update warns and does not fail CI;
+  // one from another major fails, as its rules can name what the installed major does not have. A same-major block's
+  // text is still held to this release's: the old styled-components one and a stale step 0 fail as they do here.
+  else {
+    const sameMajor = m[1].split(".")[0] === pkg.version.split(".")[0];
+    if (m[1] !== pkg.version)
+      (sameMajor ? notes : problems).push(`AGENTS.md block is for ${m[1]}, installed ${pkg.version}: run npx -p @kleros/ui-components-library kleros-ui sync`);
+    if (!sameMajor);
+    else if (currentBlock().includes("styles its own code with styled-components"))
+      problems.push("AGENTS.md block is the old styled-components one: run npx -p @kleros/ui-components-library kleros-ui sync (Tailwind only for all)");
+    else if (tailwind && staleTailwindStep()) problems.push("AGENTS.md block still says this app has no Tailwind: run npx -p @kleros/ui-components-library kleros-ui sync");
+  }
   const dir = c.componentsDir || "src/components";
   const existing = new Set((c.components || []).filter((x) => x.status === "existing").map((x) => x.name));
   // Stories only when the app has Storybook; index.ts and the registry entry for every app.

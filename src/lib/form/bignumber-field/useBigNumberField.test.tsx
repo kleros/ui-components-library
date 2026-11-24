@@ -155,6 +155,56 @@ describe("useBigNumberField lone minus sign", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it.each(["-.", "-0", "-0.", "-0.00"])(
+    "refuses a pasted negative zero '%s' at a minimum of 0",
+    (text) => {
+      const onChange = vi.fn();
+      render(<Field defaultValue="5" minValue="0" onChange={onChange} />);
+      const input = screen.getByRole("spinbutton");
+      input.focus();
+      fireEvent.change(input, { target: { value: "5" } });
+      onChange.mockClear();
+
+      fireEvent.change(input, { target: { value: text } });
+
+      expect(input).toHaveProperty("value", "5");
+      expect(onChange).not.toHaveBeenCalled();
+    },
+  );
+
+  it("treats a pasted negative zero above a minimum of 0 like any other negative", () => {
+    const paste = (text: string) => {
+      const onChange = vi.fn();
+      const { unmount } = render(
+        <Field defaultValue="5" minValue="1" onChange={onChange} />,
+      );
+      const input = screen.getByRole("spinbutton");
+      input.focus();
+      fireEvent.change(input, { target: { value: "5" } });
+      onChange.mockClear();
+      fireEvent.change(input, { target: { value: text } });
+      const seen = {
+        value: (input as HTMLInputElement).value,
+        calls: onChange.mock.calls.map((c) => String(c[0])),
+      };
+      unmount();
+      return seen;
+    };
+
+    expect(paste("-0")).toEqual(paste("-5"));
+    expect(paste("-0").calls).not.toEqual([]);
+  });
+
+  it("accepts a negative zero with no minimum", () => {
+    render(<Field />);
+    const input = screen.getByRole("spinbutton");
+    input.focus();
+
+    fireEvent.change(input, { target: { value: "-." } });
+
+    expect(input).toHaveProperty("value", "-0.");
+  });
+
   it.each([
     ["no minimum", undefined],
     ["a negative minimum", "-10"],
@@ -246,6 +296,50 @@ describe("useBigNumberField leading decimal point", () => {
     expect(input).toHaveProperty("value", "0");
     expect(held).toEqual(["5", "0"]);
   });
+
+  // Replaces the selection with `text`, as a key, Delete or Backspace does, and leaves the caret after it. Text the
+  // field then changes is set anew, which moves the caret to the end, as in a browser.
+  const editAtCaret = (input: HTMLInputElement, text: string) => {
+    const { selectionStart: start, selectionEnd: end, value } = input;
+    const setValue = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )?.set;
+    setValue?.call(
+      input,
+      value.slice(0, start ?? 0) + text + value.slice(end ?? 0),
+    );
+    const caret = (start ?? 0) + text.length;
+    input.setSelectionRange(caret, caret);
+    fireEvent.input(input);
+  };
+
+  it.each([false, true])(
+    "keeps '.5' and its caret when '12' is deleted from '12.5', so a 3 typed next gives 3.5 (controlled: %s)",
+    (controlled) => {
+      const held: string[] = [];
+      render(
+        controlled ? (
+          <Controlled held={held} />
+        ) : (
+          <Field onChange={(v) => held.push(v.toFixed())} />
+        ),
+      );
+      const input = screen.getByRole("spinbutton") as HTMLInputElement;
+      input.focus();
+      type(input, "12.5");
+
+      // Select "12", press Delete, then type 3.
+      input.setSelectionRange(0, 2);
+      editAtCaret(input, "");
+      expect(input).toHaveProperty("value", ".5");
+      expect(input.selectionStart).toBe(0);
+      editAtCaret(input, "3");
+
+      expect(input).toHaveProperty("value", "3.5");
+      expect(held.slice(-2)).toEqual(["0.5", "3.5"]);
+    },
+  );
 });
 
 // Issue log #54: the idle format, 3s after typing, turned "1." and "1.0" into "1", so a 5 typed next gave 15. It keeps
