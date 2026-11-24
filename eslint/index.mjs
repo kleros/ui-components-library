@@ -37,7 +37,7 @@
 // use-at-your-own-risk exports builtinRules in ESLint 8 to 10 (read in 9.15.0, 9.39.5 and 10.11.0). Where it does not
 // load, as when the app's ESLint is not reachable from this folder, the preset falls back to the core ids and says so.
 // The Tailwind class rules' plugin, an optional peer. When it is not installed, the rules are skipped and the preset
-// says nothing (ui:check notes it). When it is installed but does not load (a dependency of its own missing, a Node it
+// says nothing (ui:check fails setup on it). When it is installed but does not load (a dependency of its own missing, a Node it
 // does not support, no default export), the rules are off too, and the preset warns once, since outside ui:check (an
 // editor, the app's own lint) nothing else says so. Node's message names the package it could not find: "Cannot find
 // package '<name>' imported from ..." (ERR_MODULE_NOT_FOUND) for an import, "Cannot find module '<name>'"

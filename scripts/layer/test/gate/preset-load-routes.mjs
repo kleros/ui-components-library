@@ -1,7 +1,7 @@
 // Gate (3.11 second review, R2-F2/F10 and R2-F57): the lint preset's Tailwind plugin load and its Next.js route files.
 // run.sh has no ESLint, so, as review-preset.mjs does, the preset is copied next to stand-ins for
 // eslint-plugin-better-tailwindcss, one folder each, and imported in a Node child (under gate/eslint-stand-in.mjs):
-// - absent: no plugin. The preset says nothing about it (an optional peer; ui:check notes it).
+// - absent: no plugin. The preset says nothing about it (an optional peer; ui:check fails setup on it).
 // - throws, missingdep (imports a package that is not there), nodefault (no default export): the preset warns once,
 //   naming the plugin, the first line of the error and the reinstall hint, and never `npm install` (check's output
 //   must not hold it).

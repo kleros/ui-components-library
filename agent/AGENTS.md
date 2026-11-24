@@ -10,7 +10,9 @@ public code is the old v2 API. Setup: `create` writes it for a new app; an exist
   `create` copies the starter (Vite, React 18, Tailwind 4, ESLint), installs it and runs `init`. Don't write the setup
   by hand.
 - Existing app: `npx -p @kleros/ui-components-library kleros-ui init` once in the app's own folder (`web/` in a monorepo), then the steps in "Existing
-  apps" below, then `npm run ui:baseline`.
+  apps" below, then `npm run ui:baseline`. If the app's `AGENTS.md` has no kleros-ui block yet, ask its team first:
+  `init` adds that block, `CLAUDE.md` and Cursor pointers, `kleros-ui.json`, a lint config and the `ui:check` and
+  `ui:baseline` scripts, and `ui:check` then holds new UI to these rules.
 - After a library update: `npx -p @kleros/ui-components-library kleros-ui sync`. Until then `ui:check` prints a note
   (same major) or fails (new major).
 - React 18 only: React 19 is not supported yet. `init` warns and `ui:check` fails in an app on React 19.

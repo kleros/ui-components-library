@@ -10,7 +10,8 @@ const LIB_IMPORT = 'from "@kleros/ui-components-library"';
 
 // Every type file an agent may open first points at the guide (D31), and names no command: every app that updates
 // to this version gets these files, and an agent in an app that never chose the agent layer should not run init on
-// its own (PR #127 review, F17). The guide says when and how to set an app up.
+// its own (PR #127 review, F17). The guide's Start says how to set an app up, and to ask the app's team first when
+// its AGENTS.md has no kleros-ui block.
 const NOTE =
   "// @kleros/ui-components-library: before writing UI with this package, read agent/AGENTS.md in it (setup and " +
   "rules) and agent/CATALOG.md (the components).";

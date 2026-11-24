@@ -132,15 +132,16 @@ let LIB_PATH = null;
 
 // Step 0 of the block, only while the app has no Tailwind; check and baseline look for its first words.
 const NO_TAILWIND_STEP = "0. This app has no Tailwind yet";
-// The current block's text, when it is for this version; null otherwise.
+// The block's text, whatever release wrote it (a block from an earlier release of this major is only a note in check,
+// so its text is checked as this release's is, and baseline rewrites it as it does this release's); null with none.
 function currentBlock() {
   const agents = existsSync("AGENTS.md") ? readFileSync("AGENTS.md", "utf8") : "";
   const m = agents.match(/<!-- kleros-ui:start ([^ ]+) -->/);
-  if (!m || m[1] !== pkg.version) return null;
+  if (!m) return null;
   const end = agents.indexOf(END, m.index);
   return agents.slice(m.index, end < 0 ? agents.length : end);
 }
-// True when this version's block says "no Tailwind yet" and the app has it, or the other way round.
+// True when the block says "no Tailwind yet" and the app has it, or the other way round.
 function staleTailwindStep() {
   const text = currentBlock();
   return text !== null && !text.includes("styles its own code with styled-components") && text.includes(NO_TAILWIND_STEP) === hasTailwind();
@@ -647,10 +648,12 @@ function init({ fromCreate = false } = {}) {
   if (!hasTailwind(pj))
     console.log(`kleros-ui: this app has no Tailwind (tailwindcss is not in package.json). Add it first: ${libPath()}/agent/AGENTS.md ${EXISTING_APPS}. npm run ui:check fails until it is there.`);
   const react = reactProblems();
-  if (react.length) console.log(`kleros-ui: warning: ${reactProblem(react)}. npm run ui:check fails until it is.`);
-  // Said even when the app already declared the plugin.
-  if (!declared(pj, "eslint-plugin-better-tailwindcss"))
-    console.log("kleros-ui: the lint preset's Tailwind rules need eslint-plugin-better-tailwindcss as a devDependency; npm run ui:check fails until it is there");
+  if (react.length) console.log(`kleros-ui: warning: ${reactProblem(react)}. npm run ui:check fails until the app is on React 18.`);
+  // As check finds it: from the app's copy of the library, so a plugin a workspace root declares counts. Before the app
+  // installs the library there is no copy to look from, and the app's package.json decides.
+  const libDir = appLibraryDir();
+  if (libDir ? pluginProblem(realOrNull(libDir) ?? libDir) : !declared(pj, TW_PLUGIN))
+    console.log(`kleros-ui: the lint preset's Tailwind rules need ${TW_PLUGIN} as a devDependency; npm run ui:check fails until it is there`);
   if (!fromCreate) console.log("kleros-ui: in an existing app, run `npm run ui:baseline` once, so check holds only new code to the look");
 }
 
@@ -800,16 +803,18 @@ const reactConflicts = (pj) =>
 // A setup problem, not a note: the peer range is ^18, and nothing beyond a render smoke has run under React 19.
 function reactProblems() {
   const lib = appLibraryDir();
-  const from = (lib && realOrNull(lib)) || ".";
+  // Before the app installs the library (create --no-install, init through npx first), what resolves from here can be a
+  // parent folder's React (a monorepo root), not the app's: only its package.json is read then.
+  const from = lib && (realOrNull(lib) ?? lib);
   const installed = ["react", "react-dom"].flatMap((n) => {
-    const d = packageDir(n, from);
+    const d = from && packageDir(n, from);
     const v = d && readOr(join(d, "package.json")).match(/"version"\s*:\s*"([^"]+)"/)?.[1];
     return v && excludesReact18(v) === true ? [`${n} ${v} is installed`] : [];
   });
   return [...installed, ...reactConflicts(readJson("package.json", {})).map((c) => `package.json asks for ${c}`)];
 }
 const reactProblem = (found) =>
-  `React 18 only: ${found.join(", ")}. ${LIB} ${pkg.version} supports React 18 (its peer range is react ${pkg.peerDependencies?.react ?? "^18.0.0"}); React 19 is not supported yet and is not tested in apps. Set react and react-dom to ^18.3.1 in package.json and reinstall`;
+  `React 18 only: ${found.join(", ")}. ${LIB} ${pkg.version} supports React 18 (its peer range is react ${pkg.peerDependencies?.react ?? "^18.0.0"})${found.some((f) => /(?:^|[^\d.])(?:19|[2-9]\d)(?:\.|\b)/.test(f)) ? "; React 19 is not supported yet and is not tested in apps" : ""}. Set react and react-dom to ^18.3.1 in package.json and reinstall`;
 
 const taken = (p) => {
   try {
@@ -883,7 +888,7 @@ function create({ dir: target, lib, install }) {
   const conflicts = reactConflicts(old);
   if (conflicts.length) {
     console.error(
-      `kleros-ui create: ${toPosix(relative(here, pjFile))} asks for ${conflicts.join(" and ")}, which leaves out React 18. ${LIB} needs React 18 (with React 19, npm install fails or the page renders blank). Set react and react-dom to ^18.3.1 (the starter's) in that package.json, then run create again. Nothing was written.`,
+      `kleros-ui create: ${toPosix(relative(here, pjFile))} asks for ${conflicts.join(" and ")}, which leaves out React 18. ${LIB} needs React 18 (its peer range is ^18; React 19 is not supported yet). Set react and react-dom to ^18.3.1 (the starter's) in that package.json, then run create again. Nothing was written.`,
     );
     process.exit(1);
   }
@@ -2466,6 +2471,16 @@ function baseline() {
     );
     process.exit(1);
   }
+  // check fails while the preset's Tailwind class rules are off, so a baseline taken then would hold none of their
+  // findings, and the app's existing classes would fail check as new once the plugin is in.
+  const libDir = appLibraryDir();
+  const off = hasTailwind() && libDir && pluginProblem(realOrNull(libDir) ?? libDir);
+  if (off) {
+    console.error(
+      `kleros-ui baseline: ${TW_PLUGIN} ${off}, so the lint preset's Tailwind class rules are off and the baseline would leave out their findings. Add it as a devDependency with the app's package manager (or reinstall it), then run npm run ui:baseline again. Nothing was recorded.`,
+    );
+    process.exit(1);
+  }
   const lint = lintCounts({ dirs: targets.dirs });
   if (lint?.parse.length)
     throw new Error(`kleros-ui baseline: ${parseErrors(lint.parse)}\nNothing was recorded. Fix that, then run npm run ui:baseline again.`);
@@ -2660,10 +2675,13 @@ function appLibraryDir() {
 const TW_PLUGIN = "eslint-plugin-better-tailwindcss";
 function pluginProblem(lib) {
   if (!packageDir(TW_PLUGIN, lib)) return `does not resolve from the app's copy of ${LIB}`;
-  const probe = `try { const m = await import(${JSON.stringify(TW_PLUGIN)}); if (!m.default) throw new Error("it has no default export"); process.exit(0); } catch (e) { console.error(String(e?.message ?? e).split("\\n")[0]); process.exit(1); }`;
-  const load = spawnSync(process.execPath, ["--input-type=module", "-e", probe], { cwd: lib, encoding: "utf8", timeout: 60000 });
+  // NODE_OPTIONS is the app's: a --require or --import path in it is relative to the app, not to `lib`, and the probe
+  // needs none of it. The error is read from its own marked line, not from whatever else Node printed.
+  const probe = `try { const m = await import(${JSON.stringify(TW_PLUGIN)}); if (!m.default) throw new Error("it has no default export"); process.exit(0); } catch (e) { console.error("kleros-ui-probe: " + String(e?.message ?? e).split("\\n")[0]); process.exit(1); }`;
+  const load = spawnSync(process.execPath, ["--input-type=module", "-e", probe], { cwd: lib, encoding: "utf8", timeout: 60000, env: { ...process.env, NODE_OPTIONS: "" } });
   if (load.status === 0) return null;
-  const why = (load.stderr || "").trim().split("\n").at(-1) || firstLine(load.error ?? `exit ${load.status ?? load.signal}`);
+  const marked = (load.stderr || "").split("\n").find((l) => l.startsWith("kleros-ui-probe: "));
+  const why = marked?.slice("kleros-ui-probe: ".length) || firstLine(load.error ?? `exit ${load.status ?? load.signal}`);
   return `is installed but fails to load from the app's copy of ${LIB} (${why})`;
 }
 
@@ -2866,7 +2884,7 @@ async function setupProblems(notes = []) {
     const off = lib && pluginProblem(realOrNull(lib) ?? lib);
     if (off)
       problems.push(
-        `${TW_PLUGIN} ${off}, so the lint preset's Tailwind class rules (palette colours, spacing steps, radius, type size and weight, dark: overrides) are off, and ui:check fails until they are on. ${off.startsWith("does not resolve") ? `Add it as a devDependency with the app's package manager (AGENTS.md ${EXISTING_APPS} does, before ui:baseline)` : "Reinstall it with the app's package manager, or install a version that supports this Node"}`,
+        `${TW_PLUGIN} ${off}, so the lint preset's Tailwind class rules (palette colours, spacing steps, radius, type size and weight, dark: overrides) are off, and kleros-ui check fails until they are on. ${off.startsWith("does not resolve") ? `Add it as a devDependency with the app's package manager (AGENTS.md ${EXISTING_APPS} does, before ui:baseline)` : "Reinstall it with the app's package manager, or install a version that supports this Node"}`,
       );
   }
   // The lint config init wrote (the one check lints with) passes kleros-ui.json's cssEntry and the folders ui:check
@@ -2880,12 +2898,17 @@ async function setupProblems(notes = []) {
   if (react.length) problems.push(reactProblem(react));
   if (!m) problems.push("AGENTS.md has no kleros-ui block: run npx -p @kleros/ui-components-library kleros-ui init");
   // A block from another release of the same major only needs sync, so a library update warns and does not fail CI;
-  // one from another major fails, as its rules can name what the installed major does not have.
-  else if (m[1] !== pkg.version)
-    (m[1].split(".")[0] === pkg.version.split(".")[0] ? notes : problems).push(`AGENTS.md block is for ${m[1]}, installed ${pkg.version}: run npx -p @kleros/ui-components-library kleros-ui sync`);
-  else if (currentBlock().includes("styles its own code with styled-components"))
-    problems.push("AGENTS.md block is the old styled-components one: run npx -p @kleros/ui-components-library kleros-ui sync (Tailwind only for all)");
-  else if (tailwind && staleTailwindStep()) problems.push("AGENTS.md block still says this app has no Tailwind: run npx -p @kleros/ui-components-library kleros-ui sync");
+  // one from another major fails, as its rules can name what the installed major does not have. A same-major block's
+  // text is still held to this release's: the old styled-components one and a stale step 0 fail as they do here.
+  else {
+    const sameMajor = m[1].split(".")[0] === pkg.version.split(".")[0];
+    if (m[1] !== pkg.version)
+      (sameMajor ? notes : problems).push(`AGENTS.md block is for ${m[1]}, installed ${pkg.version}: run npx -p @kleros/ui-components-library kleros-ui sync`);
+    if (!sameMajor);
+    else if (currentBlock().includes("styles its own code with styled-components"))
+      problems.push("AGENTS.md block is the old styled-components one: run npx -p @kleros/ui-components-library kleros-ui sync (Tailwind only for all)");
+    else if (tailwind && staleTailwindStep()) problems.push("AGENTS.md block still says this app has no Tailwind: run npx -p @kleros/ui-components-library kleros-ui sync");
+  }
   const dir = c.componentsDir || "src/components";
   const existing = new Set((c.components || []).filter((x) => x.status === "existing").map((x) => x.name));
   // Stories only when the app has Storybook; index.ts and the registry entry for every app.

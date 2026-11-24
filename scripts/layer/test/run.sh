@@ -24,7 +24,7 @@
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd -P)
 REPO=$(cd "$HERE/../../.." && pwd -P)
-EXPECTED=59
+EXPECTED=60
 TSC=$REPO/node_modules/.bin/tsc
 die() { echo "test:layer: $*" >&2; exit 1; }
 [[ -x "$TSC" ]] || die "$TSC is missing: run yarn install first"
@@ -56,7 +56,7 @@ git -C "$WORK" rev-parse --git-dir >/dev/null 2>&1 \
 # ignores the work folder, outside git, makes Tailwind 4.3.5 scan node_modules there, which fails the @source gates.
 d=$(dirname "$WORK")
 while :; do
-  for m in tailwindcss @tailwindcss/node @tailwindcss/oxide eslint @kleros/ui-components-library; do
+  for m in tailwindcss @tailwindcss/node @tailwindcss/oxide eslint eslint-plugin-better-tailwindcss @kleros/ui-components-library; do
     [[ -e "$d/node_modules/$m" ]] && die "$d/node_modules/$m is above the work folder, so the fixtures would find it: set TMPDIR elsewhere"
   done
   [[ -e "$d/.gitignore" ]] && echo "test:layer: note: $d/.gitignore is above the work folder; if it ignores that folder, the @source gates fail" >&2
@@ -194,6 +194,14 @@ grep -q "kleros-ui create" "$LIB/README.md" && grep -q "npx -p @kleros/ui-compon
   && node -e 'const s = require(process.argv[1]).scripts; process.exit(s.build === "kleros-ui check --build && vite build" && !("prebuild" in s) ? 0 : 1)' "$LIB/templates/poc/package.json" \
   && node -e 'const s = require(process.argv[1]).scripts || {}; process.exit(Object.keys(s).some((k) => /install|prepare/.test(k)) ? 1 : 0)' "$LIB/package.json" \
   && echo "gate: d.10: README Setup step 1 points to create, with the four-line Tailwind entry plus the theme import when the app has a theme, no Apps without Tailwind (D33), and Theme usage sets token values only in the theme file npx -p @kleros/ui-components-library kleros-ui theme writes, inside @layer base, with no bare override (D34, T6); the description and every type entry point at the guide and name no command (D31, PR #127 review F17); the starter build runs kleros-ui check --build first; install scripts: none"
+# PR #131 review (P1): the build carries no JSX runtime of its own: React 18's, bundled, threw on import under React 19
+# ("reading 'ReactCurrentOwner'"). Every dist file imports react/jsx-runtime from the app, and exports["."] lists
+# types first.
+[[ -z "$(find "$LIB/dist" -name '*jsx-runtime*' -o -name '*jsx-dev-runtime*')" ]] \
+  && ! grep -rqE 'from "\./[^"]*jsx-(dev-)?runtime' "$LIB/dist" \
+  && grep -rlq 'from "react/jsx-runtime"' "$LIB/dist" \
+  && node -e 'process.exit(Object.keys(require(process.argv[1]).exports["."])[0] === "types" ? 0 : 1)' "$LIB/package.json" \
+  && echo "gate: PR #131 review (P1): dist bundles no JSX runtime and imports react/jsx-runtime from the app; exports lists types first"
 # d.11 (T6, R1, B5): the guide's Themes section and LOOK.md say where a theme goes; agent/REVIEW.md, the PR reviewers'
 # checklist, ships with its five parts and is named by the README and AGENTS.md; the README no longer says Button
 # takes no children.

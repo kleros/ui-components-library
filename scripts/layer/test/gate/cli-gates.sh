@@ -276,13 +276,15 @@ S1=$(snapshot "$W")
   && grep -q "on line 8 before the first" "$W/../i1-init.txt" \
   && (cd "$W" && sed -i '3d' AGENTS.md && $CLI sync >/dev/null 2>&1 && grep -q "keep me" AGENTS.md && [[ $(grep -c "kleros-ui:start" AGENTS.md) == 1 ]]) \
   && echo "gate: PR #131 review: sync and init refuse a second start marker before the first end marker, naming both lines, and write nothing; with the orphan line gone, sync keeps the text"
-rm -rf "$W" "$W/../i1-sync.txt" "$W/../i1-init.txt"
+rm -rf "$W/../i1-sync.txt" "$W/../i1-init.txt" "$W"
 
-# React 18 only (PR #127 review, before the pilot): init warns and check fails setup when the React the library
-# resolves is 19 (a stub package.json is enough: check reads the version) or package.json asks for a range without 18;
-# an app on ^18.3.1 gets no React line.
+# React 18 only (PR #127 review, before the pilot): init warns and check fails setup when the React the app's copy of
+# the library resolves is 19 (a stub package.json is enough: check reads the version) or package.json asks for a range
+# without 18; an app on ^18.3.1 gets no React line. Before the app installs the library, a parent folder's React 19 (a
+# monorepo root's) is not the app's: init in such a folder, on ^18.3.1, prints no React line.
 W=$(mktemp -d -p "$WORK")
-mkdir -p "$W/r19/node_modules/react" "$W/r19/node_modules/react-dom" "$W/r18"
+mkdir -p "$W/r19/node_modules/react" "$W/r19/node_modules/react-dom" "$W/r19/node_modules/@kleros" "$W/r18" "$W/new18"
+cp -R "$LIB" "$W/r19/node_modules/@kleros/ui-components-library"
 echo '{"name":"x","type":"module","dependencies":{"react":"^18.0.0 || ^19.0.0","react-dom":"^18.0.0 || ^19.0.0"},"scripts":{}}' > "$W/r19/package.json"
 for n in react react-dom; do echo "{\"name\":\"$n\",\"version\":\"19.0.0\"}" > "$W/r19/node_modules/$n/package.json"; done
 echo '{"name":"x","type":"module","dependencies":{"react":"^18.3.1","react-dom":"^18.3.1"},"scripts":{}}' > "$W/r18/package.json"
@@ -290,25 +292,33 @@ echo '{"name":"x","type":"module","dependencies":{"react":"^18.3.1","react-dom":
     && { $CLI check >c.txt 2>&1; [[ $? -eq 1 ]]; } && grep -q "^setup: React 18 only: react 19.0.0 is installed" c.txt \
     && sed -i 's/"\^18.0.0 || \^19.0.0"/"^19.0.0"/g' package.json && { $CLI check >c2.txt 2>&1; grep -q "package.json asks for react ^19.0.0" c2.txt; }) \
   && (cd "$W/r18" && $CLI init >i.txt 2>&1 && ! grep -q "React 18 only" i.txt && { $CLI check >c.txt 2>&1; ! grep -q "React 18 only" c.txt; }) \
-  && echo "gate: React 18 only: init warns and check fails setup on an installed React 19 or a react range without 18; React 18 gets no React line"
+  && mkdir -p "$W/node_modules" && cp -R "$W/r19/node_modules/react" "$W/r19/node_modules/react-dom" "$W/node_modules/" \
+  && echo '{"name":"y","type":"module","dependencies":{"react":"^18.3.1","react-dom":"^18.3.1"},"scripts":{}}' > "$W/new18/package.json" \
+  && (cd "$W/new18" && $CLI init >i.txt 2>&1 && ! grep -q "React 18 only" i.txt) \
+  && echo "gate: React 18 only: init warns and check fails setup on an installed React 19 or a react range without 18; React 18 gets no React line, nor does an app with no copy of the library yet under a folder with React 19"
 rm -rf "$W"
 
 # PR #127 review, before the pilot: an AGENTS.md block from another release of the installed major is a note (a library
-# update does not fail CI until someone runs sync); one from another major is a setup problem.
+# update does not fail CI until someone runs sync); one from another major is a setup problem. A same-major block's text
+# is still checked: the old styled-components one (Court's 3.10.1-d.6 block) fails setup.
 W=$(mktemp -d -p "$WORK")
 echo '{"name":"x","type":"module","dependencies":{"react":"^18.3.1"},"scripts":{}}' > "$W/package.json"
 stubs "$W"
 MAJ=$(node -p "require('$LIB/package.json').version.split('.')[0]")
 (cd "$W" && $CLI init >/dev/null 2>&1 && sed -i "s/kleros-ui:start [^ ]*/kleros-ui:start $MAJ.0.0-old/" AGENTS.md \
     && { $CLI check >same.txt 2>&1; grep -q "^note: AGENTS.md block is for $MAJ.0.0-old, installed " same.txt && ! grep -q "^setup: AGENTS.md block is for" same.txt; } \
+    && printf '<!-- kleros-ui:start %s.0.0-old -->\nThis app styles its own code with styled-components.\n<!-- kleros-ui:end -->\n' "$MAJ" > AGENTS.md \
+    && { $CLI check >sc.txt 2>&1; grep -q "^setup: AGENTS.md block is the old styled-components one" sc.txt; } \
     && sed -i "s/kleros-ui:start [^ ]*/kleros-ui:start $((MAJ - 1)).99.0/" AGENTS.md \
     && { $CLI check >other.txt 2>&1; [[ $? -eq 1 ]] && grep -q "^setup: AGENTS.md block is for $((MAJ - 1)).99.0, installed " other.txt; }) \
-  && echo "gate: an AGENTS.md block from another release of the installed major is a note in check; one from another major fails setup"
+  && echo "gate: an AGENTS.md block from another release of the installed major is a note in check, and its text is still checked (an old styled-components block fails); one from another major fails setup"
 rm -rf "$W"
 
 # PR #127 review, before the pilot: with no eslint-plugin-better-tailwindcss where the app's copy of the library finds
-# it, the lint preset's class rules are off, so check fails setup and says to add it; init says so too. The pack is
-# copied beside the fixture, away from run.sh's stand-in; with a plugin there (an empty one), that problem is gone.
+# it, the lint preset's class rules are off, so check fails setup and says to add it, baseline records nothing, and init
+# says so too. A plugin that throws on import fails setup the same way. The pack is copied beside the fixture, away from
+# run.sh's stand-in; with a working plugin there (an empty one), that problem is gone, also under an app NODE_OPTIONS
+# whose --require path is relative to the app (the load check runs in the library's folder, without it).
 W=$(mktemp -d -p "$WORK")
 mkdir -p "$W/lib/node_modules/@kleros" "$W/app/node_modules/.bin" "$W/app/node_modules/@kleros"
 cp -R "$LIB" "$W/lib/node_modules/@kleros/ui-components-library"
@@ -319,12 +329,18 @@ ln -s "$W/lib/node_modules/@kleros/ui-components-library" "$W/app/node_modules/@
 printf "$TOOLS\n" app > "$W/app/package.json"
 (cd "$W/app" && $CLI init >init.txt 2>&1 && grep -q "need eslint-plugin-better-tailwindcss as a devDependency; npm run ui:check fails until it is there" init.txt \
     && { $CLI check >c1.txt 2>&1; [[ $? -eq 1 ]]; } \
-    && grep -q "^setup: eslint-plugin-better-tailwindcss does not resolve from the app's copy of @kleros/ui-components-library, so the lint preset's Tailwind class rules .* are off, and ui:check fails until they are on" c1.txt \
+    && grep -q "^setup: eslint-plugin-better-tailwindcss does not resolve from the app's copy of @kleros/ui-components-library, so the lint preset's Tailwind class rules .* are off, and kleros-ui check fails until they are on" c1.txt \
+    && { $CLI baseline >b1.txt 2>&1; [[ $? -eq 1 ]]; } && [[ ! -e kleros-ui-baseline.json ]] \
+    && grep -q "^kleros-ui baseline: eslint-plugin-better-tailwindcss does not resolve .* Nothing was recorded\.$" b1.txt \
     && mkdir -p "$W/lib/node_modules/eslint-plugin-better-tailwindcss" \
     && echo '{"name":"eslint-plugin-better-tailwindcss","type":"module","exports":"./index.js"}' > "$W/lib/node_modules/eslint-plugin-better-tailwindcss/package.json" \
+    && echo 'throw new Error("broken plugin");' > "$W/lib/node_modules/eslint-plugin-better-tailwindcss/index.js" \
+    && { $CLI check >c3.txt 2>&1; [[ $? -eq 1 ]]; } \
+    && grep -q "^setup: eslint-plugin-better-tailwindcss is installed but fails to load from the app's copy of @kleros/ui-components-library (broken plugin)" c3.txt \
     && echo 'export default { rules: {} };' > "$W/lib/node_modules/eslint-plugin-better-tailwindcss/index.js" \
-    && { $CLI check >c2.txt 2>&1; ! grep -q "eslint-plugin-better-tailwindcss" c2.txt; }) \
-  && echo "gate: without eslint-plugin-better-tailwindcss, init says ui:check needs it and check fails setup naming it; with it, no plugin line"
+    && { $CLI check >c2.txt 2>&1; ! grep -q "eslint-plugin-better-tailwindcss" c2.txt; } \
+    && echo '// the app preload' > preload.cjs && { NODE_OPTIONS="--require ./preload.cjs" $CLI check >c4.txt 2>&1; ! grep -q "eslint-plugin-better-tailwindcss" c4.txt; }) \
+  && echo "gate: without eslint-plugin-better-tailwindcss, init says ui:check needs it, check fails setup naming it and baseline records nothing; a plugin that throws on import fails setup with its error; a working one gives no plugin line, also under an app NODE_OPTIONS --require"
 rm -rf "$W"
 
 # PR #127 review (F4): init records the app's one Tailwind stylesheet (Escrow's and Curate's src/global.css) as
